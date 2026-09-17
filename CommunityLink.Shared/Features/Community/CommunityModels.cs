@@ -1,0 +1,47 @@
+namespace CommunityLink.Shared.Features.Community;
+
+public sealed record CommunityModel(
+    int CommunityId,
+    string Name,
+    string Slug,
+    string? Description,
+    string? AvatarUrl,
+    string? BannerUrl,
+    string Visibility,
+    string JoinPolicy,
+    int MemberCount,
+    int PostCount,
+    double AverageRating,
+    int OwnerId,
+    string OwnerName,
+    DateTime CreatedAt);
+
+public sealed record CreateCommunityRequestModel(
+    string Name,
+    string Slug,
+    string? Description,
+    string? AvatarUrl,
+    string? BannerUrl,
+    string Visibility,
+    string JoinPolicy);
+
+public sealed record UpdateCommunityRequestModel(
+    int CommunityId,
+    string Name,
+    string? Description,
+    string? AvatarUrl,
+    string? BannerUrl,
+    string Visibility,
+    string JoinPolicy);
+
+public sealed record CommunityMemberModel(
+    int CommunityMemberId,
+    int CommunityId,
+    int UserId,
+    string UserName,
+    string DisplayName,
+    string? UserAvatar,
+    string Role,
+    DateTime JoinedAt);
+
+public sealed record JoinRequestModel(int CommunityId, string? Message);

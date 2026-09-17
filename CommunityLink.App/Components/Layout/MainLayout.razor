@@ -1,15 +1,42 @@
 @inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
 
 <div class="page">
-    <main>
-        <header class="p-3 bg-dark text-white">
-            <div class="container">
-                <h2>Community Link</h2>
-            </div>
-        </header>
+    <div class="sidebar">
+        <NavMenu />
+    </div>
 
-        <article class="content px-4">
+    <main>
+        <div class="top-row px-4 d-flex justify-content-between align-items-center bg-light border-bottom">
+            <div>
+                <span class="text-muted small">CommunityLink Enterprise Portal (.NET 10)</span>
+            </div>
+            <div>
+                <AuthorizeView>
+                    <Authorized>
+                        <span class="me-3 font-semibold">👤 @context.User.Identity?.Name</span>
+                        <form method="post" action="/account/logout" class="d-inline">
+                            <AntiforgeryToken />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Logout</button>
+                        </form>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="login" class="btn btn-sm btn-primary me-2">Login</a>
+                        <a href="register" class="btn btn-sm btn-outline-primary">Register</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </div>
+
+        <article class="content px-4 py-3">
             @Body
         </article>
     </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
 </div>

@@ -1,0 +1,69 @@
+<div class="top-row ps-3 navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand text-white font-bold" href="">🌐 CommunityLink</a>
+    </div>
+</div>
+
+<div class="nav-scrollable">
+    <nav class="flex-column nav">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                🏠 Home
+            </NavLink>
+        </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="feed">
+                        📰 Public Feed
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="communities">
+                        👥 Communities
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="polls">
+                        📊 Live Polls
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="chat">
+                        💬 Messages
+                    </NavLink>
+                </div>
+                <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)" Context="adminContext">
+                    <Authorized>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="admin">
+                                🛡️ Administration
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+                <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminRbacManage)" Context="rbacContext">
+                    <Authorized>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="admin/rbac">
+                                🔐 Role Permissions
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+            </Authorized>
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="login">
+                        🔑 Login
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="register">
+                        📝 Register
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </nav>
+</div>
