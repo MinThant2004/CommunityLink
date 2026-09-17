@@ -1,0 +1,140 @@
+@page "/communities"
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.CommunityView)]
+@inject CommunityApiService CommunityApi
+@inject ToastService Toast
+
+<PageTitle>Communities - CommunityLink</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="font-bold text-dark mb-0">👥 Communities</h2>
+        <p class="text-muted small">Explore hubs, collaborate, and share ideas.</p>
+    </div>
+    <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CommunityCreate)">
+        <Authorized>
+            <button class="btn btn-primary" @onclick="() => showCreateModal = true">➕ Create Community</button>
+        </Authorized>
+    </AuthorizeView>
+</div>
+
+<div class="mb-4">
+    <input type="text" class="form-control" placeholder="🔍 Search communities by name or slug..." @bind="searchTerm" @bind:after="LoadCommunities" />
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+}
+else if (communities == null || communities.Count == 0)
+{
+    <div class="alert alert-info text-center py-4">No communities found. Be the first to create one!</div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var c in communities)
+        {
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title font-bold text-primary mb-0">@c.Name</h5>
+                            <span class="badge bg-secondary text-uppercase">@c.Visibility</span>
+                        </div>
+                        <p class="card-text text-muted small mb-3">@(c.Description ?? "No description provided.")</p>
+                        <div class="d-flex justify-content-between text-muted small border-top pt-2">
+                            <span>👥 @c.MemberCount members</span>
+                            <span>📰 @c.PostCount posts</span>
+                            <span>⭐ @c.AverageRating.ToString("F1")</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0 pt-0">
+                        <button class="btn btn-outline-primary w-100 btn-sm" @onclick="() => JoinCommunity(c.CommunityId)">Join Community</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@if (showCreateModal)
+{
+    <div class="modal show d-block" style="background: rgba(0,0,0,0.5)">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title font-bold">Create New Community</h5>
+                    <button type="button" class="btn-close" @onclick="() => showCreateModal = false"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Community Name</label>
+                        <input type="text" class="form-control" @bind="newCommunityName" placeholder="e.g. .NET Developers" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Slug</label>
+                        <input type="text" class="form-control" @bind="newCommunitySlug" placeholder="dotnet-developers" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" rows="3" @bind="newCommunityDesc"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => showCreateModal = false">Cancel</button>
+                    <button class="btn btn-primary" @onclick="CreateCommunity">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<CommunityModel>? communities;
+    private string? searchTerm;
+    private bool isLoading = true;
+    private bool showCreateModal;
+    private string newCommunityName = "";
+    private string newCommunitySlug = "";
+    private string newCommunityDesc = "";
+
+    protected override async Task OnInitializedAsync() => await LoadCommunities();
+
+    private async Task LoadCommunities()
+    {
+        isLoading = true;
+        var result = await CommunityApi.GetCommunitiesAsync(searchTerm);
+        if (result.IsSuccess) communities = result.Data;
+        isLoading = false;
+    }
+
+    private async Task CreateCommunity()
+    {
+        if (string.IsNullOrWhiteSpace(newCommunityName)) return;
+        var req = new CreateCommunityRequestModel(newCommunityName, newCommunitySlug, newCommunityDesc, null, null, "Public", "Open");
+        var res = await CommunityApi.CreateCommunityAsync(req);
+        if (res.IsSuccess)
+        {
+            showCreateModal = false;
+            newCommunityName = "";
+            newCommunitySlug = "";
+            newCommunityDesc = "";
+            await LoadCommunities();
+            Toast.Success("Community created successfully!");
+        }
+    }
+
+    private async Task JoinCommunity(int id)
+    {
+        var res = await CommunityApi.JoinCommunityAsync(id);
+        if (res.IsSuccess)
+        {
+            Toast.Success("Joined community!");
+            await LoadCommunities();
+        }
+        else
+        {
+            Toast.Warning(res.Message ?? "Could not join community.");
+        }
+    }
+}

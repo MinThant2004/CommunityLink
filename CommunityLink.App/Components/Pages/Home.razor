@@ -1,7 +1,54 @@
 @page "/"
 
-<PageTitle>Community Link - Discover & Connect</PageTitle>
+<PageTitle>CommunityLink - Home</PageTitle>
 
-<h1>Welcome to Community Link</h1>
+<div class="p-5 mb-4 bg-light rounded-3 border">
+    <div class="container-fluid py-3">
+        <h1 class="display-5 fw-bold text-primary">🌐 Welcome to CommunityLink</h1>
+        <p class="col-md-8 fs-5 text-secondary">
+            A modern, scalable community platform built with <strong>.NET 10</strong>, <strong>C# 14</strong>, <strong>Blazor Server</strong>, and <strong>Dynamic RBAC</strong>.
+        </p>
+        <hr class="my-4" />
+        <AuthorizeView>
+            <Authorized>
+                <div class="d-flex gap-3">
+                    <a class="btn btn-primary btn-lg" href="feed">📰 Go to Public Feed</a>
+                    <a class="btn btn-outline-primary btn-lg" href="communities">👥 Explore Communities</a>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="d-flex gap-3">
+                    <a class="btn btn-primary btn-lg" href="login">🔑 Login to your account</a>
+                    <a class="btn btn-outline-primary btn-lg" href="register">📝 Create a new account</a>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</div>
 
-<p>Discover interest-based communities, interact with members, and build meaningful connections.</p>
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 bg-white">
+            <div class="card-body">
+                <h5 class="card-title text-primary">👥 Communities & Hubs</h5>
+                <p class="card-text text-muted">Join topical groups, manage memberships, and participate in community discussions.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 bg-white">
+            <div class="card-body">
+                <h5 class="card-title text-primary">📊 Live Polls & Voting</h5>
+                <p class="card-text text-muted">Create community polls with single or multiple choice questions and instant percentage calculation.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 bg-white">
+            <div class="card-body">
+                <h5 class="card-title text-primary">💬 Real-Time Messaging</h5>
+                <p class="card-text text-muted">Direct messaging and threaded chat conversations between community members.</p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,104 @@
+@page "/feed"
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PostView)]
+@inject PostApiService PostApi
+@inject ToastService Toast
+
+<PageTitle>Public Feed - CommunityLink</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Post Composer -->
+        <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.PostCreate)">
+            <Authorized>
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <h6 class="font-bold text-muted mb-3">✍️ Share something with the community</h6>
+                        <textarea class="form-control mb-3" rows="3" @bind="newPostContent" placeholder="What is on your mind?"></textarea>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Supports text and discussions</span>
+                            <button class="btn btn-primary btn-sm px-4" @onclick="SubmitPost" disabled="@isSubmitting">
+                                @(isSubmitting ? "Posting..." : "Publish Post")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+        @if (isLoading)
+        {
+            <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+        }
+        else if (posts == null || posts.Count == 0)
+        {
+            <div class="alert alert-info text-center py-4">No posts yet. Write the first post above!</div>
+        }
+        else
+        {
+            @foreach (var post in posts)
+            {
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary rounded-pill">👤</span>
+                                <div>
+                                    <h6 class="mb-0 font-bold">@post.AuthorName</h6>
+                                    <span class="text-muted small">@post.CreatedAt.ToLocalTime().ToString("g")</span>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(post.CommunityName))
+                            {
+                                <span class="badge bg-light text-dark border">📁 @post.CommunityName</span>
+                            }
+                        </div>
+                        <p class="card-text my-3">@post.Content</p>
+                        <div class="d-flex gap-3 border-top pt-2 text-muted small">
+                            <button class="btn btn-link btn-sm text-decoration-none p-0 @(post.IsLikedByCurrentUser ? "text-danger" : "text-secondary")" @onclick="() => LikePost(post.PostId)">
+                                ❤️ @post.LikeCount Likes
+                            </button>
+                            <span>💬 @post.CommentCount Comments</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private IReadOnlyList<PostModel>? posts;
+    private string newPostContent = "";
+    private bool isLoading = true;
+    private bool isSubmitting;
+
+    protected override async Task OnInitializedAsync() => await LoadFeed();
+
+    private async Task LoadFeed()
+    {
+        isLoading = true;
+        var res = await PostApi.GetFeedAsync();
+        if (res.IsSuccess) posts = res.Data;
+        isLoading = false;
+    }
+
+    private async Task SubmitPost()
+    {
+        if (string.IsNullOrWhiteSpace(newPostContent)) return;
+        isSubmitting = true;
+        var res = await PostApi.CreatePostAsync(new CreatePostRequestModel(null, newPostContent, null));
+        isSubmitting = false;
+        if (res.IsSuccess)
+        {
+            newPostContent = "";
+            await LoadFeed();
+            Toast.Success("Post published!");
+        }
+    }
+
+    private async Task LikePost(int id)
+    {
+        var res = await PostApi.LikePostAsync(id);
+        if (res.IsSuccess) await LoadFeed();
+    }
+}

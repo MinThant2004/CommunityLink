@@ -1,0 +1,137 @@
+@page "/admin/rbac"
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminRbacManage)]
+@inject RoleAndPermissionApiService RoleApi
+@inject ToastService Toast
+
+<PageTitle>Role Permissions - CommunityLink</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="font-bold text-dark mb-0">🔐 Role & Permission Matrix</h2>
+        <p class="text-muted small">Manage dynamic database-driven authorization permissions per role in real time.</p>
+    </div>
+    @if (matrix != null)
+    {
+        <button class="btn btn-primary" @onclick="SaveChanges" disabled="@isSaving">
+            @(isSaving ? "Saving..." : "💾 Save Changes")
+        </button>
+    }
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group shadow-sm border-0">
+            @if (roles != null)
+            {
+                @foreach (var r in roles)
+                {
+                    <button class="list-group-item list-group-item-action @(selectedRoleId == r.RoleId ? "active" : "")"
+                            @onclick="() => SelectRole(r.RoleId)">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>@r.Name</strong>
+                            <span class="badge bg-secondary rounded-pill">@r.UserCount</span>
+                        </div>
+                        <small class="text-muted">@r.Code</small>
+                    </button>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        @if (isLoading)
+        {
+            <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+        }
+        else if (matrix != null)
+        {
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white font-bold py-3">
+                    Permissions for: <span class="text-primary">@matrix.RoleName (@matrix.RoleCode)</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50px;">Grant</th>
+                                    <th>Permission Code</th>
+                                    <th>Permission Name</th>
+                                    <th>Module</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in matrix.Permissions)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="form-check-input"
+                                                   checked="@p.IsGranted"
+                                                   @onchange="(e) => TogglePermission(p.Code, (bool)(e.Value ?? false))" />
+                                        </td>
+                                        <td><code>@p.Code</code></td>
+                                        <td>@p.Name</td>
+                                        <td><span class="badge bg-light text-dark border">@p.Module</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private IReadOnlyList<RoleModel>? roles;
+    private RolePermissionMatrixResponseModel? matrix;
+    private int selectedRoleId = 1;
+    private HashSet<string> grantedCodes = new(StringComparer.OrdinalIgnoreCase);
+    private bool isLoading = true;
+    private bool isSaving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var res = await RoleApi.GetRolesAsync();
+        if (res.IsSuccess && res.Data?.Count > 0)
+        {
+            roles = res.Data;
+            selectedRoleId = roles[0].RoleId;
+            await SelectRole(selectedRoleId);
+        }
+    }
+
+    private async Task SelectRole(int roleId)
+    {
+        selectedRoleId = roleId;
+        isLoading = true;
+        var res = await RoleApi.GetRolePermissionsAsync(roleId);
+        if (res.IsSuccess && res.Data != null)
+        {
+            matrix = res.Data;
+            grantedCodes = new HashSet<string>(matrix.Permissions.Where(p => p.IsGranted).Select(p => p.Code), StringComparer.OrdinalIgnoreCase);
+        }
+        isLoading = false;
+    }
+
+    private void TogglePermission(string code, bool grant)
+    {
+        if (grant) grantedCodes.Add(code);
+        else grantedCodes.Remove(code);
+    }
+
+    private async Task SaveChanges()
+    {
+        isSaving = true;
+        var req = new UpdateRolePermissionsRequestModel(selectedRoleId, grantedCodes.ToList());
+        var res = await RoleApi.UpdateRolePermissionsAsync(req);
+        isSaving = false;
+        if (res.IsSuccess)
+        {
+            Toast.Success("Permissions saved successfully!");
+            await SelectRole(selectedRoleId);
+        }
+        else Toast.Error(res.Message ?? "Failed to save permissions.");
+    }
+}
