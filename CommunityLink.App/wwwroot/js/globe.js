@@ -1,5 +1,5 @@
-// FiberNeonGlobe — Three.js interactive globe animation
-// Called via Blazor JS Interop from Home.razor
+// FiberNeonGlobe — Three.js interactive globe animation with Continental Coastlines
+// Adapted from FiberNeonGlobe3.txt for Blazor JS Interop
 
 let _globeRenderer = null;
 let _globeAnimationId = null;
@@ -15,7 +15,7 @@ window.initGlobe = function () {
     if (!container || typeof THREE === 'undefined') return;
 
     const width = container.clientWidth || window.innerWidth;
-    const height = container.clientHeight || window.innerHeight;
+    const height = container.clientHeight || 560;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
@@ -31,36 +31,142 @@ window.initGlobe = function () {
     const globeGroup = new THREE.Group();
     scene.add(globeGroup);
 
-    // Soft, balanced ambient & directional lighting
-    const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.75);
+    // Soft ambient & balanced directional lighting
+    const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.85);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.2);
+    const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.3);
     dirLight1.position.set(12, 10, 15);
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0xd4af37, 0.85);
+    const dirLight2 = new THREE.DirectionalLight(0xd4af37, 0.9);
     dirLight2.position.set(-15, -8, -10);
     scene.add(dirLight2);
 
-    // 1. Sleek Translucent Inner Core Sphere
+    // 1. Sleek Glass Inner Core Sphere with Soft Depth
     const sphereRadius = 6.2;
     const sphereGeo = new THREE.SphereGeometry(sphereRadius, 64, 64);
     const sphereMat = new THREE.MeshPhongMaterial({
-        color: 0x0c1427,
-        emissive: 0x081020,
-        shininess: 40,
+        color: 0x0a1120,
+        emissive: 0x060c18,
+        shininess: 35,
         transparent: true,
-        opacity: 0.85
+        opacity: 0.88
     });
     const coreGlobe = new THREE.Mesh(sphereGeo, sphereMat);
     globeGroup.add(coreGlobe);
 
-    // 2. Minimal Wireframe Latitude & Longitude Meridian Grid
+    // Subtle Glass Atmosphere Rim
+    const glowGeo = new THREE.SphereGeometry(sphereRadius + 0.04, 48, 48);
+    const glowMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.08,
+        side: THREE.BackSide
+    });
+    globeGroup.add(new THREE.Mesh(glowGeo, glowMat));
+
+    // Utility: Lat/Lon to 3D Cartesian coordinates on sphere
+    function latLonToVector3(lat, lon, radius) {
+        const phi = (90 - lat) * (Math.PI / 180);
+        const theta = (lon + 180) * (Math.PI / 180);
+        const x = -(radius * Math.sin(phi) * Math.cos(theta));
+        const z = radius * Math.sin(phi) * Math.sin(theta);
+        const y = radius * Math.cos(phi);
+        return new THREE.Vector3(x, y, z);
+    }
+
+    // 2. Soft Tactile Geographical Maplines & Continental Coastlines (Surface Contours)
+    const continentOutlines = [
+        // North America
+        [
+            [70, -160], [71, -130], [68, -100], [62, -75], [58, -60], [47, -53], [44, -64], [35, -75], [25, -80],
+            [29, -90], [26, -97], [18, -95], [15, -92], [9, -79], [13, -87], [20, -105], [28, -112], [34, -119],
+            [48, -124], [58, -136], [60, -148], [65, -168], [70, -160]
+        ],
+        // South America
+        [
+            [11, -75], [8, -60], [4, -51], [-3, -40], [-10, -36], [-22, -41], [-34, -53], [-46, -65], [-54, -68],
+            [-50, -74], [-40, -73], [-20, -70], [-5, -80], [4, -77], [11, -75]
+        ],
+        // Europe & Mediterranean
+        [
+            [71, 28], [60, 25], [55, 12], [54, 5], [48, -4], [43, -9], [37, -9], [36, -5], [38, 0], [43, 4],
+            [40, 18], [37, 23], [41, 29], [46, 30], [46, 38], [55, 38], [65, 40], [70, 32], [71, 28]
+        ],
+        // British Isles
+        [
+            [58, -5], [54, 0], [51, 1], [50, -5], [54, -4], [58, -5]
+        ],
+        // Africa
+        [
+            [36, -5], [37, 10], [32, 25], [31, 32], [22, 37], [12, 44], [12, 51], [5, 48], [-11, 40], [-26, 33],
+            [-34, 26], [-34, 18], [-22, 14], [-12, 13], [4, 9], [5, 1], [4, -7], [12, -16], [21, -17], [32, -9], [36, -5]
+        ],
+        // Asia Main Coastline & Subcontinents
+        [
+            [75, 105], [72, 135], [70, 175], [60, 165], [52, 142], [42, 131], [38, 122], [30, 122], [22, 114],
+            [16, 108], [10, 105], [3, 102], [1, 104], [10, 99], [16, 96], [21, 91], [22, 88], [15, 80], [8, 77],
+            [13, 74], [21, 70], [25, 62], [25, 57], [15, 53], [12, 44], [25, 55], [30, 48], [40, 50], [42, 70],
+            [50, 85], [55, 100], [65, 105], [75, 105]
+        ],
+        // Japan Archipelago
+        [
+            [44, 145], [40, 140], [35, 135], [33, 130], [35, 133], [39, 142], [44, 145]
+        ],
+        // Australia
+        [
+            [-12, 132], [-14, 136], [-12, 142], [-22, 150], [-33, 152], [-38, 145], [-35, 136], [-32, 129],
+            [-34, 118], [-26, 113], [-20, 118], [-15, 125], [-12, 132]
+        ],
+        // Southeast Asia / Maritime Indonesian Island Chain
+        [
+            [5, 96], [0, 102], [-5, 106], [-7, 112], [-8, 116], [-8, 122], [-4, 120], [-1, 117], [4, 118], [6, 115], [5, 96]
+        ],
+        // Philippines
+        [
+            [18, 121], [14, 124], [7, 125], [10, 122], [15, 120], [18, 121]
+        ],
+        // Scandinavia
+        [
+            [71, 26], [68, 15], [62, 5], [58, 8], [56, 13], [60, 18], [65, 23], [71, 26]
+        ]
+    ];
+
+    // Draw soft glowing maplines right on the surface of the globe
+    const mapLineMat = new THREE.LineBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.38,
+        linewidth: 1.5
+    });
+
+    continentOutlines.forEach(polygon => {
+        const pts = [];
+        for (let i = 0; i < polygon.length - 1; i++) {
+            const p1 = polygon[i];
+            const p2 = polygon[i + 1];
+            const steps = 6;
+            for (let s = 0; s < steps; s++) {
+                const t = s / steps;
+                const lat = p1[0] + (p2[0] - p1[0]) * t;
+                const lon = p1[1] + (p2[1] - p1[1]) * t;
+                pts.push(latLonToVector3(lat, lon, sphereRadius + 0.035));
+            }
+        }
+        const lastPt = polygon[polygon.length - 1];
+        pts.push(latLonToVector3(lastPt[0], lastPt[1], sphereRadius + 0.035));
+
+        const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+        const lineMesh = new THREE.Line(lineGeo, mapLineMat);
+        globeGroup.add(lineMesh);
+    });
+
+    // 3. Subtle Meridian & Latitude Wireframe Grid
     const wireMat = new THREE.LineBasicMaterial({
         color: 0x38bdf8,
         transparent: true,
-        opacity: 0.16
+        opacity: 0.12
     });
 
     // Latitude rings
@@ -79,7 +185,7 @@ window.initGlobe = function () {
         globeGroup.add(ring);
     }
 
-    // Longitude rings
+    // Longitude meridians
     for (let lon = 0; lon < 180; lon += 30) {
         const circleGeo = new THREE.BufferGeometry();
         const pts = [];
@@ -96,17 +202,49 @@ window.initGlobe = function () {
         globeGroup.add(meridian);
     }
 
-    // Utility: Lat/Lon to 3D Cartesian coordinates
-    function latLonToVector3(lat, lon, radius) {
-        const phi = (90 - lat) * (Math.PI / 180);
-        const theta = (lon + 180) * (Math.PI / 180);
-        const x = -(radius * Math.sin(phi) * Math.cos(theta));
-        const z = radius * Math.sin(phi) * Math.sin(theta);
-        const y = radius * Math.cos(phi);
-        return new THREE.Vector3(x, y, z);
-    }
+    // 4. Soft Continental Point Cloud Clusters
+    const particlePts = [];
+    const particleColors = [];
 
-    // Global Hub Nodes
+    const landmasses = [
+        { lat: 45, lon: -100, spanLat: 22, spanLon: 35, count: 180 },
+        { lat: -15, lon: -55, spanLat: 22, spanLon: 22, count: 130 },
+        { lat: 50, lon: 15, spanLat: 14, spanLon: 22, count: 150 },
+        { lat: 5, lon: 20, spanLat: 28, spanLon: 22, count: 160 },
+        { lat: 35, lon: 95, spanLat: 28, spanLon: 40, count: 240 },
+        { lat: -25, lon: 135, spanLat: 14, spanLon: 18, count: 90 },
+        { lat: 18, lon: 96, spanLat: 10, spanLon: 10, count: 80 }
+    ];
+
+    landmasses.forEach(land => {
+        for (let i = 0; i < land.count; i++) {
+            const lat = land.lat + (Math.random() - 0.5) * land.spanLat * 2;
+            const lon = land.lon + (Math.random() - 0.5) * land.spanLon * 2;
+            const v = latLonToVector3(lat, lon, sphereRadius + 0.04);
+            particlePts.push(v.x, v.y, v.z);
+
+            const isGold = Math.random() < 0.12;
+            if (isGold) {
+                particleColors.push(0.83, 0.68, 0.21);
+            } else {
+                particleColors.push(0.22, 0.74, 0.97);
+            }
+        }
+    });
+
+    const dotGeo = new THREE.BufferGeometry();
+    dotGeo.setAttribute('position', new THREE.Float32BufferAttribute(particlePts, 3));
+    dotGeo.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
+
+    const dotMat = new THREE.PointsMaterial({
+        size: 0.11,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.6
+    });
+    globeGroup.add(new THREE.Points(dotGeo, dotMat));
+
+    // 5. Global Hub Nodes
     const hubs = [
         { name: 'San Francisco', lat: 37.77, lon: -122.41, color: 0x38bdf8 },
         { name: 'Seattle', lat: 47.60, lon: -122.33, color: 0x38bdf8 },
@@ -137,50 +275,6 @@ window.initGlobe = function () {
         { name: 'Nairobi', lat: -1.29, lon: 36.82, color: 0xd4af37 }
     ];
 
-    // Minimal continent point cloud clusters
-    const particlePts = [];
-    const particleColors = [];
-
-    const landmasses = [
-        { lat: 45, lon: -100, spanLat: 25, spanLon: 40, count: 200 },
-        { lat: -15, lon: -55, spanLat: 25, spanLon: 25, count: 140 },
-        { lat: 50, lon: 15, spanLat: 15, spanLon: 25, count: 160 },
-        { lat: 5, lon: 20, spanLat: 30, spanLon: 25, count: 180 },
-        { lat: 35, lon: 95, spanLat: 30, spanLon: 45, count: 280 },
-        { lat: -25, lon: 135, spanLat: 15, spanLon: 20, count: 100 },
-        { lat: 18, lon: 96, spanLat: 10, spanLon: 10, count: 80 }
-    ];
-
-    landmasses.forEach(land => {
-        for (let i = 0; i < land.count; i++) {
-            const lat = land.lat + (Math.random() - 0.5) * land.spanLat * 2;
-            const lon = land.lon + (Math.random() - 0.5) * land.spanLon * 2;
-            const v = latLonToVector3(lat, lon, sphereRadius + 0.03);
-            particlePts.push(v.x, v.y, v.z);
-
-            const isGold = Math.random() < 0.12;
-            if (isGold) {
-                particleColors.push(0.83, 0.68, 0.21);
-            } else {
-                particleColors.push(0.22, 0.74, 0.97);
-            }
-        }
-    });
-
-    const dotGeo = new THREE.BufferGeometry();
-    dotGeo.setAttribute('position', new THREE.Float32BufferAttribute(particlePts, 3));
-    dotGeo.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
-
-    const dotMat = new THREE.PointsMaterial({
-        size: 0.12,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.65
-    });
-    const dotParticles = new THREE.Points(dotGeo, dotMat);
-    globeGroup.add(dotParticles);
-
-    // 4. Hub Nodes (Clean small spheres + tiny halo rings)
     const hubMeshes = [];
     hubs.forEach(hub => {
         const pos = latLonToVector3(hub.lat, hub.lon, sphereRadius + 0.08);
@@ -208,7 +302,7 @@ window.initGlobe = function () {
         hubMeshes.push({ group: hubGroup, ring: rMesh, mat: rMat, basePos: pos });
     });
 
-    // 5. Neon Fiber Lines
+    // 6. Neon Fiber Lines with Traveling Data Packets
     const connections = [
         ['San Francisco', 'Tokyo'],
         ['San Francisco', 'New York'],
@@ -301,8 +395,7 @@ window.initGlobe = function () {
             transparent: true,
             opacity: isGold ? 0.65 : 0.42
         });
-        const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
-        globeGroup.add(tubeMesh);
+        globeGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
 
         if (idx % 2 === 0) {
             const pGeo = new THREE.SphereGeometry(0.048, 8, 8);
@@ -397,7 +490,7 @@ window.initGlobe = function () {
         _globeAnimationId = requestAnimationFrame(animate);
         time += 0.015;
 
-        // Smooth rotation dampening
+        // Rotation dampening
         globeGroup.rotation.y += (targetRotY - globeGroup.rotation.y) * 0.08;
         globeGroup.rotation.x += (targetRotX - globeGroup.rotation.x) * 0.08;
 
@@ -405,7 +498,7 @@ window.initGlobe = function () {
             targetRotY += 0.0018;
         }
 
-        // Gentle pulse for hub halos
+        // Pulse hub halos
         hubMeshes.forEach((h, i) => {
             const scale = 1 + Math.sin(time * 2.5 + i) * 0.2;
             h.ring.scale.set(scale, scale, 1);
@@ -426,7 +519,7 @@ window.initGlobe = function () {
     // Resize handling
     _globeResizeHandler = function () {
         const newW = container.clientWidth || window.innerWidth;
-        const newH = container.clientHeight || window.innerHeight;
+        const newH = container.clientHeight || 560;
         camera.aspect = newW / newH;
         camera.updateProjectionMatrix();
         renderer.setSize(newW, newH);
