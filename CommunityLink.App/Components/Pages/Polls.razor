@@ -1,0 +1,136 @@
+@page "/polls"
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PollView)]
+@inject PollApiService PollApi
+@inject ToastService Toast
+
+<PageTitle>Polls & Voting - CommunityLink</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="font-bold text-dark mb-0">📊 Community Polls</h2>
+                <p class="text-muted small">Vote on live polls and voice your opinion.</p>
+            </div>
+            <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.PollCreate)">
+                <Authorized>
+                    <button class="btn btn-primary" @onclick="() => showCreateModal = true">➕ Create Poll</button>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+        }
+        else if (polls == null || polls.Count == 0)
+        {
+            <div class="alert alert-info text-center py-4">No active polls found. Create one now!</div>
+        }
+        else
+        {
+            @foreach (var poll in polls)
+            {
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <h5 class="font-bold text-dark mb-3">❓ @poll.Question</h5>
+                        <div class="mb-3">
+                            @foreach (var opt in poll.Options)
+                            {
+                                <div class="mb-2 p-2 border rounded @(opt.IsVotedByCurrentUser ? "bg-light border-primary" : "")">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span>@opt.Text @(opt.IsVotedByCurrentUser ? "✅ (Your Vote)" : "")</span>
+                                        <span class="font-bold">@opt.Percentage% (@opt.VoteCount votes)</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: @opt.Percentage%"></div>
+                                    </div>
+                                    @if (!poll.HasVoted)
+                                    {
+                                        <button class="btn btn-sm btn-outline-primary mt-2" @onclick="() => Vote(poll.PollId, opt.OptionId)">Vote for this option</button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="text-muted small">Total votes: @poll.TotalVotes</div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@if (showCreateModal)
+{
+    <div class="modal show d-block" style="background: rgba(0,0,0,0.5)">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title font-bold">Create a New Poll</h5>
+                    <button type="button" class="btn-close" @onclick="() => showCreateModal = false"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Question</label>
+                        <input type="text" class="form-control" @bind="newQuestion" placeholder="e.g. Which framework version do you prefer?" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Option 1</label>
+                        <input type="text" class="form-control" @bind="opt1" placeholder="Option A" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Option 2</label>
+                        <input type="text" class="form-control" @bind="opt2" placeholder="Option B" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => showCreateModal = false">Cancel</button>
+                    <button class="btn btn-primary" @onclick="CreatePoll">Publish Poll</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<PollModel>? polls;
+    private bool isLoading = true;
+    private bool showCreateModal;
+    private string newQuestion = "";
+    private string opt1 = "";
+    private string opt2 = "";
+
+    protected override async Task OnInitializedAsync() => await LoadPolls();
+
+    private async Task LoadPolls()
+    {
+        isLoading = true;
+        var res = await PollApi.GetPollsAsync();
+        if (res.IsSuccess) polls = res.Data;
+        isLoading = false;
+    }
+
+    private async Task Vote(int pollId, int optId)
+    {
+        var res = await PollApi.VoteAsync(new VoteRequestModel(pollId, [optId]));
+        if (res.IsSuccess)
+        {
+            Toast.Success("Vote counted!");
+            await LoadPolls();
+        }
+        else Toast.Warning(res.Message ?? "Vote failed.");
+    }
+
+    private async Task CreatePoll()
+    {
+        if (string.IsNullOrWhiteSpace(newQuestion) || string.IsNullOrWhiteSpace(opt1) || string.IsNullOrWhiteSpace(opt2)) return;
+        var res = await PollApi.CreatePollAsync(new CreatePollRequestModel(null, newQuestion, newQuestion, false, null, [opt1, opt2]));
+        if (res.IsSuccess)
+        {
+            showCreateModal = false;
+            newQuestion = opt1 = opt2 = "";
+            await LoadPolls();
+            Toast.Success("Poll created!");
+        }
+    }
+}

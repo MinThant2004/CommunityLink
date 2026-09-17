@@ -1,0 +1,101 @@
+@page "/admin"
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+@inject AdministrationApiService AdminApi
+
+<PageTitle>Administration - CommunityLink</PageTitle>
+
+<h2 class="font-bold text-dark mb-4">🛡️ System Administration</h2>
+
+@if (stats == null)
+{
+    <div class="spinner-border text-primary" role="status"></div>
+}
+else
+{
+    <div class="row g-4 mb-4">
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm bg-primary text-white text-center p-3">
+                <h3 class="mb-0 font-bold">@stats.TotalUsers</h3>
+                <small>Total Users</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm bg-success text-white text-center p-3">
+                <h3 class="mb-0 font-bold">@stats.TotalCommunities</h3>
+                <small>Communities</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm bg-info text-white text-center p-3">
+                <h3 class="mb-0 font-bold">@stats.TotalPosts</h3>
+                <small>Total Posts</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm bg-warning text-dark text-center p-3">
+                <h3 class="mb-0 font-bold">@stats.TotalPolls</h3>
+                <small>Active Polls</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm bg-secondary text-white text-center p-3">
+                <h3 class="mb-0 font-bold">@stats.ActiveConversations</h3>
+                <small>Conversations</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm bg-dark text-white text-center p-3">
+                <h3 class="mb-0 font-bold">@stats.TotalAuditLogs</h3>
+                <small>Audit Logs</small>
+            </div>
+        </div>
+    </div>
+}
+
+<h4 class="font-bold mb-3">👥 User Directory</h4>
+@if (users != null)
+{
+    <div class="table-responsive bg-white rounded shadow-sm border mb-4">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>User ID</th>
+                    <th>Display Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in users)
+                {
+                    <tr>
+                        <td>#@u.UserId</td>
+                        <td class="font-bold">@u.DisplayName</td>
+                        <td>@@@u.UserName</td>
+                        <td>@u.Email</td>
+                        <td><span class="badge bg-primary">@u.RoleCode</span></td>
+                        <td><span class="badge @(u.IsActive ? "bg-success" : "bg-danger")">@(u.IsActive ? "Active" : "Inactive")</span></td>
+                        <td>@u.CreatedAt.ToString("d")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private AdminDashboardStatsModel? stats;
+    private IReadOnlyList<UserInfoModel>? users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var statsRes = await AdminApi.GetStatsAsync();
+        if (statsRes.IsSuccess) stats = statsRes.Data;
+
+        var usersRes = await AdminApi.GetUsersAsync();
+        if (usersRes.IsSuccess) users = usersRes.Data;
+    }
+}
