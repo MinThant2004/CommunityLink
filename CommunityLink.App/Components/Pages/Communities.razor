@@ -1,126 +1,502 @@
 @page "/communities"
-@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.CommunityView)]
+@page "/community"
+@rendermode InteractiveServer
 @inject CommunityApiService CommunityApi
 @inject ToastService Toast
 
-<PageTitle>Communities - CommunityLink</PageTitle>
+<PageTitle>Communities & Sub-communities - CommunityLink</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="font-bold text-dark mb-0">👥 Communities</h2>
-        <p class="text-muted small">Explore hubs, collaborate, and share ideas.</p>
-    </div>
-    <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CommunityCreate)">
-        <Authorized>
-            <button class="btn btn-primary" @onclick="() => showCreateModal = true">➕ Create Community</button>
-        </Authorized>
-    </AuthorizeView>
-</div>
-
-<div class="mb-4">
-    <input type="text" class="form-control" placeholder="🔍 Search communities by name or slug..." @bind="searchTerm" @bind:after="LoadCommunities" />
-</div>
-
-@if (isLoading)
-{
-    <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
-}
-else if (communities == null || communities.Count == 0)
-{
-    <div class="alert alert-info text-center py-4">No communities found. Be the first to create one!</div>
-}
-else
-{
-    <div class="row g-4">
-        @foreach (var c in communities)
-        {
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title font-bold text-primary mb-0">@c.Name</h5>
-                            <span class="badge bg-secondary text-uppercase">@c.Visibility</span>
-                        </div>
-                        <p class="card-text text-muted small mb-3">@(c.Description ?? "No description provided.")</p>
-                        <div class="d-flex justify-content-between text-muted small border-top pt-2">
-                            <span>👥 @c.MemberCount members</span>
-                            <span>📰 @c.PostCount posts</span>
-                            <span>⭐ @c.AverageRating.ToString("F1")</span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-white border-0 pt-0">
-                        <button class="btn btn-outline-primary w-100 btn-sm" @onclick="() => JoinCommunity(c.CommunityId)">Join Community</button>
-                    </div>
-                </div>
+<div class="min-h-screen bg-slate-50/50 py-6 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- Header & Action Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+                    Communities & Sub-communities
+                </h1>
+                <p class="text-sm text-slate-500 mt-1">
+                    Explore hubs, collaborate, or establish a new community or sub-community.
+                </p>
             </div>
-        }
-    </div>
-}
 
-@if (showCreateModal)
-{
-    <div class="modal show d-block" style="background: rgba(0,0,0,0.5)">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title font-bold">Create New Community</h5>
-                    <button type="button" class="btn-close" @onclick="() => showCreateModal = false"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Community Name</label>
-                        <input type="text" class="form-control" @bind="newCommunityName" placeholder="e.g. .NET Developers" />
+            <!-- Header Action Controls -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Search Input with Icon -->
+                <div class="relative min-w-[240px] sm:min-w-[280px]">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Slug</label>
-                        <input type="text" class="form-control" @bind="newCommunitySlug" placeholder="dotnet-developers" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control" rows="3" @bind="newCommunityDesc"></textarea>
-                    </div>
+                    <input type="text"
+                           class="w-full pl-9 pr-8 py-2 bg-white text-sm text-slate-900 placeholder-slate-400 rounded-full border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm"
+                           placeholder="Search communities or..."
+                           @bind="searchTerm"
+                           @bind:after="LoadCommunities" />
+                    @if (!string.IsNullOrEmpty(searchTerm))
+                    {
+                        <button type="button" @onclick="ClearSearch" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    }
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="() => showCreateModal = false">Cancel</button>
-                    <button class="btn btn-primary" @onclick="CreateCommunity">Create</button>
-                </div>
+
+                <!-- Create Community Button -->
+                <button type="button"
+                        @onclick="OpenCreateCommunity"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    <span class="text-base leading-none font-bold">+</span>
+                    <span>Create Community</span>
+                </button>
+
+                <!-- Create Sub-community Button -->
+                <button type="button"
+                        @onclick="OpenCreateSubCommunity"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    <span class="text-base leading-none font-bold text-slate-500">+</span>
+                    <span>Create Sub-community</span>
+                </button>
             </div>
         </div>
+
+        <!-- Main Content Area: Grid on Left + Right Form Drawer (if open) -->
+        <div class="grid grid-cols-1 @(isSidePanelOpen ? "lg:grid-cols-3" : "grid-cols-1") gap-6 items-start">
+            
+            <!-- Left Column: Community Cards Grid -->
+            <div class="@(isSidePanelOpen ? "lg:col-span-2" : "col-span-1") space-y-6">
+                @if (isLoading)
+                {
+                    <div class="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                        <p class="text-sm text-slate-400 mt-3 font-medium">Loading communities...</p>
+                    </div>
+                }
+                else if (communities == null || communities.Count == 0)
+                {
+                    <div class="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
+                        <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-base font-semibold text-slate-800">No communities found</h3>
+                        <p class="text-sm text-slate-500 mt-1 max-w-sm mx-auto">Get started by creating the very first community or refine your search query.</p>
+                        <div class="mt-4">
+                            <button type="button" @onclick="OpenCreateCommunity" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all">
+                                + Create Community
+                            </button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    var topLevelCommunities = communities.Where(c => c.ParentCommunityId == null).ToList();
+
+                    <div class="grid grid-cols-1 @(isSidePanelOpen ? "md:grid-cols-1 xl:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-3") gap-5">
+                        @foreach (var c in topLevelCommunities)
+                        {
+                            var subs = communities.Where(s => s.ParentCommunityId == c.CommunityId).ToList();
+
+                            <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-indigo-300 p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between">
+                                <!-- Card Header -->
+                                <div>
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div>
+                                            <h3 class="text-base font-bold text-slate-900 leading-snug">@c.Name</h3>
+                                            <span class="inline-flex items-center px-2 py-0.5 mt-1 rounded text-xs font-medium bg-indigo-50 text-indigo-700">
+                                                @c.Name
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <p class="text-xs text-slate-600 mt-2 line-clamp-2 leading-relaxed">
+                                        @(string.IsNullOrWhiteSpace(c.Description) ? "No description provided." : c.Description)
+                                    </p>
+
+                                    <!-- Sub-communities Badge -->
+                                    <div class="mt-3 flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                        </svg>
+                                        <span>Sub-communities (@subs.Count)</span>
+                                    </div>
+
+                                    <!-- Nested Sub-community items box -->
+                                    @if (subs.Count > 0)
+                                    {
+                                        <div class="mt-2 space-y-2">
+                                            @foreach (var sub in subs)
+                                            {
+                                                <div class="bg-slate-50 border border-slate-200/70 rounded-xl p-3">
+                                                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                                                        <div class="flex items-center gap-1.5 min-w-0">
+                                                            <span class="text-emerald-600 text-sm">🌿</span>
+                                                            <span class="text-xs font-semibold text-slate-800 truncate">@sub.Name</span>
+                                                        </div>
+                                                        <button type="button" @onclick="() => JoinCommunity(sub.CommunityId)" class="px-2.5 py-0.5 text-[11px] font-medium rounded-md border border-slate-300 text-slate-700 hover:bg-white transition-colors">
+                                                            Join
+                                                        </button>
+                                                    </div>
+
+                                                    <!-- Member Avatars Mock & Stats -->
+                                                    <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
+                                                        <div class="flex items-center gap-1">
+                                                            <div class="flex -space-x-1.5 overflow-hidden">
+                                                                <span class="inline-block h-4 w-4 rounded-full ring-1 ring-white bg-slate-400 text-white text-[8px] font-bold text-center leading-4">A</span>
+                                                                <span class="inline-block h-4 w-4 rounded-full ring-1 ring-white bg-indigo-400 text-white text-[8px] font-bold text-center leading-4">U</span>
+                                                            </div>
+                                                            <span class="ml-1">@sub.MemberCount member</span>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <span>@sub.PostCount posts</span>
+                                                            <span class="flex items-center gap-0.5 text-amber-500 font-medium">★ @sub.AverageRating.ToString("F1")</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="mt-2 text-[11px] text-slate-400 italic bg-slate-50/50 p-2 rounded-lg border border-dashed border-slate-200">
+                                            No sub-communities yet.
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Card Footer: Quick Actions -->
+                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                                    <button type="button"
+                                            @onclick="() => OpenSubCommunityForParent(c.CommunityId)"
+                                            class="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1">
+                                        <span>+ Add Sub-community</span>
+                                    </button>
+
+                                    <button type="button"
+                                            @onclick="() => JoinCommunity(c.CommunityId)"
+                                            class="px-3 py-1 text-xs font-medium rounded-lg text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
+                                        Join
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Right Column: Create Community or Sub-community Form Panel -->
+            @if (isSidePanelOpen)
+            {
+                <div class="col-span-1 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm sticky top-6">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                        <h2 class="text-base font-bold text-slate-900">
+                            @(isCreatingSub ? "Create Sub-community" : "Create Community")
+                        </h2>
+                        <button type="button" @onclick="CloseSidePanel" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(panelErrorMessage))
+                    {
+                        <div class="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+                            <span class="text-rose-500 font-bold">⚠</span>
+                            <span class="flex-1">@panelErrorMessage</span>
+                        </div>
+                    }
+
+                    <div class="space-y-4">
+                        @if (isCreatingSub)
+                        {
+                            <!-- Parent Community Select -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">
+                                    Parent Community <span class="text-rose-500">*</span>
+                                </label>
+                                @if (ParentCommunityOptions.Count == 0)
+                                {
+                                    <div class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs">
+                                        No parent community exists. Please create a community first!
+                                    </div>
+                                }
+                                else
+                                {
+                                    <select class="w-full px-3 py-2 bg-white text-xs text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                            @bind="selectedParentCommunityId">
+                                        <option value="0">-- Select a Community --</option>
+                                        @foreach (var parent in ParentCommunityOptions)
+                                        {
+                                            <option value="@parent.CommunityId">@parent.Name</option>
+                                        }
+                                    </select>
+                                }
+                            </div>
+
+                            <!-- Sub-community Name Input -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">
+                                    Sub-community Name <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text"
+                                       class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       placeholder="Sub-community Name"
+                                       @bind="subCommunityName" />
+                            </div>
+
+                            <!-- Sub-community Description Input -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
+                                <textarea rows="3"
+                                          class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                          placeholder="Focus tech or description"
+                                          @bind="subCommunityDesc"></textarea>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Community Name Input -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">
+                                    Community Name <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text"
+                                       class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       placeholder="e.g. Technology"
+                                       @bind="communityName" />
+                            </div>
+
+                            <!-- Community Description Input -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
+                                <textarea rows="3"
+                                          class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                          placeholder="Describe the purpose of this community..."
+                                          @bind="communityDesc"></textarea>
+                            </div>
+                        }
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center justify-end gap-2 pt-2">
+                            <button type="button"
+                                    @onclick="CloseSidePanel"
+                                    disabled="@isSubmitting"
+                                    class="px-3.5 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 bg-white hover:bg-slate-100 rounded-lg border border-slate-300 transition-colors">
+                                Cancel
+                            </button>
+                            <button type="button"
+                                    @onclick="SubmitForm"
+                                    disabled="@isSubmitting"
+                                    class="px-4 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg transition-colors shadow-sm disabled:opacity-50">
+                                @(isSubmitting ? "Saving..." : (isCreatingSub ? "Create Sub-community" : "Create Community"))
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     </div>
-}
+</div>
 
 @code {
     private IReadOnlyList<CommunityModel>? communities;
     private string? searchTerm;
     private bool isLoading = true;
-    private bool showCreateModal;
-    private string newCommunityName = "";
-    private string newCommunitySlug = "";
-    private string newCommunityDesc = "";
+    private bool isSubmitting;
 
-    protected override async Task OnInitializedAsync() => await LoadCommunities();
+    // Side panel state
+    private bool isSidePanelOpen = true;
+    private bool isCreatingSub = true;
+    private string? panelErrorMessage;
+
+    // Community Form State
+    private string communityName = "";
+    private string communityDesc = "";
+
+    // Sub-Community Form State
+    private int selectedParentCommunityId;
+    private string subCommunityName = "";
+    private string subCommunityDesc = "";
+
+    private List<CommunityModel> ParentCommunityOptions =>
+        communities?.Where(c => c.ParentCommunityId == null).OrderBy(c => c.Name).ToList() ?? new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCommunities();
+        
+        // Auto-select first parent community if available
+        var parents = ParentCommunityOptions;
+        if (selectedParentCommunityId == 0 && parents.Count > 0)
+        {
+            selectedParentCommunityId = parents[0].CommunityId;
+        }
+    }
 
     private async Task LoadCommunities()
     {
         isLoading = true;
         var result = await CommunityApi.GetCommunitiesAsync(searchTerm);
-        if (result.IsSuccess) communities = result.Data;
+        if (result.IsSuccess)
+        {
+            communities = result.Data;
+            var parents = ParentCommunityOptions;
+            if (selectedParentCommunityId == 0 && parents.Count > 0)
+            {
+                selectedParentCommunityId = parents[0].CommunityId;
+            }
+        }
         isLoading = false;
     }
 
-    private async Task CreateCommunity()
+    private async Task ClearSearch()
     {
-        if (string.IsNullOrWhiteSpace(newCommunityName)) return;
-        var req = new CreateCommunityRequestModel(newCommunityName, newCommunitySlug, newCommunityDesc, null, null, "Public", "Open");
+        searchTerm = "";
+        await LoadCommunities();
+    }
+
+    private void OpenCreateCommunity()
+    {
+        isCreatingSub = false;
+        isSidePanelOpen = true;
+        panelErrorMessage = null;
+        communityName = "";
+        communityDesc = "";
+    }
+
+    private void OpenCreateSubCommunity()
+    {
+        isCreatingSub = true;
+        isSidePanelOpen = true;
+        panelErrorMessage = null;
+        subCommunityName = "";
+        subCommunityDesc = "";
+        var parents = ParentCommunityOptions;
+        if (selectedParentCommunityId == 0 && parents.Count > 0)
+        {
+            selectedParentCommunityId = parents[0].CommunityId;
+        }
+    }
+
+    private void OpenSubCommunityForParent(int parentId)
+    {
+        selectedParentCommunityId = parentId;
+        isCreatingSub = true;
+        isSidePanelOpen = true;
+        panelErrorMessage = null;
+        subCommunityName = "";
+        subCommunityDesc = "";
+    }
+
+    private void CloseSidePanel()
+    {
+        isSidePanelOpen = false;
+        panelErrorMessage = null;
+    }
+
+    private async Task SubmitForm()
+    {
+        if (isCreatingSub)
+        {
+            await HandleCreateSubCommunity();
+        }
+        else
+        {
+            await HandleCreateCommunity();
+        }
+    }
+
+    private async Task HandleCreateCommunity()
+    {
+        panelErrorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(communityName))
+        {
+            panelErrorMessage = "Please enter a community name.";
+            Toast.Warning(panelErrorMessage);
+            return;
+        }
+
+        isSubmitting = true;
+        var req = new CreateCommunityRequestModel(
+            Name: communityName.Trim(),
+            Slug: null,
+            Description: string.IsNullOrWhiteSpace(communityDesc) ? null : communityDesc.Trim(),
+            AvatarUrl: null,
+            BannerUrl: null,
+            Visibility: "PUBLIC",
+            JoinPolicy: "INSTANT",
+            ParentCommunityId: null);
+
         var res = await CommunityApi.CreateCommunityAsync(req);
+        isSubmitting = false;
+
         if (res.IsSuccess)
         {
-            showCreateModal = false;
-            newCommunityName = "";
-            newCommunitySlug = "";
-            newCommunityDesc = "";
+            var createdName = communityName;
+            communityName = "";
+            communityDesc = "";
+            isSidePanelOpen = false;
             await LoadCommunities();
-            Toast.Success("Community created successfully!");
+            Toast.Success($"Successfully Create a community: {createdName}");
+        }
+        else
+        {
+            panelErrorMessage = res.Message ?? "Failed to create community.";
+            Toast.Warning(panelErrorMessage);
+        }
+    }
+
+    private async Task HandleCreateSubCommunity()
+    {
+        panelErrorMessage = null;
+
+        if (selectedParentCommunityId <= 0)
+        {
+            panelErrorMessage = "Please select a parent community.";
+            Toast.Warning(panelErrorMessage);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(subCommunityName))
+        {
+            panelErrorMessage = "Please enter a sub-community name.";
+            Toast.Warning(panelErrorMessage);
+            return;
+        }
+
+        isSubmitting = true;
+        var req = new CreateCommunityRequestModel(
+            Name: subCommunityName.Trim(),
+            Slug: null,
+            Description: string.IsNullOrWhiteSpace(subCommunityDesc) ? null : subCommunityDesc.Trim(),
+            AvatarUrl: null,
+            BannerUrl: null,
+            Visibility: "PUBLIC",
+            JoinPolicy: "INSTANT",
+            ParentCommunityId: selectedParentCommunityId);
+
+        var res = await CommunityApi.CreateCommunityAsync(req);
+        isSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            var createdName = subCommunityName;
+            subCommunityName = "";
+            subCommunityDesc = "";
+            isSidePanelOpen = false;
+            await LoadCommunities();
+            Toast.Success($"Successfully Create a sub-community: {createdName}");
+        }
+        else
+        {
+            panelErrorMessage = res.Message ?? "Failed to create sub-community.";
+            Toast.Warning(panelErrorMessage);
         }
     }
 
@@ -129,12 +505,12 @@ else
         var res = await CommunityApi.JoinCommunityAsync(id);
         if (res.IsSuccess)
         {
-            Toast.Success("Joined community!");
+            Toast.Success("Joined successfully!");
             await LoadCommunities();
         }
         else
         {
-            Toast.Warning(res.Message ?? "Could not join community.");
+            Toast.Warning(res.Message ?? "Could not join.");
         }
     }
 }
