@@ -19,7 +19,7 @@ window.initGlobe = function () {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 2, 22);
+    camera.position.set(0, 1.5, 22);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     renderer.setSize(width, height);
@@ -31,27 +31,14 @@ window.initGlobe = function () {
     const globeGroup = new THREE.Group();
     scene.add(globeGroup);
 
-    // Soft ambient & balanced directional lighting
-    const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.85);
-    scene.add(ambientLight);
+    // No directional lights — every globe element uses unlit materials so the
+    // globe stays clean, matte and dark, with no glossy "water ball" reflections.
 
-    const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.3);
-    dirLight1.position.set(12, 10, 15);
-    scene.add(dirLight1);
-
-    const dirLight2 = new THREE.DirectionalLight(0xd4af37, 0.9);
-    dirLight2.position.set(-15, -8, -10);
-    scene.add(dirLight2);
-
-    // 1. Sleek Glass Inner Core Sphere with Soft Depth
-    const sphereRadius = 6.2;
+    // 1. Matte Dark Core Sphere
+    const sphereRadius = 6.9;
     const sphereGeo = new THREE.SphereGeometry(sphereRadius, 64, 64);
-    const sphereMat = new THREE.MeshPhongMaterial({
-        color: 0x0a1120,
-        emissive: 0x060c18,
-        shininess: 35,
-        transparent: true,
-        opacity: 0.88
+    const sphereMat = new THREE.MeshBasicMaterial({
+        color: 0x0a1528
     });
     const coreGlobe = new THREE.Mesh(sphereGeo, sphereMat);
     globeGroup.add(coreGlobe);
@@ -61,7 +48,7 @@ window.initGlobe = function () {
     const glowMat = new THREE.MeshBasicMaterial({
         color: 0x38bdf8,
         transparent: true,
-        opacity: 0.08,
+        opacity: 0.14,
         side: THREE.BackSide
     });
     globeGroup.add(new THREE.Mesh(glowGeo, glowMat));
@@ -130,15 +117,49 @@ window.initGlobe = function () {
         // Scandinavia
         [
             [71, 26], [68, 15], [62, 5], [58, 8], [56, 13], [60, 18], [65, 23], [71, 26]
+        ],
+        // Greenland
+        [
+            [83, -32], [81, -20], [76, -18], [70, -22], [60, -44], [67, -52], [74, -58], [80, -55], [84, -38], [83, -32]
+        ],
+        // Iceland
+        [
+            [66, -24], [65, -14], [63, -13], [63, -21], [64, -24], [66, -24]
+        ],
+        // Madagascar
+        [
+            [-12, 49], [-16, 50], [-22, 48], [-25, 45], [-22, 44], [-18, 44], [-13, 48], [-12, 49]
+        ],
+        // New Zealand
+        [
+            [-34, 173], [-37, 176], [-41, 175], [-44, 171], [-46, 167], [-44, 169], [-39, 178], [-35, 174], [-34, 173]
+        ],
+        // Central America & Mexico
+        [
+            [32, -117], [27, -111], [23, -110], [19, -105], [17, -102], [16, -97], [14, -92], [9, -83], [8, -82],
+            [10, -84], [15, -88], [16, -94], [18, -91], [21, -88], [21, -91], [18, -95], [24, -98], [28, -98], [32, -117]
+        ],
+        // Caribbean
+        [
+            [20, -75], [22, -74], [20, -72], [18, -69], [18, -66], [16, -64], [13, -61], [11, -63], [10, -62],
+            [12, -69], [15, -68], [18, -74], [20, -84]
+        ],
+        // Hawaii
+        [
+            [20, -156], [21, -158], [20, -160], [19, -157], [20, -156]
+        ],
+        // Svalbard
+        [
+            [80, 16], [80, 28], [78, 26], [77, 18], [78, 12], [80, 16]
         ]
     ];
 
     // Draw soft glowing maplines right on the surface of the globe
     const mapLineMat = new THREE.LineBasicMaterial({
-        color: 0x38bdf8,
+        color: 0x5bb7f3,
         transparent: true,
-        opacity: 0.38,
-        linewidth: 1.5
+        opacity: 0.72,
+        linewidth: 2
     });
 
     continentOutlines.forEach(polygon => {
@@ -166,11 +187,11 @@ window.initGlobe = function () {
     const wireMat = new THREE.LineBasicMaterial({
         color: 0x38bdf8,
         transparent: true,
-        opacity: 0.12
+        opacity: 0.22
     });
 
     // Latitude rings
-    for (let lat = -70; lat <= 70; lat += 20) {
+    for (let lat = -70; lat <= 70; lat += 15) {
         const phi = (90 - lat) * (Math.PI / 180);
         const r = sphereRadius * Math.sin(phi);
         const y = sphereRadius * Math.cos(phi);
@@ -186,7 +207,7 @@ window.initGlobe = function () {
     }
 
     // Longitude meridians
-    for (let lon = 0; lon < 180; lon += 30) {
+    for (let lon = 0; lon < 180; lon += 20) {
         const circleGeo = new THREE.BufferGeometry();
         const pts = [];
         for (let i = 0; i <= 64; i++) {
@@ -207,13 +228,14 @@ window.initGlobe = function () {
     const particleColors = [];
 
     const landmasses = [
-        { lat: 45, lon: -100, spanLat: 22, spanLon: 35, count: 180 },
-        { lat: -15, lon: -55, spanLat: 22, spanLon: 22, count: 130 },
-        { lat: 50, lon: 15, spanLat: 14, spanLon: 22, count: 150 },
-        { lat: 5, lon: 20, spanLat: 28, spanLon: 22, count: 160 },
-        { lat: 35, lon: 95, spanLat: 28, spanLon: 40, count: 240 },
-        { lat: -25, lon: 135, spanLat: 14, spanLon: 18, count: 90 },
-        { lat: 18, lon: 96, spanLat: 10, spanLon: 10, count: 80 }
+        { lat: 45, lon: -100, spanLat: 22, spanLon: 35, count: 260 },
+        { lat: -15, lon: -55, spanLat: 22, spanLon: 22, count: 180 },
+        { lat: 50, lon: 15, spanLat: 14, spanLon: 22, count: 200 },
+        { lat: 5, lon: 20, spanLat: 28, spanLon: 22, count: 220 },
+        { lat: 35, lon: 95, spanLat: 28, spanLon: 40, count: 330 },
+        { lat: -25, lon: 135, spanLat: 14, spanLon: 18, count: 130 },
+        { lat: 18, lon: 96, spanLat: 10, spanLon: 10, count: 120 },
+        { lat: 30, lon: -55, spanLat: 10, spanLon: 10, count: 70 }
     ];
 
     landmasses.forEach(land => {
@@ -225,9 +247,9 @@ window.initGlobe = function () {
 
             const isGold = Math.random() < 0.12;
             if (isGold) {
-                particleColors.push(0.83, 0.68, 0.21);
+                particleColors.push(1.0, 0.82, 0.35);
             } else {
-                particleColors.push(0.22, 0.74, 0.97);
+                particleColors.push(0.35, 0.85, 1.0);
             }
         }
     });
@@ -237,10 +259,10 @@ window.initGlobe = function () {
     dotGeo.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
 
     const dotMat = new THREE.PointsMaterial({
-        size: 0.11,
+        size: 0.13,
         vertexColors: true,
         transparent: true,
-        opacity: 0.6
+        opacity: 0.9
     });
     globeGroup.add(new THREE.Points(dotGeo, dotMat));
 
@@ -272,7 +294,22 @@ window.initGlobe = function () {
         { name: 'São Paulo', lat: -23.55, lon: -46.63, color: 0x38bdf8 },
         { name: 'Buenos Aires', lat: -34.60, lon: -58.38, color: 0x38bdf8 },
         { name: 'Johannesburg', lat: -26.20, lon: 28.04, color: 0xd4af37 },
-        { name: 'Nairobi', lat: -1.29, lon: 36.82, color: 0xd4af37 }
+        { name: 'Nairobi', lat: -1.29, lon: 36.82, color: 0xd4af37 },
+        { name: 'Vancouver', lat: 49.28, lon: -123.12, color: 0x38bdf8 },
+        { name: 'Honolulu', lat: 21.31, lon: -157.86, color: 0x38bdf8 },
+        { name: 'Anchorage', lat: 61.22, lon: -149.90, color: 0x38bdf8 },
+        { name: 'Mexico City', lat: 19.43, lon: -99.13, color: 0x38bdf8 },
+        { name: 'Lagos', lat: 6.52, lon: 3.38, color: 0xd4af37 },
+        { name: 'Cairo', lat: 30.04, lon: 31.24, color: 0xd4af37 },
+        { name: 'Istanbul', lat: 41.01, lon: 28.98, color: 0x38bdf8 },
+        { name: 'Moscow', lat: 55.76, lon: 37.62, color: 0x38bdf8 },
+        { name: 'Auckland', lat: -36.85, lon: 174.76, color: 0x38bdf8 },
+        { name: 'Bogotá', lat: 4.71, lon: -74.07, color: 0x38bdf8 },
+        { name: 'Los Angeles', lat: 34.05, lon: -118.24, color: 0x38bdf8 },
+        { name: 'Beijing', lat: 39.90, lon: 116.40, color: 0x38bdf8 },
+        { name: 'Shanghai', lat: 31.23, lon: 121.47, color: 0x38bdf8 },
+        { name: 'Kuala Lumpur', lat: 3.14, lon: 101.69, color: 0x38bdf8 },
+        { name: 'Jakarta', lat: -6.21, lon: 106.85, color: 0x38bdf8 }
     ];
 
     const hubMeshes = [];
@@ -282,17 +319,17 @@ window.initGlobe = function () {
         hubGroup.position.copy(pos);
         hubGroup.lookAt(new THREE.Vector3(0, 0, 0));
 
-        const nGeo = new THREE.SphereGeometry(0.14, 16, 16);
+        const nGeo = new THREE.SphereGeometry(0.16, 16, 16);
         const nMat = new THREE.MeshBasicMaterial({ color: hub.color });
         const nMesh = new THREE.Mesh(nGeo, nMat);
         hubGroup.add(nMesh);
 
         // Subtle pulsing halo ring
-        const rGeo = new THREE.RingGeometry(0.22, 0.29, 24);
+        const rGeo = new THREE.RingGeometry(0.24, 0.32, 24);
         const rMat = new THREE.MeshBasicMaterial({
             color: hub.color,
             transparent: true,
-            opacity: 0.45,
+            opacity: 0.7,
             side: THREE.DoubleSide
         });
         const rMesh = new THREE.Mesh(rGeo, rMat);
@@ -355,7 +392,36 @@ window.initGlobe = function () {
         ['Dubai', 'Stockholm'],
         ['Frankfurt', 'Seoul'],
         ['San Francisco', 'Hong Kong'],
-        ['London', 'Singapore']
+        ['London', 'Singapore'],
+        ['Vancouver', 'Seattle'],
+        ['Vancouver', 'Anchorage'],
+        ['Anchorage', 'Tokyo'],
+        ['Anchorage', 'Honolulu'],
+        ['Honolulu', 'Sydney'],
+        ['Honolulu', 'San Francisco'],
+        ['San Francisco', 'Mexico City'],
+        ['Mexico City', 'New York'],
+        ['Mexico City', 'Bogotá'],
+        ['Los Angeles', 'Tokyo'],
+        ['Los Angeles', 'Sydney'],
+        ['New York', 'Frankfurt'],
+        ['Tokyo', 'Seoul'],
+        ['Beijing', 'Tokyo'],
+        ['Shanghai', 'Hong Kong'],
+        ['Shanghai', 'Tokyo'],
+        ['Taipei', 'Seoul'],
+        ['Kuala Lumpur', 'Singapore'],
+        ['Jakarta', 'Singapore'],
+        ['Cairo', 'Istanbul'],
+        ['Istanbul', 'Frankfurt'],
+        ['Istanbul', 'Mumbai'],
+        ['Moscow', 'Frankfurt'],
+        ['Moscow', 'Tokyo'],
+        ['Lagos', 'Cairo'],
+        ['Lagos', 'London'],
+        ['Auckland', 'Sydney'],
+        ['Auckland', 'Melbourne'],
+        ['Stockholm', 'Istanbul']
     ];
 
     const hubMap = {};
@@ -389,16 +455,16 @@ window.initGlobe = function () {
             (fromName === 'London' && toName === 'Singapore') ||
             (fromName === 'San Francisco' && toName === 'Tokyo');
 
-        const tubeGeo = new THREE.TubeGeometry(curve, 36, 0.02, 6, false);
+        const tubeGeo = new THREE.TubeGeometry(curve, 36, 0.025, 6, false);
         const tubeMat = new THREE.MeshBasicMaterial({
-            color: isGold ? 0xd4af37 : 0x38bdf8,
+            color: isGold ? 0xf5c94a : 0x38bdf8,
             transparent: true,
-            opacity: isGold ? 0.65 : 0.42
+            opacity: isGold ? 0.85 : 0.6
         });
         globeGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
 
         if (idx % 2 === 0) {
-            const pGeo = new THREE.SphereGeometry(0.048, 8, 8);
+            const pGeo = new THREE.SphereGeometry(0.06, 8, 8);
             const pMat = new THREE.MeshBasicMaterial({ color: isGold ? 0xfffae0 : 0xffffff });
             const pMesh = new THREE.Mesh(pGeo, pMat);
             globeGroup.add(pMesh);
