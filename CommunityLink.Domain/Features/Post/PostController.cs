@@ -24,6 +24,21 @@ public sealed class PostController(IPostService postService) : BaseController
     public async Task<IActionResult> LikePost(int postId, CancellationToken cancellationToken) =>
         ToActionResult(await postService.LikePostAsync(postId, cancellationToken));
 
+    [HttpPut("{postId:int}")]
+    [Authorize]
+    public async Task<IActionResult> UpdatePost(int postId, [FromBody] UpdatePostRequestModel request, CancellationToken cancellationToken) =>
+        ToActionResult(await postService.UpdatePostAsync(postId, request, cancellationToken));
+
+    [HttpDelete("{postId:int}")]
+    [Authorize]
+    public async Task<IActionResult> DeletePost(int postId, CancellationToken cancellationToken) =>
+        ToActionResult(await postService.DeletePostAsync(postId, cancellationToken));
+
+    [HttpPost("{postId:int}/share")]
+    [Authorize]
+    public async Task<IActionResult> SharePost(int postId, [FromBody] SharePostRequestModel request, CancellationToken cancellationToken) =>
+        ToActionResult(await postService.SharePostAsync(postId, request, cancellationToken));
+
     [HttpPost("comments")]
     [Authorize]
     public async Task<IActionResult> AddComment([FromBody] CreateCommentRequestModel request, CancellationToken cancellationToken) =>

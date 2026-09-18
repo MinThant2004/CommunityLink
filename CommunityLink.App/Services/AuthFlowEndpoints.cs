@@ -94,7 +94,7 @@ public static class AuthFlowEndpoints
             return RedirectWithError(loginPath, result.Message);
 
         await sessions.SignInAsync(result.Data, rememberMe);
-        var target = IsLocalUrl(returnUrl) ? returnUrl : "/";
+        var target = IsLocalUrl(returnUrl) ? returnUrl : "/postupload";
         return Results.Redirect(target);
     }
 

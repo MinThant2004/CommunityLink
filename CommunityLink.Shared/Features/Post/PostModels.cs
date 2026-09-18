@@ -33,3 +33,5 @@ public sealed record CommentModel(
 
 public sealed record CreateCommentRequestModel(int PostId, string Content);
 public sealed record LikePostRequestModel(int PostId);
+public sealed record UpdatePostRequestModel(string Content, IReadOnlyList<string>? ImageUrls);
+public sealed record SharePostRequestModel(string? ShareNote, int? TargetCommunityId = null);

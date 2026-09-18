@@ -13,6 +13,15 @@ public sealed class PostApiService(IHttpClientFactory clientFactory, IHttpContex
     public Task<Result<PostModel>> CreatePostAsync(CreatePostRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync<PostModel, CreatePostRequestModel>("api/posts", request, cancellationToken);
 
+    public Task<Result<PostModel>> UpdatePostAsync(int postId, UpdatePostRequestModel request, CancellationToken cancellationToken = default) =>
+        PutAsync<PostModel, UpdatePostRequestModel>($"api/posts/{postId}", request, cancellationToken);
+
+    public Task<Result> DeletePostAsync(int postId, CancellationToken cancellationToken = default) =>
+        DeleteAsync($"api/posts/{postId}", cancellationToken);
+
+    public Task<Result> SharePostAsync(int postId, SharePostRequestModel request, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/posts/{postId}/share", request, cancellationToken);
+
     public Task<Result> LikePostAsync(int postId, CancellationToken cancellationToken = default) =>
         PostAsync($"api/posts/{postId}/like", new { }, cancellationToken);
 
