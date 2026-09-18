@@ -14,6 +14,8 @@ public interface ICommunityService
     Task<Result<CommunityModel>> UpdateCommunityAsync(int communityId, EditCommunityRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityAuditModel>>> GetCommunityAuditsAsync(int communityId, CancellationToken cancellationToken = default);
     Task<Result> JoinCommunityAsync(int communityId, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<CommunityModel>>> GetJoinedCommunitiesAsync(int userId, int take = 10, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<CommunityModel>>> GetRecommendedCommunitiesAsync(int userId, int take = 6, CancellationToken cancellationToken = default);
 }
 
 public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext currentUser) : ICommunityService
@@ -349,5 +351,82 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
             .ToListAsync(cancellationToken);
 
         return Result<IReadOnlyList<CommunityAuditModel>>.Success(logs);
+    }
+
+    public async Task<Result<IReadOnlyList<CommunityModel>>> GetJoinedCommunitiesAsync(int userId, int take = 10, CancellationToken cancellationToken = default)
+    {
+        var joinedCommunityIds = await dbContext.TblCommunityMembers
+            .Where(m => m.UserId == userId && !m.IsDeleted)
+            .Select(m => m.CommunityId)
+            .ToListAsync(cancellationToken);
+
+        if (!joinedCommunityIds.Any()) return Result<IReadOnlyList<CommunityModel>>.Success([]);
+
+        var list = await dbContext.TblCommunities
+            .Include(c => c.Owner)
+            .Include(c => c.ParentCommunity)
+            .Include(c => c.TblCommunityMembers)
+            .Include(c => c.TblPosts)
+            .Include(c => c.TblCommunityRatings)
+            .Where(c => joinedCommunityIds.Contains(c.CommunityId) && !c.IsDeleted)
+            .Take(take)
+            .Select(c => new CommunityModel(
+                c.CommunityId,
+                c.Name,
+                c.Slug,
+                c.Description,
+                c.AvatarUrl,
+                c.BannerUrl,
+                c.Visibility,
+                c.JoinPolicy,
+                c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                c.TblPosts.Count(p => !p.IsDeleted),
+                c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
+                c.OwnerId,
+                c.Owner != null ? c.Owner.DisplayName : "Admin",
+                c.CreatedAt,
+                c.ParentCommunityId,
+                c.ParentCommunity != null ? c.ParentCommunity.Name : null))
+            .ToListAsync(cancellationToken);
+
+        return Result<IReadOnlyList<CommunityModel>>.Success(list);
+    }
+
+    public async Task<Result<IReadOnlyList<CommunityModel>>> GetRecommendedCommunitiesAsync(int userId, int take = 6, CancellationToken cancellationToken = default)
+    {
+        var joinedCommunityIds = await dbContext.TblCommunityMembers
+            .Where(m => m.UserId == userId && !m.IsDeleted)
+            .Select(m => m.CommunityId)
+            .ToListAsync(cancellationToken);
+
+        var list = await dbContext.TblCommunities
+            .Include(c => c.Owner)
+            .Include(c => c.ParentCommunity)
+            .Include(c => c.TblCommunityMembers)
+            .Include(c => c.TblPosts)
+            .Include(c => c.TblCommunityRatings)
+            .Where(c => !joinedCommunityIds.Contains(c.CommunityId) && c.Visibility == "PUBLIC" && !c.IsDeleted)
+            .OrderByDescending(c => c.TblCommunityMembers.Count(m => !m.IsDeleted))
+            .Take(take)
+            .Select(c => new CommunityModel(
+                c.CommunityId,
+                c.Name,
+                c.Slug,
+                c.Description,
+                c.AvatarUrl,
+                c.BannerUrl,
+                c.Visibility,
+                c.JoinPolicy,
+                c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                c.TblPosts.Count(p => !p.IsDeleted),
+                c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
+                c.OwnerId,
+                c.Owner != null ? c.Owner.DisplayName : "Admin",
+                c.CreatedAt,
+                c.ParentCommunityId,
+                c.ParentCommunity != null ? c.ParentCommunity.Name : null))
+            .ToListAsync(cancellationToken);
+
+        return Result<IReadOnlyList<CommunityModel>>.Success(list);
     }
 }

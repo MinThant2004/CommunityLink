@@ -24,7 +24,11 @@ var jwtKey = builder.Configuration["Jwt:Key"] ?? "CommunityLinkSuperSecretSignin
 var issuer = builder.Configuration["Jwt:Issuer"] ?? "CommunityLink.Api";
 var audience = builder.Configuration["Jwt:Audience"] ?? "CommunityLink.Clients";
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
     .AddJwtBearer(options =>
     {
         options.MapInboundClaims = false;

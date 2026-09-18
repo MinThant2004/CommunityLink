@@ -59,6 +59,7 @@ builder.Services.AddScoped<PollApiService>();
 builder.Services.AddScoped<ChatApiService>();
 builder.Services.AddScoped<RoleAndPermissionApiService>();
 builder.Services.AddScoped<AdministrationApiService>();
+builder.Services.AddScoped<UserDashboardApiService>();
 
 var app = builder.Build();
 

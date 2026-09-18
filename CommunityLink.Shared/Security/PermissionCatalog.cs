@@ -10,6 +10,7 @@ public static class PermissionCatalog
     public const string CommunityView = "COMMUNITY.VIEW";
     public const string CommunityCreate = "COMMUNITY.CREATE";
     public const string CommunityManage = "COMMUNITY.MANAGE";
+    public const string CommunityModerate = "COMMUNITY.MODERATE";
 
     // Posts & Feed
     public const string PostView = "POST.VIEW";
@@ -35,6 +36,7 @@ public static class PermissionCatalog
         new(CommunityView, "View Communities", "Community", "/communities", true, true),
         new(CommunityCreate, "Create Community", "Community", "/communities/create", true, false),
         new(CommunityManage, "Manage Community Settings", "Community", null, true, false),
+        new(CommunityModerate, "Moderate Communities & Join Requests", "Moderation", "/admin/communities", true, false),
         new(PostView, "View Feed Posts", "Post", "/feed", true, true),
         new(PostCreate, "Create Post", "Post", "/feed", true, true),
         new(PostDelete, "Delete Post / Moderation", "Post", null, true, false),
