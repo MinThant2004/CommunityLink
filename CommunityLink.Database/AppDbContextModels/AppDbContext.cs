@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +22,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<TblComment> TblComments { get; set; }
 
     public virtual DbSet<TblCommunity> TblCommunities { get; set; }
+
+    public virtual DbSet<TblCommunityAuditLog> TblCommunityAuditLogs { get; set; }
 
     public virtual DbSet<TblCommunityJoinRequest> TblCommunityJoinRequests { get; set; }
 
@@ -199,6 +201,28 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.ParentCommunity).WithMany(p => p.InverseParentCommunity)
                 .HasForeignKey(d => d.ParentCommunityId)
                 .HasConstraintName("FK_TblCommunity_Parent");
+        });
+
+        modelBuilder.Entity<TblCommunityAuditLog>(entity =>
+        {
+            entity.HasKey(e => e.AuditId);
+
+            entity.ToTable("TblCommunityAuditLog");
+
+            entity.Property(e => e.TargetType).HasMaxLength(50);
+            entity.Property(e => e.FieldChanged).HasMaxLength(50);
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(d => d.Community).WithMany(p => p.TblCommunityAuditLogs)
+                .HasForeignKey(d => d.CommunityId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_TblCommunityAuditLog_Community");
+
+            entity.HasOne(d => d.Editor).WithMany(p => p.TblCommunityAuditLogs)
+                .HasForeignKey(d => d.EditorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblCommunityAuditLog_User");
         });
 
         modelBuilder.Entity<TblCommunityJoinRequest>(entity =>

@@ -6,7 +6,7 @@
 
 <PageTitle>Communities & Sub-communities - CommunityLink</PageTitle>
 
-<div class="min-h-screen bg-slate-50/50 py-6 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-slate-50 py-6 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto space-y-6">
         
         <!-- Header & Action Bar -->
@@ -30,7 +30,7 @@
                         </svg>
                     </div>
                     <input type="text"
-                           class="w-full pl-9 pr-8 py-2 bg-white text-sm text-slate-900 placeholder-slate-400 rounded-full border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm"
+                           class="w-full pl-9 pr-8 py-2 bg-white text-sm text-slate-900 placeholder-slate-400 rounded-full border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm"
                            placeholder="Search communities or..."
                            @bind="searchTerm"
                            @bind:after="LoadCommunities" />
@@ -47,7 +47,7 @@
                 <!-- Create Community Button -->
                 <button type="button"
                         @onclick="OpenCreateCommunity"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2">
                     <span class="text-base leading-none font-bold">+</span>
                     <span>Create Community</span>
                 </button>
@@ -55,7 +55,7 @@
                 <!-- Create Sub-community Button -->
                 <button type="button"
                         @onclick="OpenCreateSubCommunity"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2">
                     <span class="text-base leading-none font-bold text-slate-500">+</span>
                     <span>Create Sub-community</span>
                 </button>
@@ -70,14 +70,14 @@
                 @if (isLoading)
                 {
                     <div class="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                         <p class="text-sm text-slate-400 mt-3 font-medium">Loading communities...</p>
                     </div>
                 }
                 else if (communities == null || communities.Count == 0)
                 {
                     <div class="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
-                        <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                             </svg>
@@ -85,7 +85,7 @@
                         <h3 class="text-base font-semibold text-slate-800">No communities found</h3>
                         <p class="text-sm text-slate-500 mt-1 max-w-sm mx-auto">Get started by creating the very first community or refine your search query.</p>
                         <div class="mt-4">
-                            <button type="button" @onclick="OpenCreateCommunity" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all">
+                            <button type="button" @onclick="OpenCreateCommunity" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-all">
                                 + Create Community
                             </button>
                         </div>
@@ -100,16 +100,25 @@
                         {
                             var subs = communities.Where(s => s.ParentCommunityId == c.CommunityId).ToList();
 
-                            <div class="bg-white rounded-2xl border border-slate-200/80 hover:border-indigo-300 p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between">
+                            <div class="bg-white rounded-2xl border border-slate-200 hover:border-blue-300 p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between">
                                 <!-- Card Header -->
                                 <div>
                                     <div class="flex items-start justify-between gap-2">
-                                        <div>
-                                            <h3 class="text-base font-bold text-slate-900 leading-snug">@c.Name</h3>
-                                            <span class="inline-flex items-center px-2 py-0.5 mt-1 rounded text-xs font-medium bg-indigo-50 text-indigo-700">
-                                                @c.Name
+                                        <div class="min-w-0 flex-1">
+                                            <h3 class="text-base font-bold text-slate-900 leading-snug truncate">@c.Name</h3>
+                                            <span class="inline-flex items-center px-2 py-0.5 mt-1 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                                Community
                                             </span>
                                         </div>
+                                        <button type="button"
+                                                @onclick="() => OpenEditModal(c)"
+                                                title="Edit Community & History"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                            </svg>
+                                            <span>Edit</span>
+                                        </button>
                                     </div>
 
                                     <!-- Description -->
@@ -131,25 +140,38 @@
                                         <div class="mt-2 space-y-2">
                                             @foreach (var sub in subs)
                                             {
-                                                <div class="bg-slate-50 border border-slate-200/70 rounded-xl p-3">
+                                                <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3">
                                                     <div class="flex items-center justify-between gap-2 mb-1.5">
                                                         <div class="flex items-center gap-1.5 min-w-0">
-                                                            <span class="text-emerald-600 text-sm">🌿</span>
+                                                            <span class="text-blue-600 text-xs font-bold">#</span>
                                                             <span class="text-xs font-semibold text-slate-800 truncate">@sub.Name</span>
                                                         </div>
-                                                        <button type="button" @onclick="() => JoinCommunity(sub.CommunityId)" class="px-2.5 py-0.5 text-[11px] font-medium rounded-md border border-slate-300 text-slate-700 hover:bg-white transition-colors">
-                                                            Join
-                                                        </button>
+                                                        <div class="flex items-center gap-1.5">
+                                                            <button type="button"
+                                                                    @onclick="() => OpenEditModal(sub)"
+                                                                    title="Edit Sub-community"
+                                                                    class="px-2 py-0.5 text-[11px] font-medium rounded-md border border-slate-200 text-slate-600 hover:text-blue-700 hover:bg-white hover:border-blue-200 transition-colors">
+                                                                Edit
+                                                            </button>
+                                                            <button type="button" @onclick="() => JoinCommunity(sub.CommunityId)" class="px-2.5 py-0.5 text-[11px] font-medium rounded-md border border-blue-200 text-blue-700 bg-white hover:bg-blue-50 transition-colors">
+                                                                Join
+                                                            </button>
+                                                        </div>
                                                     </div>
+
+                                                    @if (!string.IsNullOrWhiteSpace(sub.Description))
+                                                    {
+                                                        <p class="text-[11px] text-slate-500 mb-1.5 line-clamp-1">@sub.Description</p>
+                                                    }
 
                                                     <!-- Member Avatars Mock & Stats -->
                                                     <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
                                                         <div class="flex items-center gap-1">
                                                             <div class="flex -space-x-1.5 overflow-hidden">
                                                                 <span class="inline-block h-4 w-4 rounded-full ring-1 ring-white bg-slate-400 text-white text-[8px] font-bold text-center leading-4">A</span>
-                                                                <span class="inline-block h-4 w-4 rounded-full ring-1 ring-white bg-indigo-400 text-white text-[8px] font-bold text-center leading-4">U</span>
+                                                                <span class="inline-block h-4 w-4 rounded-full ring-1 ring-white bg-blue-500 text-white text-[8px] font-bold text-center leading-4">U</span>
                                                             </div>
-                                                            <span class="ml-1">@sub.MemberCount member</span>
+                                                            <span class="ml-1">@sub.MemberCount members</span>
                                                         </div>
                                                         <div class="flex items-center gap-2">
                                                             <span>@sub.PostCount posts</span>
@@ -162,7 +184,7 @@
                                     }
                                     else
                                     {
-                                        <div class="mt-2 text-[11px] text-slate-400 italic bg-slate-50/50 p-2 rounded-lg border border-dashed border-slate-200">
+                                        <div class="mt-2 text-[11px] text-slate-400 italic bg-slate-50 p-2 rounded-lg border border-dashed border-slate-200">
                                             No sub-communities yet.
                                         </div>
                                     }
@@ -172,7 +194,7 @@
                                 <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                                     <button type="button"
                                             @onclick="() => OpenSubCommunityForParent(c.CommunityId)"
-                                            class="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1">
+                                            class="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1">
                                         <span>+ Add Sub-community</span>
                                     </button>
 
@@ -227,7 +249,7 @@
                                 }
                                 else
                                 {
-                                    <select class="w-full px-3 py-2 bg-white text-xs text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    <select class="w-full px-3 py-2 bg-white text-xs text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                                             @bind="selectedParentCommunityId">
                                         <option value="0">-- Select a Community --</option>
                                         @foreach (var parent in ParentCommunityOptions)
@@ -244,7 +266,7 @@
                                     Sub-community Name <span class="text-rose-500">*</span>
                                 </label>
                                 <input type="text"
-                                       class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                                        placeholder="Sub-community Name"
                                        @bind="subCommunityName" />
                             </div>
@@ -253,7 +275,7 @@
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
                                 <textarea rows="3"
-                                          class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                          class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                                           placeholder="Focus tech or description"
                                           @bind="subCommunityDesc"></textarea>
                             </div>
@@ -266,7 +288,7 @@
                                     Community Name <span class="text-rose-500">*</span>
                                 </label>
                                 <input type="text"
-                                       class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                                        placeholder="e.g. Technology"
                                        @bind="communityName" />
                             </div>
@@ -275,7 +297,7 @@
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
                                 <textarea rows="3"
-                                          class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                          class="w-full px-3 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                                           placeholder="Describe the purpose of this community..."
                                           @bind="communityDesc"></textarea>
                             </div>
@@ -292,7 +314,7 @@
                             <button type="button"
                                     @onclick="SubmitForm"
                                     disabled="@isSubmitting"
-                                    class="px-4 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg transition-colors shadow-sm disabled:opacity-50">
+                                    class="px-4 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg transition-colors shadow-sm disabled:opacity-50">
                                 @(isSubmitting ? "Saving..." : (isCreatingSub ? "Create Sub-community" : "Create Community"))
                             </button>
                         </div>
@@ -302,6 +324,176 @@
         </div>
     </div>
 </div>
+
+<!-- Option A: Modal Dialog for Edit & Audit History -->
+@if (isEditModalOpen && editingCommunity != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-150">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <span>Edit @(editingCommunity.ParentCommunityId.HasValue ? "Sub-community" : "Community")</span>
+                        <span class="text-xs px-2 py-0.5 rounded font-medium bg-blue-100 text-blue-800">
+                            @editingCommunity.Name
+                        </span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Manage details and view change audit history</p>
+                </div>
+                <button type="button" @onclick="CloseEditModal" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="flex border-b border-slate-200 bg-white px-6">
+                <button type="button"
+                        @onclick="() => activeTab = 0"
+                        class="py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 @(activeTab == 0 ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-700")">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    <span>Edit Details</span>
+                </button>
+                <button type="button"
+                        @onclick="() => SwitchToAuditTab()"
+                        class="py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 @(activeTab == 1 ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-700")">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Audit History</span>
+                    @if (auditLogs != null && auditLogs.Count > 0)
+                    {
+                        <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-blue-100 text-blue-700 font-bold">@auditLogs.Count</span>
+                    }
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                @if (activeTab == 0)
+                {
+                    <!-- Edit Tab -->
+                    @if (!string.IsNullOrEmpty(editErrorMessage))
+                    {
+                        <div class="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+                            <span class="text-rose-500 font-bold">⚠</span>
+                            <span class="flex-1">@editErrorMessage</span>
+                        </div>
+                    }
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">
+                                Name <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text"
+                                   class="w-full px-3.5 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+                                   placeholder="Enter name"
+                                   @bind="editFormName" />
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
+                            <textarea rows="4"
+                                      class="w-full px-3.5 py-2 bg-white text-xs text-slate-800 placeholder-slate-400 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+                                      placeholder="Enter description"
+                                      @bind="editFormDesc"></textarea>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                            <button type="button"
+                                    @onclick="CloseEditModal"
+                                    disabled="@isSavingEdit"
+                                    class="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 bg-white hover:bg-slate-100 rounded-lg border border-slate-300 transition-colors">
+                                Cancel
+                            </button>
+                            <button type="button"
+                                    @onclick="SubmitEditForm"
+                                    disabled="@isSavingEdit"
+                                    class="px-5 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg transition-colors shadow-sm disabled:opacity-50">
+                                @(isSavingEdit ? "Saving Changes..." : "Save Changes")
+                            </button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Audit History Tab -->
+                    @if (isLoadingAudits)
+                    {
+                        <div class="py-12 flex flex-col items-center justify-center text-slate-400">
+                            <div class="animate-spin rounded-full h-7 w-7 border-b-2 border-blue-600"></div>
+                            <span class="text-xs mt-3">Loading audit history...</span>
+                        </div>
+                    }
+                    else if (auditLogs == null || auditLogs.Count == 0)
+                    {
+                        <div class="text-center py-12 text-slate-400">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-xs font-medium text-slate-500">No audit log entries found for this @(editingCommunity.ParentCommunityId.HasValue ? "sub-community" : "community").</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Edits made to the name or description will appear here.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-80 overflow-y-auto">
+                            <table class="w-full text-left text-xs text-slate-700 border-collapse">
+                                <thead class="bg-slate-50 border-b border-slate-200 sticky top-0">
+                                    <tr>
+                                        <th class="px-3 py-2.5 font-semibold text-slate-700">No.</th>
+                                        <th class="px-3 py-2.5 font-semibold text-slate-700">Type</th>
+                                        <th class="px-3 py-2.5 font-semibold text-slate-700">Old-Value</th>
+                                        <th class="px-3 py-2.5 font-semibold text-slate-700">New-value</th>
+                                        <th class="px-3 py-2.5 font-semibold text-slate-700">Editor</th>
+                                        <th class="px-3 py-2.5 font-semibold text-slate-700">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @for (int i = 0; i < auditLogs.Count; i++)
+                                    {
+                                        var log = auditLogs[i];
+                                        <tr class="hover:bg-slate-50/80 transition-colors">
+                                            <td class="px-3 py-2.5 text-slate-500 font-mono text-[11px]">@(i + 1)</td>
+                                            <td class="px-3 py-2.5">
+                                                <div class="flex items-center gap-1">
+                                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                                        @log.FieldChanged
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="px-3 py-2.5 text-slate-500 max-w-[120px] truncate" title="@log.OldValue">
+                                                @(string.IsNullOrWhiteSpace(log.OldValue) ? "-" : log.OldValue)
+                                            </td>
+                                            <td class="px-3 py-2.5 text-slate-900 font-medium max-w-[120px] truncate" title="@log.NewValue">
+                                                @(string.IsNullOrWhiteSpace(log.NewValue) ? "-" : log.NewValue)
+                                            </td>
+                                            <td class="px-3 py-2.5 text-slate-700 font-medium">@log.EditorName</td>
+                                            <td class="px-3 py-2.5 text-slate-500 text-[11px] whitespace-nowrap">
+                                                @log.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+
+                    <div class="flex justify-end pt-4 border-t border-slate-100 mt-4">
+                        <button type="button" @onclick="CloseEditModal" class="px-4 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 bg-white hover:bg-slate-100 rounded-lg border border-slate-300 transition-colors">
+                            Close
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private IReadOnlyList<CommunityModel>? communities;
@@ -497,6 +689,98 @@
         {
             panelErrorMessage = res.Message ?? "Failed to create sub-community.";
             Toast.Warning(panelErrorMessage);
+        }
+    }
+
+    // Option A Edit & Audit Modal State
+    private CommunityModel? editingCommunity;
+    private bool isEditModalOpen;
+    private int activeTab = 0; // 0 = Edit, 1 = Audit History
+    private string editFormName = "";
+    private string editFormDesc = "";
+    private string? editErrorMessage;
+    private bool isSavingEdit;
+    private bool isLoadingAudits;
+    private IReadOnlyList<CommunityAuditModel>? auditLogs;
+
+    private void OpenEditModal(CommunityModel community)
+    {
+        editingCommunity = community;
+        editFormName = community.Name;
+        editFormDesc = community.Description ?? "";
+        editErrorMessage = null;
+        activeTab = 0;
+        auditLogs = null;
+        isEditModalOpen = true;
+    }
+
+    private void CloseEditModal()
+    {
+        isEditModalOpen = false;
+        editingCommunity = null;
+        editErrorMessage = null;
+        auditLogs = null;
+    }
+
+    private async Task SwitchToAuditTab()
+    {
+        activeTab = 1;
+        if (editingCommunity != null && auditLogs == null)
+        {
+            isLoadingAudits = true;
+            var res = await CommunityApi.GetCommunityAuditsAsync(editingCommunity.CommunityId);
+            if (res.IsSuccess)
+            {
+                auditLogs = res.Data;
+            }
+            else
+            {
+                Toast.Warning(res.Message ?? "Failed to load audit history.");
+            }
+            isLoadingAudits = false;
+        }
+    }
+
+    private async Task SubmitEditForm()
+    {
+        if (editingCommunity == null) return;
+        editErrorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(editFormName))
+        {
+            editErrorMessage = "Name cannot be empty.";
+            Toast.Warning(editErrorMessage);
+            return;
+        }
+
+        isSavingEdit = true;
+        var req = new EditCommunityRequestModel(
+            Name: editFormName.Trim(),
+            Description: string.IsNullOrWhiteSpace(editFormDesc) ? null : editFormDesc.Trim()
+        );
+
+        var res = await CommunityApi.UpdateCommunityAsync(editingCommunity.CommunityId, req);
+        isSavingEdit = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Updated successfully!");
+            // Refresh audit logs if loaded previously
+            if (auditLogs != null)
+            {
+                var auditRes = await CommunityApi.GetCommunityAuditsAsync(editingCommunity.CommunityId);
+                if (auditRes.IsSuccess)
+                {
+                    auditLogs = auditRes.Data;
+                }
+            }
+            await LoadCommunities();
+            CloseEditModal();
+        }
+        else
+        {
+            editErrorMessage = res.Message ?? "Failed to update.";
+            Toast.Warning(editErrorMessage);
         }
     }
 

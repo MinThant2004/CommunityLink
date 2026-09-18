@@ -24,6 +24,16 @@ public sealed class CommunityController(ICommunityService communityService) : Ba
     public async Task<IActionResult> CreateCommunity([FromBody] CreateCommunityRequestModel request, CancellationToken cancellationToken) =>
         ToActionResult(await communityService.CreateCommunityAsync(request, cancellationToken));
 
+    [HttpPut("{communityId:int}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> UpdateCommunity(int communityId, [FromBody] EditCommunityRequestModel request, CancellationToken cancellationToken) =>
+        ToActionResult(await communityService.UpdateCommunityAsync(communityId, request, cancellationToken));
+
+    [HttpGet("{communityId:int}/audits")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetCommunityAudits(int communityId, CancellationToken cancellationToken) =>
+        ToActionResult(await communityService.GetCommunityAuditsAsync(communityId, cancellationToken));
+
     [HttpPost("{communityId:int}/join")]
     [Authorize]
     public async Task<IActionResult> JoinCommunity(int communityId, CancellationToken cancellationToken) =>

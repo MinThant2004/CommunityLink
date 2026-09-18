@@ -16,6 +16,12 @@ public sealed class CommunityApiService(IHttpClientFactory clientFactory, IHttpC
     public Task<Result<CommunityModel>> CreateCommunityAsync(CreateCommunityRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync<CommunityModel, CreateCommunityRequestModel>("api/communities", request, cancellationToken);
 
+    public Task<Result<CommunityModel>> UpdateCommunityAsync(int communityId, EditCommunityRequestModel request, CancellationToken cancellationToken = default) =>
+        PutAsync<CommunityModel, EditCommunityRequestModel>($"api/communities/{communityId}", request, cancellationToken);
+
+    public Task<Result<IReadOnlyList<CommunityAuditModel>>> GetCommunityAuditsAsync(int communityId, CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<CommunityAuditModel>>($"api/communities/{communityId}/audits", cancellationToken);
+
     public Task<Result> JoinCommunityAsync(int communityId, CancellationToken cancellationToken = default) =>
         PostAsync($"api/communities/{communityId}/join", new { }, cancellationToken);
 }

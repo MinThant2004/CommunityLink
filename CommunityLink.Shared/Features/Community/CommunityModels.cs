@@ -37,6 +37,21 @@ public sealed record UpdateCommunityRequestModel(
     string Visibility,
     string JoinPolicy);
 
+public sealed record EditCommunityRequestModel(
+    string Name,
+    string? Description);
+
+public sealed record CommunityAuditModel(
+    int AuditId,
+    int CommunityId,
+    string TargetType,
+    string FieldChanged,
+    string? OldValue,
+    string? NewValue,
+    int EditorId,
+    string EditorName,
+    DateTime CreatedAt);
+
 public sealed record CommunityMemberModel(
     int CommunityMemberId,
     int CommunityId,

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -90,4 +90,6 @@ public partial class TblUser
     public virtual ICollection<TblUserRating> TblUserRatingTargetUsers { get; set; } = new List<TblUserRating>();
 
     public virtual ICollection<TblUserRole> TblUserRoles { get; set; } = new List<TblUserRole>();
+
+    public virtual ICollection<TblCommunityAuditLog> TblCommunityAuditLogs { get; set; } = new List<TblCommunityAuditLog>();
 }

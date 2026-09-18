@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -64,4 +64,6 @@ public partial class TblCommunity
     public virtual ICollection<TblPostShare> TblPostShares { get; set; } = new List<TblPostShare>();
 
     public virtual ICollection<TblPost> TblPosts { get; set; } = new List<TblPost>();
+
+    public virtual ICollection<TblCommunityAuditLog> TblCommunityAuditLogs { get; set; } = new List<TblCommunityAuditLog>();
 }

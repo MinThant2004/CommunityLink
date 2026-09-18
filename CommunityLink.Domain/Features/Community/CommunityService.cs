@@ -11,6 +11,8 @@ public interface ICommunityService
     Task<Result<IReadOnlyList<CommunityModel>>> GetCommunitiesAsync(string? search, CancellationToken cancellationToken = default);
     Task<Result<CommunityModel>> GetCommunityByIdAsync(int communityId, CancellationToken cancellationToken = default);
     Task<Result<CommunityModel>> CreateCommunityAsync(CreateCommunityRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result<CommunityModel>> UpdateCommunityAsync(int communityId, EditCommunityRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<CommunityAuditModel>>> GetCommunityAuditsAsync(int communityId, CancellationToken cancellationToken = default);
     Task<Result> JoinCommunityAsync(int communityId, CancellationToken cancellationToken = default);
 }
 
@@ -204,5 +206,148 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success("Joined community successfully.");
+    }
+
+    public async Task<Result<CommunityModel>> UpdateCommunityAsync(int communityId, EditCommunityRequestModel request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return Result<CommunityModel>.Failure("Name cannot be empty.", ResultStatus.ValidationError);
+        }
+
+        var community = await dbContext.TblCommunities
+            .Include(c => c.Owner)
+            .Include(c => c.ParentCommunity)
+            .Include(c => c.TblCommunityMembers)
+            .Include(c => c.TblPosts)
+            .Include(c => c.TblCommunityRatings)
+            .FirstOrDefaultAsync(c => c.CommunityId == communityId && !c.IsDeleted, cancellationToken);
+
+        if (community is null)
+        {
+            return Result<CommunityModel>.Failure("Community not found.", ResultStatus.NotFound);
+        }
+
+        var trimmedName = request.Name.Trim();
+        var normalizedName = trimmedName.ToUpper();
+
+        // Duplicate name verification (excluding current entity)
+        var nameConflict = await dbContext.TblCommunities
+            .AnyAsync(c => c.CommunityId != communityId && !c.IsDeleted && c.Name.ToUpper() == normalizedName, cancellationToken);
+
+        if (nameConflict)
+        {
+            var isSub = community.ParentCommunityId.HasValue;
+            var msg = isSub
+                ? "This sub-community name is already exist!"
+                : "This community name is already exist!";
+            return Result<CommunityModel>.Failure(msg, ResultStatus.Conflict);
+        }
+
+        // Determine editor id
+        int editorId;
+        if (currentUser.UserId.HasValue)
+        {
+            editorId = currentUser.UserId.Value;
+        }
+        else
+        {
+            var fallbackUser = await dbContext.TblUsers.FirstOrDefaultAsync(u => u.IsActive && !u.IsDeleted, cancellationToken);
+            editorId = fallbackUser?.UserId ?? community.OwnerId;
+        }
+
+        var targetType = community.ParentCommunityId.HasValue ? "SUB_COMMUNITY" : "COMMUNITY";
+        var trimmedDesc = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+
+        // Track Name change audit
+        if (!string.Equals(community.Name, trimmedName, StringComparison.Ordinal))
+        {
+            dbContext.TblCommunityAuditLogs.Add(new TblCommunityAuditLog
+            {
+                CommunityId = communityId,
+                TargetType = targetType,
+                FieldChanged = "Name",
+                OldValue = community.Name,
+                NewValue = trimmedName,
+                EditorId = editorId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            community.Name = trimmedName;
+
+            // Update slug if name changed
+            var rawSlug = trimmedName.ToLowerInvariant().Replace(" ", "-");
+            var slug = rawSlug;
+            var slugCounter = 1;
+            while (await dbContext.TblCommunities.AnyAsync(c => c.CommunityId != communityId && c.Slug == slug, cancellationToken))
+            {
+                slug = $"{rawSlug}-{slugCounter++}";
+            }
+            community.Slug = slug;
+        }
+
+        // Track Description change audit
+        var currentDesc = community.Description;
+        if (!string.Equals(currentDesc, trimmedDesc, StringComparison.Ordinal))
+        {
+            dbContext.TblCommunityAuditLogs.Add(new TblCommunityAuditLog
+            {
+                CommunityId = communityId,
+                TargetType = targetType,
+                FieldChanged = "Description",
+                OldValue = currentDesc,
+                NewValue = trimmedDesc,
+                EditorId = editorId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            community.Description = trimmedDesc;
+        }
+
+        community.UpdatedAt = DateTime.UtcNow;
+        community.UpdatedBy = editorId;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var updatedModel = new CommunityModel(
+            community.CommunityId,
+            community.Name,
+            community.Slug,
+            community.Description,
+            community.AvatarUrl,
+            community.BannerUrl,
+            community.Visibility,
+            community.JoinPolicy,
+            community.TblCommunityMembers.Count(m => !m.IsDeleted),
+            community.TblPosts.Count(p => !p.IsDeleted),
+            community.TblCommunityRatings.Any() ? (double)community.TblCommunityRatings.Average(r => r.Score) : 5.0,
+            community.OwnerId,
+            community.Owner != null ? community.Owner.DisplayName : "Admin",
+            community.CreatedAt,
+            community.ParentCommunityId,
+            community.ParentCommunity != null ? community.ParentCommunity.Name : null);
+
+        return Result<CommunityModel>.Success(updatedModel, "Updated successfully.");
+    }
+
+    public async Task<Result<IReadOnlyList<CommunityAuditModel>>> GetCommunityAuditsAsync(int communityId, CancellationToken cancellationToken = default)
+    {
+        var logs = await dbContext.TblCommunityAuditLogs
+            .Include(a => a.Editor)
+            .Where(a => a.CommunityId == communityId)
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => new CommunityAuditModel(
+                a.AuditId,
+                a.CommunityId,
+                a.TargetType,
+                a.FieldChanged,
+                a.OldValue,
+                a.NewValue,
+                a.EditorId,
+                a.Editor != null ? a.Editor.DisplayName : "Unknown",
+                a.CreatedAt))
+            .ToListAsync(cancellationToken);
+
+        return Result<IReadOnlyList<CommunityAuditModel>>.Success(logs);
     }
 }
