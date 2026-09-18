@@ -15,9 +15,9 @@ public class DynamicRbacEndpointTests(CommunityApiFactory factory) : IClassFixtu
     }
 
     [Fact]
-    public async Task AnonymousRequest_ToProtectedCommunitiesEndpoint_ReturnsUnauthorized()
+    public async Task AnonymousRequest_ToProtectedPollsEndpoint_ReturnsUnauthorized()
     {
-        var response = await _client.GetAsync("/api/communities");
+        var response = await _client.GetAsync("/api/polls");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 

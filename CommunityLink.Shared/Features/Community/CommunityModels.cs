@@ -14,16 +14,19 @@ public sealed record CommunityModel(
     double AverageRating,
     int OwnerId,
     string OwnerName,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    int? ParentCommunityId = null,
+    string? ParentCommunityName = null);
 
 public sealed record CreateCommunityRequestModel(
     string Name,
-    string Slug,
+    string? Slug,
     string? Description,
     string? AvatarUrl,
     string? BannerUrl,
     string Visibility,
-    string JoinPolicy);
+    string JoinPolicy,
+    int? ParentCommunityId = null);
 
 public sealed record UpdateCommunityRequestModel(
     int CommunityId,

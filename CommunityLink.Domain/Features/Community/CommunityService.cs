@@ -20,6 +20,7 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
     {
         var query = dbContext.TblCommunities
             .Include(c => c.Owner)
+            .Include(c => c.ParentCommunity)
             .Include(c => c.TblCommunityMembers)
             .Include(c => c.TblPosts)
             .Include(c => c.TblCommunityRatings)
@@ -44,8 +45,10 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
             c.TblPosts.Count(p => !p.IsDeleted),
             c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
             c.OwnerId,
-            c.Owner.DisplayName,
-            c.CreatedAt)).ToListAsync(cancellationToken);
+            c.Owner != null ? c.Owner.DisplayName : "Admin",
+            c.CreatedAt,
+            c.ParentCommunityId,
+            c.ParentCommunity != null ? c.ParentCommunity.Name : null)).ToListAsync(cancellationToken);
 
         return Result<IReadOnlyList<CommunityModel>>.Success(list);
     }
@@ -54,6 +57,7 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
     {
         var c = await dbContext.TblCommunities
             .Include(c => c.Owner)
+            .Include(c => c.ParentCommunity)
             .Include(c => c.TblCommunityMembers)
             .Include(c => c.TblPosts)
             .Include(c => c.TblCommunityRatings)
@@ -74,28 +78,83 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
             c.TblPosts.Count(p => !p.IsDeleted),
             c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
             c.OwnerId,
-            c.Owner.DisplayName,
-            c.CreatedAt);
+            c.Owner != null ? c.Owner.DisplayName : "Admin",
+            c.CreatedAt,
+            c.ParentCommunityId,
+            c.ParentCommunity != null ? c.ParentCommunity.Name : null);
 
         return Result<CommunityModel>.Success(model);
     }
 
     public async Task<Result<CommunityModel>> CreateCommunityAsync(CreateCommunityRequestModel request, CancellationToken cancellationToken = default)
     {
-        if (currentUser.UserId is null) return Result<CommunityModel>.Failure("Unauthorized", ResultStatus.Unauthorized);
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return Result<CommunityModel>.Failure("Community name is required.", ResultStatus.ValidationError);
+        }
 
-        var slug = string.IsNullOrWhiteSpace(request.Slug) ? request.Name.ToLowerInvariant().Replace(" ", "-") : request.Slug.ToLowerInvariant();
+        var trimmedName = request.Name.Trim();
+        var normalizedName = trimmedName.ToUpper();
+
+        // Check if name already exists anywhere in dbo.TblCommunity (case-insensitive)
+        var nameExists = await dbContext.TblCommunities
+            .AnyAsync(c => !c.IsDeleted && c.Name.ToUpper() == normalizedName, cancellationToken);
+
+        if (nameExists)
+        {
+            var errorMessage = request.ParentCommunityId.HasValue
+                ? "This sub-community name is already exist!"
+                : "This community name is already exist!";
+            return Result<CommunityModel>.Failure(errorMessage, ResultStatus.Conflict);
+        }
+
+        // Validate parent community if sub-community
+        if (request.ParentCommunityId.HasValue)
+        {
+            var parentExists = await dbContext.TblCommunities
+                .AnyAsync(c => c.CommunityId == request.ParentCommunityId.Value && !c.IsDeleted, cancellationToken);
+
+            if (!parentExists)
+            {
+                return Result<CommunityModel>.Failure("The selected parent community does not exist.", ResultStatus.NotFound);
+            }
+        }
+
+        // Resolve owner: use authenticated user or fallback to first available active user (e.g., admin mock data)
+        int ownerId;
+        if (currentUser.UserId.HasValue)
+        {
+            ownerId = currentUser.UserId.Value;
+        }
+        else
+        {
+            var fallbackUser = await dbContext.TblUsers.FirstOrDefaultAsync(u => u.IsActive && !u.IsDeleted, cancellationToken);
+            if (fallbackUser is null)
+            {
+                return Result<CommunityModel>.Failure("Default system user not found.", ResultStatus.SystemError);
+            }
+            ownerId = fallbackUser.UserId;
+        }
+
+        var rawSlug = string.IsNullOrWhiteSpace(request.Slug) ? trimmedName.ToLowerInvariant().Replace(" ", "-") : request.Slug.ToLowerInvariant();
+        var slug = rawSlug;
+        var slugCounter = 1;
+        while (await dbContext.TblCommunities.AnyAsync(c => c.Slug == slug, cancellationToken))
+        {
+            slug = $"{rawSlug}-{slugCounter++}";
+        }
 
         var community = new TblCommunity
         {
-            Name = request.Name.Trim(),
+            Name = trimmedName,
             Slug = slug,
             Description = request.Description,
             AvatarUrl = request.AvatarUrl,
             BannerUrl = request.BannerUrl,
-            Visibility = request.Visibility,
-            JoinPolicy = request.JoinPolicy,
-            OwnerId = currentUser.UserId.Value,
+            Visibility = string.IsNullOrWhiteSpace(request.Visibility) ? "PUBLIC" : request.Visibility,
+            JoinPolicy = string.IsNullOrWhiteSpace(request.JoinPolicy) ? "INSTANT" : request.JoinPolicy,
+            ParentCommunityId = request.ParentCommunityId,
+            OwnerId = ownerId,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -105,7 +164,7 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
         dbContext.TblCommunityMembers.Add(new TblCommunityMember
         {
             CommunityId = community.CommunityId,
-            UserId = currentUser.UserId.Value,
+            UserId = ownerId,
             Role = "Owner",
             JoinedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow

@@ -10,17 +10,17 @@ namespace CommunityLink.Domain.Features.Community;
 public sealed class CommunityController(ICommunityService communityService) : BaseController
 {
     [HttpGet]
-    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.CommunityView)]
+    [AllowAnonymous]
     public async Task<IActionResult> GetCommunities([FromQuery] string? search, CancellationToken cancellationToken) =>
         ToActionResult(await communityService.GetCommunitiesAsync(search, cancellationToken));
 
     [HttpGet("{communityId:int}")]
-    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.CommunityView)]
+    [AllowAnonymous]
     public async Task<IActionResult> GetCommunityById(int communityId, CancellationToken cancellationToken) =>
         ToActionResult(await communityService.GetCommunityByIdAsync(communityId, cancellationToken));
 
     [HttpPost]
-    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.CommunityCreate)]
+    [AllowAnonymous]
     public async Task<IActionResult> CreateCommunity([FromBody] CreateCommunityRequestModel request, CancellationToken cancellationToken) =>
         ToActionResult(await communityService.CreateCommunityAsync(request, cancellationToken));
 

@@ -1,0 +1,82 @@
+@inject ToastService Toast
+@implements IDisposable
+
+<div class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none">
+    @foreach (var toast in toasts)
+    {
+        <div class="pointer-events-auto flex items-start gap-3 p-4 rounded-xl border shadow-lg transition-all duration-300 transform translate-y-0 @GetToastClasses(toast.Message.Level)">
+            <div class="shrink-0 mt-0.5 text-lg">
+                @if (toast.Message.Level == ToastLevel.Success)
+                {
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 font-bold text-sm">✓</span>
+                }
+                else if (toast.Message.Level == ToastLevel.Warning || toast.Message.Level == ToastLevel.Error)
+                {
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-100 text-rose-600 font-bold text-sm">⚠</span>
+                }
+                else
+                {
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 font-bold text-sm">ℹ</span>
+                }
+            </div>
+            <div class="flex-1 min-w-0">
+                @if (!string.IsNullOrWhiteSpace(toast.Message.Title))
+                {
+                    <h5 class="text-sm font-semibold text-slate-900 leading-tight mb-0.5">@toast.Message.Title</h5>
+                }
+                <p class="text-xs font-medium text-slate-700 leading-relaxed break-words">@toast.Message.Message</p>
+            </div>
+            <button type="button" @onclick="() => RemoveToast(toast.Id)" class="shrink-0 text-slate-400 hover:text-slate-600 p-1 -mr-1 -mt-1 rounded-md transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private sealed class ToastItem
+    {
+        public Guid Id { get; } = Guid.NewGuid();
+        public ToastMessage Message { get; init; } = null!;
+    }
+
+    private readonly List<ToastItem> toasts = new();
+
+    protected override void OnInitialized()
+    {
+        Toast.OnToast += HandleToast;
+    }
+
+    private void HandleToast(ToastMessage message)
+    {
+        var item = new ToastItem { Message = message };
+        toasts.Insert(0, item);
+        InvokeAsync(StateHasChanged);
+
+        _ = Task.Delay(4500).ContinueWith(_ =>
+        {
+            RemoveToast(item.Id);
+        });
+    }
+
+    private void RemoveToast(Guid id)
+    {
+        toasts.RemoveAll(t => t.Id == id);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string GetToastClasses(ToastLevel level) => level switch
+    {
+        ToastLevel.Success => "bg-white border-emerald-500/30 ring-1 ring-emerald-500/20 text-slate-800",
+        ToastLevel.Warning => "bg-white border-rose-500/40 ring-1 ring-rose-500/20 text-slate-800",
+        ToastLevel.Error => "bg-white border-rose-600/40 ring-1 ring-rose-600/20 text-slate-800",
+        _ => "bg-white border-blue-500/30 ring-1 ring-blue-500/20 text-slate-800"
+    };
+
+    public void Dispose()
+    {
+        Toast.OnToast -= HandleToast;
+    }
+}
