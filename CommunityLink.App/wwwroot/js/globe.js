@@ -32,14 +32,14 @@ window.initGlobe = function () {
     scene.add(globeGroup);
 
     // Soft ambient & balanced directional lighting
-    const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.85);
+    const ambientLight = new THREE.AmbientLight(0xdbeafe, 1.1);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.3);
+    const dirLight1 = new THREE.DirectionalLight(0x7dd3fc, 1.9);
     dirLight1.position.set(12, 10, 15);
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0xd4af37, 0.9);
+    const dirLight2 = new THREE.DirectionalLight(0xffd96e, 1.2);
     dirLight2.position.set(-15, -8, -10);
     scene.add(dirLight2);
 
@@ -47,11 +47,11 @@ window.initGlobe = function () {
     const sphereRadius = 6.2;
     const sphereGeo = new THREE.SphereGeometry(sphereRadius, 64, 64);
     const sphereMat = new THREE.MeshPhongMaterial({
-        color: 0x0a1120,
-        emissive: 0x060c18,
-        shininess: 35,
+        color: 0x12233f,
+        emissive: 0x0a1830,
+        shininess: 45,
         transparent: true,
-        opacity: 0.88
+        opacity: 0.95
     });
     const coreGlobe = new THREE.Mesh(sphereGeo, sphereMat);
     globeGroup.add(coreGlobe);
@@ -61,7 +61,7 @@ window.initGlobe = function () {
     const glowMat = new THREE.MeshBasicMaterial({
         color: 0x38bdf8,
         transparent: true,
-        opacity: 0.08,
+        opacity: 0.16,
         side: THREE.BackSide
     });
     globeGroup.add(new THREE.Mesh(glowGeo, glowMat));
@@ -135,10 +135,10 @@ window.initGlobe = function () {
 
     // Draw soft glowing maplines right on the surface of the globe
     const mapLineMat = new THREE.LineBasicMaterial({
-        color: 0x38bdf8,
+        color: 0x7dd3fc,
         transparent: true,
-        opacity: 0.38,
-        linewidth: 1.5
+        opacity: 0.68,
+        linewidth: 2
     });
 
     continentOutlines.forEach(polygon => {
@@ -166,7 +166,7 @@ window.initGlobe = function () {
     const wireMat = new THREE.LineBasicMaterial({
         color: 0x38bdf8,
         transparent: true,
-        opacity: 0.12
+        opacity: 0.2
     });
 
     // Latitude rings
@@ -225,9 +225,9 @@ window.initGlobe = function () {
 
             const isGold = Math.random() < 0.12;
             if (isGold) {
-                particleColors.push(0.83, 0.68, 0.21);
+                particleColors.push(1.0, 0.82, 0.35);
             } else {
-                particleColors.push(0.22, 0.74, 0.97);
+                particleColors.push(0.35, 0.85, 1.0);
             }
         }
     });
@@ -237,10 +237,10 @@ window.initGlobe = function () {
     dotGeo.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
 
     const dotMat = new THREE.PointsMaterial({
-        size: 0.11,
+        size: 0.13,
         vertexColors: true,
         transparent: true,
-        opacity: 0.6
+        opacity: 0.9
     });
     globeGroup.add(new THREE.Points(dotGeo, dotMat));
 
@@ -282,17 +282,17 @@ window.initGlobe = function () {
         hubGroup.position.copy(pos);
         hubGroup.lookAt(new THREE.Vector3(0, 0, 0));
 
-        const nGeo = new THREE.SphereGeometry(0.14, 16, 16);
+        const nGeo = new THREE.SphereGeometry(0.16, 16, 16);
         const nMat = new THREE.MeshBasicMaterial({ color: hub.color });
         const nMesh = new THREE.Mesh(nGeo, nMat);
         hubGroup.add(nMesh);
 
         // Subtle pulsing halo ring
-        const rGeo = new THREE.RingGeometry(0.22, 0.29, 24);
+        const rGeo = new THREE.RingGeometry(0.24, 0.32, 24);
         const rMat = new THREE.MeshBasicMaterial({
             color: hub.color,
             transparent: true,
-            opacity: 0.45,
+            opacity: 0.7,
             side: THREE.DoubleSide
         });
         const rMesh = new THREE.Mesh(rGeo, rMat);
@@ -389,16 +389,16 @@ window.initGlobe = function () {
             (fromName === 'London' && toName === 'Singapore') ||
             (fromName === 'San Francisco' && toName === 'Tokyo');
 
-        const tubeGeo = new THREE.TubeGeometry(curve, 36, 0.02, 6, false);
+        const tubeGeo = new THREE.TubeGeometry(curve, 36, 0.025, 6, false);
         const tubeMat = new THREE.MeshBasicMaterial({
-            color: isGold ? 0xd4af37 : 0x38bdf8,
+            color: isGold ? 0xf5c94a : 0x38bdf8,
             transparent: true,
-            opacity: isGold ? 0.65 : 0.42
+            opacity: isGold ? 0.85 : 0.6
         });
         globeGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
 
         if (idx % 2 === 0) {
-            const pGeo = new THREE.SphereGeometry(0.048, 8, 8);
+            const pGeo = new THREE.SphereGeometry(0.06, 8, 8);
             const pMat = new THREE.MeshBasicMaterial({ color: isGold ? 0xfffae0 : 0xffffff });
             const pMesh = new THREE.Mesh(pGeo, pMat);
             globeGroup.add(pMesh);
