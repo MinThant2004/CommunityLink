@@ -8,12 +8,12 @@ namespace CommunityLink.Domain.Security;
 
 public interface ITokenIssuer
 {
-    string GenerateToken(int userId, string email, string fullName, string roleCode, int roleId, string sessionId);
+    string GenerateToken(int userId, string email, string fullName, string roleCode, int roleId, string sessionId, bool mustChangePassword = false, int? expiresInMinutes = null);
 }
 
 public sealed class JwtTokenIssuer(CustomSettingModel settings) : ITokenIssuer
 {
-    public string GenerateToken(int userId, string email, string fullName, string roleCode, int roleId, string sessionId)
+    public string GenerateToken(int userId, string email, string fullName, string roleCode, int roleId, string sessionId, bool mustChangePassword = false, int? expiresInMinutes = null)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.Jwt.Key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -30,6 +30,7 @@ public sealed class JwtTokenIssuer(CustomSettingModel settings) : ITokenIssuer
             new("role", roleCode),
             new("role_id", roleId.ToString()),
             new("session_id", sessionId),
+            new("must_change_password", mustChangePassword.ToString().ToLowerInvariant()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
@@ -37,7 +38,7 @@ public sealed class JwtTokenIssuer(CustomSettingModel settings) : ITokenIssuer
             issuer: settings.Jwt.Issuer,
             audience: settings.Jwt.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(settings.Jwt.ExpiryMinutes),
+            expires: DateTime.UtcNow.AddMinutes(expiresInMinutes ?? settings.Jwt.ExpiryMinutes),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

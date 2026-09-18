@@ -1,0 +1,71 @@
+@namespace CommunityLink.App.Components.Shared
+
+<div class="min-h-screen w-full bg-white lg:grid lg:grid-cols-2">
+
+    <aside class="@(IsAdmin ? "bg-gradient-to-br from-sky-700 via-sky-500 to-cyan-400" : "bg-gradient-to-br from-indigo-600 via-indigo-500 to-sky-400") hidden lg:flex flex-col justify-between p-12 text-white">
+        <div>
+            <a href="/" class="inline-flex items-center gap-3">
+                <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 font-bold text-lg backdrop-blur">@LogoText</span>
+                <span class="text-xl font-bold tracking-tight">CommunityLink</span>
+            </a>
+
+            <div class="mt-16 max-w-md">
+                <p class="text-xs font-semibold uppercase tracking-widest opacity-80">@Eyebrow</p>
+                <h1 class="mt-3 text-4xl font-extrabold leading-tight tracking-tight">@Title</h1>
+                <p class="mt-4 text-sm leading-relaxed opacity-90">@Subtitle</p>
+
+                @if (Features is not null)
+                {
+                    @Features
+                }
+                else
+                {
+                    @if (IsAdmin)
+                    {
+                        @AdminDefaultFeatures()
+                    }
+                    else
+                    {
+                        @MemberDefaultFeatures()
+                    }
+                }
+            </div>
+        </div>
+
+        <p class="text-xs opacity-70">© 2026 CommunityLink. All rights reserved.</p>
+    </aside>
+
+    <main class="flex min-h-screen items-center justify-center px-6 py-12 sm:px-10">
+        <div class="w-full max-w-md">
+            @ChildContent
+        </div>
+    </main>
+</div>
+
+@code {
+    [Parameter] public bool IsAdmin { get; set; }
+    [Parameter] public string LogoText { get; set; } = "CL";
+    [Parameter] public string Eyebrow { get; set; } = "";
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "";
+    [Parameter] public RenderFragment? Features { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private static RenderFragment MemberDefaultFeatures() => __builder =>
+    {
+        <ul class="mt-8 space-y-3 text-sm">
+            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Join communities & topical hubs</li>
+            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Share posts, polls and ideas</li>
+            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Connect in real-time chat</li>
+        </ul>;
+    };
+
+    private static RenderFragment AdminDefaultFeatures() => __builder =>
+    {
+        <ul class="mt-8 space-y-3 text-sm">
+            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Manage members, content & communities</li>
+            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Dynamic role-based permissions</li>
+            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Full platform oversight</li>
+        </ul>;
+    };
+}

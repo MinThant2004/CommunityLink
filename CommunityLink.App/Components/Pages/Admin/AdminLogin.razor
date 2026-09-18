@@ -1,0 +1,89 @@
+@page "/admin/portal-entry/login"
+@rendermode InteractiveServer
+@layout AuthLayout
+@using CommunityLink.App.Components.Shared
+@inject NavigationManager Navigation
+
+<PageTitle>Admin Sign In - CommunityLink</PageTitle>
+
+@if (showForgotPasswordModal)
+{
+    <ForgotPasswordModal IsAdmin="true" OnClose="CloseForgotPassword" />
+}
+
+<AuthSplitScreen IsAdmin="true" LogoText="ADM" Eyebrow="Administrator Portal" Title="Secure admin access"
+                 Subtitle="Sign in to manage members, communities and platform settings. Authorized personnel only.">
+    <form method="post" action="/account/admin/login" class="space-y-6">
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="@AuthClasses.ErrorAlert">
+                <span class="mt-0.5">⚠️</span>
+                <span>@errorMessage</span>
+            </div>
+        }
+
+        <div>
+            <p class="@AuthClasses.EyebrowAdmin">Administrator Portal</p>
+            <h2 class="mt-1 text-2xl font-bold text-slate-900">Sign in as admin</h2>
+            <p class="mt-1 text-sm text-slate-500">Enter your administrator credentials to continue.</p>
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="admin-email" class="@AuthClasses.Label">Admin email</label>
+            <input id="admin-email" name="email" type="email" required autofocus autocomplete="email"
+                   placeholder="admin@example.com" class="@AuthClasses.InputAdmin" />
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="admin-password" class="@AuthClasses.Label">Password</label>
+            <div class="relative">
+                <input id="admin-password" name="password" type="password" required
+                       autocomplete="current-password" placeholder="••••••••" class="@AuthClasses.InputAdmin pr-12" />
+                <button type="button" onclick="togglePasswordVisibility(this)" tabindex="-1"
+                        class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition" aria-label="Toggle password visibility">
+                    <EyeIcon IsVisible="false" />
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+            <label for="admin-remember" class="flex items-center gap-2 text-sm text-slate-600">
+                <input type="hidden" name="rememberMe" value="false" />
+                <input id="admin-remember" name="rememberMe" type="checkbox" value="true" class="@AuthClasses.CheckboxAdmin" />
+                Remember me
+            </label>
+            <button type="button" @onclick="OpenForgotPassword" class="@AuthClasses.LinkAdmin">Forgot password?</button>
+        </div>
+
+        <AntiforgeryToken />
+
+        <button type="submit" class="@AuthClasses.PrimaryButtonAdmin">
+            <span>Authenticate Admin</span>
+            <span aria-hidden="true">→</span>
+        </button>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-slate-500">
+        Need to provision an admin?
+        <a href="/admin/portal-entry/register" class="@AuthClasses.LinkAdmin">Register an admin account</a>
+    </p>
+</AuthSplitScreen>
+
+@code {
+    private bool showForgotPasswordModal;
+    private string? errorMessage;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Navigation.Uri);
+        if (uri.Query.Length > 0)
+        {
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            errorMessage = query["error"];
+        }
+    }
+
+    private void OpenForgotPassword() => showForgotPasswordModal = true;
+    private void CloseForgotPassword() => showForgotPasswordModal = false;
+}

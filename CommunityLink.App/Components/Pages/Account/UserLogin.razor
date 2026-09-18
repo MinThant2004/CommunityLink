@@ -1,0 +1,88 @@
+@page "/login"
+@rendermode InteractiveServer
+@layout AuthLayout
+@using CommunityLink.App.Components.Shared
+@inject NavigationManager Navigation
+
+<PageTitle>Sign In - CommunityLink</PageTitle>
+
+@if (showForgotPasswordModal)
+{
+    <ForgotPasswordModal IsAdmin="false" OnClose="CloseForgotPassword" />
+}
+
+<AuthSplitScreen LogoText="CL" Eyebrow="Member Portal" Title="Build stronger communities"
+                 Subtitle="Discover communities, share ideas and connect with people who care about the same things you do.">
+    <form method="post" action="/account/login" class="space-y-6">
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="@AuthClasses.ErrorAlert">
+                <span class="mt-0.5">⚠️</span>
+                <span>@errorMessage</span>
+            </div>
+        }
+
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900">Sign in to your account</h2>
+            <p class="mt-1 text-sm text-slate-500">Welcome back! Enter your credentials to continue.</p>
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="email" class="@AuthClasses.Label">Email address</label>
+            <input id="email" name="email" type="email" required autofocus autocomplete="email"
+                   placeholder="you@example.com" class="@AuthClasses.Input" />
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="password" class="@AuthClasses.Label">Password</label>
+            <div class="relative">
+                <input id="password" name="password" type="password" required
+                       autocomplete="current-password" placeholder="••••••••" class="@AuthClasses.Input pr-12" />
+                <button type="button" onclick="togglePasswordVisibility(this)" tabindex="-1"
+                        class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition" aria-label="Toggle password visibility">
+                    <EyeIcon IsVisible="false" />
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+            <label for="remember-me" class="flex items-center gap-2 text-sm text-slate-600">
+                <input type="hidden" name="rememberMe" value="false" />
+                <input id="remember-me" name="rememberMe" type="checkbox" value="true" class="@AuthClasses.Checkbox" />
+                Remember me
+            </label>
+            <button type="button" @onclick="OpenForgotPassword" class="@AuthClasses.Link">Forgot password?</button>
+        </div>
+
+        <AntiforgeryToken />
+
+        <button type="submit" class="@AuthClasses.PrimaryButton">
+            <span>Sign In</span>
+            <span aria-hidden="true">→</span>
+        </button>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-slate-500">
+        Don't have an account?
+        <a href="/register" class="@AuthClasses.Link">Create one now</a>
+    </p>
+</AuthSplitScreen>
+
+@code {
+    private bool showForgotPasswordModal;
+    private string? errorMessage;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Navigation.Uri);
+        if (uri.Query.Length > 0)
+        {
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            errorMessage = query["error"];
+        }
+    }
+
+    private void OpenForgotPassword() => showForgotPasswordModal = true;
+    private void CloseForgotPassword() => showForgotPasswordModal = false;
+}

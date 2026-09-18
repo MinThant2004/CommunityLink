@@ -11,6 +11,7 @@ using CommunityLink.Domain.Features.Post;
 using CommunityLink.Domain.Features.Poll;
 using CommunityLink.Domain.Features.Chat;
 using CommunityLink.Domain.Features.Administration;
+using CommunityLink.Domain.Services;
 using CommunityLink.Shared;
 
 namespace CommunityLink.Domain;
@@ -42,6 +43,9 @@ public static class FeatureManager
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+
+        // Infrastructure Services
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
 
         // Domain Services
         services.AddScoped<IAuthenticationService, AuthenticationService>();

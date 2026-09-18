@@ -8,6 +8,8 @@ public static class RbacSeeder
 {
     public static async Task SeedAsync(AppDbContext db)
     {
+        await db.Database.EnsureCreatedAsync();
+
         // 1. Seed Permissions from Catalog
         foreach (var def in PermissionCatalog.All)
         {

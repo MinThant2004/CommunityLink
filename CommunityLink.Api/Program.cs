@@ -1,4 +1,5 @@
 using CommunityLink.Domain;
+using CommunityLink.Api.Controllers;
 using CommunityLink.Api.Middlewares;
 using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Features.RoleAndPermission;
