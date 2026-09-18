@@ -6,10 +6,46 @@
 
 <PageTitle>CommunityLink — Connect Communities Worldwide</PageTitle>
 
-@* ===== Globe Frame ===== *@
-<div class="globe-frame">
+@* ===== Top Navigation Bar ===== *@
+<nav class="site-nav">
+    <a class="site-logo" href="/">
+        <span class="site-logo-icon">🌐</span>
+        <span class="site-logo-text">CommunityLink</span>
+    </a>
 
-    @* --- Header Bar --- *@
+    <div class="site-nav-links">
+        <a class="site-nav-link" href="/feed">Feed</a>
+        <a class="site-nav-link" href="/communities">Communities</a>
+        <a class="site-nav-link" href="/polls">Polls</a>
+        <a class="site-nav-link" href="/chat">Messages</a>
+    </div>
+
+    <div class="site-nav-actions">
+        <AuthorizeView>
+            <Authorized>
+                <a class="btn-nav btn-nav-primary" href="/feed">📰 Go to Feed</a>
+            </Authorized>
+            <NotAuthorized>
+                <a class="btn-nav btn-nav-outline" href="/login">Login</a>
+                <a class="btn-nav btn-nav-primary" href="/register">Register</a>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</nav>
+
+@* ===== Hero Text ===== *@
+<header class="hero">
+    <span class="hero-badge">✦ Community Platform</span>
+    <h1>Connect People. <span class="h1-accent">Build Communities.</span></h1>
+    <p class="hero-tagline">
+        A modern, scalable platform connecting people across the globe —
+        with <strong>real-time messaging</strong>, <strong>live polls</strong>,
+        and <strong>rich content feeds</strong>.
+    </p>
+</header>
+
+@* ===== Globe Frame (nothing overlays the globe) ===== *@
+<div class="globe-frame">
     <div class="frame-header">
         <div class="frame-header-left">
             <div class="frame-dots">
@@ -25,37 +61,14 @@
         </div>
     </div>
 
-    @* --- Interaction Hint --- *@
     <div class="frame-hint">
-        <span class="hint-icon">✦</span> Click & Drag to Rotate 3D Globe • Scroll to Zoom
+        <span class="hint-icon">✦</span> Click &amp; Drag to Rotate 3D Globe • Scroll to Zoom
     </div>
 
-    @* --- Globe Viewport --- *@
     <div class="globe-viewport">
         <div id="globe-canvas"></div>
-
-        @* Floating Status Panel — Left *@
-        <div class="globe-panel globe-panel-left">
-            <div class="panel-label">
-                <span class="panel-dot"></span> NETWORK STATUS
-            </div>
-            <div class="panel-stat">27 <span class="stat-accent">Hubs</span></div>
-            <div class="panel-desc">Global nodes active across 6 continents</div>
-            <span class="panel-badge panel-badge-cyan">ALL SYSTEMS ONLINE</span>
-        </div>
-
-        @* Floating Status Panel — Right *@
-        <div class="globe-panel globe-panel-right">
-            <div class="panel-label">
-                <span class="panel-dot"></span> LIVE CONNECTIONS
-            </div>
-            <div class="panel-stat">52 <span class="stat-accent">Routes</span></div>
-            <div class="panel-desc">Fiber links transmitting across the network</div>
-            <span class="panel-badge panel-badge-gold">SYNCHRONIZED</span>
-        </div>
     </div>
 
-    @* --- Footer Bar --- *@
     <div class="frame-footer">
         <span>Powered by</span>
         <span class="footer-accent">.NET 10</span>
@@ -68,49 +81,33 @@
     </div>
 </div>
 
-@* ===== Hero Section (below frame) ===== *@
-<div class="hero-section">
-    <span class="hero-badge">✦ Community Platform</span>
-    <h1>CommunityLink</h1>
-    <p class="hero-tagline">
-        A modern, scalable platform connecting people across the globe.
-        Build communities, share ideas, and engage through <strong>real-time messaging</strong>,
-        <strong>live polls</strong>, and <strong>rich content feeds</strong>.
-    </p>
-    <AuthorizeView>
-        <Authorized>
-            <div class="hero-actions">
-                <a class="btn-glow btn-glow-primary" href="feed">
-                    📰 Go to Public Feed
-                </a>
-                <a class="btn-glow btn-glow-outline" href="communities">
-                    👥 Explore Communities
-                </a>
-            </div>
-        </Authorized>
-        <NotAuthorized>
-            <div class="hero-actions">
-                <a class="btn-glow btn-glow-primary" href="login">
-                    🔑 Login to your account
-                </a>
-                <a class="btn-glow btn-glow-gold" href="register">
-                    📝 Create a new account
-                </a>
-            </div>
-        </NotAuthorized>
-    </AuthorizeView>
-</div>
+@* ===== Call-To-Action Band ===== *@
+<section class="cta-band">
+    <h2>Join the global community</h2>
+    <p>Free to join. Built for connections that span continents.</p>
+    <div class="cta-actions">
+        <AuthorizeView>
+            <Authorized>
+                <a class="btn-glow btn-glow-primary" href="/feed">📰 Go to Public Feed</a>
+            </Authorized>
+            <NotAuthorized>
+                <a class="btn-glow btn-glow-outline" href="/login">🔑 Login</a>
+                <a class="btn-glow btn-glow-gold" href="/register">📝 Create Account</a>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</section>
 
 @* ===== Feature Cards ===== *@
-<div class="feature-strip">
+<section class="features">
     <div class="feature-card">
         <span class="feature-icon">👥</span>
-        <h3>Communities & Hubs</h3>
+        <h3>Communities &amp; Hubs</h3>
         <p>Join topical groups, manage memberships, and participate in community discussions.</p>
     </div>
     <div class="feature-card">
         <span class="feature-icon">📊</span>
-        <h3>Live Polls & Voting</h3>
+        <h3>Live Polls &amp; Voting</h3>
         <p>Create polls with single or multiple choice questions and instant results.</p>
     </div>
     <div class="feature-card">
@@ -118,7 +115,12 @@
         <h3>Real-Time Messaging</h3>
         <p>Direct messaging and threaded conversations between community members.</p>
     </div>
-</div>
+</section>
+
+@* ===== Footer ===== *@
+<footer class="site-footer">
+    <span>© @DateTime.Now.Year CommunityLink — A community without borders.</span>
+</footer>
 
 @code {
     private bool _globeInitialized;
