@@ -1,0 +1,94 @@
+@page "/register"
+@layout AuthLayout
+@using CommunityLink.App.Components.Shared
+@inject NavigationManager Navigation
+
+<PageTitle>Create Account - CommunityLink</PageTitle>
+
+<AuthSplitScreen LogoText="CL" Eyebrow="Member Portal" Title="Join the conversation"
+                 Subtitle="Create your free member account and start connecting with communities that matter to you.">
+    <form method="post" action="/account/register" class="space-y-6">
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="@AuthClasses.ErrorAlert">
+                <span class="mt-0.5">⚠️</span>
+                <span>@errorMessage</span>
+            </div>
+        }
+
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900">Create your account</h2>
+            <p class="mt-1 text-sm text-slate-500">It only takes a minute to get started.</p>
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="fullName" class="@AuthClasses.Label">Full name</label>
+            <input id="fullName" name="fullName" type="text" required autocomplete="name"
+                   placeholder="Jane Doe" class="@AuthClasses.Input" />
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="userName" class="@AuthClasses.Label">Username</label>
+            <input id="userName" name="userName" type="text" required autocomplete="username"
+                   placeholder="janedoe" class="@AuthClasses.Input" />
+            <p class="text-xs text-slate-400">3-30 characters: letters, numbers or underscores.</p>
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="email" class="@AuthClasses.Label">Email address</label>
+            <input id="email" name="email" type="email" required autocomplete="email"
+                   placeholder="you@example.com" class="@AuthClasses.Input" />
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="password" class="@AuthClasses.Label">Password</label>
+            <div class="relative">
+                <input id="password" name="password" type="password" required
+                       autocomplete="new-password" placeholder="At least 8 characters" class="@AuthClasses.Input pr-12" />
+                <button type="button" onclick="togglePasswordVisibility(this)" tabindex="-1"
+                        class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition" aria-label="Toggle password visibility">
+                    <EyeIcon IsVisible="false" />
+                </button>
+            </div>
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="confirmPassword" class="@AuthClasses.Label">Confirm password</label>
+            <div class="relative">
+                <input id="confirmPassword" name="confirmPassword" type="password" required autocomplete="new-password"
+                       placeholder="Re-enter your password" class="@AuthClasses.Input pr-12" />
+                <button type="button" onclick="togglePasswordVisibility(this)" tabindex="-1"
+                        class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition" aria-label="Toggle confirm password visibility">
+                    <EyeIcon IsVisible="false" />
+                </button>
+            </div>
+        </div>
+
+        <AntiforgeryToken />
+
+        <button type="submit" class="@AuthClasses.PrimaryButton">
+            <span>Create Account</span>
+            <span aria-hidden="true">→</span>
+        </button>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-slate-500">
+        Already have an account?
+        <a href="/login" class="@AuthClasses.Link">Sign in</a>
+    </p>
+</AuthSplitScreen>
+
+@code {
+    private string? errorMessage;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Navigation.Uri);
+        if (uri.Query.Length > 0)
+        {
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            errorMessage = query["error"];
+        }
+    }
+}

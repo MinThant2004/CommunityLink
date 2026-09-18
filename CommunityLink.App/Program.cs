@@ -50,6 +50,7 @@ builder.Services.AddHttpClient("CommunityApi", client =>
 
 // Register App Services & API Clients
 builder.Services.AddScoped<ToastService>();
+builder.Services.AddScoped<AuthSessionService>();
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthenticationApiService>();
 builder.Services.AddScoped<CommunityApiService>();
@@ -83,6 +84,9 @@ app.MapPost("/account/logout", async (HttpContext context, IAntiforgery antiforg
     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     return Results.Redirect("/login");
 }).RequireAuthorization();
+
+// Login / Register Flow Endpoints (issue the Ace.Community.Auth cookie ticket)
+app.MapAuthFlowEndpoints();
 
 app.Run();
 

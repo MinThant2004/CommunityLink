@@ -1,4 +1,5 @@
 using CommunityLink.Domain;
+using CommunityLink.Api.Controllers;
 using CommunityLink.Api.Middlewares;
 using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Features.RoleAndPermission;
@@ -11,7 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Controllers & Application Parts
 builder.Services.AddControllers()
-    .AddApplicationPart(typeof(AuthenticationController).Assembly);
+    .AddApplicationPart(typeof(AuthenticationController).Assembly)
+    .AddApplicationPart(typeof(CommunityLink.Domain.Features.Community.CommunityController).Assembly);
 
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();

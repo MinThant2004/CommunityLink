@@ -61,6 +61,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblUser> TblUsers { get; set; }
 
+    public virtual DbSet<TblPasswordResetOtp> TblPasswordResetOtps { get; set; }
+
     public virtual DbSet<TblUserRating> TblUserRatings { get; set; }
 
     public virtual DbSet<TblUserRole> TblUserRoles { get; set; }
@@ -363,6 +365,17 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();
+        });
+
+        modelBuilder.Entity<TblPasswordResetOtp>(entity =>
+        {
+            entity.HasKey(e => e.OtpId);
+
+            entity.ToTable("TblPasswordResetOtp");
+
+            entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.OtpCode).HasMaxLength(200);
+            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(getutcdate())");
         });
 
         modelBuilder.Entity<TblPoll>(entity =>

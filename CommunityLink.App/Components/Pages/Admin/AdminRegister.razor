@@ -1,0 +1,100 @@
+@page "/admin/portal-entry/register"
+@layout AuthLayout
+@using CommunityLink.App.Components.Shared
+@inject NavigationManager Navigation
+
+<PageTitle>Admin Registration - CommunityLink</PageTitle>
+
+<AuthSplitScreen IsAdmin="true" LogoText="ADM" Eyebrow="Administrator Portal" Title="Provision an admin"
+                 Subtitle="Register an administrator account using your secret invite code. Authorized personnel only.">
+    <form method="post" action="/account/admin/register" class="space-y-6">
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="@AuthClasses.ErrorAlert">
+                <span class="mt-0.5">⚠️</span>
+                <span>@errorMessage</span>
+            </div>
+        }
+
+        <div>
+            <p class="@AuthClasses.EyebrowAdmin">Administrator Portal</p>
+            <h2 class="mt-1 text-2xl font-bold text-slate-900">Create an admin account</h2>
+            <p class="mt-1 text-sm text-slate-500">An admin invite code is required to complete registration.</p>
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="admin-fullname" class="@AuthClasses.Label">Full name</label>
+            <input id="admin-fullname" name="fullName" type="text" required autocomplete="name"
+                   placeholder="Admin Name" class="@AuthClasses.InputAdmin" />
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="admin-email" class="@AuthClasses.Label">Admin email</label>
+            <input id="admin-email" name="email" type="email" required autocomplete="email"
+                   placeholder="admin@example.com" class="@AuthClasses.InputAdmin" />
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="admin-invite" class="@AuthClasses.Label">Admin invite code</label>
+            <div class="relative">
+                <input id="admin-invite" name="adminInviteCode" type="password" required
+                       placeholder="••••••••" class="@AuthClasses.InputAdmin pr-12" />
+                <button type="button" onclick="togglePasswordVisibility(this)" tabindex="-1"
+                        class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition" aria-label="Toggle invite code visibility">
+                    <EyeIcon IsVisible="false" />
+                </button>
+            </div>
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="admin-password" class="@AuthClasses.Label">Password</label>
+            <div class="relative">
+                <input id="admin-password" name="password" type="password" required
+                       autocomplete="new-password" placeholder="At least 8 characters" class="@AuthClasses.InputAdmin pr-12" />
+                <button type="button" onclick="togglePasswordVisibility(this)" tabindex="-1"
+                        class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition" aria-label="Toggle password visibility">
+                    <EyeIcon IsVisible="false" />
+                </button>
+            </div>
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="admin-confirm" class="@AuthClasses.Label">Confirm password</label>
+            <div class="relative">
+                <input id="admin-confirm" name="confirmPassword" type="password" required autocomplete="new-password"
+                       placeholder="Re-enter your password" class="@AuthClasses.InputAdmin pr-12" />
+                <button type="button" onclick="togglePasswordVisibility(this)" tabindex="-1"
+                        class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition" aria-label="Toggle confirm password visibility">
+                    <EyeIcon IsVisible="false" />
+                </button>
+            </div>
+        </div>
+
+        <AntiforgeryToken />
+
+        <button type="submit" class="@AuthClasses.PrimaryButtonAdmin">
+            <span>Register Admin Account</span>
+            <span aria-hidden="true">→</span>
+        </button>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-slate-500">
+        Already registered?
+        <a href="/admin/portal-entry/login" class="@AuthClasses.LinkAdmin">Sign in</a>
+    </p>
+</AuthSplitScreen>
+
+@code {
+    private string? errorMessage;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Navigation.Uri);
+        if (uri.Query.Length > 0)
+        {
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            errorMessage = query["error"];
+        }
+    }
+}
