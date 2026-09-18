@@ -94,7 +94,12 @@ public static class AuthFlowEndpoints
             return RedirectWithError(loginPath, result.Message);
 
         await sessions.SignInAsync(result.Data, rememberMe);
-        var target = IsLocalUrl(returnUrl) ? returnUrl : "/";
+        
+        string defaultTarget = (result.Data.RoleCode?.ToUpperInvariant() == "ADMIN" || result.Data.RoleCode?.ToUpperInvariant() == "SUPERADMIN")
+            ? "/admin/dashboard"
+            : "/user/dashboard";
+
+        var target = (IsLocalUrl(returnUrl) && returnUrl != "/") ? returnUrl : defaultTarget;
         return Results.Redirect(target);
     }
 
