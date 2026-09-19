@@ -1,71 +1,62 @@
-<div class="top-row ps-3 navbar navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand text-white font-bold" href="">🌐 CommunityLink</a>
-    </div>
+<div class="px-5 py-4 flex items-center gap-3 border-b border-slate-800">
+    <a class="text-lg font-bold text-white tracking-tight flex items-center gap-2" href="">
+        <span>🌐</span> Community<span class="text-indigo-400">Link</span>
+    </a>
 </div>
 
-<div class="nav-scrollable">
-    <nav class="flex-column nav">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                🏠 Home
+<div class="p-3 flex-1 overflow-y-auto">
+    <nav class="flex flex-col gap-1">
+        <div class="px-1 py-0.5">
+            <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="" Match="NavLinkMatch.All">
+                <span>🏠</span> Home
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="community">
-                👥 Communities
+        <div class="px-1 py-0.5">
+            <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="communities">
+                <span>🏛️</span> Communities
             </NavLink>
         </div>
         <AuthorizeView>
             <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="postupload">
-                        📸 Post Upload
+                <div class="px-1 py-0.5">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="dashboard">
+                        <span>📌</span> My Dashboard
                     </NavLink>
                 </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="feed">
-                        📰 Public Feed
+                <div class="px-1 py-0.5">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="feed">
+                        <span>📰</span> Public Feed
                     </NavLink>
                 </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="polls">
-                        📊 Live Polls
+                <div class="px-1 py-0.5">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="polls">
+                        <span>📊</span> Live Polls
                     </NavLink>
                 </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="chat">
-                        💬 Messages
+                <div class="px-1 py-0.5">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="chat">
+                        <span>💬</span> Messages
                     </NavLink>
                 </div>
                 <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)" Context="adminContext">
                     <Authorized>
-                        <div class="nav-item px-3">
-                            <NavLink class="nav-link" href="admin">
-                                🛡️ Administration
-                            </NavLink>
-                        </div>
-                    </Authorized>
-                </AuthorizeView>
-                <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminRbacManage)" Context="rbacContext">
-                    <Authorized>
-                        <div class="nav-item px-3">
-                            <NavLink class="nav-link" href="admin/rbac">
-                                🔐 Role Permissions
+                        <div class="px-1 py-0.5 mt-4 pt-4 border-t border-slate-800">
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-amber-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-amber-600 text-white hover:bg-amber-600" href="admin/dashboard">
+                                <span>🛡️</span> Admin Portal
                             </NavLink>
                         </div>
                     </Authorized>
                 </AuthorizeView>
             </Authorized>
             <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="login">
-                        🔑 Login
+                <div class="px-1 py-0.5">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="login">
+                        <span>🔑</span> Login
                     </NavLink>
                 </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="register">
-                        📝 Register
+                <div class="px-1 py-0.5">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="register">
+                        <span>📝</span> Register
                     </NavLink>
                 </div>
             </NotAuthorized>

@@ -5,12 +5,23 @@ public sealed record PollOptionModel(int OptionId, string Text, int VoteCount, d
 public sealed record PollModel(
     int PollId,
     int PostId,
+    int? CommunityId,
+    string? CommunityName,
+    int AuthorId,
+    string AuthorName,
+    string? AuthorAvatar,
     string Question,
+    string? Content,
     bool IsMultipleChoice,
     DateTime? ExpiresAt,
+    bool IsExpired,
     int TotalVotes,
     bool HasVoted,
     IReadOnlyList<PollOptionModel> Options,
+    int LikeCount,
+    int CommentCount,
+    int ShareCount,
+    bool IsLikedByCurrentUser,
     DateTime CreatedAt);
 
 public sealed record CreatePollRequestModel(

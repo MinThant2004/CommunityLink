@@ -1,92 +1,534 @@
 @page "/polls"
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PollView)]
+@rendermode InteractiveServer
+@using System.Security.Claims
 @inject PollApiService PollApi
+@inject PostApiService PostApi
+@inject CommunityApiService CommunityApi
 @inject ToastService Toast
+@inject AuthenticationStateProvider AuthStateProvider
 
-<PageTitle>Polls & Voting - CommunityLink</PageTitle>
+<PageTitle>Live Polls & Voting - CommunityLink</PageTitle>
 
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="font-bold text-dark mb-0">📊 Community Polls</h2>
-                <p class="text-muted small">Vote on live polls and voice your opinion.</p>
+<div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 space-y-6">
+    <!-- Header Banner -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-sm">
+                    📊
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900">Live Community Polls</h1>
+                    <p class="text-xs text-slate-500">Participate in community decisions, voice your opinion, or launch a targeted poll.</p>
+                </div>
             </div>
             <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.PollCreate)">
                 <Authorized>
-                    <button class="btn btn-primary" @onclick="() => showCreateModal = true">➕ Create Poll</button>
+                    <button type="button" @onclick="OpenCreatePollModal"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-full shadow hover:shadow-md transition-all active:scale-95">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span>Create Poll</span>
+                    </button>
                 </Authorized>
             </AuthorizeView>
         </div>
+    </div>
 
-        @if (isLoading)
-        {
-            <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
-        }
-        else if (polls == null || polls.Count == 0)
-        {
-            <div class="alert alert-info text-center py-4">No active polls found. Create one now!</div>
-        }
-        else
-        {
+    <!-- Poll List Section -->
+    @if (isLoading)
+    {
+        <div class="flex justify-center items-center py-16">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+        </div>
+    }
+    else if (polls == null || polls.Count == 0)
+    {
+        <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500">
+            <div class="text-4xl mb-3">🗳️</div>
+            <h3 class="text-base font-semibold text-slate-800">No active polls found</h3>
+            <p class="text-sm mt-1">Start a discussion and collect opinions by creating the first poll.</p>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-6">
             @foreach (var poll in polls)
             {
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-body">
-                        <h5 class="font-bold text-dark mb-3">❓ @poll.Question</h5>
-                        <div class="mb-3">
-                            @foreach (var opt in poll.Options)
-                            {
-                                <div class="mb-2 p-2 border rounded @(opt.IsVotedByCurrentUser ? "bg-light border-primary" : "")">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span>@opt.Text @(opt.IsVotedByCurrentUser ? "✅ (Your Vote)" : "")</span>
-                                        <span class="font-bold">@opt.Percentage% (@opt.VoteCount votes)</span>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
+                    <!-- Poll Card Header -->
+                    <div class="p-5 pb-3">
+                        <div class="flex items-start justify-between gap-3 mb-2">
+                            <div class="flex items-center gap-3">
+                                @if (!string.IsNullOrEmpty(poll.AuthorAvatar))
+                                {
+                                    <img src="@poll.AuthorAvatar" alt="@poll.AuthorName" class="w-9 h-9 rounded-full object-cover border border-slate-200" />
+                                }
+                                else
+                                {
+                                    <div class="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-xs">
+                                        @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName.Substring(0, 1).ToUpper())
                                     </div>
-                                    <div class="progress" style="height: 6px;">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: @opt.Percentage%"></div>
+                                }
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h2 class="text-sm font-semibold text-slate-900">@poll.AuthorName</h2>
+                                        @if (!string.IsNullOrEmpty(poll.CommunityName))
+                                        {
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                                📁 @poll.CommunityName
+                                            </span>
+                                        }
                                     </div>
-                                    @if (!poll.HasVoted)
-                                    {
-                                        <button class="btn btn-sm btn-outline-primary mt-2" @onclick="() => Vote(poll.PollId, opt.OptionId)">Vote for this option</button>
-                                    }
+                                    <span class="text-xs text-slate-400">@poll.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy • hh:mm tt")</span>
                                 </div>
+                            </div>
+
+                            <!-- Expiration Badge -->
+                            <div>
+                                @if (poll.IsExpired)
+                                {
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                        <span>🔒</span> Closed
+                                    </span>
+                                }
+                                else if (poll.ExpiresAt.HasValue)
+                                {
+                                    var remaining = poll.ExpiresAt.Value - DateTime.UtcNow;
+                                    var remainingStr = remaining.TotalDays >= 1
+                                        ? $"{(int)remaining.TotalDays}d left"
+                                        : remaining.TotalHours >= 1
+                                            ? $"{(int)remaining.TotalHours}h left"
+                                            : $"{(int)remaining.TotalMinutes}m left";
+
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <span>⏳</span> @remainingStr
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                                        Active
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- 1. Description FIRST (if present) -->
+                        @if (!string.IsNullOrWhiteSpace(poll.Content) && poll.Content != poll.Question)
+                        {
+                            <div class="mb-3 text-xs sm:text-sm text-slate-600 bg-slate-50/80 rounded-xl p-3 border border-slate-100 whitespace-pre-line leading-relaxed">
+                                @poll.Content
+                            </div>
+                        }
+
+                        <!-- 2. Poll Question DIRECTLY ABOVE OPTIONS -->
+                        <div class="mt-2 mb-1 flex items-start gap-2">
+                            <span class="text-indigo-600 font-bold text-sm select-none">Q:</span>
+                            <h2 class="text-base font-bold text-slate-900 leading-snug">@poll.Question</h2>
+                        </div>
+                    </div>
+
+                    <!-- Poll Options List -->
+                    <div class="px-5 py-3 space-y-2.5">
+                        @foreach (var opt in poll.Options)
+                        {
+                            var hasUserVotedThis = opt.IsVotedByCurrentUser;
+                            var canVote = !poll.HasVoted && !poll.IsExpired;
+
+                            <div class="relative overflow-hidden rounded-xl border transition-all @(hasUserVotedThis ? "border-indigo-500 bg-indigo-50/40 ring-2 ring-indigo-500/20" : "border-slate-200 bg-slate-50/50 hover:bg-slate-50")">
+                                <!-- Percentage Progress Fill Bar -->
+                                <div class="absolute inset-y-0 left-0 bg-indigo-100/70 transition-all duration-500"
+                                     style="width: @(opt.Percentage)%;"></div>
+
+                                <div class="relative z-10 p-3 flex items-center justify-between gap-3 text-sm">
+                                    <div class="flex items-center gap-3">
+                                        @if (canVote)
+                                        {
+                                            <button type="button" @onclick="() => Vote(poll.PollId, opt.OptionId)"
+                                                    class="w-5 h-5 rounded-full border-2 border-indigo-600 hover:bg-indigo-600 transition flex items-center justify-center shrink-0">
+                                                <div class="w-2 h-2 rounded-full bg-white opacity-0 hover:opacity-100"></div>
+                                            </button>
+                                        }
+                                        else if (hasUserVotedThis)
+                                        {
+                                            <div class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs shrink-0 shadow-xs">
+                                                ✓
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="w-5 h-5 rounded-full border border-slate-300 shrink-0"></div>
+                                        }
+                                        <span class="font-medium text-slate-900 @(hasUserVotedThis ? "font-semibold text-indigo-900" : "")">
+                                            @opt.Text
+                                        </span>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <span class="text-xs font-bold text-slate-700">@opt.Percentage%</span>
+                                        <span class="text-[11px] text-slate-400 ml-1">(@opt.VoteCount)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Voting Summary / Status Line -->
+                    <div class="px-5 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <div class="flex items-center gap-2">
+                            <span>👥 @poll.TotalVotes total votes</span>
+                            <span>•</span>
+                            <span>@(poll.IsMultipleChoice ? "Multiple votes allowed" : "Single choice")</span>
+                        </div>
+                        @if (poll.HasVoted)
+                        {
+                            <span class="text-indigo-600 font-semibold flex items-center gap-1">
+                                <span>✓</span> You voted in this poll
+                            </span>
+                        }
+                        else if (poll.IsExpired)
+                        {
+                            <span class="text-rose-600 font-medium">
+                                Voting ended
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-emerald-600 font-medium">
+                                Click an option to vote
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Action Buttons: Like, Comment, Share in Live Polls -->
+                    <div class="px-4 py-1.5 flex items-center justify-between text-sm font-medium text-slate-600 bg-white border-t border-slate-100">
+                        <!-- Like Button -->
+                        <button type="button" @onclick="() => ToggleLike(poll.PostId)"
+                                class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-slate-50 @(poll.IsLikedByCurrentUser ? "text-red-600 font-semibold" : "")">
+                            <svg class="w-5 h-5 @(poll.IsLikedByCurrentUser ? "fill-red-600 stroke-red-600" : "fill-none stroke-current")" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                            <span>Like</span>
+                            <span class="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">@poll.LikeCount</span>
+                        </button>
+
+                        <!-- Comment Button -->
+                        <button type="button" @onclick="() => ToggleCommentBox(poll.PostId)"
+                                class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-slate-50 @(openCommentPostIds.Contains(poll.PostId) ? "text-indigo-600 font-semibold" : "")">
+                            <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            <span>Comment</span>
+                            <span class="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">@poll.CommentCount</span>
+                        </button>
+
+                        <!-- Share Button -->
+                        <button type="button" @onclick="() => OpenShareModal(poll.PostId)"
+                                class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-slate-50">
+                            <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                            </svg>
+                            <span>Share</span>
+                            <span class="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">@poll.ShareCount</span>
+                        </button>
+                    </div>
+
+                    <!-- Comment Drawer Section -->
+                    @if (openCommentPostIds.Contains(poll.PostId))
+                    {
+                        <div class="border-t border-slate-100 p-4 sm:p-5 bg-slate-50/70 space-y-4">
+                            <!-- New Comment Input -->
+                            <div class="flex items-start gap-2.5">
+                                <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                                    💬
+                                </div>
+                                <div class="flex-1 flex gap-2">
+                                    <input type="text" @bind="commentInputs[poll.PostId]"
+                                           @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitComment(poll.PostId); })"
+                                           placeholder="Write a comment on this poll..."
+                                           class="w-full text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
+                                    <button type="button" @onclick="() => SubmitComment(poll.PostId)"
+                                            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow transition">
+                                        Post
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Comment List -->
+                            @if (commentsByPost.TryGetValue(poll.PostId, out var commentList) && commentList != null)
+                            {
+                                if (commentList.Count == 0)
+                                {
+                                    <p class="text-xs text-slate-400 text-center py-2">No comments yet. Start the conversation!</p>
+                                }
+                                else
+                                {
+                                    <div class="space-y-3 pt-2">
+                                        @foreach (var comment in commentList)
+                                        {
+                                            <div class="flex items-start gap-2.5 text-xs">
+                                                <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold shrink-0">
+                                                    @(string.IsNullOrWhiteSpace(comment.AuthorName) ? "U" : comment.AuthorName.Substring(0, 1).ToUpper())
+                                                </div>
+                                                <div class="flex-1 bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                                        <span class="font-semibold text-slate-900">@comment.AuthorName</span>
+                                                        <span class="text-[10px] text-slate-400">@comment.CreatedAt.ToLocalTime().ToString("g")</span>
+                                                    </div>
+                                                    <p class="text-slate-700 whitespace-pre-line">@comment.Content</p>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             }
                         </div>
-                        <div class="text-muted small">Total votes: @poll.TotalVotes</div>
-                    </div>
+                    }
                 </div>
             }
-        }
-    </div>
+        </div>
+    }
 </div>
 
+<!-- ================= CREATE POLL MODAL ================= -->
 @if (showCreateModal)
 {
-    <div class="modal show d-block" style="background: rgba(0,0,0,0.5)">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title font-bold">Create a New Poll</h5>
-                    <button type="button" class="btn-close" @onclick="() => showCreateModal = false"></button>
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">📊</span>
+                    <h3 class="font-bold text-slate-900">Create Community Poll</h3>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Question</label>
-                        <input type="text" class="form-control" @bind="newQuestion" placeholder="e.g. Which framework version do you prefer?" />
+                <button type="button" @onclick="CloseModal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Form Body -->
+            <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+                <!-- Community Dropdown (Mandatory) -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Select Community <span class="text-red-500">*</span></label>
+                    <select class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            value="@selectedParentCommunityId"
+                            @onchange="OnParentCommunityChanged">
+                        <option value="0">-- Select a Community --</option>
+                        @foreach (var c in mainCommunities)
+                        {
+                            <option value="@c.CommunityId">@c.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Sub-community Dropdown -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">
+                        Select Sub-community
+                        @if (filteredSubCommunities.Count == 0 && selectedParentCommunityId > 0)
+                        {
+                            <span class="text-slate-400 font-normal">(No sub-communities found)</span>
+                        }
+                    </label>
+                    <select class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                            disabled="@(selectedParentCommunityId == 0 || filteredSubCommunities.Count == 0)"
+                            @bind="selectedSubCommunityId">
+                        <option value="0">-- (Optional) Use Main Community or Pick Sub-community --</option>
+                        @foreach (var sc in filteredSubCommunities)
+                        {
+                            <option value="@sc.CommunityId">@sc.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Description / Context (Shown first in feed, optional) -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold text-slate-700">Description / Context <span class="text-slate-400 font-normal">(Optional)</span></label>
+                        <span class="text-[11px] text-slate-400">Displayed first above the question</span>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Option 1</label>
-                        <input type="text" class="form-control" @bind="opt1" placeholder="Option A" />
+                    <textarea rows="2" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              @bind="newDescription" placeholder="Add background details, rules, or context for voters..."></textarea>
+                </div>
+
+                <!-- Poll Question (Mandatory) -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Poll Question <span class="text-red-500">*</span></label>
+                    <input type="text" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                           @bind="newQuestion" placeholder="e.g. Which framework should we choose for our next release?" />
+                </div>
+
+                <!-- Dynamic Poll Duration Setup: Days, Hours, Minutes -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold text-slate-700">Poll Duration <span class="text-red-500">*</span></label>
+                        <span class="text-[11px] text-indigo-600 font-medium">
+                            Total: @(durationDays)d @(durationHours)h @(durationMinutes)m
+                        </span>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Option 2</label>
-                        <input type="text" class="form-control" @bind="opt2" placeholder="Option B" />
+
+                    <!-- Quick Preset Buttons -->
+                    <div class="flex items-center gap-1.5 mb-2.5 flex-wrap">
+                        <button type="button" @onclick="() => SetPresetDuration(0, 1, 0)"
+                                class="px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition">
+                            1 Hour
+                        </button>
+                        <button type="button" @onclick="() => SetPresetDuration(0, 12, 0)"
+                                class="px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition">
+                            12 Hours
+                        </button>
+                        <button type="button" @onclick="() => SetPresetDuration(1, 0, 0)"
+                                class="px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition">
+                            1 Day
+                        </button>
+                        <button type="button" @onclick="() => SetPresetDuration(3, 0, 0)"
+                                class="px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition">
+                            3 Days
+                        </button>
+                        <button type="button" @onclick="() => SetPresetDuration(7, 0, 0)"
+                                class="px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition">
+                            7 Days
+                        </button>
+                    </div>
+
+                    <!-- Free Numeric Inputs: Days, Hours, Minutes -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">Days</label>
+                            <div class="relative">
+                                <input type="number" min="0" max="365"
+                                       class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                       @bind="durationDays" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">Hours</label>
+                            <div class="relative">
+                                <input type="number" min="0" max="23"
+                                       class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                       @bind="durationHours" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">Minutes</label>
+                            <div class="relative">
+                                <input type="number" min="0" max="59"
+                                       class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                       @bind="durationMinutes" />
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1.5">Configure any combination of Days, Hours, and Minutes freely.</p>
+                </div>
+
+                <!-- Dynamic Poll Options (A, B, C, ...) -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold text-slate-700">Poll Options <span class="text-red-500">*</span> (Min 2, Max 10)</label>
+                        @if (optionsList.Count < 10)
+                        {
+                            <button type="button" @onclick="AddOption" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                                + Add Option
+                            </button>
+                        }
+                    </div>
+
+                    <div class="space-y-2">
+                        @for (int i = 0; i < optionsList.Count; i++)
+                        {
+                            var index = i;
+                            var labelChar = (char)('A' + index);
+                            <div class="flex items-center gap-2">
+                                <span class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-100">
+                                    @labelChar
+                                </span>
+                                <input type="text"
+                                       class="flex-1 text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                       placeholder="@($"Option {labelChar}")"
+                                       @bind="optionsList[index]" />
+                                @if (optionsList.Count > 2)
+                                {
+                                    <button type="button" @onclick="() => RemoveOption(index)"
+                                            class="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="() => showCreateModal = false">Cancel</button>
-                    <button class="btn btn-primary" @onclick="CreatePoll">Publish Poll</button>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button type="button" @onclick="CloseModal"
+                        class="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium rounded-xl hover:bg-slate-200/60 transition">
+                    Cancel
+                </button>
+                <button type="button" @onclick="CreatePoll" disabled="@isSubmitting"
+                        class="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow transition disabled:opacity-50 flex items-center gap-2">
+                    @if (isSubmitting)
+                    {
+                        <span class="animate-spin">⏳</span>
+                        <span>Publishing...</span>
+                    }
+                    else
+                    {
+                        <span>Publish Poll</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ================= SHARE POLL MODAL ================= -->
+@if (showShareModal)
+{
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🚀</span>
+                    <h3 class="font-bold text-slate-900">Share Poll</h3>
                 </div>
+                <button type="button" @onclick="CloseShareModal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4">
+                <p class="text-xs text-slate-500">Share this poll with your followers and community feed. You can optionally add a note with your thoughts.</p>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Share Note <span class="text-slate-400 font-normal">(Optional)</span></label>
+                    <textarea @bind="shareNoteText" rows="3"
+                              placeholder="Add thoughts or reasons to participate..."
+                              class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+            </div>
+
+            <div class="px-5 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button type="button" @onclick="CloseShareModal"
+                        class="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium rounded-xl hover:bg-slate-200/60 transition">
+                    Cancel
+                </button>
+                <button type="button" @onclick="SubmitSharePoll" disabled="@isSubmitting"
+                        class="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow transition disabled:opacity-50 flex items-center gap-2">
+                    @if (isSubmitting)
+                    {
+                        <span class="animate-spin">⏳</span>
+                        <span>Sharing...</span>
+                    }
+                    else
+                    {
+                        <span>Share Poll</span>
+                    }
+                </button>
             </div>
         </div>
     </div>
@@ -94,20 +536,130 @@
 
 @code {
     private IReadOnlyList<PollModel>? polls;
-    private bool isLoading = true;
-    private bool showCreateModal;
-    private string newQuestion = "";
-    private string opt1 = "";
-    private string opt2 = "";
+    private List<CommunityModel> allCommunities = [];
+    private List<CommunityModel> mainCommunities = [];
+    private List<CommunityModel> filteredSubCommunities = [];
 
-    protected override async Task OnInitializedAsync() => await LoadPolls();
+    private bool isLoading = true;
+    private bool isSubmitting;
+    private bool showCreateModal;
+    private bool showShareModal;
+    private int sharingPostId;
+    private string shareNoteText = "";
+
+    // Comments & Likes state
+    private HashSet<int> openCommentPostIds = [];
+    private Dictionary<int, string> commentInputs = [];
+    private Dictionary<int, IReadOnlyList<CommentModel>> commentsByPost = [];
+
+    // Form fields for Poll Creation
+    private int selectedParentCommunityId;
+    private int selectedSubCommunityId;
+    private string newQuestion = "";
+    private string newDescription = "";
+    private int durationDays = 1;
+    private int durationHours = 0;
+    private int durationMinutes = 0;
+    private List<string> optionsList = ["", ""];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.WhenAll(LoadPolls(), LoadCommunities());
+    }
+
+    private async Task LoadCommunities()
+    {
+        var res = await CommunityApi.GetCommunitiesAsync();
+        if (res.IsSuccess && res.Data != null)
+        {
+            allCommunities = res.Data.ToList();
+            mainCommunities = allCommunities.Where(c => !c.ParentCommunityId.HasValue).OrderBy(c => c.Name).ToList();
+        }
+    }
+
+    private void OnParentCommunityChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var parentId))
+        {
+            selectedParentCommunityId = parentId;
+            selectedSubCommunityId = 0;
+
+            if (parentId > 0)
+            {
+                filteredSubCommunities = allCommunities
+                    .Where(c => c.ParentCommunityId == parentId)
+                    .OrderBy(c => c.Name)
+                    .ToList();
+            }
+            else
+            {
+                filteredSubCommunities.Clear();
+            }
+        }
+    }
 
     private async Task LoadPolls()
     {
         isLoading = true;
         var res = await PollApi.GetPollsAsync();
-        if (res.IsSuccess) polls = res.Data;
+        if (res.IsSuccess)
+        {
+            polls = res.Data;
+            foreach (var p in polls ?? [])
+            {
+                if (!commentInputs.ContainsKey(p.PostId)) commentInputs[p.PostId] = "";
+            }
+        }
         isLoading = false;
+    }
+
+    private void OpenCreatePollModal()
+    {
+        newQuestion = "";
+        newDescription = "";
+        durationDays = 1;
+        durationHours = 0;
+        durationMinutes = 0;
+        optionsList = ["", ""];
+        selectedParentCommunityId = mainCommunities.FirstOrDefault()?.CommunityId ?? 0;
+        if (selectedParentCommunityId > 0)
+        {
+            filteredSubCommunities = allCommunities.Where(c => c.ParentCommunityId == selectedParentCommunityId).OrderBy(c => c.Name).ToList();
+        }
+        else
+        {
+            filteredSubCommunities.Clear();
+        }
+        selectedSubCommunityId = 0;
+        showCreateModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showCreateModal = false;
+    }
+
+    private void SetPresetDuration(int days, int hours, int minutes)
+    {
+        durationDays = days;
+        durationHours = hours;
+        durationMinutes = minutes;
+    }
+
+    private void AddOption()
+    {
+        if (optionsList.Count < 10)
+        {
+            optionsList.Add("");
+        }
+    }
+
+    private void RemoveOption(int index)
+    {
+        if (optionsList.Count > 2 && index >= 0 && index < optionsList.Count)
+        {
+            optionsList.RemoveAt(index);
+        }
     }
 
     private async Task Vote(int pollId, int optId)
@@ -118,19 +670,166 @@
             Toast.Success("Vote counted!");
             await LoadPolls();
         }
-        else Toast.Warning(res.Message ?? "Vote failed.");
+        else
+        {
+            Toast.Warning(res.Message ?? "Vote failed.");
+        }
     }
 
+    // --- Like / Comment / Share Interactions ---
+    private async Task ToggleLike(int postId)
+    {
+        var res = await PostApi.LikePostAsync(postId);
+        if (res.IsSuccess)
+        {
+            await LoadPolls();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to update like.");
+        }
+    }
+
+    private async Task ToggleCommentBox(int postId)
+    {
+        if (openCommentPostIds.Contains(postId))
+        {
+            openCommentPostIds.Remove(postId);
+        }
+        else
+        {
+            openCommentPostIds.Add(postId);
+            await LoadComments(postId);
+        }
+    }
+
+    private async Task LoadComments(int postId)
+    {
+        var res = await PostApi.GetCommentsAsync(postId);
+        if (res.IsSuccess && res.Data != null)
+        {
+            commentsByPost[postId] = res.Data;
+        }
+    }
+
+    private async Task SubmitComment(int postId)
+    {
+        if (!commentInputs.TryGetValue(postId, out var content) || string.IsNullOrWhiteSpace(content))
+        {
+            return;
+        }
+
+        var res = await PostApi.AddCommentAsync(new CreateCommentRequestModel(postId, content));
+        if (res.IsSuccess)
+        {
+            commentInputs[postId] = "";
+            await LoadComments(postId);
+            await LoadPolls();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to post comment.");
+        }
+    }
+
+    private void OpenShareModal(int postId)
+    {
+        sharingPostId = postId;
+        shareNoteText = "";
+        showShareModal = true;
+    }
+
+    private void CloseShareModal()
+    {
+        showShareModal = false;
+    }
+
+    private async Task SubmitSharePoll()
+    {
+        isSubmitting = true;
+        var res = await PostApi.SharePostAsync(sharingPostId, new SharePostRequestModel(shareNoteText));
+        isSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Poll shared!");
+            CloseShareModal();
+            await LoadPolls();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to share poll.");
+        }
+    }
+
+    // --- Create Poll Method ---
     private async Task CreatePoll()
     {
-        if (string.IsNullOrWhiteSpace(newQuestion) || string.IsNullOrWhiteSpace(opt1) || string.IsNullOrWhiteSpace(opt2)) return;
-        var res = await PollApi.CreatePollAsync(new CreatePollRequestModel(null, newQuestion, newQuestion, false, null, [opt1, opt2]));
+        if (selectedParentCommunityId == 0)
+        {
+            Toast.Warning("Please select a community for this poll.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(newQuestion))
+        {
+            Toast.Warning("Poll question is required.");
+            return;
+        }
+
+        // Clamp duration values
+        if (durationDays < 0) durationDays = 0;
+        if (durationHours < 0) durationHours = 0;
+        if (durationHours > 23) durationHours = 23;
+        if (durationMinutes < 0) durationMinutes = 0;
+        if (durationMinutes > 59) durationMinutes = 59;
+
+        var totalMinutes = (durationDays * 24 * 60) + (durationHours * 60) + durationMinutes;
+        if (totalMinutes <= 0)
+        {
+            Toast.Warning("Poll duration must be at least 1 minute.");
+            return;
+        }
+
+        var validOptions = optionsList.Where(o => !string.IsNullOrWhiteSpace(o)).Select(o => o.Trim()).ToList();
+        if (validOptions.Count < 2)
+        {
+            Toast.Warning("Please provide at least 2 non-empty options (A, B).");
+            return;
+        }
+
+        if (validOptions.Distinct(StringComparer.OrdinalIgnoreCase).Count() != validOptions.Count)
+        {
+            Toast.Warning("Poll options must be unique.");
+            return;
+        }
+
+        isSubmitting = true;
+        var targetCommunityId = selectedSubCommunityId > 0 ? selectedSubCommunityId : selectedParentCommunityId;
+        var expiresAt = DateTime.UtcNow
+            .AddDays(durationDays)
+            .AddHours(durationHours)
+            .AddMinutes(durationMinutes);
+
+        var res = await PollApi.CreatePollAsync(new CreatePollRequestModel(
+            targetCommunityId,
+            newDescription,
+            newQuestion,
+            false,
+            expiresAt,
+            validOptions));
+
+        isSubmitting = false;
+
         if (res.IsSuccess)
         {
             showCreateModal = false;
-            newQuestion = opt1 = opt2 = "";
             await LoadPolls();
-            Toast.Success("Poll created!");
+            Toast.Success("Poll published successfully!");
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to publish poll.");
         }
     }
 }

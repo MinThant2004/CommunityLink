@@ -11,6 +11,7 @@ public interface IChatService
     Task<Result<IReadOnlyList<ConversationModel>>> GetConversationsAsync(CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<ChatMessageModel>>> GetMessagesAsync(int conversationId, CancellationToken cancellationToken = default);
     Task<Result<ChatMessageModel>> SendMessageAsync(SendMessageRequestModel request, CancellationToken cancellationToken = default);
+    Task<int> GetUnreadMessageCountAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed class ChatService(AppDbContext dbContext, ICurrentUserContext currentUser) : IChatService
@@ -120,5 +121,25 @@ public sealed class ChatService(AppDbContext dbContext, ICurrentUserContext curr
             message.CreatedAt);
 
         return Result<ChatMessageModel>.Success(model);
+    }
+
+    public async Task<int> GetUnreadMessageCountAsync(CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return 0;
+
+        var currentUserId = currentUser.UserId.Value;
+
+        var myConversationIds = await dbContext.TblConversations
+            .Where(c => (c.UserOneId == currentUserId || c.UserTwoId == currentUserId) && !c.IsDeleted)
+            .Select(c => c.ConversationId)
+            .ToListAsync(cancellationToken);
+
+        if (!myConversationIds.Any()) return 0;
+
+        return await dbContext.TblChatMessages
+            .CountAsync(m => myConversationIds.Contains(m.ConversationId) &&
+                             m.SenderId != currentUserId &&
+                             !m.IsRead &&
+                             !m.IsDeleted, cancellationToken);
     }
 }

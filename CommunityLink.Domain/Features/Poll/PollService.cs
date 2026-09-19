@@ -20,6 +20,9 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
         var query = dbContext.TblPolls
             .Include(p => p.Post).ThenInclude(post => post.Author)
             .Include(p => p.Post).ThenInclude(post => post.Community)
+            .Include(p => p.Post).ThenInclude(post => post.TblPostLikes)
+            .Include(p => p.Post).ThenInclude(post => post.TblComments)
+            .Include(p => p.Post).ThenInclude(post => post.TblPostShares)
             .Include(p => p.TblPollOptions).ThenInclude(o => o.TblPollVotes)
             .Where(p => !p.IsDeleted)
             .AsNoTracking();
@@ -33,23 +36,42 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
         {
             var totalVotes = p.TblPollOptions.Sum(o => o.TblPollVotes.Count);
             var hasVoted = currentUserId.HasValue && p.TblPollOptions.Any(o => o.TblPollVotes.Any(v => v.UserId == currentUserId.Value));
+            var isExpired = p.ExpiresAt.HasValue && p.ExpiresAt.Value <= DateTime.UtcNow;
 
-            var options = p.TblPollOptions.Select(o => new PollOptionModel(
-                o.PollOptionId,
-                o.OptionText,
-                o.TblPollVotes.Count,
-                totalVotes > 0 ? Math.Round((double)o.TblPollVotes.Count / totalVotes * 100, 1) : 0,
-                currentUserId.HasValue && o.TblPollVotes.Any(v => v.UserId == currentUserId.Value))).ToList();
+            var options = p.TblPollOptions
+                .OrderBy(o => o.DisplayOrder)
+                .Select(o => new PollOptionModel(
+                    o.PollOptionId,
+                    o.OptionText,
+                    o.TblPollVotes.Count,
+                    totalVotes > 0 ? Math.Round((double)o.TblPollVotes.Count / totalVotes * 100, 1) : 0,
+                    currentUserId.HasValue && o.TblPollVotes.Any(v => v.UserId == currentUserId.Value))).ToList();
+
+            var likeCount = p.Post.TblPostLikes.Count;
+            var commentCount = p.Post.TblComments.Count(c => !c.IsDeleted);
+            var shareCount = p.Post.TblPostShares.Count;
+            var isLiked = currentUserId.HasValue && p.Post.TblPostLikes.Any(l => l.UserId == currentUserId.Value);
 
             return new PollModel(
                 p.PollId,
                 p.PostId,
+                p.Post.CommunityId,
+                p.Post.Community?.Name,
+                p.Post.AuthorId,
+                p.Post.Author?.DisplayName ?? "Unknown",
+                p.Post.Author?.AvatarUrl,
                 p.Question,
+                p.Post.Content,
                 p.IsMultipleChoice,
                 p.ExpiresAt,
+                isExpired,
                 totalVotes,
                 hasVoted,
                 options,
+                likeCount,
+                commentCount,
+                shareCount,
+                isLiked,
                 p.CreatedAt);
         }).ToList();
 
@@ -59,13 +81,24 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
     public async Task<Result<PollModel>> CreatePollAsync(CreatePollRequestModel request, CancellationToken cancellationToken = default)
     {
         if (currentUser.UserId is null) return Result<PollModel>.Failure("Unauthorized", ResultStatus.Unauthorized);
-        if (request.Options.Count < 2) return Result<PollModel>.Failure("A poll must contain at least 2 options.", ResultStatus.ValidationError);
+        
+        var trimmedOptions = request.Options
+            .Where(o => !string.IsNullOrWhiteSpace(o))
+            .Select(o => o.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (trimmedOptions.Count < 2) 
+            return Result<PollModel>.Failure("A poll must contain at least 2 unique non-empty options.", ResultStatus.ValidationError);
+
+        if (trimmedOptions.Count > 10)
+            return Result<PollModel>.Failure("A poll cannot contain more than 10 options.", ResultStatus.ValidationError);
 
         var post = new TblPost
         {
             CommunityId = request.CommunityId,
             AuthorId = currentUser.UserId.Value,
-            Content = string.IsNullOrWhiteSpace(request.Content) ? request.Question : request.Content,
+            Content = string.IsNullOrWhiteSpace(request.Content) ? request.Question : request.Content.Trim(),
             HasPoll = true,
             CreatedAt = DateTime.UtcNow
         };
@@ -85,12 +118,14 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
         dbContext.TblPolls.Add(poll);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        foreach (var opt in request.Options)
+        var order = 0;
+        foreach (var opt in trimmedOptions)
         {
             dbContext.TblPollOptions.Add(new TblPollOption
             {
                 PollId = poll.PollId,
-                OptionText = opt.Trim(),
+                OptionText = opt,
+                DisplayOrder = order++,
                 CreatedAt = DateTime.UtcNow
             });
         }
@@ -112,12 +147,23 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
 
         if (poll is null) return Result<PollModel>.Failure("Poll not found.", ResultStatus.NotFound);
 
+        // Check if poll is expired
+        if (poll.ExpiresAt.HasValue && poll.ExpiresAt.Value <= DateTime.UtcNow)
+        {
+            return Result<PollModel>.Failure("This poll has already expired. Voting is closed.", ResultStatus.ValidationError);
+        }
+
         var alreadyVoted = poll.TblPollOptions.Any(o => o.TblPollVotes.Any(v => v.UserId == currentUser.UserId.Value));
         if (alreadyVoted) return Result<PollModel>.Failure("You have already voted on this poll.", ResultStatus.Conflict);
 
         if (!poll.IsMultipleChoice && request.OptionIds.Count > 1)
         {
             return Result<PollModel>.Failure("This poll only permits a single option vote.", ResultStatus.ValidationError);
+        }
+
+        if (request.OptionIds.Count == 0)
+        {
+            return Result<PollModel>.Failure("Please select at least one option.", ResultStatus.ValidationError);
         }
 
         foreach (var optionId in request.OptionIds)
@@ -127,14 +173,18 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
             {
                 dbContext.TblPollVotes.Add(new TblPollVote
                 {
+                    PollId = poll.PollId,
                     PollOptionId = optionId,
                     UserId = currentUser.UserId.Value,
                     CreatedAt = DateTime.UtcNow
                 });
+                opt.VoteCount += 1;
             }
         }
 
+        poll.TotalVotes += request.OptionIds.Count;
         await dbContext.SaveChangesAsync(cancellationToken);
+        
         var refreshed = await GetPollsAsync(poll.Post.CommunityId, cancellationToken);
         var model = refreshed.Data?.FirstOrDefault(p => p.PollId == poll.PollId);
         return Result<PollModel>.Success(model!, "Vote recorded.");

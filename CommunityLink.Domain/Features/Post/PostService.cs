@@ -29,7 +29,7 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
             .Include(p => p.TblPostLikes)
             .Include(p => p.TblComments)
             .Include(p => p.TblPostShares)
-            .Where(p => !p.IsDeleted)
+            .Where(p => !p.IsDeleted && !p.HasPoll)
             .AsNoTracking();
 
         if (communityId.HasValue)

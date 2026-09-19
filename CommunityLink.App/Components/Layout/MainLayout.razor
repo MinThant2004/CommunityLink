@@ -2,42 +2,46 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
-<div class="page">
-    <div class="sidebar">
+<div class="min-h-screen flex bg-slate-100 text-slate-800 font-sans">
+    <div class="w-64 min-w-[16rem] bg-slate-900 text-slate-100 flex flex-col shadow-xl">
         <NavMenu />
     </div>
 
-    <main>
-        <div class="top-row px-4 d-flex justify-content-between align-items-center bg-light border-bottom">
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center shadow-sm">
             <div>
-                <span class="text-muted small">CommunityLink Enterprise Portal (.NET 10)</span>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">CommunityLink Enterprise Portal (.NET 10)</span>
             </div>
             <div>
                 <AuthorizeView>
                     <Authorized>
-                        <span class="me-3 font-semibold">👤 @context.User.Identity?.Name</span>
-                        <form method="post" action="/account/logout" class="d-inline">
-                            <AntiforgeryToken />
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Logout</button>
-                        </form>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-semibold text-slate-700">👤 @context.User.Identity?.Name</span>
+                            <form method="post" action="/account/logout" class="inline">
+                                <AntiforgeryToken />
+                                <button type="submit" class="px-3 py-1 rounded-lg text-xs font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition">Logout</button>
+                            </form>
+                        </div>
                     </Authorized>
                     <NotAuthorized>
-                        <a href="login" class="btn btn-sm btn-primary me-2">Login</a>
-                        <a href="register" class="btn btn-sm btn-outline-primary">Register</a>
+                        <div class="flex items-center gap-2">
+                            <a href="login" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition">Login</a>
+                            <a href="register" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition">Register</a>
+                        </div>
                     </NotAuthorized>
                 </AuthorizeView>
             </div>
-        </div>
+        </header>
 
-        <article class="content px-4 py-3">
+        <main class="flex-1 p-6 overflow-y-auto">
             @Body
-        </article>
+        </main>
         <ToastContainer />
-    </main>
+    </div>
 </div>
 
-<div id="blazor-error-ui" data-nosnippet>
+<div id="blazor-error-ui" data-nosnippet class="hidden fixed bottom-0 inset-x-0 bg-amber-500 text-white p-3 z-50 text-center font-medium shadow-lg">
     An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <a href="." class="underline font-bold ml-2">Reload</a>
+    <span class="dismiss cursor-pointer ml-4 font-bold">🗙</span>
 </div>
