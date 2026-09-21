@@ -62,6 +62,7 @@ builder.Services.AddScoped<RoleAndPermissionApiService>();
 builder.Services.AddScoped<AdministrationApiService>();
 builder.Services.AddScoped<UserDashboardApiService>();
 builder.Services.AddScoped<UserProfileApiService>();
+builder.Services.AddScoped<NotificationApiService>();
 
 var app = builder.Build();
 

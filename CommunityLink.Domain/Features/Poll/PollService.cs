@@ -4,6 +4,8 @@ using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Poll;
 
+using CommunityLink.Domain.Features.Notification;
+
 namespace CommunityLink.Domain.Features.Poll;
 
 public interface IPollService
@@ -13,7 +15,7 @@ public interface IPollService
     Task<Result<PollModel>> VoteAsync(VoteRequestModel request, CancellationToken cancellationToken = default);
 }
 
-public sealed class PollService(AppDbContext dbContext, ICurrentUserContext currentUser) : IPollService
+public sealed class PollService(AppDbContext dbContext, ICurrentUserContext currentUser, INotificationService notificationService) : IPollService
 {
     public async Task<Result<IReadOnlyList<PollModel>>> GetPollsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default)
     {
@@ -196,9 +198,35 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
         }
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var polls = await GetPollsAsync(communityId, request.GroupId, cancellationToken);
-        var created = polls.Data?.FirstOrDefault(p => p.PollId == poll.PollId);
-        return Result<PollModel>.Success(created!);
+        var refreshedPolls = await GetPollsAsync(communityId, request.GroupId, cancellationToken);
+        var created = refreshedPolls.Data?.FirstOrDefault(p => p.PollId == poll.PollId);
+
+        if (created is null)
+        {
+            // Build a minimal model directly from what we saved
+            created = new PollModel(
+                poll.PollId,
+                post.PostId,
+                communityId,
+                null,
+                request.GroupId,
+                null,
+                currentUser.UserId!.Value,
+                "You",
+                null,
+                poll.Question,
+                post.Content,
+                poll.IsMultipleChoice,
+                poll.ExpiresAt,
+                false,
+                0,
+                false,
+                trimmedOptions.Select((o, i) => new PollOptionModel(0, o, 0, 0, false)).ToList(),
+                0, 0, 0, false,
+                poll.CreatedAt);
+        }
+
+        return Result<PollModel>.Success(created);
     }
 
     public async Task<Result<PollModel>> VoteAsync(VoteRequestModel request, CancellationToken cancellationToken = default)
@@ -249,8 +277,24 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
 
         poll.TotalVotes += request.OptionIds.Count;
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify poll author
+        if (poll.Post != null)
+        {
+            var voter = await dbContext.TblUsers.FindAsync([currentUser.UserId.Value], cancellationToken);
+            var voterName = voter?.DisplayName ?? voter?.UserName ?? "Someone";
+            await notificationService.CreateNotificationAsync(
+                poll.Post.AuthorId,
+                currentUser.UserId.Value,
+                "POLL_VOTE",
+                "New Poll Vote",
+                $"{voterName} voted on your poll",
+                "POLL",
+                poll.PollId,
+                cancellationToken);
+        }
         
-        var refreshed = await GetPollsAsync(poll.Post.CommunityId, poll.Post.GroupId, cancellationToken);
+        var refreshed = await GetPollsAsync(poll.Post?.CommunityId, poll.Post?.GroupId, cancellationToken);
         var model = refreshed.Data?.FirstOrDefault(p => p.PollId == poll.PollId);
         return Result<PollModel>.Success(model!, "Vote recorded.");
     }

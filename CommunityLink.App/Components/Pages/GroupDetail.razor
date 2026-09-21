@@ -264,7 +264,7 @@
                     <div class="space-y-6">
                         @foreach (var post in posts)
                         {
-                            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
+                            <div id="post-@post.PostId" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
                                 <!-- Post Author Header -->
                                 <div class="p-4 sm:p-5 flex items-center justify-between border-b border-slate-50">
                                     <div class="flex items-center gap-3">
@@ -423,7 +423,7 @@
                     <div class="space-y-6">
                         @foreach (var poll in polls)
                         {
-                            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
+                            <div id="poll-@poll.PollId" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
                                 <!-- Poll Author Info -->
                                 <div class="p-4 sm:p-5 flex items-center justify-between border-b border-slate-50">
                                     <div class="flex items-center gap-3">
@@ -680,8 +680,8 @@
                     }
                     else
                     {
-                        <div class="relative rounded-xl overflow-hidden border border-slate-200 max-h-48 bg-slate-900 flex items-center justify-center">
-                            <img src="@uploadedImageUrl" alt="Preview" class="max-h-48 object-contain" />
+                        <div class="modal-image-preview-container relative rounded-xl overflow-hidden border border-slate-200 bg-slate-950 flex items-center justify-center" style="height: 140px; max-height: 140px; width: 100%;">
+                            <img src="@uploadedImageUrl" alt="Preview" class="modal-image-preview-img object-contain" style="max-height: 140px; max-width: 100%; height: auto; width: auto; display: block; margin: 0 auto;" />
                             <button type="button" @onclick="() => uploadedImageUrl = null"
                                     class="absolute top-2 right-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full p-1.5 shadow transition text-xs font-bold" title="Remove image">
                                 ✕
@@ -901,6 +901,16 @@
             currentUserId = uid;
         }
 
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("tab", out var tabVal))
+        {
+            var tabStr = tabVal.ToString().ToLowerInvariant();
+            if (tabStr == "polls" || tabStr == "feed" || tabStr == "members")
+            {
+                activeTab = tabStr;
+            }
+        }
+
         await LoadGroupData();
     }
 
@@ -1105,7 +1115,7 @@
 
         isSubmitting = true;
         var desc = string.IsNullOrWhiteSpace(newPollDescription) ? newPollQuestion : newPollDescription;
-        var req = new CreatePollRequestModel(null, newPollQuestion, desc, pollIsMultipleChoice, expiresAt, validOptions, groupId);
+        var req = new CreatePollRequestModel(null, desc, newPollQuestion, pollIsMultipleChoice, expiresAt, validOptions, groupId);
 
         var res = await PollApi.CreatePollAsync(req);
         isSubmitting = false;
