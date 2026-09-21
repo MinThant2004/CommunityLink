@@ -12,6 +12,7 @@ using CommunityLink.Domain.Features.Poll;
 using CommunityLink.Domain.Features.Chat;
 using CommunityLink.Domain.Features.Administration;
 using CommunityLink.Domain.Features.Dashboard;
+using CommunityLink.Domain.Features.UserProfile;
 using CommunityLink.Domain.Services;
 using CommunityLink.Shared;
 
@@ -57,6 +58,7 @@ public static class FeatureManager
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IAdministrationService, AdministrationService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IUserProfileService, UserProfileService>();
 
         return services;
     }
