@@ -1,0 +1,447 @@
+@page "/group/{groupId:int}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using System.Security.Claims
+@inject GroupApiService GroupApi
+@inject PostApiService PostApi
+@inject PollApiService PollApi
+@inject ToastService Toast
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavManager
+
+<PageTitle>@(group?.Name ?? "Group Detail") - CommunityLink</PageTitle>
+
+<div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 space-y-6">
+    <!-- Back to Groups Link -->
+    <div class="flex items-center justify-between">
+        <a href="/groups" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            <span>Back to Groups Directory</span>
+        </a>
+    </div>
+
+    @if (isLoadingGroup)
+    {
+        <div class="flex justify-center items-center py-20">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+        </div>
+    }
+    else if (group == null)
+    {
+        <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500">
+            <div class="text-4xl mb-3">🔍</div>
+            <h3 class="text-base font-semibold text-slate-800">Group not found</h3>
+            <p class="text-sm mt-1">This group may have been removed or does not exist.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Group Hero Header Banner -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="h-28 sm:h-36 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 relative p-4">
+                <div class="absolute -bottom-6 left-6">
+                    @if (!string.IsNullOrEmpty(group.AvatarUrl))
+                    {
+                        <img src="@group.AvatarUrl" alt="@group.Name" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-4 border-white shadow-lg bg-white" />
+                    }
+                    else
+                    {
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border-4 border-white shadow-lg flex items-center justify-center font-bold text-indigo-700 text-2xl">
+                            @(string.IsNullOrWhiteSpace(group.Name) ? "G" : group.Name.Substring(0, 1).ToUpper())
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="p-6 pt-8 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <h1 class="text-xl sm:text-2xl font-bold text-slate-900">@group.Name</h1>
+                            @if (group.Visibility == "PRIVATE")
+                            {
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                    🔒 Private Group
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    🔓 Public Group
+                                </span>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(group.SubCommunityName))
+                        {
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 mt-1">
+                                📁 Part of @group.SubCommunityName
+                            </span>
+                        }
+
+                        <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">@group.Description</p>
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0">
+                        @if (group.IsJoined)
+                        {
+                            <button type="button" @onclick="LeaveGroup"
+                                    class="px-4 py-2 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-700 font-semibold text-xs rounded-xl transition border border-slate-200">
+                                Leave Group
+                            </button>
+                        }
+                        else if (group.UserJoinStatus == "PENDING")
+                        {
+                            <span class="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold rounded-xl">
+                                ⏳ Join Requested
+                            </span>
+                        }
+                        else
+                        {
+                            <button type="button" @onclick="JoinGroup"
+                                    class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow transition">
+                                @(group.Visibility == "PRIVATE" ? "Request to Join" : "Join Group")
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Stats Bar & Actions -->
+                <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-4 text-xs font-semibold text-slate-600">
+                        <span>👥 @group.MemberCount members</span>
+                        <span>•</span>
+                        <span>📝 @group.PostCount posts</span>
+                        <span>•</span>
+                        <span>Created by @group.CreatorName</span>
+                    </div>
+
+                    @if (group.IsJoined)
+                    {
+                        <div class="flex items-center gap-2">
+                            <button type="button" @onclick="OpenCreatePostModal"
+                                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-xl shadow transition inline-flex items-center gap-1.5">
+                                <span>✍️ Upload Group Post</span>
+                            </button>
+                            <button type="button" @onclick="OpenCreatePollModal"
+                                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium text-xs rounded-xl shadow transition inline-flex items-center gap-1.5">
+                                <span>📊 Create Group Poll</span>
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs: Feed, Polls, Members -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-2 flex items-center gap-2">
+            <button type="button" @onclick='() => activeTab = "feed"'
+                    class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "feed" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                📝 Group Feed (@posts?.Count)
+            </button>
+            <button type="button" @onclick='() => activeTab = "polls"'
+                    class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "polls" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                📊 Live Polls (@polls?.Count)
+            </button>
+            <button type="button" @onclick='() => activeTab = "members"'
+                    class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "members" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                👥 Members (@members?.Count)
+            </button>
+        </div>
+
+        <!-- TAB CONTENT: GROUP FEED -->
+        @if (activeTab == "feed")
+        {
+            @if (isLoadingFeed)
+            {
+                <div class="flex justify-center py-12">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+            }
+            else if (posts == null || posts.Count == 0)
+            {
+                <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
+                    <div class="text-3xl mb-2">✍️</div>
+                    <h4 class="font-semibold text-slate-800 text-sm">No group posts yet</h4>
+                    <p class="text-xs mt-1">Start the conversation in this group by uploading the first post.</p>
+                </div>
+            }
+            else
+            {
+                <div class="space-y-5">
+                    @foreach (var post in posts)
+                    {
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="p-4 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-700">
+                                        @(string.IsNullOrWhiteSpace(post.AuthorName) ? "U" : post.AuthorName.Substring(0, 1).ToUpper())
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-slate-900">@post.AuthorName</h4>
+                                        <span class="text-[10px] text-slate-400">@post.CreatedAt.ToLocalTime().ToString("g")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="px-4 pb-3 text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+                                @post.Content
+                            </div>
+                            @if (post.ImageUrls != null && post.ImageUrls.Count > 0)
+                            {
+                                <div class="bg-slate-950 flex items-center justify-center max-h-80 overflow-hidden">
+                                    <img src="@post.ImageUrls[0]" class="max-h-80 object-contain" />
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else if (activeTab == "polls")
+        {
+            @if (polls == null || polls.Count == 0)
+            {
+                <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
+                    <div class="text-3xl mb-2">📊</div>
+                    <h4 class="font-semibold text-slate-800 text-sm">No live polls in this group</h4>
+                    <p class="text-xs mt-1">Create a poll to collect member feedback.</p>
+                </div>
+            }
+            else
+            {
+                <div class="space-y-5">
+                    @foreach (var poll in polls)
+                    {
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-500">By @poll.AuthorName</span>
+                                <span class="text-[11px] text-slate-400">@poll.CreatedAt.ToLocalTime().ToString("g")</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-slate-900">Q: @poll.Question</h3>
+                            <div class="space-y-2">
+                                @foreach (var opt in poll.Options)
+                                {
+                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                                        <span>@opt.Text</span>
+                                        <span class="font-bold">@opt.Percentage% (@opt.VoteCount votes)</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else if (activeTab == "members")
+        {
+            @if (members == null || members.Count == 0)
+            {
+                <p class="text-xs text-slate-400 text-center py-6">No members list available.</p>
+            }
+            else
+            {
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
+                    @foreach (var m in members)
+                    {
+                        <div class="p-3.5 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                                    @(string.IsNullOrWhiteSpace(m.DisplayName) ? "U" : m.DisplayName.Substring(0, 1).ToUpper())
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-slate-900">@m.DisplayName</span>
+                                    <span class="text-[10px] text-slate-400 block">@@@m.UserName</span>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold @(m.Role == "Owner" ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-600")">
+                                @m.Role
+                            </span>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    }
+</div>
+
+<!-- CREATE POST MODAL PRESET FOR THIS GROUP -->
+@if (showPostModal)
+{
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-bold text-slate-900 text-sm">Post to @group?.Name</h3>
+                <button type="button" @onclick="() => showPostModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div class="p-5 space-y-3">
+                <textarea @bind="newPostText" rows="4" placeholder="Share updates with group members..."
+                          class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            </div>
+            <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                <button type="button" @onclick="() => showPostModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600">Cancel</button>
+                <button type="button" @onclick="SubmitGroupPost" disabled="@isSubmitting" class="px-5 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-xl shadow">Publish Post</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- CREATE POLL MODAL PRESET FOR THIS GROUP -->
+@if (showPollModal)
+{
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-bold text-slate-900 text-sm">Create Poll in @group?.Name</h3>
+                <button type="button" @onclick="() => showPollModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div class="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Poll Question *</label>
+                    <input type="text" @bind="newPollQuestion" placeholder="e.g. Which topic should we review next?"
+                           class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2" />
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Options *</label>
+                    <input type="text" @bind="pollOpt1" placeholder="Option A" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 mb-2" />
+                    <input type="text" @bind="pollOpt2" placeholder="Option B" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2" />
+                </div>
+            </div>
+            <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                <button type="button" @onclick="() => showPollModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600">Cancel</button>
+                <button type="button" @onclick="SubmitGroupPoll" disabled="@isSubmitting" class="px-5 py-2 text-xs font-semibold bg-purple-600 text-white rounded-xl shadow">Publish Poll</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int groupId { get; set; }
+
+    private GroupModel? group;
+    private IReadOnlyList<PostModel>? posts;
+    private IReadOnlyList<PollModel>? polls;
+    private IReadOnlyList<GroupMemberModel>? members;
+
+    private bool isLoadingGroup = true;
+    private bool isLoadingFeed = true;
+    private bool isSubmitting;
+    private string activeTab = "feed";
+
+    // Modals
+    private bool showPostModal;
+    private string newPostText = "";
+    private bool showPollModal;
+    private string newPollQuestion = "";
+    private string pollOpt1 = "";
+    private string pollOpt2 = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadGroupData();
+    }
+
+    private async Task LoadGroupData()
+    {
+        isLoadingGroup = true;
+        var res = await GroupApi.GetGroupByIdAsync(groupId);
+        if (res.IsSuccess && res.Data != null)
+        {
+            group = res.Data;
+            await Task.WhenAll(LoadGroupPosts(), LoadGroupPolls(), LoadGroupMembers());
+        }
+        isLoadingGroup = false;
+    }
+
+    private async Task LoadGroupPosts()
+    {
+        isLoadingFeed = true;
+        var res = await PostApi.GetFeedAsync(groupId: groupId);
+        if (res.IsSuccess) posts = res.Data;
+        isLoadingFeed = false;
+    }
+
+    private async Task LoadGroupPolls()
+    {
+        var res = await PollApi.GetPollsAsync(groupId: groupId);
+        if (res.IsSuccess) polls = res.Data;
+    }
+
+    private async Task LoadGroupMembers()
+    {
+        var res = await GroupApi.GetGroupMembersAsync(groupId);
+        if (res.IsSuccess) members = res.Data;
+    }
+
+    private async Task JoinGroup()
+    {
+        var res = await GroupApi.JoinGroupAsync(groupId);
+        if (res.IsSuccess)
+        {
+            Toast.Success(res.Message ?? "Joined!");
+            await LoadGroupData();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to join.");
+        }
+    }
+
+    private async Task LeaveGroup()
+    {
+        var res = await GroupApi.LeaveGroupAsync(groupId);
+        if (res.IsSuccess)
+        {
+            Toast.Success("Left group.");
+            await LoadGroupData();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to leave.");
+        }
+    }
+
+    private void OpenCreatePostModal() => showPostModal = true;
+    private void OpenCreatePollModal() => showPollModal = true;
+
+    private async Task SubmitGroupPost()
+    {
+        if (string.IsNullOrWhiteSpace(newPostText)) return;
+        isSubmitting = true;
+        var res = await PostApi.CreatePostAsync(new CreatePostRequestModel(null, newPostText, null, groupId));
+        isSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Group post published!");
+            showPostModal = false;
+            newPostText = "";
+            await LoadGroupPosts();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to post.");
+        }
+    }
+
+    private async Task SubmitGroupPoll()
+    {
+        if (string.IsNullOrWhiteSpace(newPollQuestion) || string.IsNullOrWhiteSpace(pollOpt1) || string.IsNullOrWhiteSpace(pollOpt2)) return;
+        isSubmitting = true;
+        var res = await PollApi.CreatePollAsync(new CreatePollRequestModel(null, newPollQuestion, newPollQuestion, false, null, [pollOpt1, pollOpt2], groupId));
+        isSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Group poll created!");
+            showPollModal = false;
+            newPollQuestion = "";
+            pollOpt1 = "";
+            pollOpt2 = "";
+            await LoadGroupPolls();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to create poll.");
+        }
+    }
+}

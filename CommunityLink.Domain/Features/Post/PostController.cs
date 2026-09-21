@@ -11,8 +11,8 @@ public sealed class PostController(IPostService postService) : BaseController
 {
     [HttpGet("feed")]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PostView)]
-    public async Task<IActionResult> GetFeed([FromQuery] int? communityId, CancellationToken cancellationToken) =>
-        ToActionResult(await postService.GetFeedPostsAsync(communityId, cancellationToken));
+    public async Task<IActionResult> GetFeed([FromQuery] int? communityId, [FromQuery] int? groupId, CancellationToken cancellationToken) =>
+        ToActionResult(await postService.GetFeedPostsAsync(communityId, groupId, cancellationToken));
 
     [HttpPost]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PostCreate)]
@@ -23,6 +23,21 @@ public sealed class PostController(IPostService postService) : BaseController
     [Authorize]
     public async Task<IActionResult> LikePost(int postId, CancellationToken cancellationToken) =>
         ToActionResult(await postService.LikePostAsync(postId, cancellationToken));
+
+    [HttpPut("{postId:int}")]
+    [Authorize]
+    public async Task<IActionResult> UpdatePost(int postId, [FromBody] UpdatePostRequestModel request, CancellationToken cancellationToken) =>
+        ToActionResult(await postService.UpdatePostAsync(postId, request, cancellationToken));
+
+    [HttpDelete("{postId:int}")]
+    [Authorize]
+    public async Task<IActionResult> DeletePost(int postId, CancellationToken cancellationToken) =>
+        ToActionResult(await postService.DeletePostAsync(postId, cancellationToken));
+
+    [HttpPost("{postId:int}/share")]
+    [Authorize]
+    public async Task<IActionResult> SharePost(int postId, [FromBody] SharePostRequestModel request, CancellationToken cancellationToken) =>
+        ToActionResult(await postService.SharePostAsync(postId, request, cancellationToken));
 
     [HttpPost("comments")]
     [Authorize]

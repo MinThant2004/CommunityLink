@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -67,6 +67,14 @@ public partial class TblUser
 
     public virtual ICollection<TblConversation> TblConversationUserTwos { get; set; } = new List<TblConversation>();
 
+    public virtual ICollection<TblGroupJoinRequest> TblGroupJoinRequestReviewedByNavigations { get; set; } = new List<TblGroupJoinRequest>();
+
+    public virtual ICollection<TblGroupJoinRequest> TblGroupJoinRequestUsers { get; set; } = new List<TblGroupJoinRequest>();
+
+    public virtual ICollection<TblGroupMember> TblGroupMembers { get; set; } = new List<TblGroupMember>();
+
+    public virtual ICollection<TblGroup> TblGroups { get; set; } = new List<TblGroup>();
+
     public virtual ICollection<TblNotification> TblNotificationActorUsers { get; set; } = new List<TblNotification>();
 
     public virtual ICollection<TblNotification> TblNotificationRecipientUsers { get; set; } = new List<TblNotification>();
@@ -90,6 +98,4 @@ public partial class TblUser
     public virtual ICollection<TblUserRating> TblUserRatingTargetUsers { get; set; } = new List<TblUserRating>();
 
     public virtual ICollection<TblUserRole> TblUserRoles { get; set; } = new List<TblUserRole>();
-
-    public virtual ICollection<TblCommunityAuditLog> TblCommunityAuditLogs { get; set; } = new List<TblCommunityAuditLog>();
 }

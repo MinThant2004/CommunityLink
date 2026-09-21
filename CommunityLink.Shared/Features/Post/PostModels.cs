@@ -4,6 +4,8 @@ public sealed record PostModel(
     int PostId,
     int? CommunityId,
     string? CommunityName,
+    int? GroupId,
+    string? GroupName,
     int AuthorId,
     string AuthorName,
     string? AuthorAvatar,
@@ -20,7 +22,8 @@ public sealed record PostModel(
 public sealed record CreatePostRequestModel(
     int? CommunityId,
     string Content,
-    IReadOnlyList<string>? ImageUrls);
+    IReadOnlyList<string>? ImageUrls,
+    int? GroupId = null);
 
 public sealed record CommentModel(
     int CommentId,
@@ -33,3 +36,5 @@ public sealed record CommentModel(
 
 public sealed record CreateCommentRequestModel(int PostId, string Content);
 public sealed record LikePostRequestModel(int PostId);
+public sealed record UpdatePostRequestModel(string Content, IReadOnlyList<string>? ImageUrls);
+public sealed record SharePostRequestModel(string? ShareNote, int? TargetCommunityId = null);

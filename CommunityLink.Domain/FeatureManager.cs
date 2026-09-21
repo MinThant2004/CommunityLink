@@ -16,6 +16,8 @@ using CommunityLink.Domain.Features.UserProfile;
 using CommunityLink.Domain.Services;
 using CommunityLink.Shared;
 
+using CommunityLink.Domain.Features.Group;
+
 namespace CommunityLink.Domain;
 
 public static class FeatureManager
@@ -53,6 +55,7 @@ public static class FeatureManager
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IRoleAndPermissionService, RoleAndPermissionService>();
         services.AddScoped<ICommunityService, CommunityService>();
+        services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<IPollService, PollService>();
         services.AddScoped<IChatService, ChatService>();

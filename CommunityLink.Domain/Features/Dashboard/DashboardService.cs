@@ -37,8 +37,8 @@ public sealed class DashboardService(
 
         var joinedRes = await communityService.GetJoinedCommunitiesAsync(userId, 10, cancellationToken);
         var recommendedRes = await communityService.GetRecommendedCommunitiesAsync(userId, 6, cancellationToken);
-        var feedRes = await postService.GetFeedPostsAsync(null, cancellationToken);
-        var pollsRes = await pollService.GetPollsAsync(null, cancellationToken);
+        var feedRes = await postService.GetFeedPostsAsync(null, null, cancellationToken);
+        var pollsRes = await pollService.GetPollsAsync(null, null, cancellationToken);
         var unreadCount = await chatService.GetUnreadMessageCountAsync(cancellationToken);
 
         var model = new UserDashboardModel(

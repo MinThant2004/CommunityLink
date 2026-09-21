@@ -1,13 +1,10 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
 
-[Table("TblPasswordResetOtp")]
 public partial class TblPasswordResetOtp
 {
-    [Key]
     public int OtpId { get; set; }
 
     public string Email { get; set; } = null!;
@@ -18,7 +15,7 @@ public partial class TblPasswordResetOtp
 
     public bool IsUsed { get; set; }
 
-    public DateTime? VerifiedAt { get; set; }
-
     public DateTime CreatedAtUtc { get; set; }
+
+    public DateTime? VerifiedAt { get; set; }
 }
