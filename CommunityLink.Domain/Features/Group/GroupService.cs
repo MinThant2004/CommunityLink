@@ -318,6 +318,23 @@ public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext cur
 
     public async Task<Result<IReadOnlyList<GroupMemberModel>>> GetGroupMembersAsync(int groupId, CancellationToken cancellationToken = default)
     {
+        var currentUserId = currentUser.UserId;
+        var group = await dbContext.TblGroups
+            .Include(g => g.TblGroupMembers)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(g => g.GroupId == groupId && !g.IsDeleted, cancellationToken);
+
+        if (group == null) return Result<IReadOnlyList<GroupMemberModel>>.Failure("Group not found.", ResultStatus.NotFound);
+
+        if (group.Visibility == "PRIVATE")
+        {
+            var isMember = currentUserId.HasValue && group.TblGroupMembers.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
+            if (!isMember)
+            {
+                return Result<IReadOnlyList<GroupMemberModel>>.Success([]);
+            }
+        }
+
         var members = await dbContext.TblGroupMembers
             .Include(m => m.User)
             .Where(m => m.GroupId == groupId && !m.IsDeleted)

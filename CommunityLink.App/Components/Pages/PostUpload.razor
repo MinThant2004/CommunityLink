@@ -9,6 +9,7 @@
 @inject ToastService Toast
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IWebHostEnvironment Environment
+@inject NavigationManager NavManager
 
 <PageTitle>Post Upload & Feed - CommunityLink</PageTitle>
 
@@ -498,15 +499,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        var sub = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
-        if (int.TryParse(sub, out var uid))
-        {
-            currentUserId = uid;
-        }
-
-        await Task.WhenAll(LoadFeed(), LoadCommunities());
+        NavManager.NavigateTo("/groups", replace: true);
+        return;
     }
 
     private async Task LoadCommunities()

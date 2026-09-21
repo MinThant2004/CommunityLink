@@ -22,6 +22,30 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
 {
     public async Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default)
     {
+        var currentUserId = currentUser.UserId;
+
+        if (groupId.HasValue && groupId.Value > 0)
+        {
+            var grp = await dbContext.TblGroups
+                .Include(g => g.TblGroupMembers)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(g => g.GroupId == groupId.Value && !g.IsDeleted, cancellationToken);
+
+            if (grp == null)
+            {
+                return Result<IReadOnlyList<PostModel>>.Failure("Group not found.", ResultStatus.NotFound);
+            }
+
+            if (grp.Visibility == "PRIVATE")
+            {
+                var isMember = currentUserId.HasValue && grp.TblGroupMembers.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
+                if (!isMember)
+                {
+                    return Result<IReadOnlyList<PostModel>>.Success([]);
+                }
+            }
+        }
+
         var query = dbContext.TblPosts
             .Include(p => p.Author)
             .Include(p => p.Community)
@@ -43,7 +67,6 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
         }
 
         var posts = await query.OrderByDescending(p => p.CreatedAt).Take(50).ToListAsync(cancellationToken);
-        var currentUserId = currentUser.UserId;
 
         var list = posts.Select(p => new PostModel(
             p.PostId,
@@ -72,10 +95,27 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
         if (currentUser.UserId is null) return Result<PostModel>.Failure("Unauthorized", ResultStatus.Unauthorized);
 
         int? communityId = request.CommunityId;
-        if (!communityId.HasValue && request.GroupId.HasValue)
+        if (request.GroupId.HasValue)
         {
-            var grp = await dbContext.TblGroups.FindAsync([request.GroupId.Value], cancellationToken);
-            if (grp != null) communityId = grp.SubCommunityId;
+            var grp = await dbContext.TblGroups
+                .Include(g => g.TblGroupMembers)
+                .FirstOrDefaultAsync(g => g.GroupId == request.GroupId.Value && !g.IsDeleted, cancellationToken);
+
+            if (grp == null)
+            {
+                return Result<PostModel>.Failure("Group not found.", ResultStatus.NotFound);
+            }
+
+            var isMember = grp.TblGroupMembers.Any(m => m.UserId == currentUser.UserId.Value && !m.IsDeleted);
+            if (!isMember)
+            {
+                return Result<PostModel>.Failure("You must be a member of this group to create a post.", ResultStatus.Forbidden);
+            }
+
+            if (!communityId.HasValue)
+            {
+                communityId = grp.SubCommunityId;
+            }
         }
 
         var post = new TblPost
