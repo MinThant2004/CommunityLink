@@ -23,6 +23,17 @@ public sealed class GroupController(IGroupService groupService) : BaseController
     public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequestModel request, CancellationToken cancellationToken) =>
         ToActionResult(await groupService.CreateGroupAsync(request, cancellationToken));
 
+    [HttpPut("{groupId:int}")]
+    [Authorize]
+    public async Task<IActionResult> UpdateGroup(int groupId, [FromBody] UpdateGroupRequestModel request, CancellationToken cancellationToken)
+    {
+        if (groupId != request.GroupId)
+        {
+            return BadRequest(Result.Failure("Mismatched group id."));
+        }
+        return ToActionResult(await groupService.UpdateGroupAsync(request, cancellationToken));
+    }
+
     [HttpPost("{groupId:int}/join")]
     [Authorize]
     public async Task<IActionResult> JoinGroup(int groupId, [FromBody] string? requestNote, CancellationToken cancellationToken) =>

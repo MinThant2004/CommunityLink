@@ -63,6 +63,7 @@ public static class FeatureManager
         services.AddScoped<IAdministrationService, AdministrationService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IUserProfileService, UserProfileService>();
+        services.AddScoped<CommunityLink.Domain.Features.Notification.INotificationService, CommunityLink.Domain.Features.Notification.NotificationService>();
         services.AddScoped<ILinkDropPaymentService, LinkDropPaymentService>();
 
         return services;

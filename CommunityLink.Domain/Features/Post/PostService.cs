@@ -4,6 +4,8 @@ using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Post;
 
+using CommunityLink.Domain.Features.Notification;
+
 namespace CommunityLink.Domain.Features.Post;
 
 public interface IPostService
@@ -18,7 +20,7 @@ public interface IPostService
     Task<Result> SharePostAsync(int postId, SharePostRequestModel request, CancellationToken cancellationToken = default);
 }
 
-public sealed class PostService(AppDbContext dbContext, ICurrentUserContext currentUser) : IPostService
+public sealed class PostService(AppDbContext dbContext, ICurrentUserContext currentUser, INotificationService notificationService) : IPostService
 {
     public async Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default)
     {
@@ -300,6 +302,20 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
 
         post.LikeCount += 1;
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify post author
+        var actorUser = await dbContext.TblUsers.FindAsync([currentUser.UserId.Value], cancellationToken);
+        var actorName = actorUser?.DisplayName ?? actorUser?.UserName ?? "Someone";
+        await notificationService.CreateNotificationAsync(
+            post.AuthorId,
+            currentUser.UserId.Value,
+            "LIKE",
+            "New Like",
+            $"{actorName} gave a Like to your post",
+            "POST",
+            post.PostId,
+            cancellationToken);
+
         return Result.Success("Post liked.");
     }
 
@@ -324,6 +340,20 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
         post.ShareCount += 1;
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify post author
+        var actorUser = await dbContext.TblUsers.FindAsync([currentUser.UserId.Value], cancellationToken);
+        var actorName = actorUser?.DisplayName ?? actorUser?.UserName ?? "Someone";
+        await notificationService.CreateNotificationAsync(
+            post.AuthorId,
+            currentUser.UserId.Value,
+            "SHARE",
+            "Post Shared",
+            $"{actorName} just shared your post",
+            "POST",
+            post.PostId,
+            cancellationToken);
+
         return Result.Success("Post shared successfully.");
     }
 
@@ -348,6 +378,19 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var user = await dbContext.TblUsers.FindAsync([currentUser.UserId.Value], cancellationToken);
+        var actorName = user?.DisplayName ?? user?.UserName ?? "Someone";
+
+        // Notify post author
+        await notificationService.CreateNotificationAsync(
+            post.AuthorId,
+            currentUser.UserId.Value,
+            "COMMENT",
+            "New Comment",
+            $"{actorName} gave you a comment to your post",
+            "POST",
+            post.PostId,
+            cancellationToken);
+
         var model = new CommentModel(
             comment.CommentId,
             comment.PostId,

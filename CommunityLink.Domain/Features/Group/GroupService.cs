@@ -4,6 +4,8 @@ using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Group;
 
+using CommunityLink.Domain.Features.Notification;
+
 namespace CommunityLink.Domain.Features.Group;
 
 public interface IGroupService
@@ -11,6 +13,7 @@ public interface IGroupService
     Task<Result<IReadOnlyList<GroupModel>>> GetGroupsAsync(int? subCommunityId, string? search, CancellationToken cancellationToken = default);
     Task<Result<GroupModel>> GetGroupByIdAsync(int groupId, CancellationToken cancellationToken = default);
     Task<Result<GroupModel>> CreateGroupAsync(CreateGroupRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result<GroupModel>> UpdateGroupAsync(UpdateGroupRequestModel request, CancellationToken cancellationToken = default);
     Task<Result> JoinGroupAsync(int groupId, string? requestNote = null, CancellationToken cancellationToken = default);
     Task<Result> LeaveGroupAsync(int groupId, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<GroupMemberModel>>> GetGroupMembersAsync(int groupId, CancellationToken cancellationToken = default);
@@ -18,7 +21,7 @@ public interface IGroupService
     Task<Result> ReviewJoinRequestAsync(int requestId, bool approve, CancellationToken cancellationToken = default);
 }
 
-public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext currentUser) : IGroupService
+public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext currentUser, INotificationService notificationService) : IGroupService
 {
     public async Task<Result<IReadOnlyList<GroupModel>>> GetGroupsAsync(int? subCommunityId, string? search, CancellationToken cancellationToken = default)
     {
@@ -224,6 +227,76 @@ public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext cur
         return await GetGroupByIdAsync(group.GroupId, cancellationToken);
     }
 
+    public async Task<Result<GroupModel>> UpdateGroupAsync(UpdateGroupRequestModel request, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result<GroupModel>.Failure("Unauthorized", ResultStatus.Unauthorized);
+        var userId = currentUser.UserId.Value;
+
+        var group = await dbContext.TblGroups
+            .Include(g => g.TblGroupMembers)
+            .FirstOrDefaultAsync(g => g.GroupId == request.GroupId && !g.IsDeleted, cancellationToken);
+
+        if (group == null) return Result<GroupModel>.Failure("Group not found.", ResultStatus.NotFound);
+
+        // Check permission (Creator, Owner, or Admin)
+        var memberRole = group.TblGroupMembers.FirstOrDefault(m => m.UserId == userId && !m.IsDeleted)?.Role;
+        bool canEdit = currentUser.IsAdmin || group.CreatorId == userId || memberRole == "Owner" || memberRole == "Admin";
+        if (!canEdit)
+        {
+            return Result<GroupModel>.Failure("You do not have permission to update this group.", ResultStatus.Forbidden);
+        }
+
+        var oldName = group.Name;
+        var oldVisibility = group.Visibility;
+
+        group.Name = request.Name.Trim();
+        group.Description = request.Description?.Trim();
+        if (!string.IsNullOrWhiteSpace(request.AvatarUrl)) group.AvatarUrl = request.AvatarUrl;
+        if (!string.IsNullOrWhiteSpace(request.BannerUrl)) group.BannerUrl = request.BannerUrl;
+        if (!string.IsNullOrWhiteSpace(request.Visibility)) group.Visibility = request.Visibility.ToUpperInvariant();
+        if (!string.IsNullOrWhiteSpace(request.JoinPolicy)) group.JoinPolicy = request.JoinPolicy.ToUpperInvariant();
+        group.UpdatedAt = DateTime.UtcNow;
+        group.UpdatedBy = userId;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Member notifications: Broadcast changes to all group members
+        var memberIds = group.TblGroupMembers
+            .Where(m => !m.IsDeleted && m.UserId != userId)
+            .Select(m => m.UserId)
+            .ToList();
+
+        if (memberIds.Count > 0)
+        {
+            if (!string.Equals(oldName, group.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                await notificationService.CreateBulkNotificationsAsync(
+                    memberIds,
+                    userId,
+                    "GROUP_UPDATE",
+                    "Group Name Changed",
+                    $"Your group \"{oldName}\" has changed to \"{group.Name}\"",
+                    "GROUP",
+                    group.GroupId,
+                    cancellationToken);
+            }
+            else if (!string.Equals(oldVisibility, group.Visibility, StringComparison.OrdinalIgnoreCase))
+            {
+                await notificationService.CreateBulkNotificationsAsync(
+                    memberIds,
+                    userId,
+                    "GROUP_UPDATE",
+                    "Group Visibility Changed",
+                    $"Group \"{group.Name}\" visibility changed to {group.Visibility}",
+                    "GROUP",
+                    group.GroupId,
+                    cancellationToken);
+            }
+        }
+
+        return await GetGroupByIdAsync(group.GroupId, cancellationToken);
+    }
+
     public async Task<Result> JoinGroupAsync(int groupId, string? requestNote = null, CancellationToken cancellationToken = default)
     {
         if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
@@ -263,6 +336,20 @@ public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext cur
             });
 
             await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Notify the group owner/creator about the new join request
+            var requester = await dbContext.TblUsers.FindAsync([userId], cancellationToken);
+            var requesterName = requester?.DisplayName ?? requester?.UserName ?? "Someone";
+            await notificationService.CreateNotificationAsync(
+                group.CreatorId,
+                userId,
+                "GROUP_JOIN_REQUEST",
+                "New Join Request",
+                $"{requesterName} wants to join your group \"{group.Name}\"",
+                "GROUP_JOIN_REQUEST",
+                groupId,
+                cancellationToken);
+
             return Result.Success("Join request submitted. Waiting for group owner approval.");
         }
 
