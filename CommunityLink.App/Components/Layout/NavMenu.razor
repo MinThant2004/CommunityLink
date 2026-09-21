@@ -6,26 +6,21 @@
 
 <div class="p-3 flex-1 overflow-y-auto">
     <nav class="flex flex-col gap-1">
-        <div class="px-1 py-0.5">
-            <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="" Match="NavLinkMatch.All">
-                <span>🏠</span> Home
-            </NavLink>
-        </div>
-        <div class="px-1 py-0.5">
-            <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="communities">
-                <span>🏛️</span> Communities
-            </NavLink>
-        </div>
-        <div class="px-1 py-0.5">
-            <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="groups">
-                <span>👥</span> Groups
-            </NavLink>
-        </div>
         <AuthorizeView>
             <Authorized>
                 <div class="px-1 py-0.5">
-                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="dashboard">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="" Match="NavLinkMatch.All">
                         <span>🏠</span> Home
+                    </NavLink>
+                </div>
+                <div class="px-1 py-0.5">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="communities">
+                        <span>🏛️</span> Communities
+                    </NavLink>
+                </div>
+                <div class="px-1 py-0.5">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="groups">
+                        <span>👥</span> Groups
                     </NavLink>
                 </div>
                 <div class="px-1 py-0.5">
@@ -48,6 +43,11 @@
                         <span>👤</span> Profile
                     </NavLink>
                 </div>
+                <div class="px-1 py-0.5">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="dashboard">
+                        <span>📌</span> Dashboard
+                    </NavLink>
+                </div>
                 <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)" Context="adminContext">
                     <Authorized>
                         <div class="px-1 py-0.5 mt-4 pt-4 border-t border-slate-800">
@@ -59,6 +59,16 @@
                 </AuthorizeView>
             </Authorized>
             <NotAuthorized>
+                <div class="px-1 py-0.5">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="guest">
+                        <span>🌐</span> Welcome
+                    </NavLink>
+                </div>
+                <div class="px-1 py-0.5">
+                    <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="communities">
+                        <span>🏛️</span> Communities
+                    </NavLink>
+                </div>
                 <div class="px-1 py-0.5">
                     <NavLink class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600" href="login">
                         <span>🔑</span> Login
