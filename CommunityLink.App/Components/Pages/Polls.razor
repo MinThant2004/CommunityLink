@@ -7,6 +7,7 @@
 @inject CommunityApiService CommunityApi
 @inject ToastService Toast
 @inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavManager
 
 <PageTitle>Live Polls & Voting - CommunityLink</PageTitle>
 
@@ -564,7 +565,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.WhenAll(LoadPolls(), LoadCommunities());
+        NavManager.NavigateTo("/groups", replace: true);
+        return;
     }
 
     private async Task LoadCommunities()

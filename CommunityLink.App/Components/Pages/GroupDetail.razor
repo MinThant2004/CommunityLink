@@ -8,6 +8,7 @@
 @inject ToastService Toast
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
+@inject IWebHostEnvironment Environment
 
 <PageTitle>@(group?.Name ?? "Group Detail") - CommunityLink</PageTitle>
 
@@ -120,12 +121,15 @@
                     {
                         <div class="flex items-center gap-2">
                             <button type="button" @onclick="OpenCreatePostModal"
-                                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-xl shadow transition inline-flex items-center gap-1.5">
-                                <span>✍️ Upload Group Post</span>
+                                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow transition inline-flex items-center gap-1.5 active:scale-95">
+                                <span>✍️</span>
+                                <span>Upload Group Post</span>
                             </button>
                             <button type="button" @onclick="OpenCreatePollModal"
-                                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium text-xs rounded-xl shadow transition inline-flex items-center gap-1.5">
-                                <span>📊 Create Group Poll</span>
+                                    style="background-color: #7c3aed; color: #ffffff !important;"
+                                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-xl shadow transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                                <span>📊</span>
+                                <span>Upload Group Poll</span>
                             </button>
                         </div>
                     }
@@ -133,182 +137,715 @@
             </div>
         </div>
 
-        <!-- Navigation Tabs: Feed, Polls, Members -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-2 flex items-center gap-2">
-            <button type="button" @onclick='() => activeTab = "feed"'
-                    class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "feed" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
-                📝 Group Feed (@posts?.Count)
-            </button>
-            <button type="button" @onclick='() => activeTab = "polls"'
-                    class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "polls" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
-                📊 Live Polls (@polls?.Count)
-            </button>
-            <button type="button" @onclick='() => activeTab = "members"'
-                    class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "members" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
-                👥 Members (@members?.Count)
-            </button>
-        </div>
-
-        <!-- TAB CONTENT: GROUP FEED -->
-        @if (activeTab == "feed")
+        @if (group.Visibility == "PRIVATE" && !group.IsJoined)
         {
-            @if (isLoadingFeed)
-            {
-                <div class="flex justify-center py-12">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <!-- PRIVATE GROUP LOCK BANNER -->
+            <div class="bg-white rounded-2xl border border-amber-200 p-12 text-center shadow-xs">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center text-3xl text-amber-600">
+                    🔒
                 </div>
-            }
-            else if (posts == null || posts.Count == 0)
-            {
-                <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
-                    <div class="text-3xl mb-2">✍️</div>
-                    <h4 class="font-semibold text-slate-800 text-sm">No group posts yet</h4>
-                    <p class="text-xs mt-1">Start the conversation in this group by uploading the first post.</p>
-                </div>
-            }
-            else
-            {
-                <div class="space-y-5">
-                    @foreach (var post in posts)
+                <h2 class="text-lg font-bold text-slate-800">This group is private</h2>
+                <p class="text-sm text-slate-500 max-w-md mx-auto mt-2">
+                    Posts, polls, discussions, and member activity in this group are reserved for approved members only.
+                </p>
+                <div class="mt-6">
+                    @if (group.UserJoinStatus == "PENDING")
                     {
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div class="p-4 flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-700">
-                                        @(string.IsNullOrWhiteSpace(post.AuthorName) ? "U" : post.AuthorName.Substring(0, 1).ToUpper())
-                                    </div>
-                                    <div>
-                                        <h4 class="text-xs font-bold text-slate-900">@post.AuthorName</h4>
-                                        <span class="text-[10px] text-slate-400">@post.CreatedAt.ToLocalTime().ToString("g")</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="px-4 pb-3 text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line">
-                                @post.Content
-                            </div>
-                            @if (post.ImageUrls != null && post.ImageUrls.Count > 0)
-                            {
-                                <div class="bg-slate-950 flex items-center justify-center max-h-80 overflow-hidden">
-                                    <img src="@post.ImageUrls[0]" class="max-h-80 object-contain" />
-                                </div>
-                            }
-                        </div>
+                        <span class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-50 text-amber-700 font-semibold text-sm rounded-xl border border-amber-200">
+                            ⏳ Join Request Pending Approval
+                        </span>
+                    }
+                    else
+                    {
+                        <button type="button" @onclick="JoinGroup"
+                                class="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow transition">
+                            <span>Request to Join Group</span>
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Navigation Tabs: Feed, Polls, Members -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-2 flex items-center gap-2">
+                <button type="button" @onclick='() => activeTab = "feed"'
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "feed" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                    📝 Group Feed (@(posts?.Count ?? 0))
+                </button>
+                <button type="button" @onclick='() => activeTab = "polls"'
+                        style="@(activeTab == "polls" ? "background-color: #7c3aed; color: #ffffff !important;" : "")"
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "polls" ? "bg-purple-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                    📊 Live Polls (@(polls?.Count ?? 0))
+                </button>
+                <button type="button" @onclick='() => activeTab = "members"'
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "members" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                    👥 Members (@(members?.Count ?? 0))
+                </button>
+            </div>
+
+            <!-- Contextual Quick Action Header for Active Tab -->
+            @if (activeTab == "polls")
+            {
+                <div class="flex items-center justify-between bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Group Polls</h3>
+                        <p class="text-xs text-slate-500">Vote on active polls or start a new survey for this group.</p>
+                    </div>
+                    @if (group.IsJoined)
+                    {
+                        <button type="button" @onclick="OpenCreatePollModal"
+                                style="background-color: #7c3aed; color: #ffffff !important;"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs sm:text-sm rounded-xl shadow transition active:scale-95 cursor-pointer">
+                            <span>📊</span>
+                            <span>Upload Group Poll</span>
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" @onclick="JoinGroup"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-purple-50 text-purple-700 font-semibold text-xs rounded-xl border border-purple-200 transition">
+                            <span>Join group to create polls</span>
+                        </button>
                     }
                 </div>
             }
-        }
-        else if (activeTab == "polls")
-        {
-            @if (polls == null || polls.Count == 0)
+            else if (activeTab == "feed")
             {
-                <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
-                    <div class="text-3xl mb-2">📊</div>
-                    <h4 class="font-semibold text-slate-800 text-sm">No live polls in this group</h4>
-                    <p class="text-xs mt-1">Create a poll to collect member feedback.</p>
+                <div class="flex items-center justify-between bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Group Discussion</h3>
+                        <p class="text-xs text-slate-500">Stay updated and connect with other members in this group.</p>
+                    </div>
+                    @if (group.IsJoined)
+                    {
+                        <button type="button" @onclick="OpenCreatePostModal"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm rounded-xl shadow transition active:scale-95">
+                            <span>✍️ Create Post</span>
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" @onclick="JoinGroup"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-indigo-50 text-indigo-700 font-semibold text-xs rounded-xl border border-indigo-200 transition">
+                            <span>Join group to post</span>
+                        </button>
+                    }
                 </div>
             }
-            else
+
+            <!-- TAB 1: GROUP FEED -->
+            @if (activeTab == "feed")
             {
-                <div class="space-y-5">
-                    @foreach (var poll in polls)
-                    {
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold text-slate-500">By @poll.AuthorName</span>
-                                <span class="text-[11px] text-slate-400">@poll.CreatedAt.ToLocalTime().ToString("g")</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-slate-900">Q: @poll.Question</h3>
-                            <div class="space-y-2">
-                                @foreach (var opt in poll.Options)
+                @if (isLoadingFeed)
+                {
+                    <div class="flex justify-center py-12">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                    </div>
+                }
+                else if (posts == null || posts.Count == 0)
+                {
+                    <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500">
+                        <div class="text-4xl mb-3">✍️</div>
+                        <h4 class="font-semibold text-slate-800 text-base">No group posts yet</h4>
+                        <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                            @(group.IsJoined ? "Start the conversation by sharing the first post in this group!" : "Join this group to share the first post.")
+                        </p>
+                        @if (group.IsJoined)
+                        {
+                            <button type="button" @onclick="OpenCreatePostModal" class="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow transition">
+                                Create Post Now
+                            </button>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-6">
+                        @foreach (var post in posts)
+                        {
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
+                                <!-- Post Author Header -->
+                                <div class="p-4 sm:p-5 flex items-center justify-between border-b border-slate-50">
+                                    <div class="flex items-center gap-3">
+                                        @if (!string.IsNullOrEmpty(post.AuthorAvatar))
+                                        {
+                                            <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-10 h-10 rounded-full object-cover border border-slate-200" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                                                @(string.IsNullOrWhiteSpace(post.AuthorName) ? "U" : post.AuthorName.Substring(0, 1).ToUpper())
+                                            </div>
+                                        }
+                                        <div>
+                                            <h4 class="text-sm font-bold text-slate-900 leading-tight">@post.AuthorName</h4>
+                                            <span class="text-[11px] text-slate-400">@post.CreatedAt.ToLocalTime().ToString("g")</span>
+                                        </div>
+                                    </div>
+
+                                    @if (currentUserId.HasValue && post.AuthorId == currentUserId.Value)
+                                    {
+                                        <button type="button" @onclick="() => ConfirmDeletePost(post.PostId)"
+                                                class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition" title="Delete Post">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    }
+                                </div>
+
+                                <!-- Post Text Content -->
+                                <div class="px-5 py-4 text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+                                    @post.Content
+                                </div>
+
+                                <!-- Post Images -->
+                                @if (post.ImageUrls != null && post.ImageUrls.Count > 0)
                                 {
-                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                                        <span>@opt.Text</span>
-                                        <span class="font-bold">@opt.Percentage% (@opt.VoteCount votes)</span>
+                                    <div class="bg-slate-950 flex items-center justify-center max-h-96 overflow-hidden border-t border-b border-slate-100">
+                                        <img src="@post.ImageUrls[0]" alt="Post attachment" class="max-h-96 object-contain w-full" />
+                                    </div>
+                                }
+
+                                <!-- Actions: Like, Comment, Share -->
+                                <div class="px-4 py-2 flex items-center justify-between text-sm font-medium text-slate-600 bg-white border-t border-slate-100">
+                                    <!-- Like -->
+                                    <button type="button" @onclick="() => ToggleLike(post.PostId)"
+                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-slate-50 @(post.IsLikedByCurrentUser ? "text-red-600 font-semibold" : "")">
+                                        <svg class="w-5 h-5 @(post.IsLikedByCurrentUser ? "fill-red-600 stroke-red-600" : "fill-none stroke-current")" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                        </svg>
+                                        <span>Like</span>
+                                        <span class="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">@post.LikeCount</span>
+                                    </button>
+
+                                    <!-- Comment -->
+                                    <button type="button" @onclick="() => ToggleCommentBox(post.PostId)"
+                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-slate-50 @(openCommentPostIds.Contains(post.PostId) ? "text-indigo-600 font-semibold" : "")">
+                                        <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                        </svg>
+                                        <span>Comment</span>
+                                        <span class="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">@post.CommentCount</span>
+                                    </button>
+
+                                    <!-- Share -->
+                                    <button type="button" @onclick="() => OpenShareModal(post.PostId)"
+                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-slate-50">
+                                        <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                                        </svg>
+                                        <span>Share</span>
+                                        <span class="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">@post.ShareCount</span>
+                                    </button>
+                                </div>
+
+                                <!-- Comments Drawer -->
+                                @if (openCommentPostIds.Contains(post.PostId))
+                                {
+                                    <div class="border-t border-slate-100 p-4 sm:p-5 bg-slate-50/70 space-y-4">
+                                        <!-- Add Comment -->
+                                        <div class="flex items-start gap-2.5">
+                                            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                                                💬
+                                            </div>
+                                            <div class="flex-1 flex gap-2">
+                                                <input type="text" @bind="commentInputs[post.PostId]"
+                                                       @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitComment(post.PostId); })"
+                                                       placeholder="Write a comment..."
+                                                       class="w-full text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
+                                                <button type="button" @onclick="() => SubmitComment(post.PostId)"
+                                                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow transition">
+                                                    Post
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Comments List -->
+                                        @if (commentsByPost.TryGetValue(post.PostId, out var commentList) && commentList != null)
+                                        {
+                                            if (commentList.Count == 0)
+                                            {
+                                                <p class="text-xs text-slate-400 text-center py-2">No comments yet. Be the first to comment!</p>
+                                            }
+                                            else
+                                            {
+                                                <div class="space-y-3 pt-2">
+                                                    @foreach (var comment in commentList)
+                                                    {
+                                                        <div class="flex items-start gap-2.5 text-xs">
+                                                            <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold shrink-0">
+                                                                @(string.IsNullOrWhiteSpace(comment.AuthorName) ? "U" : comment.AuthorName.Substring(0, 1).ToUpper())
+                                                            </div>
+                                                            <div class="flex-1 bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                                                                <div class="flex items-center justify-between gap-2 mb-1">
+                                                                    <span class="font-semibold text-slate-900">@comment.AuthorName</span>
+                                                                    <span class="text-[10px] text-slate-400">@comment.CreatedAt.ToLocalTime().ToString("g")</span>
+                                                                </div>
+                                                                <p class="text-slate-700 whitespace-pre-line">@comment.Content</p>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        }
                                     </div>
                                 }
                             </div>
-                        </div>
-                    }
-                </div>
+                        }
+                    </div>
+                }
             }
-        }
-        else if (activeTab == "members")
-        {
-            @if (members == null || members.Count == 0)
+
+            <!-- TAB 2: LIVE POLLS -->
+            @if (activeTab == "polls")
             {
-                <p class="text-xs text-slate-400 text-center py-6">No members list available.</p>
-            }
-            else
-            {
-                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
-                    @foreach (var m in members)
-                    {
-                        <div class="p-3.5 flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-                                    @(string.IsNullOrWhiteSpace(m.DisplayName) ? "U" : m.DisplayName.Substring(0, 1).ToUpper())
+                @if (polls == null || polls.Count == 0)
+                {
+                    <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500">
+                        <div class="text-4xl mb-3">📊</div>
+                        <h4 class="font-semibold text-slate-800 text-base">No live polls in this group</h4>
+                        <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                            @(group.IsJoined ? "Launch a poll to gather feedback or opinions from fellow members." : "Join this group to participate in or create polls.")
+                        </p>
+                        @if (group.IsJoined)
+                        {
+                            <button type="button" @onclick="OpenCreatePollModal"
+                                    style="background-color: #7c3aed; color: #ffffff !important;"
+                                    class="mt-4 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-xl shadow transition inline-flex items-center gap-1.5 cursor-pointer">
+                                <span>📊</span>
+                                <span>Upload Group Poll</span>
+                            </button>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-6">
+                        @foreach (var poll in polls)
+                        {
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
+                                <!-- Poll Author Info -->
+                                <div class="p-4 sm:p-5 flex items-center justify-between border-b border-slate-50">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                                            @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName.Substring(0, 1).ToUpper())
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-slate-900 leading-tight">@poll.AuthorName</h4>
+                                            <span class="text-[11px] text-slate-400">@poll.CreatedAt.ToLocalTime().ToString("g")</span>
+                                        </div>
+                                    </div>
+                                    @if (poll.ExpiresAt.HasValue)
+                                    {
+                                        <span class="text-xs px-2.5 py-1 rounded-full @(poll.IsExpired ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-emerald-50 text-emerald-700 border border-emerald-100")">
+                                            @(poll.IsExpired ? "Closed" : $"Ends {poll.ExpiresAt.Value.ToLocalTime():g}")
+                                        </span>
+                                    }
                                 </div>
-                                <div>
-                                    <span class="font-semibold text-slate-900">@m.DisplayName</span>
-                                    <span class="text-[10px] text-slate-400 block">@@@m.UserName</span>
+
+                                <!-- Poll Content & Question -->
+                                <div class="px-5 pt-4 pb-2 space-y-2">
+                                    <h3 class="text-base font-bold text-slate-900 leading-snug">@poll.Question</h3>
+                                    @if (!string.IsNullOrWhiteSpace(poll.Content) && poll.Content != poll.Question)
+                                    {
+                                        <p class="text-xs text-slate-600 whitespace-pre-line leading-relaxed">@poll.Content</p>
+                                    }
                                 </div>
+
+                                <!-- Poll Options & Voting -->
+                                <div class="px-5 py-4 space-y-3">
+                                    @foreach (var opt in poll.Options)
+                                    {
+                                        var hasUserVotedThis = opt.IsVotedByCurrentUser;
+                                        <div class="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50/50 p-3 transition hover:bg-slate-100/70">
+                                            <!-- Progress bar background -->
+                                            <div class="absolute inset-y-0 left-0 bg-indigo-100/70 transition-all duration-500"
+                                                 style="width: @(opt.Percentage)%"></div>
+
+                                            <div class="relative flex items-center justify-between gap-3 text-xs sm:text-sm">
+                                                <div class="flex items-center gap-2.5 flex-1">
+                                                    @if (!poll.HasVoted && !poll.IsExpired)
+                                                    {
+                                                        <button type="button" @onclick="() => Vote(poll.PollId, opt.OptionId)"
+                                                                class="w-5 h-5 rounded-full border-2 border-indigo-600 hover:bg-indigo-600 transition flex items-center justify-center shrink-0">
+                                                            <div class="w-2 h-2 rounded-full bg-white opacity-0 hover:opacity-100"></div>
+                                                        </button>
+                                                    }
+                                                    else if (hasUserVotedThis)
+                                                    {
+                                                        <div class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs shrink-0 shadow-xs">
+                                                            ✓
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="w-5 h-5 rounded-full border border-slate-300 shrink-0"></div>
+                                                    }
+                                                    <span class="font-medium text-slate-900 @(hasUserVotedThis ? "font-semibold text-indigo-900" : "")">
+                                                        @opt.Text
+                                                    </span>
+                                                </div>
+                                                <div class="text-right shrink-0">
+                                                    <span class="text-xs font-bold text-slate-700">@opt.Percentage%</span>
+                                                    <span class="text-[11px] text-slate-400 ml-1">(@opt.VoteCount)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Poll Summary Footer -->
+                                <div class="px-5 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                                    <div class="flex items-center gap-2">
+                                        <span>👥 @poll.TotalVotes total votes</span>
+                                        <span>•</span>
+                                        <span>@(poll.IsMultipleChoice ? "Multiple votes allowed" : "Single choice")</span>
+                                    </div>
+                                    @if (poll.HasVoted)
+                                    {
+                                        <span class="text-indigo-600 font-semibold flex items-center gap-1">
+                                            <span>✓</span> You voted
+                                        </span>
+                                    }
+                                    else if (poll.IsExpired)
+                                    {
+                                        <span class="text-rose-600 font-medium">Voting ended</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-emerald-600 font-medium">Click an option to vote</span>
+                                    }
+                                </div>
+
+                                <!-- Actions: Like, Comment, Share on Poll -->
+                                <div class="px-4 py-2 flex items-center justify-between text-sm font-medium text-slate-600 bg-white border-t border-slate-100">
+                                    <button type="button" @onclick="() => ToggleLike(poll.PostId)"
+                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-slate-50 @(poll.IsLikedByCurrentUser ? "text-red-600 font-semibold" : "")">
+                                        <svg class="w-5 h-5 @(poll.IsLikedByCurrentUser ? "fill-red-600 stroke-red-600" : "fill-none stroke-current")" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                        </svg>
+                                        <span>Like</span>
+                                        <span class="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">@poll.LikeCount</span>
+                                    </button>
+
+                                    <button type="button" @onclick="() => ToggleCommentBox(poll.PostId)"
+                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-slate-50 @(openCommentPostIds.Contains(poll.PostId) ? "text-indigo-600 font-semibold" : "")">
+                                        <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                        </svg>
+                                        <span>Comment</span>
+                                        <span class="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">@poll.CommentCount</span>
+                                    </button>
+
+                                    <button type="button" @onclick="() => OpenShareModal(poll.PostId)"
+                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-slate-50">
+                                        <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                                        </svg>
+                                        <span>Share</span>
+                                        <span class="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">@poll.ShareCount</span>
+                                    </button>
+                                </div>
+
+                                <!-- Poll Comments Drawer -->
+                                @if (openCommentPostIds.Contains(poll.PostId))
+                                {
+                                    <div class="border-t border-slate-100 p-4 sm:p-5 bg-slate-50/70 space-y-4">
+                                        <div class="flex items-start gap-2.5">
+                                            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                                                💬
+                                            </div>
+                                            <div class="flex-1 flex gap-2">
+                                                <input type="text" @bind="commentInputs[poll.PostId]"
+                                                       @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitComment(poll.PostId); })"
+                                                       placeholder="Comment on this poll..."
+                                                       class="w-full text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
+                                                <button type="button" @onclick="() => SubmitComment(poll.PostId)"
+                                                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow transition">
+                                                    Post
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        @if (commentsByPost.TryGetValue(poll.PostId, out var commentList) && commentList != null)
+                                        {
+                                            if (commentList.Count == 0)
+                                            {
+                                                <p class="text-xs text-slate-400 text-center py-2">No comments yet.</p>
+                                            }
+                                            else
+                                            {
+                                                <div class="space-y-3 pt-2">
+                                                    @foreach (var comment in commentList)
+                                                    {
+                                                        <div class="flex items-start gap-2.5 text-xs">
+                                                            <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold shrink-0">
+                                                                @(string.IsNullOrWhiteSpace(comment.AuthorName) ? "U" : comment.AuthorName.Substring(0, 1).ToUpper())
+                                                            </div>
+                                                            <div class="flex-1 bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                                                                <div class="flex items-center justify-between gap-2 mb-1">
+                                                                    <span class="font-semibold text-slate-900">@comment.AuthorName</span>
+                                                                    <span class="text-[10px] text-slate-400">@comment.CreatedAt.ToLocalTime().ToString("g")</span>
+                                                                </div>
+                                                                <p class="text-slate-700 whitespace-pre-line">@comment.Content</p>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                }
                             </div>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold @(m.Role == "Owner" ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-600")">
-                                @m.Role
-                            </span>
-                        </div>
-                    }
-                </div>
+                        }
+                    </div>
+                }
+            }
+
+            <!-- TAB 3: MEMBERS -->
+            @if (activeTab == "members")
+            {
+                @if (members == null || members.Count == 0)
+                {
+                    <p class="text-xs text-slate-400 text-center py-6">No members listed.</p>
+                }
+                else
+                {
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
+                        @foreach (var m in members)
+                        {
+                            <div class="p-3.5 flex items-center justify-between text-xs">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                                        @(string.IsNullOrWhiteSpace(m.DisplayName) ? "U" : m.DisplayName.Substring(0, 1).ToUpper())
+                                    </div>
+                                    <div>
+                                        <span class="font-semibold text-slate-900">@m.DisplayName</span>
+                                        <span class="text-[10px] text-slate-400 block">@@@m.UserName</span>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold @(m.Role == "Owner" ? "bg-purple-100 text-purple-700" : (m.Role == "Admin" ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-600"))">
+                                    @m.Role
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
             }
         }
     }
 </div>
 
-<!-- CREATE POST MODAL PRESET FOR THIS GROUP -->
+<!-- ================= MODAL: CREATE GROUP POST ================= -->
 @if (showPostModal)
 {
     <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="font-bold text-slate-900 text-sm">Post to @group?.Name</h3>
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">✍️</span>
+                    <h3 class="font-bold text-slate-900 text-sm">Post to @group?.Name</h3>
+                </div>
                 <button type="button" @onclick="() => showPostModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
             </div>
-            <div class="p-5 space-y-3">
-                <textarea @bind="newPostText" rows="4" placeholder="Share updates with group members..."
-                          class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">What's on your mind? *</label>
+                    <textarea @bind="newPostText" rows="4" placeholder="Share thoughts, news, or questions with the group..."
+                              class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+
+                <!-- Image Attachment -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Attach Image (Optional)</label>
+                    @if (string.IsNullOrEmpty(uploadedImageUrl))
+                    {
+                        <div class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-indigo-400 transition bg-slate-50/50">
+                            <InputFile OnChange="HandleFileSelected" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                            @if (isUploadingImage)
+                            {
+                                <div class="flex items-center justify-center gap-2 text-xs text-indigo-600 font-medium">
+                                    <span class="animate-spin">⏳</span> Uploading image...
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="flex flex-col items-center">
+                                    <span class="text-xl mb-1">🖼️</span>
+                                    <span class="text-xs font-semibold text-slate-700">Click to upload an image</span>
+                                    <span class="text-[10px] text-slate-400">PNG, JPG, WebP up to 10MB</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="relative rounded-xl overflow-hidden border border-slate-200 max-h-48 bg-slate-900 flex items-center justify-center">
+                            <img src="@uploadedImageUrl" alt="Preview" class="max-h-48 object-contain" />
+                            <button type="button" @onclick="() => uploadedImageUrl = null"
+                                    class="absolute top-2 right-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full p-1.5 shadow transition text-xs font-bold" title="Remove image">
+                                ✕
+                            </button>
+                        </div>
+                    }
+                </div>
             </div>
             <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
-                <button type="button" @onclick="() => showPostModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600">Cancel</button>
-                <button type="button" @onclick="SubmitGroupPost" disabled="@isSubmitting" class="px-5 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-xl shadow">Publish Post</button>
+                <button type="button" @onclick="() => showPostModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200/50 rounded-xl">Cancel</button>
+                <button type="button" @onclick="SubmitGroupPost" disabled="@(isSubmitting || isUploadingImage)" class="px-5 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow transition disabled:opacity-50 flex items-center gap-2">
+                    @if (isSubmitting)
+                    {
+                        <span class="animate-spin">⏳</span>
+                        <span>Publishing...</span>
+                    }
+                    else
+                    {
+                        <span>Publish Post</span>
+                    }
+                </button>
             </div>
         </div>
     </div>
 }
 
-<!-- CREATE POLL MODAL PRESET FOR THIS GROUP -->
+<!-- ================= MODAL: CREATE GROUP POLL ================= -->
 @if (showPollModal)
 {
     <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="font-bold text-slate-900 text-sm">Create Poll in @group?.Name</h3>
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">📊</span>
+                    <h3 class="font-bold text-slate-900 text-sm">Create Poll in @group?.Name</h3>
+                </div>
                 <button type="button" @onclick="() => showPollModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
             </div>
-            <div class="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
+            <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Poll Question *</label>
-                    <input type="text" @bind="newPollQuestion" placeholder="e.g. Which topic should we review next?"
-                           class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2" />
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Question *</label>
+                    <input type="text" @bind="newPollQuestion" placeholder="e.g. Which project should we prioritize next?"
+                           class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
                 </div>
+
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Options *</label>
-                    <input type="text" @bind="pollOpt1" placeholder="Option A" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 mb-2" />
-                    <input type="text" @bind="pollOpt2" placeholder="Option B" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2" />
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Details / Context (Optional)</label>
+                    <textarea @bind="newPollDescription" rows="2" placeholder="Add extra details or guidelines for voters..."
+                              class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                </div>
+
+                <!-- Custom Duration Picker -->
+                <div class="p-3 bg-purple-50/60 rounded-xl border border-purple-100 space-y-2">
+                    <span class="block text-xs font-bold text-purple-900">Poll Duration</span>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label class="text-[11px] text-slate-600 block mb-0.5">Days</label>
+                            <input type="number" min="0" max="365" @bind="pollDurationDays"
+                                   class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-center text-xs font-semibold" />
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-600 block mb-0.5">Hours</label>
+                            <input type="number" min="0" max="23" @bind="pollDurationHours"
+                                   class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-center text-xs font-semibold" />
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-600 block mb-0.5">Minutes</label>
+                            <input type="number" min="0" max="59" @bind="pollDurationMinutes"
+                                   class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-center text-xs font-semibold" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Poll Options -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold text-slate-700">Poll Options * (Min 2, Max 10)</label>
+                        @if (pollOptionsList.Count < 10)
+                        {
+                            <button type="button" @onclick="AddPollOption" class="text-xs font-semibold text-purple-600 hover:text-purple-800">
+                                + Add Option
+                            </button>
+                        }
+                    </div>
+
+                    <div class="space-y-2">
+                        @for (int i = 0; i < pollOptionsList.Count; i++)
+                        {
+                            var index = i;
+                            var labelChar = (char)('A' + index);
+                            <div class="flex items-center gap-2">
+                                <span class="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 font-bold text-xs flex items-center justify-center shrink-0 border border-purple-100">
+                                    @labelChar
+                                </span>
+                                <input type="text"
+                                       value="@pollOptionsList[index]"
+                                       @onchange="(e) => pollOptionsList[index] = e.Value?.ToString() ?? string.Empty"
+                                       placeholder="@($"Option {labelChar}")"
+                                       class="flex-1 text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                                @if (pollOptionsList.Count > 2)
+                                {
+                                    <button type="button" @onclick="() => RemovePollOption(index)" class="p-1.5 text-slate-400 hover:text-rose-600 transition" title="Remove option">
+                                        ✕
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Multiple Choice Toggle -->
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="grpMultiChoice" @bind="pollIsMultipleChoice" class="rounded text-purple-600 focus:ring-purple-500" />
+                    <label for="grpMultiChoice" class="text-xs font-medium text-slate-700 cursor-pointer">Allow voters to select multiple choices</label>
+                </div>
+            </div>
+            <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button type="button" @onclick="() => showPollModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200/50 rounded-xl transition">
+                    Cancel
+                </button>
+                <button type="button" @onclick="SubmitGroupPoll" disabled="@isSubmitting"
+                        style="background-color: #7c3aed; color: #ffffff !important;"
+                        class="px-5 py-2.5 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-md transition disabled:opacity-50 flex items-center gap-2 cursor-pointer active:scale-95">
+                    @if (isSubmitting)
+                    {
+                        <span class="animate-spin text-sm">⏳</span>
+                        <span>Creating Poll...</span>
+                    }
+                    else
+                    {
+                        <span class="text-sm">📊</span>
+                        <span>Publish Group Poll</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ================= MODAL: SHARE POST / POLL ================= -->
+@if (showShareModal)
+{
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🚀</span>
+                    <h3 class="font-bold text-slate-900 text-sm">Share to Your Network</h3>
+                </div>
+                <button type="button" @onclick="() => showShareModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div class="p-5 space-y-3">
+                <p class="text-xs text-slate-500">Share this group update with other members. You can optionally add a note with your thoughts.</p>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Share Note <span class="text-slate-400 font-normal">(Optional)</span></label>
+                    <textarea @bind="shareNoteText" rows="3" placeholder="Add your perspective (optional)..."
+                              class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                 </div>
             </div>
             <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
-                <button type="button" @onclick="() => showPollModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600">Cancel</button>
-                <button type="button" @onclick="SubmitGroupPoll" disabled="@isSubmitting" class="px-5 py-2 text-xs font-semibold bg-purple-600 text-white rounded-xl shadow">Publish Poll</button>
+                <button type="button" @onclick="() => showShareModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200/50 rounded-xl">Cancel</button>
+                <button type="button" @onclick="SubmitShare" disabled="@isSubmitting" class="px-5 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow transition disabled:opacity-50">
+                    Share Now
+                </button>
             </div>
         </div>
     </div>
@@ -322,21 +859,48 @@
     private IReadOnlyList<PollModel>? polls;
     private IReadOnlyList<GroupMemberModel>? members;
 
+    private int? currentUserId;
     private bool isLoadingGroup = true;
     private bool isLoadingFeed = true;
     private bool isSubmitting;
     private string activeTab = "feed";
 
-    // Modals
+    // Social Interactions
+    private HashSet<int> openCommentPostIds = [];
+    private Dictionary<int, string> commentInputs = [];
+    private Dictionary<int, IReadOnlyList<CommentModel>> commentsByPost = [];
+
+    // Share Modal
+    private bool showShareModal;
+    private int sharingPostId;
+    private string shareNoteText = "";
+
+    // Create Post Modal State
     private bool showPostModal;
     private string newPostText = "";
+    private string? uploadedImageUrl;
+    private bool isUploadingImage;
+
+    // Create Poll Modal State
     private bool showPollModal;
     private string newPollQuestion = "";
-    private string pollOpt1 = "";
-    private string pollOpt2 = "";
+    private string newPollDescription = "";
+    private int pollDurationDays = 1;
+    private int pollDurationHours = 0;
+    private int pollDurationMinutes = 0;
+    private bool pollIsMultipleChoice;
+    private List<string> pollOptionsList = ["", ""];
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var sub = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
+        if (int.TryParse(sub, out var uid))
+        {
+            currentUserId = uid;
+        }
+
         await LoadGroupData();
     }
 
@@ -347,7 +911,10 @@
         if (res.IsSuccess && res.Data != null)
         {
             group = res.Data;
-            await Task.WhenAll(LoadGroupPosts(), LoadGroupPolls(), LoadGroupMembers());
+            if (group.Visibility != "PRIVATE" || group.IsJoined)
+            {
+                await Task.WhenAll(LoadGroupPosts(), LoadGroupPolls(), LoadGroupMembers());
+            }
         }
         isLoadingGroup = false;
     }
@@ -356,14 +923,28 @@
     {
         isLoadingFeed = true;
         var res = await PostApi.GetFeedAsync(groupId: groupId);
-        if (res.IsSuccess) posts = res.Data;
+        if (res.IsSuccess)
+        {
+            posts = res.Data;
+            foreach (var p in posts ?? [])
+            {
+                if (!commentInputs.ContainsKey(p.PostId)) commentInputs[p.PostId] = "";
+            }
+        }
         isLoadingFeed = false;
     }
 
     private async Task LoadGroupPolls()
     {
         var res = await PollApi.GetPollsAsync(groupId: groupId);
-        if (res.IsSuccess) polls = res.Data;
+        if (res.IsSuccess)
+        {
+            polls = res.Data;
+            foreach (var p in polls ?? [])
+            {
+                if (!commentInputs.ContainsKey(p.PostId)) commentInputs[p.PostId] = "";
+            }
+        }
     }
 
     private async Task LoadGroupMembers()
@@ -400,14 +981,89 @@
         }
     }
 
-    private void OpenCreatePostModal() => showPostModal = true;
-    private void OpenCreatePollModal() => showPollModal = true;
+    private void OpenCreatePostModal()
+    {
+        newPostText = "";
+        uploadedImageUrl = null;
+        showPostModal = true;
+    }
+
+    private void OpenCreatePollModal()
+    {
+        newPollQuestion = "";
+        newPollDescription = "";
+        pollDurationDays = 1;
+        pollDurationHours = 0;
+        pollDurationMinutes = 0;
+        pollIsMultipleChoice = false;
+        pollOptionsList = ["", ""];
+        showPollModal = true;
+    }
+
+    private void AddPollOption()
+    {
+        if (pollOptionsList.Count < 10)
+        {
+            pollOptionsList.Add("");
+        }
+    }
+
+    private void RemovePollOption(int index)
+    {
+        if (pollOptionsList.Count > 2 && index >= 0 && index < pollOptionsList.Count)
+        {
+            pollOptionsList.RemoveAt(index);
+        }
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        try
+        {
+            isUploadingImage = true;
+            var uploadsDir = Path.Combine(Environment.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            var extension = Path.GetExtension(file.Name);
+            if (string.IsNullOrEmpty(extension)) extension = ".jpg";
+
+            var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow.Ticks}{extension}";
+            var fullPath = Path.Combine(uploadsDir, uniqueFileName);
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            using var fileStream = new FileStream(fullPath, FileMode.Create);
+            await stream.CopyToAsync(fileStream);
+
+            uploadedImageUrl = $"/uploads/{uniqueFileName}";
+            Toast.Success("Image uploaded!");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to process image: {ex.Message}");
+        }
+        finally
+        {
+            isUploadingImage = false;
+        }
+    }
 
     private async Task SubmitGroupPost()
     {
-        if (string.IsNullOrWhiteSpace(newPostText)) return;
+        if (string.IsNullOrWhiteSpace(newPostText))
+        {
+            Toast.Warning("Post content cannot be empty.");
+            return;
+        }
+
         isSubmitting = true;
-        var res = await PostApi.CreatePostAsync(new CreatePostRequestModel(null, newPostText, null, groupId));
+        var images = string.IsNullOrWhiteSpace(uploadedImageUrl) ? null : new List<string> { uploadedImageUrl };
+        var res = await PostApi.CreatePostAsync(new CreatePostRequestModel(null, newPostText, images, groupId));
         isSubmitting = false;
 
         if (res.IsSuccess)
@@ -415,33 +1071,164 @@
             Toast.Success("Group post published!");
             showPostModal = false;
             newPostText = "";
+            uploadedImageUrl = null;
+            activeTab = "feed";
             await LoadGroupPosts();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to post.");
+            Toast.Error(res.Message ?? "Failed to create post.");
         }
     }
 
     private async Task SubmitGroupPoll()
     {
-        if (string.IsNullOrWhiteSpace(newPollQuestion) || string.IsNullOrWhiteSpace(pollOpt1) || string.IsNullOrWhiteSpace(pollOpt2)) return;
+        if (string.IsNullOrWhiteSpace(newPollQuestion))
+        {
+            Toast.Warning("Please specify a poll question.");
+            return;
+        }
+
+        var validOptions = pollOptionsList.Where(o => !string.IsNullOrWhiteSpace(o)).Select(o => o.Trim()).ToList();
+        if (validOptions.Count < 2)
+        {
+            Toast.Warning("A poll must contain at least 2 non-empty options.");
+            return;
+        }
+
+        DateTime? expiresAt = null;
+        var totalMinutes = (pollDurationDays * 24 * 60) + (pollDurationHours * 60) + pollDurationMinutes;
+        if (totalMinutes > 0)
+        {
+            expiresAt = DateTime.UtcNow.AddMinutes(totalMinutes);
+        }
+
         isSubmitting = true;
-        var res = await PollApi.CreatePollAsync(new CreatePollRequestModel(null, newPollQuestion, newPollQuestion, false, null, [pollOpt1, pollOpt2], groupId));
+        var desc = string.IsNullOrWhiteSpace(newPollDescription) ? newPollQuestion : newPollDescription;
+        var req = new CreatePollRequestModel(null, newPollQuestion, desc, pollIsMultipleChoice, expiresAt, validOptions, groupId);
+
+        var res = await PollApi.CreatePollAsync(req);
         isSubmitting = false;
 
         if (res.IsSuccess)
         {
-            Toast.Success("Group poll created!");
+            Toast.Success("Group poll created successfully!");
             showPollModal = false;
-            newPollQuestion = "";
-            pollOpt1 = "";
-            pollOpt2 = "";
+            activeTab = "polls";
             await LoadGroupPolls();
         }
         else
         {
             Toast.Error(res.Message ?? "Failed to create poll.");
+        }
+    }
+
+    // Social Interactions
+    private async Task ToggleLike(int postId)
+    {
+        var res = await PostApi.LikePostAsync(postId);
+        if (res.IsSuccess)
+        {
+            await Task.WhenAll(LoadGroupPosts(), LoadGroupPolls());
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to update like.");
+        }
+    }
+
+    private async Task ToggleCommentBox(int postId)
+    {
+        if (openCommentPostIds.Contains(postId))
+        {
+            openCommentPostIds.Remove(postId);
+        }
+        else
+        {
+            openCommentPostIds.Add(postId);
+            await LoadComments(postId);
+        }
+    }
+
+    private async Task LoadComments(int postId)
+    {
+        var res = await PostApi.GetCommentsAsync(postId);
+        if (res.IsSuccess && res.Data != null)
+        {
+            commentsByPost[postId] = res.Data;
+        }
+    }
+
+    private async Task SubmitComment(int postId)
+    {
+        if (!commentInputs.TryGetValue(postId, out var content) || string.IsNullOrWhiteSpace(content))
+        {
+            return;
+        }
+
+        var res = await PostApi.AddCommentAsync(new CreateCommentRequestModel(postId, content));
+        if (res.IsSuccess)
+        {
+            commentInputs[postId] = "";
+            await LoadComments(postId);
+            await Task.WhenAll(LoadGroupPosts(), LoadGroupPolls());
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to post comment.");
+        }
+    }
+
+    private void OpenShareModal(int postId)
+    {
+        sharingPostId = postId;
+        shareNoteText = "";
+        showShareModal = true;
+    }
+
+    private async Task SubmitShare()
+    {
+        isSubmitting = true;
+        var res = await PostApi.SharePostAsync(sharingPostId, new SharePostRequestModel(shareNoteText));
+        isSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Shared successfully!");
+            showShareModal = false;
+            await Task.WhenAll(LoadGroupPosts(), LoadGroupPolls());
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to share.");
+        }
+    }
+
+    private async Task Vote(int pollId, int optionId)
+    {
+        var res = await PollApi.VoteAsync(new VoteRequestModel(pollId, [optionId]));
+        if (res.IsSuccess)
+        {
+            Toast.Success("Vote recorded!");
+            await LoadGroupPolls();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to submit vote.");
+        }
+    }
+
+    private async Task ConfirmDeletePost(int postId)
+    {
+        var res = await PostApi.DeletePostAsync(postId);
+        if (res.IsSuccess)
+        {
+            Toast.Success("Post deleted.");
+            await LoadGroupPosts();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to delete post.");
         }
     }
 }

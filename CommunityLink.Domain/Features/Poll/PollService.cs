@@ -17,6 +17,30 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
 {
     public async Task<Result<IReadOnlyList<PollModel>>> GetPollsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default)
     {
+        var currentUserId = currentUser.UserId;
+
+        if (groupId.HasValue && groupId.Value > 0)
+        {
+            var grp = await dbContext.TblGroups
+                .Include(g => g.TblGroupMembers)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(g => g.GroupId == groupId.Value && !g.IsDeleted, cancellationToken);
+
+            if (grp == null)
+            {
+                return Result<IReadOnlyList<PollModel>>.Failure("Group not found.", ResultStatus.NotFound);
+            }
+
+            if (grp.Visibility == "PRIVATE")
+            {
+                var isMember = currentUserId.HasValue && grp.TblGroupMembers.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
+                if (!isMember)
+                {
+                    return Result<IReadOnlyList<PollModel>>.Success([]);
+                }
+            }
+        }
+
         var query = dbContext.TblPolls
             .Include(p => p.Post).ThenInclude(post => post.Author)
             .Include(p => p.Post).ThenInclude(post => post.Community)
@@ -38,7 +62,6 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
         }
 
         var polls = await query.OrderByDescending(p => p.CreatedAt).Take(30).ToListAsync(cancellationToken);
-        var currentUserId = currentUser.UserId;
 
         var list = polls.Select(p =>
         {
@@ -105,10 +128,27 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
             return Result<PollModel>.Failure("A poll cannot contain more than 10 options.", ResultStatus.ValidationError);
 
         int? communityId = request.CommunityId;
-        if (!communityId.HasValue && request.GroupId.HasValue)
+        if (request.GroupId.HasValue)
         {
-            var grp = await dbContext.TblGroups.FindAsync([request.GroupId.Value], cancellationToken);
-            if (grp != null) communityId = grp.SubCommunityId;
+            var grp = await dbContext.TblGroups
+                .Include(g => g.TblGroupMembers)
+                .FirstOrDefaultAsync(g => g.GroupId == request.GroupId.Value && !g.IsDeleted, cancellationToken);
+
+            if (grp == null)
+            {
+                return Result<PollModel>.Failure("Group not found.", ResultStatus.NotFound);
+            }
+
+            var isMember = grp.TblGroupMembers.Any(m => m.UserId == currentUser.UserId.Value && !m.IsDeleted);
+            if (!isMember)
+            {
+                return Result<PollModel>.Failure("You must be a member of this group to create a poll.", ResultStatus.Forbidden);
+            }
+
+            if (!communityId.HasValue)
+            {
+                communityId = grp.SubCommunityId;
+            }
         }
 
         var post = new TblPost
