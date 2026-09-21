@@ -61,6 +61,7 @@ builder.Services.AddScoped<ChatApiService>();
 builder.Services.AddScoped<RoleAndPermissionApiService>();
 builder.Services.AddScoped<AdministrationApiService>();
 builder.Services.AddScoped<UserDashboardApiService>();
+builder.Services.AddScoped<UserProfileApiService>();
 
 var app = builder.Build();
 
