@@ -115,6 +115,11 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
         // Validate parent community if sub-community
         if (request.ParentCommunityId.HasValue)
         {
+            if (currentUser.UserId.HasValue && !currentUser.IsAdmin)
+            {
+                return Result<CommunityModel>.Failure("Only platform administrators can create sub-communities.", ResultStatus.Forbidden);
+            }
+
             var parentExists = await dbContext.TblCommunities
                 .AnyAsync(c => c.CommunityId == request.ParentCommunityId.Value && !c.IsDeleted, cancellationToken);
 

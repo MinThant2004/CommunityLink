@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using CommunityLink.Shared.Security;
 
 namespace CommunityLink.Domain.Security;
 
@@ -11,6 +12,7 @@ public interface ICurrentUserContext
     string? RoleCode { get; }
     int? RoleId { get; }
     bool IsAuthenticated { get; }
+    bool IsAdmin { get; }
 }
 
 public sealed class HttpCurrentUserContext(IHttpContextAccessor httpContextAccessor) : ICurrentUserContext
@@ -23,4 +25,5 @@ public sealed class HttpCurrentUserContext(IHttpContextAccessor httpContextAcces
     public string? RoleCode => User?.FindFirst(ClaimTypes.Role)?.Value ?? User?.FindFirst("role")?.Value;
     public int? RoleId => int.TryParse(User?.FindFirst("role_id")?.Value, out var roleId) ? roleId : null;
     public bool IsAuthenticated => User?.Identity?.IsAuthenticated ?? false;
+    public bool IsAdmin => string.Equals(RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase) || (User?.HasClaim("permission", PermissionCatalog.AdminUserView) ?? false);
 }

@@ -7,6 +7,8 @@ public sealed record PollModel(
     int PostId,
     int? CommunityId,
     string? CommunityName,
+    int? GroupId,
+    string? GroupName,
     int AuthorId,
     string AuthorName,
     string? AuthorAvatar,
@@ -30,6 +32,7 @@ public sealed record CreatePollRequestModel(
     string Question,
     bool IsMultipleChoice,
     DateTime? ExpiresAt,
-    IReadOnlyList<string> Options);
+    IReadOnlyList<string> Options,
+    int? GroupId = null);
 
 public sealed record VoteRequestModel(int PollId, IReadOnlyList<int> OptionIds);

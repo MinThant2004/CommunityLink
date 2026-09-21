@@ -37,9 +37,13 @@ public partial class TblPost
 
     public byte[] RowVersion { get; set; } = null!;
 
+    public int? GroupId { get; set; }
+
     public virtual TblUser Author { get; set; } = null!;
 
     public virtual TblCommunity? Community { get; set; }
+
+    public virtual TblGroup? Group { get; set; }
 
     public virtual ICollection<TblComment> TblComments { get; set; } = new List<TblComment>();
 

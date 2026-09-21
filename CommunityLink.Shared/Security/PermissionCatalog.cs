@@ -22,6 +22,11 @@ public static class PermissionCatalog
     public const string PollVote = "POLL.VOTE";
     public const string PollCreate = "POLL.CREATE";
 
+    // Groups
+    public const string GroupView = "GROUP.VIEW";
+    public const string GroupCreate = "GROUP.CREATE";
+    public const string GroupManage = "GROUP.MANAGE";
+
     // Chat & Messaging
     public const string ChatAccess = "CHAT.ACCESS";
     public const string ChatSend = "CHAT.SEND";
@@ -37,6 +42,9 @@ public static class PermissionCatalog
         new(CommunityCreate, "Create Community", "Community", "/communities/create", true, false),
         new(CommunityManage, "Manage Community Settings", "Community", null, true, false),
         new(CommunityModerate, "Moderate Communities & Join Requests", "Moderation", "/admin/communities", true, false),
+        new(GroupView, "View Groups", "Group", "/groups", true, true),
+        new(GroupCreate, "Create Group", "Group", "/groups", true, true),
+        new(GroupManage, "Manage Group Settings", "Group", null, true, false),
         new(PostView, "View Feed Posts", "Post", "/feed", true, true),
         new(PostCreate, "Create Post", "Post", "/feed", true, true),
         new(PostDelete, "Delete Post / Moderation", "Post", null, true, false),

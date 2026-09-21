@@ -8,7 +8,7 @@ namespace CommunityLink.Domain.Features.Post;
 
 public interface IPostService
 {
-    Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default);
     Task<Result<PostModel>> CreatePostAsync(CreatePostRequestModel request, CancellationToken cancellationToken = default);
     Task<Result> LikePostAsync(int postId, CancellationToken cancellationToken = default);
     Task<Result<CommentModel>> AddCommentAsync(CreateCommentRequestModel request, CancellationToken cancellationToken = default);
@@ -20,11 +20,12 @@ public interface IPostService
 
 public sealed class PostService(AppDbContext dbContext, ICurrentUserContext currentUser) : IPostService
 {
-    public async Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default)
     {
         var query = dbContext.TblPosts
             .Include(p => p.Author)
             .Include(p => p.Community)
+            .Include(p => p.Group)
             .Include(p => p.TblPostImages)
             .Include(p => p.TblPostLikes)
             .Include(p => p.TblComments)
@@ -32,7 +33,11 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
             .Where(p => !p.IsDeleted && !p.HasPoll)
             .AsNoTracking();
 
-        if (communityId.HasValue)
+        if (groupId.HasValue && groupId.Value > 0)
+        {
+            query = query.Where(p => p.GroupId == groupId.Value);
+        }
+        else if (communityId.HasValue && communityId.Value > 0)
         {
             query = query.Where(p => p.CommunityId == communityId.Value);
         }
@@ -44,9 +49,11 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
             p.PostId,
             p.CommunityId,
             p.Community?.Name,
+            p.GroupId,
+            p.Group?.Name,
             p.AuthorId,
-            p.Author.DisplayName,
-            p.Author.AvatarUrl,
+            p.Author != null ? (string.IsNullOrWhiteSpace(p.Author.DisplayName) ? p.Author.UserName : p.Author.DisplayName) : "Unknown",
+            p.Author?.AvatarUrl,
             p.Content,
             p.HasPoll,
             p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
@@ -64,9 +71,17 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
     {
         if (currentUser.UserId is null) return Result<PostModel>.Failure("Unauthorized", ResultStatus.Unauthorized);
 
+        int? communityId = request.CommunityId;
+        if (!communityId.HasValue && request.GroupId.HasValue)
+        {
+            var grp = await dbContext.TblGroups.FindAsync([request.GroupId.Value], cancellationToken);
+            if (grp != null) communityId = grp.SubCommunityId;
+        }
+
         var post = new TblPost
         {
-            CommunityId = request.CommunityId,
+            CommunityId = communityId,
+            GroupId = request.GroupId,
             AuthorId = currentUser.UserId.Value,
             Content = request.Content.Trim(),
             HasPoll = false,
@@ -74,6 +89,13 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
         };
 
         dbContext.TblPosts.Add(post);
+
+        if (request.GroupId.HasValue)
+        {
+            var g = await dbContext.TblGroups.FindAsync([request.GroupId.Value], cancellationToken);
+            if (g != null) g.PostCount += 1;
+        }
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
         if (request.ImageUrls != null)
@@ -93,12 +115,15 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
         }
 
         var user = await dbContext.TblUsers.FindAsync([currentUser.UserId.Value], cancellationToken);
-        var community = request.CommunityId.HasValue ? await dbContext.TblCommunities.FindAsync([request.CommunityId.Value], cancellationToken) : null;
+        var community = communityId.HasValue ? await dbContext.TblCommunities.FindAsync([communityId.Value], cancellationToken) : null;
+        var group = request.GroupId.HasValue ? await dbContext.TblGroups.FindAsync([request.GroupId.Value], cancellationToken) : null;
 
         var response = new PostModel(
             post.PostId,
             post.CommunityId,
             community?.Name,
+            post.GroupId,
+            group?.Name,
             post.AuthorId,
             user?.DisplayName ?? "Unknown",
             user?.AvatarUrl,
@@ -169,6 +194,8 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
             post.PostId,
             post.CommunityId,
             post.Community?.Name,
+            post.GroupId,
+            post.Group?.Name,
             post.AuthorId,
             post.Author?.DisplayName ?? "Unknown",
             post.Author?.AvatarUrl,

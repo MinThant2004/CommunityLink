@@ -8,18 +8,19 @@ namespace CommunityLink.Domain.Features.Poll;
 
 public interface IPollService
 {
-    Task<Result<IReadOnlyList<PollModel>>> GetPollsAsync(int? communityId, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<PollModel>>> GetPollsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default);
     Task<Result<PollModel>> CreatePollAsync(CreatePollRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<PollModel>> VoteAsync(VoteRequestModel request, CancellationToken cancellationToken = default);
 }
 
 public sealed class PollService(AppDbContext dbContext, ICurrentUserContext currentUser) : IPollService
 {
-    public async Task<Result<IReadOnlyList<PollModel>>> GetPollsAsync(int? communityId, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<PollModel>>> GetPollsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default)
     {
         var query = dbContext.TblPolls
             .Include(p => p.Post).ThenInclude(post => post.Author)
             .Include(p => p.Post).ThenInclude(post => post.Community)
+            .Include(p => p.Post).ThenInclude(post => post.Group)
             .Include(p => p.Post).ThenInclude(post => post.TblPostLikes)
             .Include(p => p.Post).ThenInclude(post => post.TblComments)
             .Include(p => p.Post).ThenInclude(post => post.TblPostShares)
@@ -27,7 +28,14 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
             .Where(p => !p.IsDeleted)
             .AsNoTracking();
 
-        if (communityId.HasValue) query = query.Where(p => p.Post.CommunityId == communityId.Value);
+        if (groupId.HasValue && groupId.Value > 0)
+        {
+            query = query.Where(p => p.Post.GroupId == groupId.Value);
+        }
+        else if (communityId.HasValue && communityId.Value > 0)
+        {
+            query = query.Where(p => p.Post.CommunityId == communityId.Value);
+        }
 
         var polls = await query.OrderByDescending(p => p.CreatedAt).Take(30).ToListAsync(cancellationToken);
         var currentUserId = currentUser.UserId;
@@ -57,8 +65,10 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
                 p.PostId,
                 p.Post.CommunityId,
                 p.Post.Community?.Name,
+                p.Post.GroupId,
+                p.Post.Group?.Name,
                 p.Post.AuthorId,
-                p.Post.Author?.DisplayName ?? "Unknown",
+                p.Post.Author != null ? (string.IsNullOrWhiteSpace(p.Post.Author.DisplayName) ? p.Post.Author.UserName : p.Post.Author.DisplayName) : "Unknown",
                 p.Post.Author?.AvatarUrl,
                 p.Question,
                 p.Post.Content,
@@ -94,9 +104,17 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
         if (trimmedOptions.Count > 10)
             return Result<PollModel>.Failure("A poll cannot contain more than 10 options.", ResultStatus.ValidationError);
 
+        int? communityId = request.CommunityId;
+        if (!communityId.HasValue && request.GroupId.HasValue)
+        {
+            var grp = await dbContext.TblGroups.FindAsync([request.GroupId.Value], cancellationToken);
+            if (grp != null) communityId = grp.SubCommunityId;
+        }
+
         var post = new TblPost
         {
-            CommunityId = request.CommunityId,
+            CommunityId = communityId,
+            GroupId = request.GroupId,
             AuthorId = currentUser.UserId.Value,
             Content = string.IsNullOrWhiteSpace(request.Content) ? request.Question : request.Content.Trim(),
             HasPoll = true,
@@ -104,6 +122,13 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
         };
 
         dbContext.TblPosts.Add(post);
+
+        if (request.GroupId.HasValue)
+        {
+            var g = await dbContext.TblGroups.FindAsync([request.GroupId.Value], cancellationToken);
+            if (g != null) g.PostCount += 1;
+        }
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var poll = new TblPoll
@@ -131,7 +156,7 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
         }
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var polls = await GetPollsAsync(request.CommunityId, cancellationToken);
+        var polls = await GetPollsAsync(communityId, request.GroupId, cancellationToken);
         var created = polls.Data?.FirstOrDefault(p => p.PollId == poll.PollId);
         return Result<PollModel>.Success(created!);
     }
@@ -185,7 +210,7 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
         poll.TotalVotes += request.OptionIds.Count;
         await dbContext.SaveChangesAsync(cancellationToken);
         
-        var refreshed = await GetPollsAsync(poll.Post.CommunityId, cancellationToken);
+        var refreshed = await GetPollsAsync(poll.Post.CommunityId, poll.Post.GroupId, cancellationToken);
         var model = refreshed.Data?.FirstOrDefault(p => p.PollId == poll.PollId);
         return Result<PollModel>.Success(model!, "Vote recorded.");
     }

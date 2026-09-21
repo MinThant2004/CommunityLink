@@ -11,8 +11,8 @@ public sealed class PollController(IPollService pollService) : BaseController
 {
     [HttpGet]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PollView)]
-    public async Task<IActionResult> GetPolls([FromQuery] int? communityId, CancellationToken cancellationToken) =>
-        ToActionResult(await pollService.GetPollsAsync(communityId, cancellationToken));
+    public async Task<IActionResult> GetPolls([FromQuery] int? communityId, [FromQuery] int? groupId, CancellationToken cancellationToken) =>
+        ToActionResult(await pollService.GetPollsAsync(communityId, groupId, cancellationToken));
 
     [HttpPost]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PollCreate)]

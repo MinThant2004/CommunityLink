@@ -33,7 +33,15 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblConversation> TblConversations { get; set; }
 
+    public virtual DbSet<TblGroup> TblGroups { get; set; }
+
+    public virtual DbSet<TblGroupJoinRequest> TblGroupJoinRequests { get; set; }
+
+    public virtual DbSet<TblGroupMember> TblGroupMembers { get; set; }
+
     public virtual DbSet<TblNotification> TblNotifications { get; set; }
+
+    public virtual DbSet<TblPasswordResetOtp> TblPasswordResetOtps { get; set; }
 
     public virtual DbSet<TblPermission> TblPermissions { get; set; }
 
@@ -60,8 +68,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<TblSavedPost> TblSavedPosts { get; set; }
 
     public virtual DbSet<TblUser> TblUsers { get; set; }
-
-    public virtual DbSet<TblPasswordResetOtp> TblPasswordResetOtps { get; set; }
 
     public virtual DbSet<TblUserRating> TblUserRatings { get; set; }
 
@@ -208,20 +214,18 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<TblCommunityAuditLog>(entity =>
         {
             entity.HasKey(e => e.AuditId);
-
             entity.ToTable("TblCommunityAuditLog");
-
             entity.Property(e => e.TargetType).HasMaxLength(50);
             entity.Property(e => e.FieldChanged).HasMaxLength(50);
             entity.Property(e => e.IpAddress).HasMaxLength(50);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
 
-            entity.HasOne(d => d.Community).WithMany(p => p.TblCommunityAuditLogs)
+            entity.HasOne(d => d.Community).WithMany()
                 .HasForeignKey(d => d.CommunityId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_TblCommunityAuditLog_Community");
 
-            entity.HasOne(d => d.Editor).WithMany(p => p.TblCommunityAuditLogs)
+            entity.HasOne(d => d.Editor).WithMany()
                 .HasForeignKey(d => d.EditorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblCommunityAuditLog_User");
@@ -325,6 +329,103 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_TblConversation_UserTwo");
         });
 
+        modelBuilder.Entity<TblGroup>(entity =>
+        {
+            entity.HasKey(e => e.GroupId);
+
+            entity.ToTable("TblGroup");
+
+            entity.HasIndex(e => e.SubCommunityId, "IX_TblGroup_SubCommunityId").HasFilter("([IsDeleted]=(0))");
+
+            entity.HasIndex(e => e.Slug, "UQ_TblGroup_Slug")
+                .IsUnique()
+                .HasFilter("([IsDeleted]=(0))");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.JoinPolicy)
+                .HasMaxLength(50)
+                .HasDefaultValue("INSTANT");
+            entity.Property(e => e.Name).HasMaxLength(200);
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.Slug).HasMaxLength(200);
+            entity.Property(e => e.Visibility)
+                .HasMaxLength(50)
+                .HasDefaultValue("PUBLIC");
+
+            entity.HasOne(d => d.Creator).WithMany(p => p.TblGroups)
+                .HasForeignKey(d => d.CreatorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroup_Creator");
+
+            entity.HasOne(d => d.SubCommunity).WithMany(p => p.TblGroups)
+                .HasForeignKey(d => d.SubCommunityId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroup_SubCommunity");
+        });
+
+        modelBuilder.Entity<TblGroupJoinRequest>(entity =>
+        {
+            entity.HasKey(e => e.GroupJoinRequestId);
+
+            entity.ToTable("TblGroupJoinRequest");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasDefaultValue("PENDING");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.TblGroupJoinRequests)
+                .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroupJoinRequest_Group");
+
+            entity.HasOne(d => d.ReviewedByNavigation).WithMany(p => p.TblGroupJoinRequestReviewedByNavigations)
+                .HasForeignKey(d => d.ReviewedBy)
+                .HasConstraintName("FK_TblGroupJoinRequest_Reviewer");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblGroupJoinRequestUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroupJoinRequest_User");
+        });
+
+        modelBuilder.Entity<TblGroupMember>(entity =>
+        {
+            entity.HasKey(e => e.GroupMemberId);
+
+            entity.ToTable("TblGroupMember");
+
+            entity.HasIndex(e => e.UserId, "IX_TblGroupMember_UserId").HasFilter("([IsDeleted]=(0))");
+
+            entity.HasIndex(e => new { e.GroupId, e.UserId }, "UQ_TblGroupMember_GroupUser")
+                .IsUnique()
+                .HasFilter("([IsDeleted]=(0))");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.JoinedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.Role)
+                .HasMaxLength(50)
+                .HasDefaultValue("Member");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasOne(d => d.Group).WithMany(p => p.TblGroupMembers)
+                .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroupMember_Group");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblGroupMembers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroupMember_User");
+        });
+
         modelBuilder.Entity<TblNotification>(entity =>
         {
             entity.HasKey(e => e.NotificationId).HasName("PK__TblNotif__20CF2E127C2455D3");
@@ -349,6 +450,17 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_TblNotification_Recipient");
         });
 
+        modelBuilder.Entity<TblPasswordResetOtp>(entity =>
+        {
+            entity.HasKey(e => e.OtpId);
+
+            entity.ToTable("TblPasswordResetOtp");
+
+            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(getutcdate())", "DF_TblPasswordResetOtp_CreatedAtUtc");
+            entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.OtpCode).HasMaxLength(200);
+        });
+
         modelBuilder.Entity<TblPermission>(entity =>
         {
             entity.HasKey(e => e.PermissionId).HasName("PK__TblPermi__EFA6FB2F45870323");
@@ -365,17 +477,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();
-        });
-
-        modelBuilder.Entity<TblPasswordResetOtp>(entity =>
-        {
-            entity.HasKey(e => e.OtpId);
-
-            entity.ToTable("TblPasswordResetOtp");
-
-            entity.Property(e => e.Email).HasMaxLength(256);
-            entity.Property(e => e.OtpCode).HasMaxLength(200);
-            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(getutcdate())");
         });
 
         modelBuilder.Entity<TblPoll>(entity =>
@@ -445,6 +546,8 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("TblPost");
 
+            entity.HasIndex(e => e.GroupId, "IX_TblPost_GroupId").HasFilter("([GroupId] IS NOT NULL AND [IsDeleted]=(0))");
+
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
@@ -458,6 +561,10 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Community).WithMany(p => p.TblPosts)
                 .HasForeignKey(d => d.CommunityId)
                 .HasConstraintName("FK_TblPost_Community");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.TblPosts)
+                .HasForeignKey(d => d.GroupId)
+                .HasConstraintName("FK_TblPost_Group");
         });
 
         modelBuilder.Entity<TblPostImage>(entity =>

@@ -54,6 +54,7 @@ builder.Services.AddScoped<AuthSessionService>();
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthenticationApiService>();
 builder.Services.AddScoped<CommunityApiService>();
+builder.Services.AddScoped<GroupApiService>();
 builder.Services.AddScoped<PostApiService>();
 builder.Services.AddScoped<PollApiService>();
 builder.Services.AddScoped<ChatApiService>();
