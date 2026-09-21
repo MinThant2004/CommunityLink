@@ -133,4 +133,21 @@ public class ApiService(IHttpClientFactory clientFactory, IHttpContextAccessor h
             return Result.Failure($"API request failed: {ex.Message}", ResultStatus.SystemError);
         }
     }
+
+    protected async Task<Result<T>> ReadResultAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (string.IsNullOrWhiteSpace(content)) return Result<T>.Failure("Empty response from API server.", ResultStatus.SystemError);
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var result = JsonSerializer.Deserialize<Result<T>>(content, options);
+            return result ?? Result<T>.Failure("Failed to deserialize API response.", ResultStatus.SystemError);
+        }
+        catch (Exception ex)
+        {
+            return Result<T>.Failure($"API response processing failed: {ex.Message}", ResultStatus.SystemError);
+        }
+    }
 }

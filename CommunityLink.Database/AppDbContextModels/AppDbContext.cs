@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,8 +23,6 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblCommunity> TblCommunities { get; set; }
 
-    public virtual DbSet<TblCommunityAuditLog> TblCommunityAuditLogs { get; set; }
-
     public virtual DbSet<TblCommunityJoinRequest> TblCommunityJoinRequests { get; set; }
 
     public virtual DbSet<TblCommunityMember> TblCommunityMembers { get; set; }
@@ -39,9 +37,21 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblGroupMember> TblGroupMembers { get; set; }
 
+    public virtual DbSet<TblLinkDropPackage> TblLinkDropPackages { get; set; }
+
+    public virtual DbSet<TblLinkDropPurchase> TblLinkDropPurchases { get; set; }
+
+    public virtual DbSet<TblLinkDropPurchaseProof> TblLinkDropPurchaseProofs { get; set; }
+
+    public virtual DbSet<TblLinkDropTransaction> TblLinkDropTransactions { get; set; }
+
+    public virtual DbSet<TblLinkDropWallet> TblLinkDropWallets { get; set; }
+
     public virtual DbSet<TblNotification> TblNotifications { get; set; }
 
     public virtual DbSet<TblPasswordResetOtp> TblPasswordResetOtps { get; set; }
+
+    public virtual DbSet<TblPaymentMethod> TblPaymentMethods { get; set; }
 
     public virtual DbSet<TblPermission> TblPermissions { get; set; }
 
@@ -209,26 +219,6 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.ParentCommunity).WithMany(p => p.InverseParentCommunity)
                 .HasForeignKey(d => d.ParentCommunityId)
                 .HasConstraintName("FK_TblCommunity_Parent");
-        });
-
-        modelBuilder.Entity<TblCommunityAuditLog>(entity =>
-        {
-            entity.HasKey(e => e.AuditId);
-            entity.ToTable("TblCommunityAuditLog");
-            entity.Property(e => e.TargetType).HasMaxLength(50);
-            entity.Property(e => e.FieldChanged).HasMaxLength(50);
-            entity.Property(e => e.IpAddress).HasMaxLength(50);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
-
-            entity.HasOne(d => d.Community).WithMany()
-                .HasForeignKey(d => d.CommunityId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK_TblCommunityAuditLog_Community");
-
-            entity.HasOne(d => d.Editor).WithMany()
-                .HasForeignKey(d => d.EditorId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TblCommunityAuditLog_User");
         });
 
         modelBuilder.Entity<TblCommunityJoinRequest>(entity =>
@@ -426,6 +416,154 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_TblGroupMember_User");
         });
 
+        modelBuilder.Entity<TblLinkDropPackage>(entity =>
+        {
+            entity.HasKey(e => e.PackageId);
+
+            entity.ToTable("TblLinkDropPackage");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.Currency)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasDefaultValue("USD");
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.PackageName).HasMaxLength(100);
+            entity.Property(e => e.RealMoneyAmount).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+        });
+
+        modelBuilder.Entity<TblLinkDropPurchase>(entity =>
+        {
+            entity.HasKey(e => e.PurchaseId);
+
+            entity.ToTable("TblLinkDropPurchase");
+
+            entity.HasIndex(e => new { e.Status, e.CreatedAt }, "IX_TblLinkDropPurchase_Status_CreatedAt");
+
+            entity.HasIndex(e => e.TransactionReferenceNo, "IX_TblLinkDropPurchase_TransactionReferenceNo");
+
+            entity.HasIndex(e => new { e.UserId, e.CreatedAt }, "IX_TblLinkDropPurchase_UserId_CreatedAt").IsDescending(false, true);
+
+            entity.HasIndex(e => e.PurchaseNumber, "UQ_TblLinkDropPurchase_PurchaseNumber").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.PurchaseNumber)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.RejectionReason).HasMaxLength(500);
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.SnapshotConversionRate).HasColumnType("decimal(18, 6)");
+            entity.Property(e => e.SnapshotCurrency)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.SnapshotPackageName).HasMaxLength(100);
+            entity.Property(e => e.SnapshotRealMoneyAmount).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING");
+            entity.Property(e => e.TransactionReferenceNo).HasMaxLength(100);
+            entity.Property(e => e.UserNotes).HasMaxLength(500);
+
+            entity.HasOne(d => d.Package).WithMany(p => p.TblLinkDropPurchases)
+                .HasForeignKey(d => d.PackageId)
+                .HasConstraintName("FK_TblLinkDropPurchase_TblLinkDropPackage");
+
+            entity.HasOne(d => d.PaymentMethod).WithMany(p => p.TblLinkDropPurchases)
+                .HasForeignKey(d => d.PaymentMethodId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblLinkDropPurchase_TblPaymentMethod");
+
+            entity.HasOne(d => d.ReviewedByAdmin).WithMany(p => p.TblLinkDropPurchases)
+                .HasForeignKey(d => d.ReviewedByAdminId)
+                .HasConstraintName("FK_TblLinkDropPurchase_TblAdmin");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblLinkDropPurchases)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblLinkDropPurchase_TblUser");
+        });
+
+        modelBuilder.Entity<TblLinkDropPurchaseProof>(entity =>
+        {
+            entity.HasKey(e => e.ProofId);
+
+            entity.ToTable("TblLinkDropPurchaseProof");
+
+            entity.HasIndex(e => e.PurchaseId, "UQ_TblLinkDropPurchaseProof_PurchaseId").IsUnique();
+
+            entity.Property(e => e.ContentType)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.FileUrl).HasMaxLength(500);
+            entity.Property(e => e.OriginalFileName).HasMaxLength(255);
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.UploadedAt).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(d => d.Purchase).WithOne(p => p.TblLinkDropPurchaseProof)
+                .HasForeignKey<TblLinkDropPurchaseProof>(d => d.PurchaseId)
+                .HasConstraintName("FK_TblLinkDropPurchaseProof_TblLinkDropPurchase");
+        });
+
+        modelBuilder.Entity<TblLinkDropTransaction>(entity =>
+        {
+            entity.HasKey(e => e.TransactionId);
+
+            entity.ToTable("TblLinkDropTransaction");
+
+            entity.HasIndex(e => new { e.WalletId, e.CreatedAt }, "IX_TblLinkDropTransaction_WalletId_CreatedAt").IsDescending(false, true);
+
+            entity.HasIndex(e => new { e.ReferenceType, e.ReferenceId }, "UX_TblLinkDropTransaction_Purchase_Reference")
+                .IsUnique()
+                .HasFilter("([ReferenceType]='TblLinkDropPurchase')");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.Property(e => e.ReferenceType)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.TransactionType)
+                .HasMaxLength(30)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblLinkDropTransactions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblLinkDropTransaction_TblUser");
+
+            entity.HasOne(d => d.Wallet).WithMany(p => p.TblLinkDropTransactions)
+                .HasForeignKey(d => d.WalletId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblLinkDropTransaction_TblLinkDropWallet");
+        });
+
+        modelBuilder.Entity<TblLinkDropWallet>(entity =>
+        {
+            entity.HasKey(e => e.WalletId);
+
+            entity.ToTable("TblLinkDropWallet");
+
+            entity.HasIndex(e => e.UserId, "UQ_TblLinkDropWallet_UserId").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasOne(d => d.User).WithOne(p => p.TblLinkDropWallet)
+                .HasForeignKey<TblLinkDropWallet>(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblLinkDropWallet_TblUser");
+        });
+
         modelBuilder.Entity<TblNotification>(entity =>
         {
             entity.HasKey(e => e.NotificationId).HasName("PK__TblNotif__20CF2E127C2455D3");
@@ -459,6 +597,23 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(getutcdate())", "DF_TblPasswordResetOtp_CreatedAtUtc");
             entity.Property(e => e.Email).HasMaxLength(256);
             entity.Property(e => e.OtpCode).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<TblPaymentMethod>(entity =>
+        {
+            entity.HasKey(e => e.PaymentMethodId);
+
+            entity.ToTable("TblPaymentMethod");
+
+            entity.Property(e => e.AccountName).HasMaxLength(150);
+            entity.Property(e => e.AccountNumber).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.MethodName).HasMaxLength(100);
+            entity.Property(e => e.QrCodeImageUrl).HasMaxLength(500);
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
         });
 
         modelBuilder.Entity<TblPermission>(entity =>

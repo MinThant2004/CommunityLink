@@ -3,23 +3,25 @@ using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
 
-public partial class TblAdmin
+public partial class TblLinkDropPackage
 {
-    public int AdminId { get; set; }
+    public int PackageId { get; set; }
 
-    public string Email { get; set; } = null!;
+    public string PackageName { get; set; } = null!;
 
-    public string NormalizedEmail { get; set; } = null!;
+    public string? Description { get; set; }
 
-    public string FullName { get; set; } = null!;
+    public long LinkDropAmount { get; set; }
 
-    public string PasswordHash { get; set; } = null!;
+    public long BonusAmount { get; set; }
 
-    public bool IsSuperAdmin { get; set; }
+    public decimal RealMoneyAmount { get; set; }
+
+    public string Currency { get; set; } = null!;
+
+    public int DisplayOrder { get; set; }
 
     public bool IsActive { get; set; }
-
-    public DateTime? LastLoginAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
@@ -36,8 +38,6 @@ public partial class TblAdmin
     public int? DeletedBy { get; set; }
 
     public byte[] RowVersion { get; set; } = null!;
-
-    public virtual ICollection<TblAdminRole> TblAdminRoles { get; set; } = new List<TblAdminRole>();
 
     public virtual ICollection<TblLinkDropPurchase> TblLinkDropPurchases { get; set; } = new List<TblLinkDropPurchase>();
 }

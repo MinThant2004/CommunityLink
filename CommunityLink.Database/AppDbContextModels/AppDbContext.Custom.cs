@@ -8,6 +8,17 @@ namespace CommunityLink.Database.AppDbContextModels;
 
 public partial class AppDbContext
 {
+    public virtual DbSet<TblCommunityAuditLog> TblCommunityAuditLogs { get; set; }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<TblCommunityAuditLog>(entity =>
+        {
+            entity.HasKey(e => e.AuditId);
+            entity.ToTable("TblCommunityAuditLog");
+        });
+    }
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         EnsureRowVersions();

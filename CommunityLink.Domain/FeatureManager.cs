@@ -17,6 +17,7 @@ using CommunityLink.Domain.Services;
 using CommunityLink.Shared;
 
 using CommunityLink.Domain.Features.Group;
+using CommunityLink.Domain.Features.LinkDrop;
 
 namespace CommunityLink.Domain;
 
@@ -62,6 +63,7 @@ public static class FeatureManager
         services.AddScoped<IAdministrationService, AdministrationService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IUserProfileService, UserProfileService>();
+        services.AddScoped<ILinkDropPaymentService, LinkDropPaymentService>();
 
         return services;
     }

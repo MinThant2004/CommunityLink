@@ -3,23 +3,23 @@ using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
 
-public partial class TblAdmin
+public partial class TblPaymentMethod
 {
-    public int AdminId { get; set; }
+    public int PaymentMethodId { get; set; }
 
-    public string Email { get; set; } = null!;
+    public string MethodName { get; set; } = null!;
 
-    public string NormalizedEmail { get; set; } = null!;
+    public string AccountName { get; set; } = null!;
 
-    public string FullName { get; set; } = null!;
+    public string AccountNumber { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = null!;
+    public string? QrCodeImageUrl { get; set; }
 
-    public bool IsSuperAdmin { get; set; }
+    public string? Instructions { get; set; }
+
+    public int DisplayOrder { get; set; }
 
     public bool IsActive { get; set; }
-
-    public DateTime? LastLoginAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
@@ -36,8 +36,6 @@ public partial class TblAdmin
     public int? DeletedBy { get; set; }
 
     public byte[] RowVersion { get; set; } = null!;
-
-    public virtual ICollection<TblAdminRole> TblAdminRoles { get; set; } = new List<TblAdminRole>();
 
     public virtual ICollection<TblLinkDropPurchase> TblLinkDropPurchases { get; set; } = new List<TblLinkDropPurchase>();
 }

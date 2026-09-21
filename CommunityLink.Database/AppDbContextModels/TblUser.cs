@@ -75,6 +75,12 @@ public partial class TblUser
 
     public virtual ICollection<TblGroup> TblGroups { get; set; } = new List<TblGroup>();
 
+    public virtual ICollection<TblLinkDropPurchase> TblLinkDropPurchases { get; set; } = new List<TblLinkDropPurchase>();
+
+    public virtual ICollection<TblLinkDropTransaction> TblLinkDropTransactions { get; set; } = new List<TblLinkDropTransaction>();
+
+    public virtual TblLinkDropWallet? TblLinkDropWallet { get; set; }
+
     public virtual ICollection<TblNotification> TblNotificationActorUsers { get; set; } = new List<TblNotification>();
 
     public virtual ICollection<TblNotification> TblNotificationRecipientUsers { get; set; } = new List<TblNotification>();
