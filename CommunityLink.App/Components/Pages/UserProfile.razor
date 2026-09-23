@@ -108,22 +108,6 @@
         gap: 4px;
     }
 
-    .prof-chip-active {
-        background: #0A1B2E;
-        border: 1px solid #0A1B2E;
-        color: #ffffff;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 10px;
-        font-weight: 500;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        border-radius: 0.25rem;
-        padding: 2px 7px;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-
     .prof-label-xs {
         font-family: 'JetBrains Mono', monospace;
         font-size: 10px;
@@ -135,14 +119,12 @@
 </style>
 
 <div class="profile-canvas pb-16">
-
-
     @if (isLoading)
     {
         <div class="p-16 text-center my-12 max-w-xl mx-auto prof-card">
             <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-[#0A1B2E] border-t-transparent"></div>
-            <h3 class="prof-display mt-4 text-base font-bold text-[#0A1B2E]">Synchronizing Sovereign Profile Node</h3>
-            <p class="mt-1 text-xs text-[#64748B]">Verifying cryptographic credentials and protocol SLA records...</p>
+            <h3 class="prof-display mt-4 text-base font-bold text-[#0A1B2E]">Synchronizing Profile Data</h3>
+            <p class="mt-1 text-xs text-[#64748B]">Retrieving verified records, community memberships, and peer activity...</p>
         </div>
     }
     else if (!string.IsNullOrEmpty(errorMessage))
@@ -151,9 +133,9 @@
             <div class="flex items-center gap-3">
                 <span class="w-10 h-10 rounded-[0.375rem] bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                </span>
+            </span>
                 <div>
-                    <h3 class="prof-display font-bold text-sm text-rose-900">Unable to load profile node</h3>
+                    <h3 class="prof-display font-bold text-sm text-rose-900">Unable to load profile</h3>
                     <p class="text-xs text-rose-700 mt-0.5">@errorMessage</p>
                 </div>
             </div>
@@ -166,54 +148,56 @@
     {
         <div class="max-w-[1400px] mx-auto px-4 sm:px-6 pt-5 space-y-6">
 
-            <!-- SUB-HEADER / BREADCRUMB & REGISTRY STATUS (Matching Mockup) -->
+            <!-- SUB-HEADER / BREADCRUMB & REGISTRY STATUS -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E2E8F0]">
                 <div class="flex items-center gap-3">
-                    <button @onclick='() => Navigation.NavigateTo("home")' class="w-8 h-8 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#0A1B2E] flex items-center justify-center transition shadow-sm" title="Back">
+                    <button @onclick='() => Navigation.NavigateTo("home")' class="w-8 h-8 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#0A1B2E] flex items-center justify-center transition shadow-sm" title="Back to Home">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     </button>
                     <div class="prof-mono text-[11px] sm:text-xs text-[#64748B] flex items-center gap-2 tracking-wider">
                         <span>REGISTRY</span>
                         <span class="text-[#CBD5E1]">/</span>
-                        <span class="font-medium text-[#475569]">FRONTIER INTELLIGENCE</span>
+                        <span class="font-medium text-[#475569]">@(profile.Role.RoleName?.ToUpper() ?? "MEMBER")</span>
                         <span class="text-[#CBD5E1]">/</span>
-                        <span class="text-[#0A1B2E] font-bold">@(profile.UserName?.ToUpper() ?? "ELENA_VANCE")_ID:@(profile.UserId > 0 ? profile.UserId.ToString("D4") : "8042")</span>
+                        <span class="text-[#0A1B2E] font-bold">@(profile.UserName?.ToUpper())_ID:@(profile.UserId.ToString("D4"))</span>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-3">
                     <div class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-white border border-[#E2E8F0] px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>ACCEPTING DIRECT ENGAGEMENTS</span>
+                        <span>@(profile.IsVerified ? "VERIFIED NODE" : "ACTIVE MEMBER")</span>
                     </div>
 
-                    <button @onclick="ShareProfile" class="w-8 h-8 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#0A1B2E] flex items-center justify-center transition shadow-sm" title="Share Profile">
+                    <button @onclick="ShareProfile" class="w-8 h-8 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#0A1B2E] flex items-center justify-center transition shadow-sm" title="Share Profile Link">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                     </button>
 
-                    <button @onclick="ToggleSaveAccountAsync" disabled="@isSavingAccount" class="prof-icon-btn w-8 h-8 rounded-lg bg-white border border-[#E2E8F0] @(profile.Relationship.IsSavedByMe ? "text-amber-500 border-amber-300" : "text-[#64748B] hover:text-[#0A1B2E]") flex items-center justify-center transition shadow-sm" title="Bookmark / Save Account">
-                        <svg class="w-4 h-4" fill="@(profile.Relationship.IsSavedByMe ? "currentColor" : "none")" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                    </button>
+                    @if (!isOwner)
+                    {
+                        <button @onclick="ToggleSaveAccountAsync" disabled="@isSavingAccount" class="w-8 h-8 rounded-lg bg-white border border-[#E2E8F0] @(profile.Relationship.IsSavedByMe ? "text-amber-500 border-amber-300" : "text-[#64748B] hover:text-[#0A1B2E]") flex items-center justify-center transition shadow-sm" title="@(profile.Relationship.IsSavedByMe ? "Remove from Bookmarks" : "Bookmark Account")">
+                            <svg class="w-4 h-4" fill="@(profile.Relationship.IsSavedByMe ? "currentColor" : "none")" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                        </button>
+                    }
                 </div>
             </div>
 
-            <!-- MAIN DUAL-COLUMN GRID LAYOUT (Exact Photo Mirror) -->
+            <!-- MAIN DUAL-COLUMN GRID LAYOUT -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
                 <!-- ================= LEFT COLUMN: EXECUTIVE PROFILE CARD (4.5 / 12 Cols) ================= -->
                 <div class="lg:col-span-5 xl:col-span-5 space-y-6">
 
                     <div class="prof-card overflow-hidden">
-                        <!-- Cover Banner with Keynote Fellow Tag -->
-                        <div class="relative h-44 sm:h-48 w-full bg-[#0A1B2E] overflow-hidden">
-                            <img src="/uploads/elena_banner.jpg" alt="Profile Banner" class="w-full h-full object-cover opacity-90" onerror="this.src='/uploads/group_f857a32c46bf45d99cb997034f47a326_639255571170737622.png';" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-[#0A1B2E]/60 via-transparent to-transparent"></div>
+                        <!-- Cover Banner -->
+                        <div class="relative h-36 sm:h-40 w-full bg-gradient-to-r from-[#0A1B2E] via-[#112A46] to-[#1E3A5F] overflow-hidden">
+                            <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"></div>
 
                             <!-- Badge inside Banner Top-Left -->
                             <div class="absolute top-4 left-4">
-                                <span class="prof-mono text-[10px] font-semibold text-[#0A1B2E] bg-white/95 backdrop-blur-md px-3 py-1 rounded-full border border-white/40 flex items-center gap-1.5 shadow-md">
-                                    <svg class="w-3.5 h-3.5 text-[#0A1B2E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                                    <span>KEYNOTE FELLOW</span>
+                                <span class="prof-mono text-[10px] font-semibold text-[#0A1B2E] bg-white/95 backdrop-blur-md px-3 py-1 rounded-full border border-white/40 flex items-center gap-1.5 shadow-sm">
+                                    <span>@(profile.Role?.Badge ?? "👤")</span>
+                                    <span>@(profile.Role?.RoleName?.ToUpper() ?? "MEMBER")</span>
                                 </span>
                             </div>
                         </div>
@@ -223,43 +207,54 @@
                             <!-- Avatar & Credential Status Row -->
                             <div class="flex items-end justify-between -mt-12 sm:-mt-14 relative z-10 pb-2">
                                 <div class="relative">
-                                    <img src="@(!string.IsNullOrWhiteSpace(profile.AvatarUrl) ? profile.AvatarUrl : "/uploads/elena_avatar.jpg")" 
-                                         alt="@profile.DisplayName" 
-                                         class="w-24 h-24 sm:w-26 sm:h-26 rounded-2xl object-cover ring-4 ring-white shadow-xl bg-white"
-                                         onerror="this.src='/uploads/elena_avatar.jpg';" />
+                                    @if (!string.IsNullOrWhiteSpace(profile.AvatarUrl))
+                                    {
+                                        <img src="@profile.AvatarUrl" 
+                                             alt="@profile.DisplayName" 
+                                             class="w-24 h-24 sm:w-26 sm:h-26 rounded-2xl object-cover ring-4 ring-white shadow-xl bg-white" />
+                                    }
+                                    else
+                                    {
+                                        <div class="w-24 h-24 sm:w-26 sm:h-26 rounded-2xl bg-[#0A1B2E] text-white flex items-center justify-center font-bold text-3xl ring-4 ring-white shadow-xl prof-display">
+                                            @(string.IsNullOrWhiteSpace(profile.DisplayName) ? profile.UserName?.Substring(0, 1).ToUpper() : profile.DisplayName.Substring(0, 1).ToUpper())
+                                        </div>
+                                    }
                                     
-                                    <!-- Verified Pip Badge -->
-                                    <div class="absolute -bottom-1 -right-1 bg-[#0A1B2E] text-white p-1 rounded-full ring-2 ring-white shadow-md flex items-center justify-center" title="Verified Sovereign Node">
-                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
-                                            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                                        </svg>
-                                    </div>
+                                    @if (profile.IsVerified)
+                                    {
+                                        <!-- Verified Pip Badge -->
+                                        <div class="absolute -bottom-1 -right-1 bg-[#0A1B2E] text-white p-1 rounded-full ring-2 ring-white shadow-md flex items-center justify-center" title="Verified Member">
+                                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                                                <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                                            </svg>
+                                        </div>
+                                    }
                                 </div>
 
                                 <div class="text-right pb-1">
                                     <div class="prof-label-xs text-[#94A3B8]">CREDENTIAL STATUS</div>
                                     <div class="prof-mono text-xs font-bold text-[#0A1B2E] flex items-center justify-end gap-1.5 mt-0.5">
                                         <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
-                                        <span>TIER 0 VERIFIED</span>
+                                        <span>TIER @(profile.Role?.RoleCode == "ADMIN" || profile.Role?.RoleCode == "SUPER_ADMIN" ? "0" : "1") ACTIVE</span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Name, Role Title & Affiliations -->
-                            <div class="space-y-1.5">
+                            <div class="space-y-1">
                                 <div class="flex flex-wrap items-center gap-2.5">
                                     <h1 class="prof-display text-2xl sm:text-3xl font-bold text-[#0A1B2E] tracking-tight">
-                                        @(string.IsNullOrWhiteSpace(profile.DisplayName) ? "Elena Vance" : profile.DisplayName)
+                                        @(string.IsNullOrWhiteSpace(profile.DisplayName) ? profile.UserName : profile.DisplayName)
                                     </h1>
                                     <span class="prof-mono text-[10px] font-bold text-white bg-[#0A1B2E] border border-[#0A1B2E] px-2 py-0.5 rounded">
-                                        TOP 0.1%
+                                        @@@profile.UserName
                                     </span>
                                 </div>
-                                <h2 class="text-sm font-semibold text-[#0F172A] leading-snug">
-                                    Chief AI Architect &amp; Former Research Director at AnthroVisions
+                                <h2 class="text-sm font-semibold text-[#557392] leading-snug">
+                                    @(profile.Role?.RoleName ?? "Member") &middot; CommunityLink Member
                                 </h2>
-                                <p class="text-xs text-[#64748B] leading-relaxed">
-                                    Co-founder, Frontier Lab • Advisory Board, Global Open Weights Consortium
+                                <p class="text-xs text-[#7A8CA6] leading-relaxed">
+                                    Registered Member since @profile.CreatedAt.ToString("MMMM yyyy")
                                 </p>
                             </div>
 
@@ -267,109 +262,77 @@
                             <div class="grid grid-cols-3 border border-[#C4D2E1] rounded-lg overflow-hidden bg-[#EDF4FF] text-center py-3 divide-x divide-[#C4D2E1]">
                                 <div class="px-2">
                                     <div class="prof-display text-lg sm:text-xl font-bold text-[#0A1B2E]">
-                                        @(profile.Metrics.PostsCount > 0 ? (profile.Metrics.PostsCount * 12 + 142) : 142)
+                                        @profile.Metrics.PostsCount
                                     </div>
-                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">CONNECTIONS</div>
+                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">POSTS</div>
                                 </div>
                                 <div class="px-2">
                                     <div class="prof-display text-lg sm:text-xl font-bold text-[#0A1B2E]">
-                                        @(profile.Metrics.AverageRating.HasValue ? profile.Metrics.AverageRating.Value.ToString("0.00") : "4.98") <span class="text-xs text-amber-500">★</span>
+                                        @profile.Metrics.JoinedCommunitiesCount
                                     </div>
-                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">
-                                        @(profile.Metrics.RatingCount > 0 ? profile.Metrics.RatingCount : 118) REVIEWS
-                                    </div>
+                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">HUBS</div>
                                 </div>
                                 <div class="px-2">
-                                    <div class="prof-display text-lg sm:text-xl font-bold text-[#0A1B2E]">3.4h</div>
-                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">AVG SLA</div>
+                                    <div class="prof-display text-lg sm:text-xl font-bold text-[#0A1B2E]">
+                                        @(profile.Metrics.AverageRating.HasValue ? profile.Metrics.AverageRating.Value.ToString("0.0") : "N/A")
+                                        @if (profile.Metrics.AverageRating.HasValue)
+                                        {
+                                            <span class="text-xs text-amber-500">★</span>
+                                        }
+                                    </div>
+                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">
+                                        @profile.Metrics.RatingCount REVIEWS
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Domain Expertise -->
-                            <div class="space-y-2.5 pt-1 border-t border-[#E2E8F0]">
-                                <div class="prof-label-xs text-[#64748B]">DOMAIN EXPERTISE</div>
-                                <p class="text-xs text-[#475569] leading-relaxed">
-                                    @(!string.IsNullOrWhiteSpace(profile.Bio) ? profile.Bio : "Pioneering distributed multi-agent systems, synthetic reasoning pipelines, and enterprise-grade inference acceleration. Advising select venture founders and research labs.")
+                            <!-- Domain Expertise / Bio -->
+                            <div class="space-y-2 pt-1 border-t border-[#E2E8F0]">
+                                <div class="prof-label-xs text-[#64748B]">BIOGRAPHY &amp; EXPERTISE</div>
+                                <p class="text-xs text-[#475569] leading-relaxed whitespace-pre-line">
+                                    @(!string.IsNullOrWhiteSpace(profile.Bio) ? profile.Bio : "This member has not provided a biography yet.")
                                 </p>
-                                <div class="flex flex-wrap gap-1.5 pt-1">
-                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#AgenticWorkflows</span>
-                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#DistributedInference</span>
-                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#ModelAlignment</span>
-                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#GPUClusterArch</span>
-                                </div>
                             </div>
 
-                            <!-- Affiliated Hubs & Collectives -->
-                            <div class="space-y-3 pt-2 border-t border-[#E2E8F0]">
-                                <div class="prof-label-xs text-[#64748B]">AFFILIATED HUBS &amp; COLLECTIVES</div>
-                                
-                                <div class="space-y-2">
-                                    <!-- Hub 1 -->
-                                    <div class="p-3 bg-white border border-[#E2E8F0] rounded-lg flex items-center justify-between hover:border-[#CBD5E1] transition">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded-lg bg-[#0A1B2E] text-white flex items-center justify-center font-bold text-xs">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                                            </div>
-                                            <div>
-                                                <div class="text-xs font-bold text-[#0A1B2E]">Frontier AI Alliance</div>
-                                                <div class="text-[11px] text-[#64748B]">Lead Architect • 1,940 verified partners</div>
-                                            </div>
-                                        </div>
-                                        <span class="prof-mono text-[10px] font-bold text-white bg-[#0A1B2E] border border-[#0A1B2E] px-2 py-0.5 rounded">
-                                            PRIMARY
-                                        </span>
-                                    </div>
-
-                                    <!-- Hub 2 -->
-                                    <div class="p-3 bg-white border border-[#E2E8F0] rounded-lg flex items-center justify-between hover:border-[#CBD5E1] transition">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded-lg bg-[#0A1B2E] text-white flex items-center justify-center font-bold text-xs">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-                                            </div>
-                                            <div>
-                                                <div class="text-xs font-bold text-[#0A1B2E]">LLM Infra Guild</div>
-                                                <div class="text-[11px] text-[#64748B]">Guild Host • 840 technical founders</div>
-                                            </div>
-                                        </div>
-                                        <span class="prof-mono text-[10px] font-semibold text-[#64748B] hover:text-[#0A1B2E] cursor-pointer">
-                                            Pass &gt;
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Executive Endorsement Section -->
+                            <!-- Affiliated Hubs Summary -->
                             <div class="space-y-3 pt-2 border-t border-[#E2E8F0]">
                                 <div class="flex items-center justify-between">
-                                    <span class="prof-label-xs text-[#64748B]">EXECUTIVE ENDORSEMENT</span>
-                                    <span class="prof-mono text-[10px] font-bold text-[#0A1B2E] flex items-center gap-1">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                        VERIFIED
-                                    </span>
+                                    <div class="prof-label-xs text-[#64748B]">AFFILIATED COMMUNITIES</div>
+                                    <span class="prof-mono text-[10px] text-[#7A8CA6]">@(userCommunities?.Count ?? 0) Hubs</span>
                                 </div>
-
-                                <div class="p-3.5 bg-[#EDF4FF] border border-[#C4D2E1] rounded-lg space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-7 h-7 rounded-full bg-[#0A1B2E] text-white font-bold text-xs flex items-center justify-center">
-                                                MC
-                                            </div>
-                                            <div class="text-xs font-bold text-[#0A1B2E]">Marcus Chen</div>
-                                        </div>
-                                        <div class="prof-mono text-[10px] text-[#64748B]">CTO @@ HyperScale</div>
+                                
+                                @if (isLoadingCommunities)
+                                {
+                                    <div class="py-4 text-center">
+                                        <div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-[#0A1B2E] border-t-transparent"></div>
                                     </div>
-                                    <p class="text-[11px] text-[#475569] italic leading-relaxed">
-                                        "Elena redesigned our token pipeline in a single 45-minute advisory sprint. We reduced latency by 38%."
-                                    </p>
-                                </div>
-
-                                <div class="flex items-center justify-between text-[11px] text-[#64748B] pt-1">
-                                    <span class="flex items-center gap-1.5">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                                        Lex Fridman #412 • Latent Space Ep. 89
-                                    </span>
-                                    <span class="prof-mono text-[10px] font-medium text-[#94A3B8]">2 Media</span>
-                                </div>
+                                }
+                                else if (userCommunities == null || userCommunities.Count == 0)
+                                {
+                                    <p class="text-xs text-[#7A8CA6] py-2">No community affiliations recorded yet.</p>
+                                }
+                                else
+                                {
+                                    <div class="space-y-2">
+                                        @foreach (var hub in userCommunities.Take(3))
+                                        {
+                                            <div class="p-2.5 bg-white border border-[#E2E8F0] rounded-lg flex items-center justify-between hover:border-[#CBD5E1] transition">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-8 h-8 rounded-lg bg-[#F1F5F9] text-[#0A1B2E] border border-[#E2E8F0] flex items-center justify-center font-bold text-xs">
+                                                        @hub.Name.Substring(0, 1).ToUpper()
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-xs font-bold text-[#0A1B2E]">@hub.Name</div>
+                                                        <div class="text-[10px] text-[#64748B]">@hub.RoleName &bull; @hub.MemberCount members</div>
+                                                    </div>
+                                                </div>
+                                                <a href="communities" class="prof-mono text-[10px] font-semibold text-[#557392] hover:text-[#0A1B2E]">
+                                                    View &rarr;
+                                                </a>
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             </div>
 
                             <!-- Owner or Visitor Control Buttons -->
@@ -378,7 +341,7 @@
                                 {
                                     <button @onclick="OpenEditModal" class="prof-btn-primary w-full text-xs">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                                        Edit Profile Settings
+                                        Edit Profile Credentials
                                     </button>
                                 }
                                 else
@@ -389,7 +352,7 @@
                                     </a>
                                     <button @onclick="OpenRatingModal" class="prof-btn-secondary text-xs">
                                         <svg class="w-4 h-4 text-amber-500" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                                        @(profile.Relationship.HasRated ? "Edit Review" : "Rate Expert")
+                                        @(profile.Relationship.HasRated ? "Edit Review" : "Rate Member")
                                     </button>
                                 }
                             </div>
@@ -399,303 +362,314 @@
 
                 </div>
 
-                <!-- ================= RIGHT COLUMN: SELECT CONNECTION PASS (7.5 / 12 Cols) ================= -->
+                <!-- ================= RIGHT COLUMN: ACTIVITY & CONTRIBUTION TABS (7.5 / 12 Cols) ================= -->
                 <div class="lg:col-span-7 xl:col-span-7 space-y-6">
 
                     <!-- Section Header -->
                     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
                         <div>
-                            <div class="prof-label-xs text-[#64748B]">ACCESS PROTOCOL</div>
+                            <div class="prof-label-xs text-[#64748B]">COMMUNITY WORKSPACE</div>
                             <h2 class="prof-display text-2xl sm:text-3xl font-bold text-[#0A1B2E] tracking-tight">
-                                Select Connection Pass
+                                Activity &amp; Contributions
                             </h2>
                         </div>
                         <p class="text-xs text-[#64748B] max-w-xs text-left sm:text-right leading-relaxed">
-                            Direct peer-to-peer priority tokens securely anchored to Elena Vance's dedicated node.
+                            Verified broadcasts, community affiliations, and peer reviews for @(string.IsNullOrWhiteSpace(profile.DisplayName) ? profile.UserName : profile.DisplayName).
                         </p>
                     </div>
 
-                    <!-- PASS CARD 1: 1-on-1 Strategic Advisory Session (Featured / Most Popular) -->
-                    <div class="prof-card p-6 relative border-[#CBD5E1] shadow-md space-y-5">
-                        
-                        <!-- Top-Right Pill -->
-                        <div class="absolute -top-3 right-6">
-                            <span class="prof-mono text-[10px] font-bold text-white bg-[#0A1B2E] px-3.5 py-1 rounded-full shadow-sm flex items-center gap-1.5">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                                MOST POPULAR ALLOCATION
-                            </span>
-                        </div>
-
-                        <!-- Card Header -->
-                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pt-1">
-                            <div>
-                                <div class="flex items-center gap-2.5">
-                                    <h3 class="prof-display text-lg font-bold text-[#0A1B2E]">
-                                        1-on-1 Strategic Advisory Session
-                                    </h3>
-                                    <span class="prof-chip text-[10px]">
-                                        Live Video
-                                    </span>
-                                </div>
-                                <p class="text-xs text-[#64748B] mt-1">
-                                    Deep-dive structural audit, system architecture roadmap &amp; feedback.
-                                </p>
-                            </div>
-
-                            <div class="text-left sm:text-right shrink-0">
-                                <div class="prof-display text-2xl sm:text-3xl font-bold text-[#0A1B2E] leading-none">
-                                    $450 <span class="prof-mono text-xs font-normal text-[#64748B]">/ 45-MIN</span>
-                                </div>
-                                <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] block mt-1">
-                                    3 Slots Left This Week
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Deliverables + Date Selector Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pt-2 border-t border-[#E2E8F0]">
-                            
-                            <!-- Left: Deliverables List -->
-                            <div class="md:col-span-7 space-y-3">
-                                <div class="prof-label-xs text-[#64748B]">SESSION DELIVERABLES</div>
-                                <ul class="space-y-2 text-xs text-[#334155]">
-                                    <li class="flex items-center gap-2">
-                                        <span class="w-4 h-4 rounded-full bg-[#0A1B2E] text-white flex items-center justify-center text-[10px] font-bold">✓</span>
-                                        <span>High-bandwidth 45-min private video link</span>
-                                    </li>
-                                    <li class="flex items-center gap-2">
-                                        <span class="w-4 h-4 rounded-full bg-[#0A1B2E] text-white flex items-center justify-center text-[10px] font-bold">✓</span>
-                                        <span>Pre-call technical deck &amp; architecture audit</span>
-                                    </li>
-                                    <li class="flex items-center gap-2">
-                                        <span class="w-4 h-4 rounded-full bg-[#0A1B2E] text-white flex items-center justify-center text-[10px] font-bold">✓</span>
-                                        <span>Full raw recording &amp; AI action summary notes</span>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <!-- Right: Date Picker Cards -->
-                            <div class="md:col-span-5 space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="prof-label-xs text-[#64748B]">SELECT AVAILABLE DATE</span>
-                                    <span class="prof-mono text-[10px] text-[#94A3B8]">UTC-08 PT</span>
-                                </div>
-
-                                <div class="grid grid-cols-3 gap-2">
-                                    <!-- Slot 1 -->
-                                    <button @onclick="() => selectedDateSlot = 0" class="p-2 rounded-lg text-center border transition @(selectedDateSlot == 0 ? "bg-[#0A1B2E] text-white border-[#0A1B2E] shadow-sm" : "bg-[#EDF4FF] text-[#0A1B2E] border-[#C4D2E1] hover:border-[#A1B2C4]")">
-                                        <div class="prof-mono text-[9px] uppercase font-semibold text-[#94A3B8]">THU</div>
-                                        <div class="prof-display text-xs font-bold leading-tight my-0.5">OCT 24</div>
-                                        <div class="prof-mono text-[9px]">10:00 AM</div>
-                                    </button>
-
-                                    <!-- Slot 2 (Active by default) -->
-                                    <button @onclick="() => selectedDateSlot = 1" class="p-2 rounded-lg text-center border transition @(selectedDateSlot == 1 ? "bg-[#0A1B2E] text-white border-[#0A1B2E] shadow-sm" : "bg-[#EDF4FF] text-[#0A1B2E] border-[#C4D2E1] hover:border-[#A1B2C4]")">
-                                        <div class="prof-mono text-[9px] uppercase font-semibold @(selectedDateSlot == 1 ? "text-slate-300" : "text-[#94A3B8]")">FRI</div>
-                                        <div class="prof-display text-xs font-bold leading-tight my-0.5">OCT 25</div>
-                                        <div class="prof-mono text-[9px]">02:30 PM</div>
-                                    </button>
-
-                                    <!-- Slot 3 -->
-                                    <button @onclick="() => selectedDateSlot = 2" class="p-2 rounded-lg text-center border transition @(selectedDateSlot == 2 ? "bg-[#0A1B2E] text-white border-[#0A1B2E] shadow-sm" : "bg-[#EDF4FF] text-[#0A1B2E] border-[#C4D2E1] hover:border-[#A1B2C4]")">
-                                        <div class="prof-mono text-[9px] uppercase font-semibold text-[#94A3B8]">TUE</div>
-                                        <div class="prof-display text-xs font-bold leading-tight my-0.5">OCT 29</div>
-                                        <div class="prof-mono text-[9px]">11:15 AM</div>
-                                    </button>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <!-- Card Footer -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-[#E2E8F0]">
-                            <div class="flex items-center gap-2 text-xs text-[#64748B]">
-                                <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                <span class="prof-mono text-[11px]">Protected by Encrypted Video Gateway</span>
-                            </div>
-
-                            <button @onclick="BookAdvisorySessionAsync" class="prof-btn-primary">
-                                <span>Book &amp; Unlock Connection</span>
-                                &rarr;
+                    <!-- Navigation Tabs Bar -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] p-1.5 flex flex-wrap items-center gap-1.5">
+                        <button type="button" @onclick='() => activeTab = "posts"'
+                                class="flex-1 py-2 px-3 text-xs font-bold rounded-xl transition text-center @(activeTab == "posts" ? "bg-[#0A1B2E] text-white shadow-sm" : "text-[#557392] hover:text-[#0A1B2E] hover:bg-[#F1F5F9]")">
+                            📝 Posts (@(userPosts?.Count ?? 0))
+                        </button>
+                        <button type="button" @onclick='() => activeTab = "communities"'
+                                class="flex-1 py-2 px-3 text-xs font-bold rounded-xl transition text-center @(activeTab == "communities" ? "bg-[#0A1B2E] text-white shadow-sm" : "text-[#557392] hover:text-[#0A1B2E] hover:bg-[#F1F5F9]")">
+                            🏛️ Hubs (@(userCommunities?.Count ?? 0))
+                        </button>
+                        <button type="button" @onclick='() => activeTab = "reviews"'
+                                class="flex-1 py-2 px-3 text-xs font-bold rounded-xl transition text-center @(activeTab == "reviews" ? "bg-[#0A1B2E] text-white shadow-sm" : "text-[#557392] hover:text-[#0A1B2E] hover:bg-[#F1F5F9]")">
+                            ⭐ Reviews (@(userReviews?.Count ?? 0))
+                        </button>
+                        @if (isOwner)
+                        {
+                            <button type="button" @onclick='() => activeTab = "saved"'
+                                    class="flex-1 py-2 px-3 text-xs font-bold rounded-xl transition text-center @(activeTab == "saved" ? "bg-[#0A1B2E] text-white shadow-sm" : "text-[#557392] hover:text-[#0A1B2E] hover:bg-[#F1F5F9]")">
+                                🔖 Saved (@((savedPosts?.Count ?? 0) + (savedAccounts?.Count ?? 0)))
                             </button>
-                        </div>
-
+                        }
                     </div>
 
-                    <!-- PASS CARD 2: Direct Priority Channel Pass -->
-                    <div class="prof-card p-6 space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2.5">
-                                    <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
-                                    <h3 class="prof-display text-base font-bold text-[#0A1B2E]">
-                                        Direct Priority Channel Pass
-                                    </h3>
-                                    <span class="prof-chip text-[10px]">
-                                        Async 1:1
-                                    </span>
-                                </div>
-                                <p class="text-xs text-[#64748B] max-w-xl leading-relaxed">
-                                    Direct continuous asynchronous chat window with Elena. Guaranteed SLA response within 24 hours, voice note memos permitted, and confidential attachment reviews.
+                    <!-- TAB 1: POSTS -->
+                    @if (activeTab == "posts")
+                    {
+                        @if (isLoadingPosts)
+                        {
+                            <div class="p-12 text-center bg-white rounded-2xl border border-[#E2E8F0]">
+                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] border-t-transparent"></div>
+                                <p class="mt-2 text-xs text-[#7A8CA6]">Loading user posts...</p>
+                            </div>
+                        }
+                        else if (userPosts == null || userPosts.Count == 0)
+                        {
+                            <div class="bg-white rounded-2xl border border-dashed border-[#CBD5E1] p-12 text-center text-[#7A8CA6] space-y-2">
+                                <div class="text-4xl mb-2">✍️</div>
+                                <h3 class="text-base font-bold text-[#0A1B2E]">No broadcasts published yet</h3>
+                                <p class="text-xs text-[#557392] max-w-sm mx-auto">
+                                    @(isOwner ? "You haven't shared any posts yet. Broadcast your insights to your community network!" : "This member has not shared any public broadcasts yet.")
                                 </p>
+                                @if (isOwner)
+                                {
+                                    <div class="pt-2">
+                                        <a href="feed" class="prof-btn-primary text-xs">Create Broadcast Now</a>
+                                    </div>
+                                }
                             </div>
+                        }
+                        else
+                        {
+                            <div class="space-y-4">
+                                @foreach (var post in userPosts)
+                                {
+                                    <div class="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] hover:border-[#CBD5E1] p-5 space-y-3 transition">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <span class="prof-mono text-[10px] font-bold text-[#0A1B2E] bg-[#F1F5F9] border border-[#E2E8F0] px-2.5 py-0.5 rounded">
+                                                    @(string.IsNullOrWhiteSpace(post.CommunityName) ? "GENERAL" : post.CommunityName.ToUpper())
+                                                </span>
+                                                <span class="prof-mono text-[11px] text-[#7A8CA6]">@post.CreatedAt.ToString("g")</span>
+                                            </div>
+                                            <a href="feed" class="text-xs font-semibold text-[#557392] hover:text-[#0A1B2E]">
+                                                View Post &rarr;
+                                            </a>
+                                        </div>
 
-                            <div class="text-left sm:text-right shrink-0">
-                                <div class="prof-display text-xl sm:text-2xl font-bold text-[#0A1B2E] leading-none">
-                                    $180 <span class="prof-mono text-xs font-normal text-[#64748B]">/ MONTH</span>
-                                </div>
-                                <span class="prof-mono text-[10px] text-[#94A3B8] block mt-1">
-                                    Cancel anytime
-                                </span>
+                                        <p class="text-sm text-[#0A1B2E] leading-relaxed whitespace-pre-line">
+                                            @post.Content
+                                        </p>
+
+                                        <div class="pt-2 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#7A8CA6] font-mono">
+                                            <div class="flex items-center gap-4">
+                                                <span>❤️ @post.LikeCount Likes</span>
+                                                <span>💬 @post.CommentCount Comments</span>
+                                            </div>
+                                            <a href="feed" class="text-xs font-semibold text-[#0A1B2E] hover:underline">
+                                                Join Discussion
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
                             </div>
-                        </div>
+                        }
+                    }
 
-                        <div class="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-[#E2E8F0] text-xs">
-                            <div class="flex flex-wrap items-center gap-4 text-[#475569]">
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                    &lt; 24hr Guaranteed SLA
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                                    Audio / Voice Notes
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                                    Code &amp; Deck Audits (up to 15p/mo)
-                                </span>
+                    <!-- TAB 2: COMMUNITIES -->
+                    @if (activeTab == "communities")
+                    {
+                        @if (isLoadingCommunities)
+                        {
+                            <div class="p-12 text-center bg-white rounded-2xl border border-[#E2E8F0]">
+                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] border-t-transparent"></div>
+                                <p class="mt-2 text-xs text-[#7A8CA6]">Loading community affiliations...</p>
                             </div>
-
-                            <button @onclick="UnlockPriorityChannelAsync" class="prof-btn-secondary text-xs">
-                                <span>Unlock Channel Pass</span>
-                                &gt;
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- PASS CARD 3: Exclusive Sub-Community VIP Pass -->
-                    <div class="prof-card p-6 space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2.5">
-                                    <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
-                                    <h3 class="prof-display text-base font-bold text-[#0A1B2E]">
-                                        Exclusive Sub-Community VIP Pass
-                                    </h3>
-                                    <span class="prof-chip text-[10px]">
-                                        Syndicate
-                                    </span>
-                                </div>
-                                <p class="text-xs text-[#64748B] max-w-xl leading-relaxed">
-                                    Full membership in Elena's private 'LLM Infra Syndicate' closed forum. Includes bi-weekly closed-door interactive AMAs, technical benchmarks repository, and early deal flow intelligence.
+                        }
+                        else if (userCommunities == null || userCommunities.Count == 0)
+                        {
+                            <div class="bg-white rounded-2xl border border-dashed border-[#CBD5E1] p-12 text-center text-[#7A8CA6] space-y-2">
+                                <div class="text-4xl mb-2">🏛️</div>
+                                <h3 class="text-base font-bold text-[#0A1B2E]">No communities joined yet</h3>
+                                <p class="text-xs text-[#557392] max-w-sm mx-auto">
+                                    @(isOwner ? "Explore public community hubs across the network and participate in discussions." : "This member is not an active member in any public hubs yet.")
                                 </p>
+                                @if (isOwner)
+                                {
+                                    <div class="pt-2">
+                                        <a href="communities" class="prof-btn-primary text-xs">Explore Hubs Directory</a>
+                                    </div>
+                                }
                             </div>
+                        }
+                        else
+                        {
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                @foreach (var comm in userCommunities)
+                                {
+                                    <div class="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] hover:border-[#CBD5E1] p-5 space-y-3 transition flex flex-col justify-between">
+                                        <div class="space-y-2">
+                                            <div class="flex items-center justify-between">
+                                                <span class="prof-mono text-[10px] font-bold text-white bg-[#0A1B2E] px-2 py-0.5 rounded">
+                                                    @comm.RoleName.ToUpper()
+                                                </span>
+                                                <span class="prof-mono text-[11px] text-[#7A8CA6]">👥 @comm.MemberCount</span>
+                                            </div>
+                                            <h3 class="font-bold text-sm text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">@comm.Name</h3>
+                                            <p class="text-xs text-[#557392] line-clamp-2 leading-relaxed">
+                                                @(string.IsNullOrWhiteSpace(comm.Description) ? "Active collaborative community on CommunityLink." : comm.Description)
+                                            </p>
+                                        </div>
 
-                            <div class="text-left sm:text-right shrink-0">
-                                <div class="prof-display text-xl sm:text-2xl font-bold text-[#0A1B2E] leading-none">
-                                    $75 <span class="prof-mono text-xs font-normal text-[#64748B]">/ MONTH</span>
-                                </div>
-                                <span class="prof-mono text-[10px] text-[#0A1B2E] font-semibold block mt-1">
-                                    Next AMA in 4 Days
-                                </span>
+                                        <div class="pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-xs">
+                                            <span class="prof-mono text-[10px] text-[#7A8CA6]">Joined @comm.JoinedAt.ToString("MMM yyyy")</span>
+                                            <a href="communities" class="prof-btn-secondary text-xs !py-1 !px-2.5">
+                                                Enter Hub &rarr;
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
                             </div>
-                        </div>
+                        }
+                    }
 
-                        <div class="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-[#E2E8F0] text-xs">
-                            <div class="flex flex-wrap items-center gap-4 text-[#475569]">
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                                    Private 840+ Member Guild
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                                    Bi-weekly Closed AMA
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                                    Proprietary Prompt &amp; Infra Stack
-                                </span>
+                    <!-- TAB 3: PEER REVIEWS -->
+                    @if (activeTab == "reviews")
+                    {
+                        @if (isLoadingReviews)
+                        {
+                            <div class="p-12 text-center bg-white rounded-2xl border border-[#E2E8F0]">
+                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] border-t-transparent"></div>
+                                <p class="mt-2 text-xs text-[#7A8CA6]">Loading peer reviews...</p>
                             </div>
-
-                            <button @onclick="JoinVipSyndicateAsync" class="prof-btn-secondary text-xs">
-                                <span>Join Sub-Community</span>
-                                &rarr;
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Escrow Guarantee Banner -->
-                    <div class="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-lg border border-[#C4D2E1]" style="background:#EDF4FF">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-9 h-9 rounded-lg bg-[#E3EFFF] border border-[#C4D2E1] flex items-center justify-center text-[#0A1B2E] shrink-0">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h4 class="text-xs font-bold text-[#0A1B2E]">Community Link Escrow Guarantee</h4>
-                                    <span class="prof-mono text-[9px] font-bold text-white bg-[#0A1B2E] border border-[#0A1B2E] px-2 py-0.2 rounded">
-                                        100% PROTECTED
-                                    </span>
-                                </div>
-                                <p class="text-[11px] text-[#64748B] mt-0.5">
-                                    Payment is held in sovereign smart-escrow until the advisory call completes or the initial direct message is answered within SLA.
+                        }
+                        else if (userReviews == null || userReviews.Count == 0)
+                        {
+                            <div class="bg-white rounded-2xl border border-dashed border-[#CBD5E1] p-12 text-center text-[#7A8CA6] space-y-2">
+                                <div class="text-4xl mb-2">⭐</div>
+                                <h3 class="text-base font-bold text-[#0A1B2E]">No peer reviews recorded yet</h3>
+                                <p class="text-xs text-[#557392] max-w-sm mx-auto">
+                                    @(isOwner ? "When peers and collaborators review your work or engagements, their ratings will appear here." : "Be the first to rate and review this member!")
                                 </p>
+                                @if (!isOwner)
+                                {
+                                    <div class="pt-2">
+                                        <button @onclick="OpenRatingModal" class="prof-btn-primary text-xs">Rate This Member</button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="space-y-4">
+                                @foreach (var review in userReviews)
+                                {
+                                    <div class="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] hover:border-[#CBD5E1] p-5 space-y-3 transition">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-3">
+                                                @if (!string.IsNullOrWhiteSpace(review.RaterAvatarUrl))
+                                                {
+                                                    <img src="@review.RaterAvatarUrl" alt="@review.RaterDisplayName" class="w-9 h-9 rounded-full object-cover border border-[#E2E8F0]" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="w-9 h-9 rounded-full bg-[#0A1B2E] text-white font-bold text-xs flex items-center justify-center">
+                                                        @(string.IsNullOrWhiteSpace(review.RaterDisplayName) ? "U" : review.RaterDisplayName.Substring(0, 1).ToUpper())
+                                                    </div>
+                                                }
+                                                <div>
+                                                    <div class="text-xs font-bold text-[#0A1B2E]">@review.RaterDisplayName</div>
+                                                    <div class="prof-mono text-[10px] text-[#7A8CA6]">@@@review.RaterUserName &bull; @review.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center gap-1 text-amber-500 text-sm">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <span>@(i <= review.Score ? "★" : "☆")</span>
+                                                }
+                                                <span class="prof-mono text-xs font-bold text-[#0A1B2E] ml-1">@review.Score.ToString("0.0")</span>
+                                            </div>
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(review.ReviewText))
+                                        {
+                                            <p class="text-xs text-[#334155] leading-relaxed italic bg-[#F8FAFC] p-3 rounded-lg border border-[#E2E8F0]">
+                                                "@review.ReviewText"
+                                            </p>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+
+                    <!-- TAB 4: SAVED (Owner Only) -->
+                    @if (isOwner && activeTab == "saved")
+                    {
+                        <div class="space-y-6">
+                            <!-- Saved Posts -->
+                            <div class="space-y-3">
+                                <h3 class="text-sm font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">📌 Saved Posts &amp; Broadcasts</h3>
+                                @if (savedPosts == null || savedPosts.Count == 0)
+                                {
+                                    <p class="text-xs text-[#7A8CA6] p-4 bg-white rounded-xl border border-[#E2E8F0]">No saved posts yet.</p>
+                                }
+                                else
+                                {
+                                    <div class="space-y-3">
+                                        @foreach (var sp in savedPosts)
+                                        {
+                                            <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 flex items-center justify-between gap-3">
+                                                <div>
+                                                    <div class="text-xs font-semibold text-[#557392]">@@@sp.AuthorUserName in @sp.CommunityName</div>
+                                                    <p class="text-xs text-[#0A1B2E] line-clamp-1 mt-0.5">@sp.Content</p>
+                                                </div>
+                                                <a href="feed" class="prof-btn-secondary text-xs !py-1 !px-2.5 whitespace-nowrap">View</a>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Saved Accounts -->
+                            <div class="space-y-3">
+                                <h3 class="text-sm font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">👥 Saved Peer Accounts</h3>
+                                @if (savedAccounts == null || savedAccounts.Count == 0)
+                                {
+                                    <p class="text-xs text-[#7A8CA6] p-4 bg-white rounded-xl border border-[#E2E8F0]">No saved accounts bookmarked yet.</p>
+                                }
+                                else
+                                {
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        @foreach (var sa in savedAccounts)
+                                        {
+                                            <div class="bg-white rounded-xl border border-[#E2E8F0] p-3 flex items-center justify-between gap-3">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-8 h-8 rounded-full bg-[#0A1B2E] text-white flex items-center justify-center font-bold text-xs">
+                                                        @(string.IsNullOrWhiteSpace(sa.DisplayName) ? "U" : sa.DisplayName.Substring(0, 1).ToUpper())
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-xs font-bold text-[#0A1B2E]">@sa.DisplayName</div>
+                                                        <div class="prof-mono text-[10px] text-[#7A8CA6]">@@@sa.UserName</div>
+                                                    </div>
+                                                </div>
+                                                <a href="u/@sa.UserName" class="prof-btn-secondary text-xs !py-1 !px-2.5">Profile</a>
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             </div>
                         </div>
-
-                        <a href="communities" class="prof-mono text-[11px] font-bold text-[#0A1B2E] hover:underline whitespace-nowrap">
-                            ESCROW PROTOCOLS ↗
-                        </a>
-                    </div>
-
-                    <!-- Real-Time Peer Activity Ticker -->
-                    <div class="prof-card p-4 space-y-3">
-                        <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-                            <span class="prof-label-xs text-[#64748B]">REAL-TIME PEER ACTIVITY</span>
-                            <span class="prof-mono text-[10px] font-semibold text-[#0A1B2E] flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                NODE SYNCHRONIZED
-                            </span>
-                        </div>
-
-                        <div class="space-y-2 text-xs">
-                            <div class="flex items-center justify-between text-[#334155]">
-                                <div>
-                                    <span class="prof-mono font-semibold text-[#0A1B2E]">0x4F...89C</span>
-                                    <span class="text-[#64748B] ml-1.5">unlocked 1-on-1 Advisory Session</span>
-                                </div>
-                                <span class="prof-mono text-[11px] text-[#94A3B8]">18 mins ago</span>
-                            </div>
-                            <div class="flex items-center justify-between text-[#334155]">
-                                <div>
-                                    <span class="prof-mono font-semibold text-[#0A1B2E]">0x12...9BA</span>
-                                    <span class="text-[#64748B] ml-1.5">renewed Priority Channel Pass</span>
-                                </div>
-                                <span class="prof-mono text-[11px] text-[#94A3B8]">1 hr ago</span>
-                            </div>
-                        </div>
-                    </div>
+                    }
 
                 </div>
 
             </div>
 
-            <!-- FOOTER (Matching Mockup) -->
+            <!-- FOOTER -->
             <footer class="pt-12 pb-6 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#64748B]">
                 <div class="flex items-center gap-2">
                     <span class="w-5 h-5 rounded bg-[#0A1B2E] text-white text-[10px] font-bold flex items-center justify-center">CL</span>
-                    <span>&copy; 2025 Community Link Platform Inc. Private Network Architecture.</span>
+                    <span>&copy; CommunityLink Platform. Verified Node Architecture.</span>
                 </div>
                 <div class="prof-mono text-[10px] flex flex-wrap items-center gap-5 tracking-wider">
-                    <a href="communities" class="text-[#64748B] hover:text-[#0A1B2E] transition">SECURITY &amp; ENCRYPTION</a>
-                    <a href="communities" class="text-[#64748B] hover:text-[#0A1B2E] transition">VERIFIED PASS RULES</a>
-                    <a href="admin" class="text-[#64748B] hover:text-[#0A1B2E] transition">OPERATOR PORTAL</a>
+                    <a href="communities" class="text-[#64748B] hover:text-[#0A1B2E] transition">COMMUNITIES DIRECTORY</a>
+                    <a href="feed" class="text-[#64748B] hover:text-[#0A1B2E] transition">PUBLIC FEED</a>
+                    <a href="dashboard" class="text-[#64748B] hover:text-[#0A1B2E] transition">MY DASHBOARD</a>
                 </div>
             </footer>
 
         </div>
     }
-
 </div>
 
 <!-- EDIT PROFILE MODAL -->
@@ -721,7 +695,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-1">Domain Expertise / Bio</label>
-                    <textarea @bind="editModel.Bio" rows="3" class="w-full px-3.5 py-2 text-xs rounded border border-[#CBD5E1] text-[#0A1B2E] focus:border-[#0A1B2E] outline-none resize-none"></textarea>
+                    <textarea @bind="editModel.Bio" rows="3" class="w-full px-3.5 py-2 text-xs rounded border border-[#CBD5E1] text-[#0A1B2E] focus:border-[#0A1B2E] outline-none resize-none" placeholder="Share your experience, interests, or background..."></textarea>
                 </div>
             </div>
 
@@ -762,7 +736,7 @@
             </div>
 
             <div class="space-y-4 text-center">
-                <p class="text-xs text-[#64748B]">Select advisory rating score:</p>
+                <p class="text-xs text-[#64748B]">Select rating score:</p>
                 <div class="flex items-center justify-center gap-2 text-2xl cursor-pointer py-1">
                     @for (int i = 1; i <= 5; i++)
                     {
@@ -778,7 +752,7 @@
 
                 <div class="text-left">
                     <label class="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-1">Written Review</label>
-                    <textarea @bind="ratingModel.ReviewText" rows="3" class="w-full px-3.5 py-2 text-xs rounded border border-[#CBD5E1] text-[#0A1B2E] outline-none" placeholder="Share your experience working with this expert..."></textarea>
+                    <textarea @bind="ratingModel.ReviewText" rows="3" class="w-full px-3.5 py-2 text-xs rounded border border-[#CBD5E1] text-[#0A1B2E] outline-none" placeholder="Share your experience working with this peer..."></textarea>
                 </div>
             </div>
 
@@ -809,8 +783,21 @@
     private UserProfileDto? profile;
     private bool isOwner;
 
-    // Date Slot for Pass 1
-    private int selectedDateSlot = 1;
+    // Active Content Tab
+    private string activeTab = "posts";
+
+    // Dynamic Live Data Collections
+    private List<UserPostItemDto>? userPosts;
+    private bool isLoadingPosts;
+
+    private List<UserCommunityItemDto>? userCommunities;
+    private bool isLoadingCommunities;
+
+    private List<UserRatingItemDto>? userReviews;
+    private bool isLoadingReviews;
+
+    private List<UserPostItemDto>? savedPosts;
+    private List<SavedAccountItemDto>? savedAccounts;
 
     // Edit Profile Modal
     private bool showEditModal;
@@ -854,6 +841,14 @@
             {
                 profile = res.Data;
                 isOwner = profile.Relationship.IsSelf || string.IsNullOrWhiteSpace(UserNameOrId);
+                
+                // Concurrently load live related collections
+                await Task.WhenAll(
+                    LoadUserPostsAsync(profile.UserId),
+                    LoadUserCommunitiesAsync(profile.UserId),
+                    LoadUserReviewsAsync(profile.UserId),
+                    isOwner ? LoadSavedDataAsync() : Task.CompletedTask
+                );
             }
             else
             {
@@ -871,6 +866,74 @@
         }
     }
 
+    private async Task LoadUserPostsAsync(int userId)
+    {
+        isLoadingPosts = true;
+        try
+        {
+            var res = await ProfileApi.GetUserPostsAsync(userId, _cts.Token);
+            if (res.IsSuccess && res.Data != null)
+            {
+                userPosts = res.Data;
+            }
+        }
+        catch { }
+        finally
+        {
+            isLoadingPosts = false;
+        }
+    }
+
+    private async Task LoadUserCommunitiesAsync(int userId)
+    {
+        isLoadingCommunities = true;
+        try
+        {
+            var res = await ProfileApi.GetUserCommunitiesAsync(userId, _cts.Token);
+            if (res.IsSuccess && res.Data != null)
+            {
+                userCommunities = res.Data;
+            }
+        }
+        catch { }
+        finally
+        {
+            isLoadingCommunities = false;
+        }
+    }
+
+    private async Task LoadUserReviewsAsync(int userId)
+    {
+        isLoadingReviews = true;
+        try
+        {
+            var res = await ProfileApi.GetUserReviewsAsync(userId, _cts.Token);
+            if (res.IsSuccess && res.Data != null)
+            {
+                userReviews = res.Data;
+            }
+        }
+        catch { }
+        finally
+        {
+            isLoadingReviews = false;
+        }
+    }
+
+    private async Task LoadSavedDataAsync()
+    {
+        try
+        {
+            var postsTask = ProfileApi.GetSavedPostsAsync(_cts.Token);
+            var accountsTask = ProfileApi.GetSavedAccountsAsync(_cts.Token);
+            await Task.WhenAll(postsTask, accountsTask);
+
+            if (postsTask.Result.IsSuccess) savedPosts = postsTask.Result.Data;
+            if (accountsTask.Result.IsSuccess) savedAccounts = accountsTask.Result.Data;
+        }
+        catch { }
+    }
+
     private async Task ToggleSaveAccountAsync()
     {
         if (profile == null || isOwner) return;
@@ -881,7 +944,7 @@
             if (res.IsSuccess)
             {
                 profile.Relationship.IsSavedByMe = res.Data;
-                Toast.Success(res.Data ? "Saved expert account to bookmarks." : "Removed from bookmarks.");
+                Toast.Success(res.Data ? "Saved account to bookmarks." : "Removed from bookmarks.");
             }
             else
             {
@@ -898,36 +961,12 @@
         }
     }
 
-    private async Task BookAdvisorySessionAsync()
-    {
-        string slotDesc = selectedDateSlot switch
-        {
-            0 => "Thursday, Oct 24 at 10:00 AM (UTC-08 PT)",
-            1 => "Friday, Oct 25 at 02:30 PM (UTC-08 PT)",
-            2 => "Tuesday, Oct 29 at 11:15 AM (UTC-08 PT)",
-            _ => "Selected session slot"
-        };
-        Toast.Success($"1-on-1 Strategic Advisory Session unlocked for {slotDesc}! Sovereign smart-escrow active.");
-    }
-
-    private void UnlockPriorityChannelAsync()
-    {
-        Navigation.NavigateTo("chat");
-        Toast.Info("Priority Direct Channel unlocked with guaranteed 24hr SLA.");
-    }
-
-    private void JoinVipSyndicateAsync()
-    {
-        Navigation.NavigateTo("communities");
-        Toast.Success("Sub-Community VIP Pass verified. Access granted to closed syndicate.");
-    }
-
     private async Task ShareProfile()
     {
         try
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", Navigation.Uri);
-            Toast.Success("Profile node link copied to clipboard!");
+            Toast.Success("Profile link copied to clipboard!");
         }
         catch
         {
@@ -1010,8 +1049,9 @@
             if (res.IsSuccess && res.Data != null)
             {
                 profile = res.Data;
-                Toast.Success("Rating and endorsement submitted!");
+                Toast.Success("Rating and review submitted!");
                 showRatingModal = false;
+                await LoadUserReviewsAsync(profile.UserId);
             }
             else
             {
