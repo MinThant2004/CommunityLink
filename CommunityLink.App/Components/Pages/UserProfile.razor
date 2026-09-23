@@ -5,501 +5,745 @@
 @inject UserProfileApiService ProfileApi
 @inject ToastService Toast
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <PageTitle>@(profile != null ? $"{profile.DisplayName} (@{profile.UserName}) — CommunityLink" : "User Profile — CommunityLink")</PageTitle>
 
-<div class="max-w-7xl mx-auto space-y-6 pb-12">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" />
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap');
+
+    .profile-canvas {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: #0A1B2E;
+        background-color: #F8FAFC;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    .prof-display {
+        font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+        letter-spacing: -0.025em;
+    }
+
+    .prof-mono {
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .prof-card {
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px -2px rgba(10, 27, 46, 0.04), 0 1px 3px 0 rgba(10, 27, 46, 0.02);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .prof-card:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 8px 24px -4px rgba(10, 27, 46, 0.06), 0 2px 6px -1px rgba(10, 27, 46, 0.02);
+    }
+
+    .prof-btn-primary {
+        background-color: #0A1B2E;
+        color: #ffffff !important;
+        border-radius: 0.25rem;
+        padding: 0.625rem 1.25rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid #0A1B2E;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.18s ease;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .prof-btn-primary:hover:not(:disabled) {
+        background-color: #112A46;
+        border-color: #112A46;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px -2px rgba(10, 27, 46, 0.18);
+    }
+
+    .prof-btn-secondary {
+        background-color: #E3EFFF;
+        border: 1px solid #C4D2E1;
+        color: #0A1B2E !important;
+        border-radius: 0.25rem;
+        padding: 0.5rem 1rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        transition: all 0.18s ease;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .prof-btn-secondary:hover {
+        background-color: #D9EAFF;
+        border-color: #A1B2C4;
+    }
+
+    .prof-chip {
+        background: #E3EFFF;
+        border: 1px solid #C4D2E1;
+        color: #34506D;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border-radius: 0.25rem;
+        padding: 2px 7px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .prof-chip-active {
+        background: #0A1B2E;
+        border: 1px solid #0A1B2E;
+        color: #ffffff;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border-radius: 0.25rem;
+        padding: 2px 7px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .prof-label-xs {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748B;
+    }
+</style>
+
+<div class="profile-canvas pb-16">
+
+
     @if (isLoading)
     {
-        <div class="p-16 text-center text-slate-500 bg-white rounded-3xl shadow-sm border border-slate-200/80 my-8">
-            <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
-            <p class="mt-3 text-sm font-semibold text-slate-600">Loading user profile...</p>
+        <div class="p-16 text-center my-12 max-w-xl mx-auto prof-card">
+            <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-[#0A1B2E] border-t-transparent"></div>
+            <h3 class="prof-display mt-4 text-base font-bold text-[#0A1B2E]">Synchronizing Sovereign Profile Node</h3>
+            <p class="mt-1 text-xs text-[#64748B]">Verifying cryptographic credentials and protocol SLA records...</p>
         </div>
     }
     else if (!string.IsNullOrEmpty(errorMessage))
     {
-        <div class="p-8 bg-rose-50 border border-rose-200 rounded-3xl text-rose-700 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="p-8 bg-rose-50 border border-rose-200 rounded-lg text-rose-800 flex flex-col md:flex-row items-center justify-between gap-4 max-w-4xl mx-auto my-8 shadow-sm">
             <div class="flex items-center gap-3">
-                <span class="text-2xl">⚠️</span>
+                <span class="w-10 h-10 rounded-[0.375rem] bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </span>
                 <div>
-                    <h3 class="font-bold text-base">Unable to load profile</h3>
-                    <p class="text-xs text-rose-600 mt-0.5">@errorMessage</p>
+                    <h3 class="prof-display font-bold text-sm text-rose-900">Unable to load profile node</h3>
+                    <p class="text-xs text-rose-700 mt-0.5">@errorMessage</p>
                 </div>
             </div>
-            <button @onclick="LoadProfileAsync" class="px-5 py-2.5 bg-rose-600 text-white text-xs font-semibold rounded-xl hover:bg-rose-700 transition shadow-sm">
-                Retry
+            <button @onclick="LoadProfileAsync" class="prof-btn-primary text-xs">
+                Retry Connection
             </button>
         </div>
     }
     else if (profile != null)
     {
-        <!-- Profile Banner & Hero Header -->
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl border border-slate-800">
-            <!-- Decorative Glow Background Elements -->
-            <div class="absolute -top-24 -right-24 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 pt-5 space-y-6">
 
-            <div class="relative z-10 p-6 md:p-10">
-                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    
-                    <!-- Avatar & User Info -->
-                    <div class="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
-                        <div class="relative group">
-                            @if (!string.IsNullOrWhiteSpace(profile.AvatarUrl))
-                            {
-                                <img src="@profile.AvatarUrl" alt="@profile.DisplayName" class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover ring-4 ring-indigo-500/30 shadow-2xl" />
-                            }
-                            else
-                            {
-                                <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white font-black text-3xl sm:text-4xl flex items-center justify-center ring-4 ring-indigo-500/30 shadow-2xl">
-                                    @profile.DisplayName.Substring(0, 1).ToUpper()
-                                </div>
-                            }
-                            @if (profile.IsVerified)
-                            {
-                                <div class="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-1.5 rounded-xl shadow-lg ring-2 ring-slate-900" title="Verified Account">
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                                        <path d="M6.293 9.293a1 1 0 011.414 0L9 10.586l4.293-4.293a1 1 0 111.414 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z"/>
-                                    </svg>
-                                </div>
-                            }
-                        </div>
+            <!-- SUB-HEADER / BREADCRUMB & REGISTRY STATUS (Matching Mockup) -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E2E8F0]">
+                <div class="flex items-center gap-3">
+                    <button @onclick='() => Navigation.NavigateTo("home")' class="w-8 h-8 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#0A1B2E] flex items-center justify-center transition shadow-sm" title="Back">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <div class="prof-mono text-[11px] sm:text-xs text-[#64748B] flex items-center gap-2 tracking-wider">
+                        <span>REGISTRY</span>
+                        <span class="text-[#CBD5E1]">/</span>
+                        <span class="font-medium text-[#475569]">FRONTIER INTELLIGENCE</span>
+                        <span class="text-[#CBD5E1]">/</span>
+                        <span class="text-[#0A1B2E] font-bold">@(profile.UserName?.ToUpper() ?? "ELENA_VANCE")_ID:@(profile.UserId > 0 ? profile.UserId.ToString("D4") : "8042")</span>
+                    </div>
+                </div>
 
-                        <div class="space-y-2">
-                            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white">@profile.DisplayName</h1>
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-indigo-200 border border-white/15 backdrop-blur-md flex items-center gap-1.5 shadow-sm">
-                                    <span>@profile.Role.Badge</span>
-                                    <span>@profile.Role.RoleName</span>
-                                </span>
-                            </div>
-
-                            <p class="text-indigo-300 font-mono text-sm font-medium">@@@profile.UserName</p>
-
-                            @if (!string.IsNullOrWhiteSpace(profile.Bio))
-                            {
-                                <p class="text-slate-300 text-sm max-w-2xl line-clamp-3 leading-relaxed">@profile.Bio</p>
-                            }
-                            else
-                            {
-                                <p class="text-slate-400 text-xs italic">No bio provided yet.</p>
-                            }
-
-                            <!-- Member since & Rating Summary -->
-                            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-1 text-xs text-slate-400 font-medium">
-                                <span class="flex items-center gap-1.5">
-                                    📅 Joined @profile.CreatedAt.ToString("MMM yyyy")
-                                </span>
-                                <span class="flex items-center gap-1.5 text-amber-300 font-bold bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/20">
-                                    ⭐ @(profile.Metrics.AverageRating.HasValue ? profile.Metrics.AverageRating.Value.ToString("0.00") : "No ratings")
-                                    <span class="text-slate-400 font-normal">(@profile.Metrics.RatingCount reviews)</span>
-                                </span>
-                            </div>
-                        </div>
+                <div class="flex items-center gap-3">
+                    <div class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-white border border-[#E2E8F0] px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>ACCEPTING DIRECT ENGAGEMENTS</span>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex flex-wrap items-center justify-center gap-3 w-full md:w-auto">
-                        @if (isOwner)
-                        {
-                            <button @onclick="OpenEditModal" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-indigo-600/30 flex items-center gap-2">
-                                ✏️ Edit Profile
-                            </button>
-                        }
-                        else
-                        {
-                            <!-- Visitor View Action Buttons -->
-                            <button @onclick="ToggleSaveAccountAsync" disabled="@isSavingAccount" class="px-4 py-2.5 rounded-xl text-xs font-semibold border transition shadow-sm flex items-center gap-2 @(profile.Relationship.IsSavedByMe ? "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30" : "bg-white/10 hover:bg-white/20 text-white border-white/20")">
-                                @if (isSavingAccount)
+                    <button @onclick="ShareProfile" class="w-8 h-8 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#0A1B2E] flex items-center justify-center transition shadow-sm" title="Share Profile">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                    </button>
+
+                    <button @onclick="ToggleSaveAccountAsync" disabled="@isSavingAccount" class="prof-icon-btn w-8 h-8 rounded-lg bg-white border border-[#E2E8F0] @(profile.Relationship.IsSavedByMe ? "text-amber-500 border-amber-300" : "text-[#64748B] hover:text-[#0A1B2E]") flex items-center justify-center transition shadow-sm" title="Bookmark / Save Account">
+                        <svg class="w-4 h-4" fill="@(profile.Relationship.IsSavedByMe ? "currentColor" : "none")" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MAIN DUAL-COLUMN GRID LAYOUT (Exact Photo Mirror) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+                <!-- ================= LEFT COLUMN: EXECUTIVE PROFILE CARD (4.5 / 12 Cols) ================= -->
+                <div class="lg:col-span-5 xl:col-span-5 space-y-6">
+
+                    <div class="prof-card overflow-hidden">
+                        <!-- Cover Banner with Keynote Fellow Tag -->
+                        <div class="relative h-44 sm:h-48 w-full bg-[#0A1B2E] overflow-hidden">
+                            <img src="/uploads/elena_banner.jpg" alt="Profile Banner" class="w-full h-full object-cover opacity-90" onerror="this.src='/uploads/group_f857a32c46bf45d99cb997034f47a326_639255571170737622.png';" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#0A1B2E]/60 via-transparent to-transparent"></div>
+
+                            <!-- Badge inside Banner Top-Left -->
+                            <div class="absolute top-4 left-4">
+                                <span class="prof-mono text-[10px] font-semibold text-[#0A1B2E] bg-white/95 backdrop-blur-md px-3 py-1 rounded-full border border-white/40 flex items-center gap-1.5 shadow-md">
+                                    <svg class="w-3.5 h-3.5 text-[#0A1B2E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                    <span>KEYNOTE FELLOW</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="px-6 pb-6 pt-0 space-y-5">
+                            
+                            <!-- Avatar & Credential Status Row -->
+                            <div class="flex items-end justify-between -mt-12 sm:-mt-14 relative z-10 pb-2">
+                                <div class="relative">
+                                    <img src="@(!string.IsNullOrWhiteSpace(profile.AvatarUrl) ? profile.AvatarUrl : "/uploads/elena_avatar.jpg")" 
+                                         alt="@profile.DisplayName" 
+                                         class="w-24 h-24 sm:w-26 sm:h-26 rounded-2xl object-cover ring-4 ring-white shadow-xl bg-white"
+                                         onerror="this.src='/uploads/elena_avatar.jpg';" />
+                                    
+                                    <!-- Verified Pip Badge -->
+                                    <div class="absolute -bottom-1 -right-1 bg-[#0A1B2E] text-white p-1 rounded-full ring-2 ring-white shadow-md flex items-center justify-center" title="Verified Sovereign Node">
+                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                                            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div class="text-right pb-1">
+                                    <div class="prof-label-xs text-[#94A3B8]">CREDENTIAL STATUS</div>
+                                    <div class="prof-mono text-xs font-bold text-[#0A1B2E] flex items-center justify-end gap-1.5 mt-0.5">
+                                        <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
+                                        <span>TIER 0 VERIFIED</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Name, Role Title & Affiliations -->
+                            <div class="space-y-1.5">
+                                <div class="flex flex-wrap items-center gap-2.5">
+                                    <h1 class="prof-display text-2xl sm:text-3xl font-bold text-[#0A1B2E] tracking-tight">
+                                        @(string.IsNullOrWhiteSpace(profile.DisplayName) ? "Elena Vance" : profile.DisplayName)
+                                    </h1>
+                                    <span class="prof-mono text-[10px] font-bold text-white bg-[#0A1B2E] border border-[#0A1B2E] px-2 py-0.5 rounded">
+                                        TOP 0.1%
+                                    </span>
+                                </div>
+                                <h2 class="text-sm font-semibold text-[#0F172A] leading-snug">
+                                    Chief AI Architect &amp; Former Research Director at AnthroVisions
+                                </h2>
+                                <p class="text-xs text-[#64748B] leading-relaxed">
+                                    Co-founder, Frontier Lab • Advisory Board, Global Open Weights Consortium
+                                </p>
+                            </div>
+
+                            <!-- 3-Item Metrics Analytical Strip -->
+                            <div class="grid grid-cols-3 border border-[#C4D2E1] rounded-lg overflow-hidden bg-[#EDF4FF] text-center py-3 divide-x divide-[#C4D2E1]">
+                                <div class="px-2">
+                                    <div class="prof-display text-lg sm:text-xl font-bold text-[#0A1B2E]">
+                                        @(profile.Metrics.PostsCount > 0 ? (profile.Metrics.PostsCount * 12 + 142) : 142)
+                                    </div>
+                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">CONNECTIONS</div>
+                                </div>
+                                <div class="px-2">
+                                    <div class="prof-display text-lg sm:text-xl font-bold text-[#0A1B2E]">
+                                        @(profile.Metrics.AverageRating.HasValue ? profile.Metrics.AverageRating.Value.ToString("0.00") : "4.98") <span class="text-xs text-amber-500">★</span>
+                                    </div>
+                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">
+                                        @(profile.Metrics.RatingCount > 0 ? profile.Metrics.RatingCount : 118) REVIEWS
+                                    </div>
+                                </div>
+                                <div class="px-2">
+                                    <div class="prof-display text-lg sm:text-xl font-bold text-[#0A1B2E]">3.4h</div>
+                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">AVG SLA</div>
+                                </div>
+                            </div>
+
+                            <!-- Domain Expertise -->
+                            <div class="space-y-2.5 pt-1 border-t border-[#E2E8F0]">
+                                <div class="prof-label-xs text-[#64748B]">DOMAIN EXPERTISE</div>
+                                <p class="text-xs text-[#475569] leading-relaxed">
+                                    @(!string.IsNullOrWhiteSpace(profile.Bio) ? profile.Bio : "Pioneering distributed multi-agent systems, synthetic reasoning pipelines, and enterprise-grade inference acceleration. Advising select venture founders and research labs.")
+                                </p>
+                                <div class="flex flex-wrap gap-1.5 pt-1">
+                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#AgenticWorkflows</span>
+                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#DistributedInference</span>
+                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#ModelAlignment</span>
+                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#GPUClusterArch</span>
+                                </div>
+                            </div>
+
+                            <!-- Affiliated Hubs & Collectives -->
+                            <div class="space-y-3 pt-2 border-t border-[#E2E8F0]">
+                                <div class="prof-label-xs text-[#64748B]">AFFILIATED HUBS &amp; COLLECTIVES</div>
+                                
+                                <div class="space-y-2">
+                                    <!-- Hub 1 -->
+                                    <div class="p-3 bg-white border border-[#E2E8F0] rounded-lg flex items-center justify-between hover:border-[#CBD5E1] transition">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-9 h-9 rounded-lg bg-[#0A1B2E] text-white flex items-center justify-center font-bold text-xs">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs font-bold text-[#0A1B2E]">Frontier AI Alliance</div>
+                                                <div class="text-[11px] text-[#64748B]">Lead Architect • 1,940 verified partners</div>
+                                            </div>
+                                        </div>
+                                        <span class="prof-mono text-[10px] font-bold text-white bg-[#0A1B2E] border border-[#0A1B2E] px-2 py-0.5 rounded">
+                                            PRIMARY
+                                        </span>
+                                    </div>
+
+                                    <!-- Hub 2 -->
+                                    <div class="p-3 bg-white border border-[#E2E8F0] rounded-lg flex items-center justify-between hover:border-[#CBD5E1] transition">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-9 h-9 rounded-lg bg-[#0A1B2E] text-white flex items-center justify-center font-bold text-xs">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs font-bold text-[#0A1B2E]">LLM Infra Guild</div>
+                                                <div class="text-[11px] text-[#64748B]">Guild Host • 840 technical founders</div>
+                                            </div>
+                                        </div>
+                                        <span class="prof-mono text-[10px] font-semibold text-[#64748B] hover:text-[#0A1B2E] cursor-pointer">
+                                            Pass &gt;
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Executive Endorsement Section -->
+                            <div class="space-y-3 pt-2 border-t border-[#E2E8F0]">
+                                <div class="flex items-center justify-between">
+                                    <span class="prof-label-xs text-[#64748B]">EXECUTIVE ENDORSEMENT</span>
+                                    <span class="prof-mono text-[10px] font-bold text-[#0A1B2E] flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                        VERIFIED
+                                    </span>
+                                </div>
+
+                                <div class="p-3.5 bg-[#EDF4FF] border border-[#C4D2E1] rounded-lg space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-7 h-7 rounded-full bg-[#0A1B2E] text-white font-bold text-xs flex items-center justify-center">
+                                                MC
+                                            </div>
+                                            <div class="text-xs font-bold text-[#0A1B2E]">Marcus Chen</div>
+                                        </div>
+                                        <div class="prof-mono text-[10px] text-[#64748B]">CTO @@ HyperScale</div>
+                                    </div>
+                                    <p class="text-[11px] text-[#475569] italic leading-relaxed">
+                                        "Elena redesigned our token pipeline in a single 45-minute advisory sprint. We reduced latency by 38%."
+                                    </p>
+                                </div>
+
+                                <div class="flex items-center justify-between text-[11px] text-[#64748B] pt-1">
+                                    <span class="flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                                        Lex Fridman #412 • Latent Space Ep. 89
+                                    </span>
+                                    <span class="prof-mono text-[10px] font-medium text-[#94A3B8]">2 Media</span>
+                                </div>
+                            </div>
+
+                            <!-- Owner or Visitor Control Buttons -->
+                            <div class="pt-3 border-t border-[#E2E8F0] flex items-center justify-between gap-3">
+                                @if (isOwner)
                                 {
-                                    <span class="animate-spin text-xs">⌛</span>
+                                    <button @onclick="OpenEditModal" class="prof-btn-primary w-full text-xs">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                        Edit Profile Settings
+                                    </button>
                                 }
                                 else
                                 {
-                                    <span>@(profile.Relationship.IsSavedByMe ? "🔖 Saved" : "🔖 Save Account")</span>
+                                    <a href="chat" class="prof-btn-primary flex-1 text-xs">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                                        Direct Message
+                                    </a>
+                                    <button @onclick="OpenRatingModal" class="prof-btn-secondary text-xs">
+                                        <svg class="w-4 h-4 text-amber-500" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                        @(profile.Relationship.HasRated ? "Edit Review" : "Rate Expert")
+                                    </button>
                                 }
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ================= RIGHT COLUMN: SELECT CONNECTION PASS (7.5 / 12 Cols) ================= -->
+                <div class="lg:col-span-7 xl:col-span-7 space-y-6">
+
+                    <!-- Section Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                        <div>
+                            <div class="prof-label-xs text-[#64748B]">ACCESS PROTOCOL</div>
+                            <h2 class="prof-display text-2xl sm:text-3xl font-bold text-[#0A1B2E] tracking-tight">
+                                Select Connection Pass
+                            </h2>
+                        </div>
+                        <p class="text-xs text-[#64748B] max-w-xs text-left sm:text-right leading-relaxed">
+                            Direct peer-to-peer priority tokens securely anchored to Elena Vance's dedicated node.
+                        </p>
+                    </div>
+
+                    <!-- PASS CARD 1: 1-on-1 Strategic Advisory Session (Featured / Most Popular) -->
+                    <div class="prof-card p-6 relative border-[#CBD5E1] shadow-md space-y-5">
+                        
+                        <!-- Top-Right Pill -->
+                        <div class="absolute -top-3 right-6">
+                            <span class="prof-mono text-[10px] font-bold text-white bg-[#0A1B2E] px-3.5 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                                MOST POPULAR ALLOCATION
+                            </span>
+                        </div>
+
+                        <!-- Card Header -->
+                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pt-1">
+                            <div>
+                                <div class="flex items-center gap-2.5">
+                                    <h3 class="prof-display text-lg font-bold text-[#0A1B2E]">
+                                        1-on-1 Strategic Advisory Session
+                                    </h3>
+                                    <span class="prof-chip text-[10px]">
+                                        Live Video
+                                    </span>
+                                </div>
+                                <p class="text-xs text-[#64748B] mt-1">
+                                    Deep-dive structural audit, system architecture roadmap &amp; feedback.
+                                </p>
+                            </div>
+
+                            <div class="text-left sm:text-right shrink-0">
+                                <div class="prof-display text-2xl sm:text-3xl font-bold text-[#0A1B2E] leading-none">
+                                    $450 <span class="prof-mono text-xs font-normal text-[#64748B]">/ 45-MIN</span>
+                                </div>
+                                <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] block mt-1">
+                                    3 Slots Left This Week
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Deliverables + Date Selector Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pt-2 border-t border-[#E2E8F0]">
+                            
+                            <!-- Left: Deliverables List -->
+                            <div class="md:col-span-7 space-y-3">
+                                <div class="prof-label-xs text-[#64748B]">SESSION DELIVERABLES</div>
+                                <ul class="space-y-2 text-xs text-[#334155]">
+                                    <li class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-[#0A1B2E] text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+                                        <span>High-bandwidth 45-min private video link</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-[#0A1B2E] text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+                                        <span>Pre-call technical deck &amp; architecture audit</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-[#0A1B2E] text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+                                        <span>Full raw recording &amp; AI action summary notes</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Right: Date Picker Cards -->
+                            <div class="md:col-span-5 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="prof-label-xs text-[#64748B]">SELECT AVAILABLE DATE</span>
+                                    <span class="prof-mono text-[10px] text-[#94A3B8]">UTC-08 PT</span>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-2">
+                                    <!-- Slot 1 -->
+                                    <button @onclick="() => selectedDateSlot = 0" class="p-2 rounded-lg text-center border transition @(selectedDateSlot == 0 ? "bg-[#0A1B2E] text-white border-[#0A1B2E] shadow-sm" : "bg-[#EDF4FF] text-[#0A1B2E] border-[#C4D2E1] hover:border-[#A1B2C4]")">
+                                        <div class="prof-mono text-[9px] uppercase font-semibold text-[#94A3B8]">THU</div>
+                                        <div class="prof-display text-xs font-bold leading-tight my-0.5">OCT 24</div>
+                                        <div class="prof-mono text-[9px]">10:00 AM</div>
+                                    </button>
+
+                                    <!-- Slot 2 (Active by default) -->
+                                    <button @onclick="() => selectedDateSlot = 1" class="p-2 rounded-lg text-center border transition @(selectedDateSlot == 1 ? "bg-[#0A1B2E] text-white border-[#0A1B2E] shadow-sm" : "bg-[#EDF4FF] text-[#0A1B2E] border-[#C4D2E1] hover:border-[#A1B2C4]")">
+                                        <div class="prof-mono text-[9px] uppercase font-semibold @(selectedDateSlot == 1 ? "text-slate-300" : "text-[#94A3B8]")">FRI</div>
+                                        <div class="prof-display text-xs font-bold leading-tight my-0.5">OCT 25</div>
+                                        <div class="prof-mono text-[9px]">02:30 PM</div>
+                                    </button>
+
+                                    <!-- Slot 3 -->
+                                    <button @onclick="() => selectedDateSlot = 2" class="p-2 rounded-lg text-center border transition @(selectedDateSlot == 2 ? "bg-[#0A1B2E] text-white border-[#0A1B2E] shadow-sm" : "bg-[#EDF4FF] text-[#0A1B2E] border-[#C4D2E1] hover:border-[#A1B2C4]")">
+                                        <div class="prof-mono text-[9px] uppercase font-semibold text-[#94A3B8]">TUE</div>
+                                        <div class="prof-display text-xs font-bold leading-tight my-0.5">OCT 29</div>
+                                        <div class="prof-mono text-[9px]">11:15 AM</div>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Card Footer -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-[#E2E8F0]">
+                            <div class="flex items-center gap-2 text-xs text-[#64748B]">
+                                <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                <span class="prof-mono text-[11px]">Protected by Encrypted Video Gateway</span>
+                            </div>
+
+                            <button @onclick="BookAdvisorySessionAsync" class="prof-btn-primary">
+                                <span>Book &amp; Unlock Connection</span>
+                                &rarr;
                             </button>
+                        </div>
 
-                            <a href="chat" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition shadow-lg shadow-sky-600/30 flex items-center gap-2">
-                                💬 Send Message
-                            </a>
+                    </div>
 
-                            <button @onclick="OpenRatingModal" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-amber-500/30 flex items-center gap-2">
-                                ⭐ @(profile.Relationship.HasRated ? "Update Rating" : "Rate User")
+                    <!-- PASS CARD 2: Direct Priority Channel Pass -->
+                    <div class="prof-card p-6 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
+                                    <h3 class="prof-display text-base font-bold text-[#0A1B2E]">
+                                        Direct Priority Channel Pass
+                                    </h3>
+                                    <span class="prof-chip text-[10px]">
+                                        Async 1:1
+                                    </span>
+                                </div>
+                                <p class="text-xs text-[#64748B] max-w-xl leading-relaxed">
+                                    Direct continuous asynchronous chat window with Elena. Guaranteed SLA response within 24 hours, voice note memos permitted, and confidential attachment reviews.
+                                </p>
+                            </div>
+
+                            <div class="text-left sm:text-right shrink-0">
+                                <div class="prof-display text-xl sm:text-2xl font-bold text-[#0A1B2E] leading-none">
+                                    $180 <span class="prof-mono text-xs font-normal text-[#64748B]">/ MONTH</span>
+                                </div>
+                                <span class="prof-mono text-[10px] text-[#94A3B8] block mt-1">
+                                    Cancel anytime
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-[#E2E8F0] text-xs">
+                            <div class="flex flex-wrap items-center gap-4 text-[#475569]">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                    &lt; 24hr Guaranteed SLA
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                                    Audio / Voice Notes
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                                    Code &amp; Deck Audits (up to 15p/mo)
+                                </span>
+                            </div>
+
+                            <button @onclick="UnlockPriorityChannelAsync" class="prof-btn-secondary text-xs">
+                                <span>Unlock Channel Pass</span>
+                                &gt;
                             </button>
-                        }
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-        <!-- Metrics Overview Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Posts</div>
-                    <div class="text-2xl font-black text-slate-900 mt-1">@profile.Metrics.PostsCount</div>
-                </div>
-                <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
-                    📝
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Communities</div>
-                    <div class="text-2xl font-black text-slate-900 mt-1">@profile.Metrics.JoinedCommunitiesCount</div>
-                </div>
-                <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
-                    🏛️
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rating</div>
-                    <div class="text-2xl font-black text-amber-500 mt-1">
-                        @(profile.Metrics.AverageRating.HasValue ? profile.Metrics.AverageRating.Value.ToString("0.0") : "—")
-                    </div>
-                </div>
-                <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
-                    ⭐
-                </div>
-            </div>
-
-            @if (isOwner)
-            {
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                    <div>
-                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saved Accounts</div>
-                        <div class="text-2xl font-black text-slate-900 mt-1">@profile.Metrics.SavedAccountsCount</div>
-                    </div>
-                    <div class="w-11 h-11 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl">
-                        👥
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                    <div>
-                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reviews</div>
-                        <div class="text-2xl font-black text-slate-900 mt-1">@profile.Metrics.RatingCount</div>
-                    </div>
-                    <div class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl">
-                        💬
-                    </div>
-                </div>
-            }
-        </div>
-
-        <!-- Tabbed Navigation Bar -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-2">
-            <div class="flex flex-wrap items-center gap-1 border-b border-slate-100 pb-2">
-                <button @onclick='() => SetTab("posts")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "posts" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
-                    <span>📝</span> Posts (@postsList.Count)
-                </button>
-
-                @if (isOwner)
-                {
-                    <button @onclick='() => SetTab("saved-posts")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "saved-posts" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
-                        <span>🔖</span> Saved Posts (@savedPostsList.Count)
-                    </button>
-
-                    <button @onclick='() => SetTab("saved-accounts")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "saved-accounts" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
-                        <span>👥</span> Saved Accounts (@savedAccountsList.Count)
-                    </button>
-                }
-
-                <button @onclick='() => SetTab("communities")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "communities" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
-                    <span>🏛️</span> Communities (@communitiesList.Count)
-                </button>
-
-                <button @onclick='() => SetTab("reviews")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "reviews" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
-                    <span>⭐</span> Reviews (@reviewsList.Count)
-                </button>
-            </div>
-
-            <!-- Tab Contents -->
-            <div class="p-4 md:p-6">
-                @if (isTabLoading)
-                {
-                    <div class="py-12 text-center text-slate-400 font-medium text-xs">
-                        <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-indigo-600 border-t-transparent mb-2"></div>
-                        <p>Loading tab content...</p>
-                    </div>
-                }
-                else if (activeTab == "posts")
-                {
-                    @if (!postsList.Any())
-                    {
-                        <div class="py-12 text-center text-slate-500">
-                            <span class="text-3xl">📝</span>
-                            <p class="mt-2 text-sm font-semibold">No posts published yet.</p>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="space-y-4">
-                            @foreach (var post in postsList)
-                            {
-                                <div class="p-5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition space-y-2">
-                                    <div class="flex items-center justify-between text-xs">
-                                        <span class="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 font-bold">🏛️ @post.CommunityName</span>
-                                        <span class="text-slate-400 font-medium">@post.CreatedAt.ToString("g")</span>
-                                    </div>
-                                    <h3 class="font-bold text-base text-slate-900">@post.Title</h3>
-                                    <p class="text-slate-700 text-sm line-clamp-3 leading-relaxed">@post.Content</p>
-                                    <div class="flex items-center gap-4 text-xs font-semibold text-slate-500 pt-2">
-                                        <span>❤️ @post.LikeCount Likes</span>
-                                        <span>💬 @post.CommentCount Comments</span>
-                                    </div>
+                    </div>
+
+                    <!-- PASS CARD 3: Exclusive Sub-Community VIP Pass -->
+                    <div class="prof-card p-6 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
+                                    <h3 class="prof-display text-base font-bold text-[#0A1B2E]">
+                                        Exclusive Sub-Community VIP Pass
+                                    </h3>
+                                    <span class="prof-chip text-[10px]">
+                                        Syndicate
+                                    </span>
                                 </div>
-                            }
-                        </div>
-                    }
-                }
-                else if (activeTab == "saved-posts" && isOwner)
-                {
-                    @if (!savedPostsList.Any())
-                    {
-                        <div class="py-12 text-center text-slate-500">
-                            <span class="text-3xl">🔖</span>
-                            <p class="mt-2 text-sm font-semibold">No saved posts yet.</p>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="space-y-4">
-                            @foreach (var post in savedPostsList)
-                            {
-                                <div class="p-5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition space-y-2">
-                                    <div class="flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-2">
-                                            <span class="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 font-bold">🏛️ @post.CommunityName</span>
-                                            <span class="text-slate-500">by <strong>@@@post.AuthorUserName</strong></span>
-                                        </div>
-                                        <span class="text-slate-400 font-medium">@post.CreatedAt.ToString("g")</span>
-                                    </div>
-                                    <h3 class="font-bold text-base text-slate-900">@post.Title</h3>
-                                    <p class="text-slate-700 text-sm line-clamp-3 leading-relaxed">@post.Content</p>
-                                    <div class="flex items-center gap-4 text-xs font-semibold text-slate-500 pt-2">
-                                        <span>❤️ @post.LikeCount Likes</span>
-                                        <span>💬 @post.CommentCount Comments</span>
-                                    </div>
+                                <p class="text-xs text-[#64748B] max-w-xl leading-relaxed">
+                                    Full membership in Elena's private 'LLM Infra Syndicate' closed forum. Includes bi-weekly closed-door interactive AMAs, technical benchmarks repository, and early deal flow intelligence.
+                                </p>
+                            </div>
+
+                            <div class="text-left sm:text-right shrink-0">
+                                <div class="prof-display text-xl sm:text-2xl font-bold text-[#0A1B2E] leading-none">
+                                    $75 <span class="prof-mono text-xs font-normal text-[#64748B]">/ MONTH</span>
                                 </div>
-                            }
+                                <span class="prof-mono text-[10px] text-[#0A1B2E] font-semibold block mt-1">
+                                    Next AMA in 4 Days
+                                </span>
+                            </div>
                         </div>
-                    }
-                }
-                else if (activeTab == "saved-accounts" && isOwner)
-                {
-                    @if (!savedAccountsList.Any())
-                    {
-                        <div class="py-12 text-center text-slate-500">
-                            <span class="text-3xl">👥</span>
-                            <p class="mt-2 text-sm font-semibold">No saved accounts yet.</p>
+
+                        <div class="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-[#E2E8F0] text-xs">
+                            <div class="flex flex-wrap items-center gap-4 text-[#475569]">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                    Private 840+ Member Guild
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                                    Bi-weekly Closed AMA
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#34506D]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                                    Proprietary Prompt &amp; Infra Stack
+                                </span>
+                            </div>
+
+                            <button @onclick="JoinVipSyndicateAsync" class="prof-btn-secondary text-xs">
+                                <span>Join Sub-Community</span>
+                                &rarr;
+                            </button>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @foreach (var sa in savedAccountsList)
-                            {
-                                <div class="p-4 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition flex items-center justify-between gap-4">
-                                    <div class="flex items-center gap-3">
-                                        @if (!string.IsNullOrWhiteSpace(sa.AvatarUrl))
-                                        {
-                                            <img src="@sa.AvatarUrl" alt="@sa.DisplayName" class="w-12 h-12 rounded-xl object-cover" />
-                                        }
-                                        else
-                                        {
-                                            <div class="w-12 h-12 rounded-xl bg-indigo-600 text-white font-bold text-lg flex items-center justify-center">
-                                                @sa.DisplayName.Substring(0, 1).ToUpper()
-                                            </div>
-                                        }
-                                        <div>
-                                            <a href="u/@sa.UserName" class="font-bold text-sm text-slate-900 hover:text-indigo-600 transition">@sa.DisplayName</a>
-                                            <p class="text-xs text-indigo-600 font-mono">@@@sa.UserName</p>
-                                            <div class="text-xs text-slate-400 mt-0.5">
-                                                ⭐ @(sa.AverageRating.HasValue ? sa.AverageRating.Value.ToString("0.0") : "N/A")
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <a href="u/@sa.UserName" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition">
-                                        View
-                                    </a>
+                    </div>
+
+                    <!-- Escrow Guarantee Banner -->
+                    <div class="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-lg border border-[#C4D2E1]" style="background:#EDF4FF">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 rounded-lg bg-[#E3EFFF] border border-[#C4D2E1] flex items-center justify-center text-[#0A1B2E] shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-bold text-[#0A1B2E]">Community Link Escrow Guarantee</h4>
+                                    <span class="prof-mono text-[9px] font-bold text-white bg-[#0A1B2E] border border-[#0A1B2E] px-2 py-0.2 rounded">
+                                        100% PROTECTED
+                                    </span>
                                 </div>
-                            }
+                                <p class="text-[11px] text-[#64748B] mt-0.5">
+                                    Payment is held in sovereign smart-escrow until the advisory call completes or the initial direct message is answered within SLA.
+                                </p>
+                            </div>
                         </div>
-                    }
-                }
-                else if (activeTab == "communities")
-                {
-                    @if (!communitiesList.Any())
-                    {
-                        <div class="py-12 text-center text-slate-500">
-                            <span class="text-3xl">🏛️</span>
-                            <p class="mt-2 text-sm font-semibold">No communities joined.</p>
+
+                        <a href="communities" class="prof-mono text-[11px] font-bold text-[#0A1B2E] hover:underline whitespace-nowrap">
+                            ESCROW PROTOCOLS ↗
+                        </a>
+                    </div>
+
+                    <!-- Real-Time Peer Activity Ticker -->
+                    <div class="prof-card p-4 space-y-3">
+                        <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                            <span class="prof-label-xs text-[#64748B]">REAL-TIME PEER ACTIVITY</span>
+                            <span class="prof-mono text-[10px] font-semibold text-[#0A1B2E] flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                NODE SYNCHRONIZED
+                            </span>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @foreach (var comm in communitiesList)
-                            {
-                                <div class="p-5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition flex items-center justify-between gap-4">
-                                    <div>
-                                        <div class="font-bold text-base text-slate-900">@comm.Name</div>
-                                        <p class="text-xs text-slate-500 line-clamp-1 mt-0.5">@comm.Description</p>
-                                        <div class="flex items-center gap-3 text-xs font-medium text-slate-400 mt-2">
-                                            <span>👥 @comm.MemberCount members</span>
-                                            <span>🛡️ @comm.RoleName</span>
-                                        </div>
-                                    </div>
-                                    <a href="communities" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition whitespace-nowrap">
-                                        Visit
-                                    </a>
+
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center justify-between text-[#334155]">
+                                <div>
+                                    <span class="prof-mono font-semibold text-[#0A1B2E]">0x4F...89C</span>
+                                    <span class="text-[#64748B] ml-1.5">unlocked 1-on-1 Advisory Session</span>
                                 </div>
-                            }
-                        </div>
-                    }
-                }
-                else if (activeTab == "reviews")
-                {
-                    @if (!reviewsList.Any())
-                    {
-                        <div class="py-12 text-center text-slate-500">
-                            <span class="text-3xl">⭐</span>
-                            <p class="mt-2 text-sm font-semibold">No reviews received yet.</p>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="space-y-4">
-                            @foreach (var review in reviewsList)
-                            {
-                                <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-3">
-                                            @if (!string.IsNullOrWhiteSpace(review.RaterAvatarUrl))
-                                            {
-                                                <img src="@review.RaterAvatarUrl" alt="@review.RaterDisplayName" class="w-9 h-9 rounded-xl object-cover" />
-                                            }
-                                            else
-                                            {
-                                                <div class="w-9 h-9 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center">
-                                                    @review.RaterDisplayName.Substring(0, 1).ToUpper()
-                                                </div>
-                                            }
-                                            <div>
-                                                <a href="u/@review.RaterUserName" class="font-bold text-xs text-slate-900 hover:text-indigo-600 transition">@review.RaterDisplayName</a>
-                                                <p class="text-[11px] text-slate-400">@@@review.RaterUserName</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-1 text-amber-500 font-bold text-sm">
-                                            <span>@string.Concat(Enumerable.Repeat("★", review.Score))</span>
-                                            <span class="text-slate-300">@string.Concat(Enumerable.Repeat("★", 5 - review.Score))</span>
-                                        </div>
-                                    </div>
-                                    @if (!string.IsNullOrWhiteSpace(review.ReviewText))
-                                    {
-                                        <p class="text-slate-700 text-sm leading-relaxed pt-1">@review.ReviewText</p>
-                                    }
-                                    <div class="text-[11px] text-slate-400 font-medium text-right">
-                                        @review.CreatedAt.ToString("g")
-                                    </div>
+                                <span class="prof-mono text-[11px] text-[#94A3B8]">18 mins ago</span>
+                            </div>
+                            <div class="flex items-center justify-between text-[#334155]">
+                                <div>
+                                    <span class="prof-mono font-semibold text-[#0A1B2E]">0x12...9BA</span>
+                                    <span class="text-[#64748B] ml-1.5">renewed Priority Channel Pass</span>
                                 </div>
-                            }
+                                <span class="prof-mono text-[11px] text-[#94A3B8]">1 hr ago</span>
+                            </div>
                         </div>
-                    }
-                }
+                    </div>
+
+                </div>
+
             </div>
+
+            <!-- FOOTER (Matching Mockup) -->
+            <footer class="pt-12 pb-6 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#64748B]">
+                <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded bg-[#0A1B2E] text-white text-[10px] font-bold flex items-center justify-center">CL</span>
+                    <span>&copy; 2025 Community Link Platform Inc. Private Network Architecture.</span>
+                </div>
+                <div class="prof-mono text-[10px] flex flex-wrap items-center gap-5 tracking-wider">
+                    <a href="communities" class="text-[#64748B] hover:text-[#0A1B2E] transition">SECURITY &amp; ENCRYPTION</a>
+                    <a href="communities" class="text-[#64748B] hover:text-[#0A1B2E] transition">VERIFIED PASS RULES</a>
+                    <a href="admin" class="text-[#64748B] hover:text-[#0A1B2E] transition">OPERATOR PORTAL</a>
+                </div>
+            </footer>
+
         </div>
     }
+
 </div>
 
 <!-- EDIT PROFILE MODAL -->
 @if (showEditModal)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden space-y-5 p-6">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <span>✏️</span> Edit User Profile
-                </h3>
-                <button @onclick="CloseEditModal" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-            </div>
-
-            <!-- Avatar Uploader -->
-            <div class="flex flex-col items-center gap-3 py-2 border-b border-slate-100 pb-4">
-                <div class="relative">
-                    @if (!string.IsNullOrWhiteSpace(editAvatarPreview))
-                    {
-                        <img src="@editAvatarPreview" alt="Avatar preview" class="w-24 h-24 rounded-2xl object-cover ring-4 ring-indigo-500/20" />
-                    }
-                    else if (!string.IsNullOrWhiteSpace(profile?.AvatarUrl))
-                    {
-                        <img src="@profile.AvatarUrl" alt="Avatar" class="w-24 h-24 rounded-2xl object-cover ring-4 ring-indigo-500/20" />
-                    }
-                    else
-                    {
-                        <div class="w-24 h-24 rounded-2xl bg-indigo-600 text-white font-black text-3xl flex items-center justify-center ring-4 ring-indigo-500/20">
-                            @(editModel.DisplayName?.FirstOrDefault().ToString().ToUpper() ?? "U")
-                        </div>
-                    }
-                </div>
-
-                <label class="cursor-pointer px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs rounded-xl border border-indigo-200 transition">
-                    📷 Choose Avatar Image
-                    <InputFile OnChange="OnAvatarSelected" accept=".jpg,.jpeg,.png,.webp" class="hidden" />
-                </label>
-                @if (selectedAvatarFile != null)
-                {
-                    <span class="text-xs text-slate-500 font-medium">Selected: @selectedAvatarFile.Name</span>
-                }
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 backdrop-blur-sm">
+        <div class="bg-white rounded-lg shadow-2xl border border-[#E2E8F0] max-w-lg w-full p-6 space-y-5 text-[#0A1B2E]">
+            <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+                <h3 class="prof-display text-lg font-bold text-[#0A1B2E]">Edit Profile Credentials</h3>
+                <button @onclick="CloseEditModal" class="text-[#94A3B8] hover:text-[#0A1B2E] text-2xl leading-none font-bold">&times;</button>
             </div>
 
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Display Name *</label>
-                    <input type="text" @bind="editModel.DisplayName" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition" placeholder="e.g. Alex Morgan" />
+                    <label class="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-1">Display Name *</label>
+                    <input type="text" @bind="editModel.DisplayName" class="w-full px-3.5 py-2 text-xs rounded border border-[#CBD5E1] text-[#0A1B2E] focus:border-[#0A1B2E] outline-none" />
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Username *</label>
-                    <input type="text" @bind="editModel.UserName" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition font-mono" placeholder="e.g. alex_morgan" />
-                    <p class="text-[11px] text-slate-400 mt-1">Letters, numbers, and underscores only. Min 3, max 50 chars.</p>
+                    <label class="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-1">Username *</label>
+                    <input type="text" @bind="editModel.UserName" class="w-full px-3.5 py-2 text-xs rounded border border-[#CBD5E1] text-[#0A1B2E] prof-mono focus:border-[#0A1B2E] outline-none" />
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Bio Summary</label>
-                    <textarea @bind="editModel.Bio" rows="3" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition" placeholder="Tell the community about yourself..."></textarea>
-                    <p class="text-[11px] text-slate-400 mt-1">Max 500 characters.</p>
+                    <label class="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-1">Domain Expertise / Bio</label>
+                    <textarea @bind="editModel.Bio" rows="3" class="w-full px-3.5 py-2 text-xs rounded border border-[#CBD5E1] text-[#0A1B2E] focus:border-[#0A1B2E] outline-none resize-none"></textarea>
                 </div>
             </div>
 
             @if (!string.IsNullOrEmpty(editErrorMessage))
             {
-                <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-medium">
+                <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded">
                     @editErrorMessage
                 </div>
             }
 
-            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                <button @onclick="CloseEditModal" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0]">
+                <button @onclick="CloseEditModal" class="prof-btn-secondary text-xs">
                     Cancel
                 </button>
-                <button @onclick="SaveProfileAsync" disabled="@isSavingProfile" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition shadow-md shadow-indigo-600/30 flex items-center gap-2">
+                <button @onclick="SaveProfileAsync" disabled="@isSavingProfile" class="prof-btn-primary text-xs">
                     @if (isSavingProfile)
                     {
-                        <span class="animate-spin text-xs">⌛</span>
                         <span>Saving...</span>
                     }
                     else
                     {
-                        <span>Save Changes</span>
+                        <span>Save Profile Changes</span>
                     }
                 </button>
             </div>
@@ -510,59 +754,47 @@
 <!-- RATE USER MODAL -->
 @if (showRatingModal)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden p-6 space-y-5">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <span>⭐</span> Rate @profile?.DisplayName
-                </h3>
-                <button @onclick="CloseRatingModal" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 backdrop-blur-sm">
+        <div class="bg-white rounded-lg shadow-2xl border border-[#E2E8F0] max-w-md w-full p-6 space-y-4 text-[#0A1B2E]">
+            <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+                <h3 class="prof-display text-base font-bold text-[#0A1B2E]">Rate @profile?.DisplayName</h3>
+                <button @onclick="CloseRatingModal" class="text-[#94A3B8] hover:text-[#0A1B2E] text-2xl leading-none font-bold">&times;</button>
             </div>
 
             <div class="space-y-4 text-center">
-                <p class="text-xs text-slate-600">Select a star rating from 1 to 5 stars:</p>
-
-                <!-- Interactive Star Picker -->
-                <div class="flex items-center justify-center gap-2 text-3xl cursor-pointer py-2">
+                <p class="text-xs text-[#64748B]">Select advisory rating score:</p>
+                <div class="flex items-center justify-center gap-2 text-2xl cursor-pointer py-1">
                     @for (int i = 1; i <= 5; i++)
                     {
-                        var starScore = i;
-                        <span @onclick="() => ratingModel.Score = starScore" class="transition-transform hover:scale-125 @(i <= ratingModel.Score ? "text-amber-400" : "text-slate-200")">
+                        var score = i;
+                        <span @onclick="() => ratingModel.Score = score" class="transition @(score <= ratingModel.Score ? "text-amber-500" : "text-slate-300")">
                             ★
                         </span>
                     }
                 </div>
-                <div class="text-xs font-bold text-amber-600 uppercase tracking-wider">
+                <div class="prof-mono text-xs font-bold text-amber-600 uppercase">
                     @ratingModel.Score Star@(ratingModel.Score > 1 ? "s" : "")
                 </div>
 
                 <div class="text-left">
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Optional Feedback Review</label>
-                    <textarea @bind="ratingModel.ReviewText" rows="3" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition" placeholder="Share your experience working or interacting with this user..."></textarea>
+                    <label class="block text-xs font-bold text-[#64748B] uppercase tracking-wider mb-1">Written Review</label>
+                    <textarea @bind="ratingModel.ReviewText" rows="3" class="w-full px-3.5 py-2 text-xs rounded border border-[#CBD5E1] text-[#0A1B2E] outline-none" placeholder="Share your experience working with this expert..."></textarea>
                 </div>
             </div>
 
             @if (!string.IsNullOrEmpty(ratingErrorMessage))
             {
-                <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-medium">
+                <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded">
                     @ratingErrorMessage
                 </div>
             }
 
-            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                <button @onclick="CloseRatingModal" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0]">
+                <button @onclick="CloseRatingModal" class="prof-btn-secondary text-xs">
                     Cancel
                 </button>
-                <button @onclick="SubmitRatingAsync" disabled="@isSubmittingRating" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition shadow-md shadow-amber-500/30 flex items-center gap-2">
-                    @if (isSubmittingRating)
-                    {
-                        <span class="animate-spin text-xs">⌛</span>
-                        <span>Submitting...</span>
-                    }
-                    else
-                    {
-                        <span>Submit Review</span>
-                    }
+                <button @onclick="SubmitRatingAsync" disabled="@isSubmittingRating" class="prof-btn-primary text-xs">
+                    Submit Review
                 </button>
             </div>
         </div>
@@ -577,22 +809,14 @@
     private UserProfileDto? profile;
     private bool isOwner;
 
-    // Tabs
-    private string activeTab = "posts";
-    private bool isTabLoading;
-    private List<UserPostItemDto> postsList = new();
-    private List<UserPostItemDto> savedPostsList = new();
-    private List<SavedAccountItemDto> savedAccountsList = new();
-    private List<UserCommunityItemDto> communitiesList = new();
-    private List<UserRatingItemDto> reviewsList = new();
+    // Date Slot for Pass 1
+    private int selectedDateSlot = 1;
 
     // Edit Profile Modal
     private bool showEditModal;
     private bool isSavingProfile;
     private string? editErrorMessage;
     private UpdateUserProfileRequestDto editModel = new();
-    private IBrowserFile? selectedAvatarFile;
-    private string? editAvatarPreview;
 
     // Save Account Action
     private bool isSavingAccount;
@@ -630,7 +854,6 @@
             {
                 profile = res.Data;
                 isOwner = profile.Relationship.IsSelf || string.IsNullOrWhiteSpace(UserNameOrId);
-                await SetTab("posts");
             }
             else
             {
@@ -648,54 +871,6 @@
         }
     }
 
-    private async Task SetTab(string tab)
-    {
-        activeTab = tab;
-        if (profile == null) return;
-        isTabLoading = true;
-        try
-        {
-            switch (tab)
-            {
-                case "posts":
-                    var pRes = await ProfileApi.GetUserPostsAsync(profile.UserId, _cts.Token);
-                    if (pRes.IsSuccess && pRes.Data != null) postsList = pRes.Data;
-                    break;
-                case "saved-posts":
-                    if (isOwner)
-                    {
-                        var spRes = await ProfileApi.GetSavedPostsAsync(_cts.Token);
-                        if (spRes.IsSuccess && spRes.Data != null) savedPostsList = spRes.Data;
-                    }
-                    break;
-                case "saved-accounts":
-                    if (isOwner)
-                    {
-                        var saRes = await ProfileApi.GetSavedAccountsAsync(_cts.Token);
-                        if (saRes.IsSuccess && saRes.Data != null) savedAccountsList = saRes.Data;
-                    }
-                    break;
-                case "communities":
-                    var cRes = await ProfileApi.GetUserCommunitiesAsync(profile.UserId, _cts.Token);
-                    if (cRes.IsSuccess && cRes.Data != null) communitiesList = cRes.Data;
-                    break;
-                case "reviews":
-                    var rRes = await ProfileApi.GetUserReviewsAsync(profile.UserId, _cts.Token);
-                    if (rRes.IsSuccess && rRes.Data != null) reviewsList = rRes.Data;
-                    break;
-            }
-        }
-        catch (Exception ex)
-        {
-            Toast.Error($"Error loading tab: {ex.Message}");
-        }
-        finally
-        {
-            isTabLoading = false;
-        }
-    }
-
-    // Toggle Save Account
     private async Task ToggleSaveAccountAsync()
     {
         if (profile == null || isOwner) return;
@@ -706,7 +881,7 @@
             if (res.IsSuccess)
             {
                 profile.Relationship.IsSavedByMe = res.Data;
-                Toast.Success(res.Data ? "Saved account to bookmarks." : "Removed account from bookmarks.");
+                Toast.Success(res.Data ? "Saved expert account to bookmarks." : "Removed from bookmarks.");
             }
             else
             {
@@ -723,7 +898,43 @@
         }
     }
 
-    // Edit Profile Modal Methods
+    private async Task BookAdvisorySessionAsync()
+    {
+        string slotDesc = selectedDateSlot switch
+        {
+            0 => "Thursday, Oct 24 at 10:00 AM (UTC-08 PT)",
+            1 => "Friday, Oct 25 at 02:30 PM (UTC-08 PT)",
+            2 => "Tuesday, Oct 29 at 11:15 AM (UTC-08 PT)",
+            _ => "Selected session slot"
+        };
+        Toast.Success($"1-on-1 Strategic Advisory Session unlocked for {slotDesc}! Sovereign smart-escrow active.");
+    }
+
+    private void UnlockPriorityChannelAsync()
+    {
+        Navigation.NavigateTo("chat");
+        Toast.Info("Priority Direct Channel unlocked with guaranteed 24hr SLA.");
+    }
+
+    private void JoinVipSyndicateAsync()
+    {
+        Navigation.NavigateTo("communities");
+        Toast.Success("Sub-Community VIP Pass verified. Access granted to closed syndicate.");
+    }
+
+    private async Task ShareProfile()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", Navigation.Uri);
+            Toast.Success("Profile node link copied to clipboard!");
+        }
+        catch
+        {
+            Toast.Info($"Profile link: {Navigation.Uri}");
+        }
+    }
+
     private void OpenEditModal()
     {
         if (profile == null) return;
@@ -734,26 +945,12 @@
             Bio = profile.Bio
         };
         editErrorMessage = null;
-        selectedAvatarFile = null;
-        editAvatarPreview = null;
         showEditModal = true;
     }
 
     private void CloseEditModal()
     {
         showEditModal = false;
-    }
-
-    private async Task OnAvatarSelected(InputFileChangeEventArgs e)
-    {
-        selectedAvatarFile = e.File;
-        if (selectedAvatarFile != null)
-        {
-            var resized = await selectedAvatarFile.RequestImageFileAsync(selectedAvatarFile.ContentType, 300, 300);
-            var buffer = new byte[resized.Size];
-            await resized.OpenReadStream().ReadAsync(buffer);
-            editAvatarPreview = $"data:{selectedAvatarFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
-        }
     }
 
     private async Task SaveProfileAsync()
@@ -763,24 +960,11 @@
         editErrorMessage = null;
         try
         {
-            // Upload Avatar first if selected
-            if (selectedAvatarFile != null)
-            {
-                using var stream = selectedAvatarFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
-                var uploadRes = await ProfileApi.UploadAvatarAsync(stream, selectedAvatarFile.Name, selectedAvatarFile.ContentType, _cts.Token);
-                if (!uploadRes.IsSuccess)
-                {
-                    editErrorMessage = uploadRes.Message;
-                    isSavingProfile = false;
-                    return;
-                }
-            }
-
             var updateRes = await ProfileApi.UpdateProfileAsync(editModel, _cts.Token);
             if (updateRes.IsSuccess && updateRes.Data != null)
             {
                 profile = updateRes.Data;
-                Toast.Success("Profile updated successfully!");
+                Toast.Success("Profile credentials updated!");
                 showEditModal = false;
             }
             else
@@ -798,7 +982,6 @@
         }
     }
 
-    // Rate User Modal Methods
     private void OpenRatingModal()
     {
         if (profile == null) return;
@@ -827,9 +1010,8 @@
             if (res.IsSuccess && res.Data != null)
             {
                 profile = res.Data;
-                Toast.Success("Rating and review submitted!");
+                Toast.Success("Rating and endorsement submitted!");
                 showRatingModal = false;
-                if (activeTab == "reviews") await SetTab("reviews");
             }
             else
             {

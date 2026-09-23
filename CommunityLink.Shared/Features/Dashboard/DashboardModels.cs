@@ -10,6 +10,21 @@ public sealed record UserDashboardModel(
     UserInfoModel Profile,
     IReadOnlyList<CommunityModel> JoinedCommunities,
     IReadOnlyList<CommunityModel> RecommendedCommunities,
+    IReadOnlyList<CommunityModel> Communities,
+    IReadOnlyList<CommunityModel> SubCommunities,
+    IReadOnlyList<DirectoryPersonModel> People,
     IReadOnlyList<PostModel> RecentPosts,
     IReadOnlyList<PollModel> ActivePolls,
     int UnreadMessageCount);
+
+public sealed record DirectoryPersonModel(
+    int UserId,
+    string UserName,
+    string DisplayName,
+    string? AvatarUrl,
+    string? Bio,
+    string RoleCode,
+    bool IsVerified,
+    int JoinedCommunitiesCount,
+    int PostsCount,
+    decimal? AverageRating);

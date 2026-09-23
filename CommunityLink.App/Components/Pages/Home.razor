@@ -8,344 +8,699 @@
 @inject PostApiService PostApi
 @inject PollApiService PollApi
 @inject ToastService Toast
+@inject IJSRuntime JS
 
-<PageTitle>Member Home — CommunityLink</PageTitle>
+<PageTitle>Ecosystem Home — CommunityLink</PageTitle>
 
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" />
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap');
+
+    .exec-home {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: #0A1B2E;
+        background-color: #F2F6FB;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    .exec-display {
+        font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+        letter-spacing: -0.025em;
+    }
+
+    .exec-mono {
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .exec-card {
+        background: #ffffff;
+        border: 1px solid #E1E8F0;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px -2px rgba(10, 27, 46, 0.04), 0 1px 3px 0 rgba(10, 27, 46, 0.02);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .exec-card:hover {
+        border-color: #C4D2E1;
+        box-shadow: 0 8px 24px -4px rgba(10, 27, 46, 0.07), 0 2px 6px -1px rgba(10, 27, 46, 0.03);
+    }
+
+    .exec-card-static {
+        background: #ffffff;
+        border: 1px solid #E1E8F0;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px -2px rgba(10, 27, 46, 0.04), 0 1px 3px 0 rgba(10, 27, 46, 0.02);
+    }
+
+    .exec-btn-primary {
+        background-color: #0A1B2E;
+        color: #ffffff !important;
+        border-radius: 0.25rem;
+        padding: 0.625rem 1.25rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        border: 1px solid #0A1B2E;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.18s ease;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .exec-btn-primary:hover:not(:disabled) {
+        background-color: #112A46;
+        border-color: #112A46;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px -2px rgba(10, 27, 46, 0.18);
+    }
+
+    .exec-btn-primary:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .exec-btn-secondary {
+        background-color: #E3EFFF;
+        border: 1px solid #C4D2E1;
+        color: #112A46 !important;
+        border-radius: 0.25rem;
+        padding: 0.625rem 1.25rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.18s ease;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .exec-btn-secondary:hover {
+        background-color: #D9EAFF;
+        border-color: #A1B2C4;
+        color: #0A1B2E !important;
+    }
+
+    .exec-btn-ghost {
+        background-color: transparent;
+        color: #34506D !important;
+        border: 1px solid transparent;
+        border-radius: 0.25rem;
+        padding: 0.4rem 0.75rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .exec-btn-ghost:hover {
+        background-color: #F2F6FB;
+        color: #0A1B2E !important;
+    }
+
+    .exec-badge-standard {
+        background: #F2F6FB;
+        border: 1px solid #E1E8F0;
+        color: #34506D;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-radius: 0.25rem;
+        padding: 3px 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .exec-badge-active {
+        background: #0A1B2E;
+        border: 1px solid #0A1B2E;
+        color: #ffffff;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-radius: 0.25rem;
+        padding: 3px 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .exec-label-md {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 16px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #7A8CA6;
+    }
+
+    .exec-input {
+        background: #ffffff;
+        border: 1px solid #C4D2E1;
+        border-radius: 0.25rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 13px;
+        color: #0A1B2E;
+        font-family: 'Inter', sans-serif;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .exec-input::placeholder {
+        color: #A1B2C4;
+    }
+
+    .exec-input:focus {
+        border-color: #1B3B5A;
+        box-shadow: 0 0 0 3px rgba(27, 59, 90, 0.12);
+    }
+
+    .exec-badge-blue {
+        background: #E3EFFF;
+        border: 1px solid #C4D2E1;
+        color: #34506D;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-radius: 0.25rem;
+        padding: 3px 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .exec-badge-live {
+        background: #ECFDF5;
+        border: 1px solid #A7F3D0;
+        color: #047857;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-radius: 0.25rem;
+        padding: 3px 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .exec-card-tinted {
+        background: #EDF4FF;
+        border-color: #C4D2E1;
+    }
+</style>
+
+<div class="-m-6 p-6 md:p-8 min-h-[calc(100vh-4rem)] exec-home">
 @if (isCheckingAuth || (isLoading && dashboard == null))
 {
-    <div class="p-16 text-center text-slate-500 bg-white rounded-3xl shadow-sm border border-slate-200/80 my-8">
-        <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
-        <p class="mt-3 text-sm font-semibold text-slate-600">Loading your CommunityLink Home...</p>
+    <div class="exec-card-static p-16 text-center my-8 max-w-xl mx-auto">
+        <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-[#0A1B2E] border-t-transparent"></div>
+        <h3 class="exec-display mt-5 text-base font-bold text-[#0A1B2E]">Synchronizing Executive Workspace</h3>
+        <p class="mt-1 text-xs text-[#557392]">Loading ecosystem feeds, real-time channels, and analytical metrics...</p>
     </div>
 }
 else if (!string.IsNullOrEmpty(errorMessage))
 {
-    <div class="p-8 bg-rose-50 border border-rose-200 rounded-3xl text-rose-700 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="p-6 bg-[#ffdad6]/40 border border-[#ba1a1a]/30 rounded-lg text-[#93000a] flex flex-col md:flex-row items-center justify-between gap-4 max-w-4xl mx-auto my-6 shadow-sm">
         <div class="flex items-center gap-3">
-            <span class="text-2xl">⚠️</span>
+            <span class="w-10 h-10 rounded-[0.375rem] bg-[#93000a]/10 text-[#93000a] flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </span>
             <div>
-                <h3 class="font-bold text-base">Unable to load home feed</h3>
-                <p class="text-xs text-rose-600 mt-0.5">@errorMessage</p>
+                <h3 class="exec-display font-bold text-sm text-[#93000a]">Unable to synchronize workspace</h3>
+                <p class="text-xs text-[#ba1a1a] mt-0.5">@errorMessage</p>
             </div>
         </div>
-        <button @onclick="LoadDashboardAsync" class="px-5 py-2.5 bg-rose-600 text-white text-xs font-semibold rounded-xl hover:bg-rose-700 transition shadow-sm">
-            Retry
+        <button @onclick="LoadDashboardAsync" class="exec-btn-primary text-xs">
+            Retry Sync
         </button>
     </div>
 }
 else if (dashboard != null)
 {
-    <div class="space-y-6 max-w-7xl mx-auto pb-12">
-        <!-- Hero Banner for Authenticated Member -->
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl border border-slate-800 p-6 md:p-8">
-            <div class="absolute -top-24 -right-24 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-violet-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="space-y-6 max-w-[1440px] mx-auto pb-16">
 
-            <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                <div class="flex items-center gap-4">
-                    <div class="relative">
+        <!-- Top Relational Breadcrumb & Status Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E1E8F0]">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="exec-badge-blue">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#34506D]"></span>
+                    COMMUNITY LINK
+                </span>
+                <span class="text-[#A1B2C4] font-semibold text-xs">&rsaquo;</span>
+                <span class="exec-badge-standard">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#34506D]"></span>
+                    ACTIVE ECOSYSTEM
+                </span>
+                <span class="text-[#A1B2C4] font-semibold text-xs">&rsaquo;</span>
+                <span class="exec-badge-active">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    MEMBER WORKSPACE
+                </span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <span class="hidden md:inline-flex items-center gap-2 px-3 py-1 rounded-[0.25rem] bg-[#ECFDF5] text-[#047857] text-xs font-medium border border-[#A7F3D0] shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="exec-mono text-[11px] uppercase tracking-wider">Live SignalR Synced</span>
+                </span>
+                <button @onclick="ScrollToComposer" class="exec-btn-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>New Broadcast</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Executive Welcome Briefing Section -->
+        <div class="exec-card exec-card-tinted p-6 md:p-8">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div class="flex items-center gap-4 sm:gap-6">
+                    <div class="relative shrink-0">
                         @if (!string.IsNullOrWhiteSpace(dashboard.Profile?.AvatarUrl))
                         {
-                            <img src="@dashboard.Profile.AvatarUrl" alt="@dashboard.Profile.DisplayName" class="w-16 h-16 rounded-2xl object-cover ring-4 ring-indigo-500/30 shadow-lg" />
+                            <img src="@dashboard.Profile.AvatarUrl" alt="@dashboard.Profile.DisplayName" class="w-18 h-18 sm:w-20 sm:h-20 rounded-full object-cover ring-2 ring-[#C4D2E1] shadow-sm" />
                         }
                         else
                         {
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white font-black text-2xl flex items-center justify-center ring-4 ring-indigo-500/30 shadow-lg">
+                            <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-[#0A1B2E] text-[#ffffff] font-bold text-2xl sm:text-3xl flex items-center justify-center ring-2 ring-[#C4D2E1] shadow-sm">
                                 @(dashboard.Profile?.DisplayName?.FirstOrDefault().ToString().ToUpper() ?? "U")
                             </div>
                         }
-                        <div class="absolute -bottom-1 -right-1 bg-emerald-500 w-4 h-4 rounded-full ring-2 ring-slate-900" title="Online"></div>
+                        <div class="absolute bottom-0 right-0 bg-emerald-500 w-4 h-4 rounded-full ring-2 ring-white" title="Active Online"></div>
                     </div>
 
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h1 class="text-2xl font-black tracking-tight text-white">@GetGreeting(), @(dashboard.Profile?.DisplayName ?? "Member")!</h1>
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/10 text-indigo-200 border border-white/15">
-                                @(dashboard.Profile?.RoleCode ?? "Member")
+                    <div class="space-y-1.5">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="exec-label-md">EXECUTIVE BRIEFING</span>
+                            <span class="exec-badge-standard">
+                                @(dashboard.Profile?.RoleCode ?? "MEMBER")
                             </span>
                         </div>
-                        <p class="text-slate-300 text-xs md:text-sm mt-1">Here is your daily activity feed, community discussions, and live polls.</p>
+                        <h1 class="exec-display text-2xl sm:text-3xl font-bold text-[#0A1B2E]">
+                            Welcome back, @(dashboard.Profile?.DisplayName ?? "Member")
+                        </h1>
+                        <p class="text-xs sm:text-sm text-[#557392] max-w-3xl leading-relaxed">
+                            Overview of institutional activity across <strong class="text-[#0A1B2E] font-semibold">@dashboard.JoinedCommunities.Count communities</strong>, <strong class="text-[#0A1B2E] font-semibold">@dashboard.RecentPosts.Count active discussions</strong>, and real-time member operations today.
+                        </p>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-                    <a href="feed" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-indigo-600/30 flex items-center gap-2">
-                        <span>📰</span> Public Feed
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <a href="communities" class="exec-btn-secondary">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
+                        <span>Explore Hubs</span>
                     </a>
-                    <a href="communities" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/20 transition flex items-center gap-2">
-                        <span>🏛️</span> Explore Hubs
-                    </a>
-                    <a href="profile" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/20 transition flex items-center gap-2">
-                        <span>👤</span> My Profile
+                    <a href="profile" class="exec-btn-primary">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span>My Profile</span>
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Metrics Overview Grid -->
+        <!-- Analytical Metric KPI Cards -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Joined Hubs</div>
-                    <div class="text-2xl font-black text-slate-900 mt-1">@dashboard.JoinedCommunities.Count</div>
-                </div>
-                <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
-                    🏛️
-                </div>
-            </div>
 
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Recent Posts</div>
-                    <div class="text-2xl font-black text-slate-900 mt-1">@dashboard.RecentPosts.Count</div>
+            <!-- Card 1: My Communities -->
+            <div class="exec-card p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between pb-3 border-b border-[#F2F6FB]">
+                    <span class="exec-label-md">My Communities</span>
+                    <span class="w-8 h-8 rounded-[0.375rem] bg-[#0A1B2E] text-white flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
+                    </span>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
-                    📝
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Polls</div>
-                    <div class="text-2xl font-black text-slate-900 mt-1">@dashboard.ActivePolls.Count</div>
-                </div>
-                <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
-                    📊
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Messages</div>
-                    <div class="text-2xl font-black text-sky-600 mt-1">@dashboard.UnreadMessageCount</div>
-                </div>
-                <div class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl">
-                    💬
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Home 2-Column Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            
-            <!-- Left Column: Activity Feed & Quick Composer (2 cols) -->
-            <div class="lg:col-span-2 space-y-6">
-                
-                <!-- Quick Post Composer -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-                    <div class="flex items-center gap-3">
-                        @if (!string.IsNullOrWhiteSpace(dashboard.Profile?.AvatarUrl))
-                        {
-                            <img src="@dashboard.Profile.AvatarUrl" alt="Avatar" class="w-10 h-10 rounded-xl object-cover" />
-                        }
-                        else
-                        {
-                            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white font-bold text-base flex items-center justify-center">
-                                @(dashboard.Profile?.DisplayName?.FirstOrDefault().ToString().ToUpper() ?? "U")
-                            </div>
-                        }
-                        <div class="flex-1">
-                            <textarea @bind="newPostContent" rows="2" placeholder="Share an update, question, or thought with your communities..." class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none resize-none transition"></textarea>
-                        </div>
+                <div class="mt-4 flex items-baseline justify-between">
+                    <div class="exec-display text-2xl sm:text-3xl font-bold text-[#0A1B2E]">
+                        @dashboard.JoinedCommunities.Count <span class="text-xs font-normal text-[#557392]">Active</span>
                     </div>
-
-                    <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-semibold text-slate-500">Post to:</span>
-                            <select @bind="selectedCommunityId" class="text-xs font-medium px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 outline-none">
-                                <option value="0">🌐 Public / General Feed</option>
-                                @foreach (var comm in dashboard.JoinedCommunities)
-                                {
-                                    <option value="@comm.CommunityId">🏛️ @comm.Name</option>
-                                }
-                            </select>
-                        </div>
-
-                        <button @onclick="PublishPostAsync" disabled="@(isPublishingPost || string.IsNullOrWhiteSpace(newPostContent))" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs transition shadow-md shadow-indigo-600/20 flex items-center gap-2">
-                            @if (isPublishingPost)
-                            {
-                                <span class="animate-spin text-xs">⌛</span>
-                                <span>Posting...</span>
-                            }
-                            else
-                            {
-                                <span>🚀 Publish Post</span>
-                            }
-                        </button>
-                    </div>
+                    <span class="exec-badge-blue">
+                        Joined
+                    </span>
                 </div>
+            </div>
 
-                <!-- Feed Stream Header -->
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <span>📰</span> Latest Activity Stream
-                    </h2>
-                    <a href="feed" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition">
-                        View Full Feed &rarr;
+            <!-- Card 2: Discussions & Feed -->
+            <div class="exec-card p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between pb-3 border-b border-[#F2F6FB]">
+                    <span class="exec-label-md">Discussions &amp; Posts</span>
+                    <span class="w-8 h-8 rounded-[0.375rem] bg-[#0A1B2E] text-white flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 18h-5"></path><path d="M18 14h-8"></path><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"></path><rect width="8" height="4" x="10" y="6" rx="1"></rect></svg>
+                    </span>
+                </div>
+                <div class="mt-4 flex items-baseline justify-between">
+                    <div class="exec-display text-2xl sm:text-3xl font-bold text-[#0A1B2E]">
+                        @dashboard.RecentPosts.Count <span class="text-xs font-normal text-[#557392]">Items</span>
+                    </div>
+                    <span class="exec-badge-live">
+                        Live Feed
+                    </span>
+                </div>
+            </div>
+
+            <!-- Card 3: Active Polls -->
+            <div class="exec-card p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between pb-3 border-b border-[#F2F6FB]">
+                    <span class="exec-label-md">Active Live Polls</span>
+                    <span class="w-8 h-8 rounded-[0.375rem] bg-[#0A1B2E] text-white flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    </span>
+                </div>
+                <div class="mt-4 flex items-baseline justify-between">
+                    <div class="exec-display text-2xl sm:text-3xl font-bold text-[#0A1B2E]">
+                        @dashboard.ActivePolls.Count <span class="text-xs font-normal text-[#557392]">Voting</span>
+                    </div>
+                    <span class="exec-badge-live">
+                        Active
+                    </span>
+                </div>
+            </div>
+
+            <!-- Card 4: Direct Messages -->
+            <div class="exec-card p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between pb-3 border-b border-[#F2F6FB]">
+                    <span class="exec-label-md">Direct Messages</span>
+                    <span class="w-8 h-8 rounded-[0.375rem] bg-[#0A1B2E] text-white flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    </span>
+                </div>
+                <div class="mt-4 flex items-baseline justify-between">
+                    <div class="exec-display text-2xl sm:text-3xl font-bold text-[#0A1B2E]">
+                        @dashboard.UnreadMessageCount <span class="text-xs font-normal text-[#557392]">Unread</span>
+                    </div>
+                    <a href="chat" class="exec-btn-ghost text-xs">
+                        Open Chat &rarr;
                     </a>
                 </div>
-
-                <!-- Post Cards -->
-                @if (!dashboard.RecentPosts.Any())
-                {
-                    <div class="bg-white p-12 rounded-2xl shadow-sm border border-slate-200 text-center text-slate-500">
-                        <span class="text-4xl">📝</span>
-                        <h3 class="font-bold text-base text-slate-800 mt-2">No recent posts yet</h3>
-                        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Be the first to publish an update or join more communities to see fresh updates in your feed.</p>
-                    </div>
-                }
-                else
-                {
-                    <div class="space-y-4">
-                        @foreach (var post in dashboard.RecentPosts)
-                        {
-                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-3 hover:border-slate-300 transition">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
-                                        @if (!string.IsNullOrWhiteSpace(post.AuthorAvatar))
-                                        {
-                                            <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-10 h-10 rounded-xl object-cover" />
-                                        }
-                                        else
-                                        {
-                                            <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center">
-                                                @post.AuthorName.Substring(0, 1).ToUpper()
-                                            </div>
-                                        }
-                                        <div>
-                                            <a href="u/@post.AuthorName" class="font-bold text-sm text-slate-900 hover:text-indigo-600 transition">@post.AuthorName</a>
-                                            <p class="text-xs text-slate-400">@post.CreatedAt.ToString("g")</p>
-                                        </div>
-                                    </div>
-
-                                    @if (!string.IsNullOrWhiteSpace(post.CommunityName))
-                                    {
-                                        <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold">
-                                            🏛️ @post.CommunityName
-                                        </span>
-                                    }
-                                </div>
-
-                                <p class="text-slate-800 text-sm leading-relaxed whitespace-pre-line">@post.Content</p>
-
-                                <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-                                    <div class="flex items-center gap-4">
-                                        <button @onclick="() => ToggleLikeAsync(post.PostId)" class="flex items-center gap-1.5 font-semibold hover:text-rose-600 transition @(post.IsLikedByCurrentUser ? "text-rose-600" : "")">
-                                            <span>@(post.IsLikedByCurrentUser ? "❤️" : "🤍")</span>
-                                            <span>@post.LikeCount Likes</span>
-                                        </button>
-                                        <a href="feed" class="flex items-center gap-1.5 font-semibold hover:text-indigo-600 transition">
-                                            <span>💬</span>
-                                            <span>@post.CommentCount Comments</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
             </div>
 
-            <!-- Right Column: Sidebar Widgets (1 col) -->
-            <div class="space-y-6">
-                
-                <!-- My Joined Communities Widget -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
-                            <span>🏛️</span> My Communities
-                        </h3>
-                        <a href="communities" class="text-xs font-semibold text-indigo-600 hover:underline">View All</a>
+        </div>
+
+        <!-- Main Workspace 2-Column Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+            <!-- LEFT COLUMN (2 Columns): Pinned Communities, Composer, and Broadcast Stream -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Section: Your Pinned Communities -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
+                            <h2 class="exec-display text-base font-bold text-[#0A1B2E]">Your Pinned Communities</h2>
+                        </div>
+                        <a href="communities" class="exec-btn-ghost text-xs">
+                            Explore All &rarr;
+                        </a>
                     </div>
 
                     @if (!dashboard.JoinedCommunities.Any())
                     {
-                        <div class="text-center py-6 text-slate-400 text-xs">
-                            <p>You haven't joined any hubs yet.</p>
-                            <a href="communities" class="mt-2 inline-block px-3 py-1.5 bg-indigo-50 text-indigo-700 font-semibold rounded-lg hover:bg-indigo-100 transition">Explore Hubs</a>
+                        <div class="exec-card p-8 text-center space-y-3">
+                            <span class="w-12 h-12 rounded-[0.5rem] bg-[#E3EFFF] border border-[#C4D2E1] text-[#34506D] flex items-center justify-center mx-auto">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
+                            </span>
+                            <p class="text-sm font-medium text-[#557392]">You have not joined any community hubs yet.</p>
+                            <a href="communities" class="exec-btn-primary text-xs">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                <span>Discover Communities</span>
+                            </a>
                         </div>
                     }
                     else
                     {
-                        <div class="space-y-2.5">
-                            @foreach (var hub in dashboard.JoinedCommunities.Take(4))
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            @foreach (var community in dashboard.JoinedCommunities.Take(2))
                             {
-                                <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 transition border border-transparent hover:border-slate-200">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
-                                            @hub.Name.Substring(0, 1).ToUpper()
+                                <div class="exec-card p-5 space-y-4 flex flex-col justify-between">
+                                    <div class="space-y-2.5">
+                                        <div class="flex items-center justify-between">
+                                            <span class="exec-badge-blue">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#34506D]"></span>
+                                                TIER 1 HUB
+                                            </span>
+                                            <span class="exec-mono text-[11px] text-[#7A8CA6] inline-flex items-center gap-1.5">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                                <span>@community.MemberCount members</span>
+                                            </span>
                                         </div>
-                                        <div class="min-w-0">
-                                            <div class="font-bold text-xs text-slate-900 truncate">@hub.Name</div>
-                                            <div class="text-[11px] text-slate-400">@hub.MemberCount members</div>
-                                        </div>
+
+                                        <h3 class="exec-display text-base font-bold text-[#0A1B2E] tracking-tight">@community.Name</h3>
+                                        <p class="text-xs text-[#557392] line-clamp-2 leading-relaxed">
+                                            @(string.IsNullOrWhiteSpace(community.Description) ? "Active collaborative community hub on CommunityLink." : community.Description)
+                                        </p>
                                     </div>
-                                    <a href="communities" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-                                        Open
-                                    </a>
+
+                                    <div class="pt-3 border-t border-[#E1E8F0] flex items-center justify-between text-xs">
+                                        <div class="flex items-center gap-1.5 text-[#7A8CA6]">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                            <span class="exec-mono text-[10px] uppercase">Member Hub</span>
+                                        </div>
+                                        <a href="communities" class="exec-btn-secondary text-xs !py-1.5 !px-3">
+                                            <span>Enter Hub</span> &rarr;
+                                        </a>
+                                    </div>
                                 </div>
                             }
                         </div>
                     }
                 </div>
 
-                <!-- Active Polls Widget -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
-                            <span>📊</span> Active Live Polls
-                        </h3>
-                        <a href="polls" class="text-xs font-semibold text-amber-600 hover:underline">All Polls</a>
+                <!-- Section: Executive Broadcast Composer -->
+                <div id="quick-composer" class="exec-card p-5 md:p-6 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#E1E8F0]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
+                            <h3 class="exec-label-md !text-[#0A1B2E]">Create Broadcast / Post</h3>
+                        </div>
+                        <span class="text-xs text-[#7A8CA6]">Share insights with your community network</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <textarea @bind="newPostContent" rows="3" placeholder="Share updates, links, or strategic discussions with your community network..." class="exec-input w-full resize-none leading-relaxed"></textarea>
+
+                        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+                            <div class="flex items-center gap-2">
+                                <span class="exec-mono text-xs text-[#557392]">TARGET:</span>
+                                <select @bind="selectedCommunityId" class="exec-input !py-1.5 !px-3 text-xs font-medium cursor-pointer">
+                                    <option value="0">Public / General Stream</option>
+                                    @foreach (var comm in dashboard.JoinedCommunities)
+                                    {
+                                        <option value="@comm.CommunityId">@comm.Name</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <button @onclick="PublishPostAsync" disabled="@(isPublishingPost || string.IsNullOrWhiteSpace(newPostContent))" class="exec-btn-primary">
+                                @if (isPublishingPost)
+                                {
+                                    <span class="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                                    <span>Broadcasting...</span>
+                                }
+                                else
+                                {
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                    <span>Broadcast Post</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Cross-Ecosystem Broadcasts (Activity Stream) -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
+                            <h2 class="exec-display text-base font-bold text-[#0A1B2E]">Cross-Ecosystem Broadcasts</h2>
+                        </div>
+                        <span class="exec-badge-standard">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            Live Stream
+                        </span>
+                    </div>
+
+                    @if (!dashboard.RecentPosts.Any())
+                    {
+                        <div class="exec-card p-10 text-center space-y-2">
+                            <span class="w-12 h-12 rounded-[0.5rem] bg-[#E3EFFF] border border-[#C4D2E1] text-[#34506D] flex items-center justify-center mx-auto">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                            </span>
+                            <h3 class="exec-display font-bold text-sm text-[#0A1B2E]">No broadcasts published yet</h3>
+                            <p class="text-xs text-[#557392] max-w-sm mx-auto">Publish your first broadcast above or join active communities to follow institutional discussions.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="space-y-4">
+                            @foreach (var post in dashboard.RecentPosts)
+                            {
+                                <div class="exec-card p-5 md:p-6 space-y-4">
+                                    
+                                    <!-- Post Header -->
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3">
+                                            @if (!string.IsNullOrWhiteSpace(post.AuthorAvatar))
+                                            {
+                                                <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-10 h-10 rounded-full object-cover ring-1 ring-[#E1E8F0]" />
+                                            }
+                                            else
+                                            {
+                                                <div class="w-10 h-10 rounded-full bg-[#F2F6FB] border border-[#E1E8F0] text-[#0A1B2E] font-bold text-xs flex items-center justify-center">
+                                                    @post.AuthorName.Substring(0, 1).ToUpper()
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="flex items-center gap-2">
+                                                    <a href="u/@post.AuthorName" class="font-semibold text-sm text-[#0A1B2E] hover:text-[#34506D] transition">
+                                                        @post.AuthorName
+                                                    </a>
+                                                    <span class="exec-badge-blue !py-0.5 !px-2">
+                                                        AUTHOR
+                                                    </span>
+                                                </div>
+                                                <p class="exec-mono text-[11px] text-[#7A8CA6] mt-0.5">@post.CreatedAt.ToString("g")</p>
+                                            </div>
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(post.CommunityName))
+                                        {
+                                            <span class="exec-badge-blue">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
+                                                <span>@post.CommunityName</span>
+                                            </span>
+                                        }
+                                    </div>
+
+                                    <!-- Post Content -->
+                                    <p class="text-[#112A46] text-sm leading-relaxed whitespace-pre-line">
+                                        @post.Content
+                                    </p>
+
+                                    <!-- Post Footer / Actions -->
+                                    <div class="flex items-center justify-between pt-3 border-t border-[#E1E8F0] text-xs">
+                                        <div class="flex items-center gap-5">
+                                            <button @onclick="() => ToggleLikeAsync(post.PostId)" class="flex items-center gap-1.5 font-medium transition @(post.IsLikedByCurrentUser ? "text-rose-600" : "text-[#557392] hover:text-[#0A1B2E]")">
+                                                <svg class="w-4 h-4" fill="@(post.IsLikedByCurrentUser ? "currentColor" : "none")" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                                <span class="exec-mono text-xs">@post.LikeCount Likes</span>
+                                            </button>
+                                            <a href="feed" class="flex items-center gap-1.5 font-medium text-[#557392] hover:text-[#0A1B2E] transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                                <span class="exec-mono text-xs">@post.CommentCount Comments</span>
+                                            </a>
+                                        </div>
+
+                                        <a href="feed" class="exec-btn-ghost text-xs">
+                                            View Discussion &rarr;
+                                        </a>
+                                    </div>
+
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN (1 Column): Widgets (Live Polls, Discovery, Messenger) -->
+            <div class="space-y-6">
+
+                <!-- Widget 1: Active Live Polls -->
+                <div class="exec-card p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-[#E1E8F0] pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
+                            <h3 class="exec-label-md !text-[#0A1B2E]">Active Live Polls</h3>
+                        </div>
+                        <a href="polls" class="exec-mono text-[11px] text-[#34506D] hover:text-[#0A1B2E] font-medium">ALL POLLS &rarr;</a>
                     </div>
 
                     @if (!dashboard.ActivePolls.Any())
                     {
-                        <p class="text-xs text-slate-400 text-center py-4">No active polls at the moment.</p>
+                        <p class="text-xs text-[#7A8CA6] text-center py-4">No active polls running.</p>
                     }
                     else
                     {
                         <div class="space-y-4">
                             @foreach (var poll in dashboard.ActivePolls.Take(2))
                             {
-                                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2.5">
-                                    <div class="font-bold text-xs text-slate-900">@poll.Question</div>
-                                    <div class="space-y-1.5">
+                                <div class="p-4 bg-[#E3EFFF] rounded-[0.375rem] border border-[#C4D2E1] space-y-3">
+                                    <div class="font-semibold text-xs text-[#0A1B2E] leading-snug">@poll.Question</div>
+
+                                    <div class="space-y-2">
                                         @foreach (var opt in poll.Options)
                                         {
-                                            <div class="text-xs p-2 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
-                                                <span class="text-slate-700 font-medium">@opt.Text</span>
-                                                <span class="text-slate-400 font-bold">@opt.VoteCount</span>
+                                            <div class="space-y-1">
+                                                <div class="flex items-center justify-between text-xs text-[#112A46]">
+                                                    <span class="text-[11px]">@opt.Text</span>
+                                                    <span class="exec-mono text-[10px] font-semibold text-[#557392]">@opt.VoteCount votes</span>
+                                                </div>
+                                                <div class="w-full h-1.5 bg-[#E1E8F0] rounded-full overflow-hidden">
+                                                    <div class="h-full bg-[#0A1B2E] rounded-full" style="width: @(poll.TotalVotes > 0 ? (opt.VoteCount * 100 / poll.TotalVotes) : 0)%"></div>
+                                                </div>
                                             </div>
                                         }
                                     </div>
-                                    <div class="text-[11px] text-slate-400 text-right">Total Votes: @poll.TotalVotes</div>
+
+                                    <div class="flex items-center justify-between pt-1 text-[11px] text-[#7A8CA6]">
+                                        <span class="exec-mono text-[10px]">Total: @poll.TotalVotes votes</span>
+                                        <a href="polls" class="exec-mono text-[11px] font-semibold text-[#0A1B2E] hover:underline">Vote &rarr;</a>
+                                    </div>
                                 </div>
                             }
                         </div>
                     }
                 </div>
 
-                <!-- Recommended Communities to Discover -->
+                <!-- Widget 2: Ecosystem Discovery / Recommended Hubs -->
                 @if (dashboard.RecommendedCommunities.Any())
                 {
-                    <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-800 space-y-4">
-                        <div class="flex items-center justify-between border-b border-white/10 pb-3">
-                            <h3 class="font-bold text-sm text-white flex items-center gap-2">
-                                <span>✨</span> Recommended For You
-                            </h3>
-                            <a href="communities" class="text-xs font-semibold text-indigo-300 hover:underline">More</a>
+                    <div class="exec-card p-5 space-y-4">
+                        <div class="flex items-center justify-between border-b border-[#E1E8F0] pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#34506D]"></span>
+                                <h3 class="exec-label-md !text-[#0A1B2E]">Ecosystem Discovery</h3>
+                            </div>
+                            <a href="communities" class="exec-mono text-[11px] text-[#34506D] hover:text-[#0A1B2E] font-medium">EXPLORE &rarr;</a>
                         </div>
 
                         <div class="space-y-3">
-                            @foreach (var rec in dashboard.RecommendedCommunities.Take(3))
+                            @foreach (var rec in dashboard.RecommendedCommunities.Take(2))
                             {
-                                <div class="p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                                    <div class="font-bold text-xs text-white">@rec.Name</div>
-                                    <p class="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">@rec.Description</p>
-                                    <div class="flex items-center justify-between pt-1">
-                                        <span class="text-[10px] text-slate-400">👥 @rec.MemberCount members</span>
-                                        <a href="communities" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-500 hover:bg-indigo-400 text-white transition">
-                                            Explore
+                                <div class="p-3.5 rounded-[0.375rem] bg-[#E3EFFF] border border-[#C4D2E1] space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-semibold text-xs text-[#0A1B2E]">@rec.Name</div>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                        <span class="exec-mono text-[10px] text-[#7A8CA6]">@rec.MemberCount</span>
+                                    </div>
+                                    <p class="text-[11px] text-[#557392] line-clamp-2 leading-relaxed">
+                                        @(string.IsNullOrWhiteSpace(rec.Description) ? "Recommended community hub based on your network activity." : rec.Description)
+                                    </p>
+                                    <div class="pt-1 flex items-center justify-end">
+                                        <a href="communities" class="exec-btn-secondary text-xs !py-1 !px-2.5">
+                                            <span>Join Hub</span> &rarr;
                                         </a>
                                     </div>
                                 </div>
@@ -354,11 +709,34 @@ else if (dashboard != null)
                     </div>
                 }
 
+                <!-- Widget 3: Quick Direct Messaging -->
+                <div class="exec-card p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-[#E1E8F0] pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
+                            <h3 class="exec-label-md !text-[#0A1B2E]">Real-Time Messaging</h3>
+                        </div>
+                        <a href="chat" class="exec-mono text-[11px] text-[#34506D] hover:text-[#0A1B2E] font-medium">MESSAGES &rarr;</a>
+                    </div>
+
+                    <div class="p-5 bg-[#E3EFFF] rounded-[0.375rem] border border-[#C4D2E1] text-center space-y-2.5">
+                        <span class="w-12 h-12 rounded-[0.5rem] bg-[#0A1B2E] text-white flex items-center justify-center mx-auto">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                        </span>
+                        <p class="text-xs text-[#557392]">Connect 1-on-1 with community members, leaders, and peers.</p>
+                        <a href="chat" class="exec-btn-secondary text-xs !py-1.5 !px-4">
+                            Open Messenger
+                        </a>
+                    </div>
+                </div>
+
             </div>
 
         </div>
+
     </div>
 }
+</div>
 
 @code {
     private bool isCheckingAuth = true;
@@ -366,7 +744,7 @@ else if (dashboard != null)
     private string? errorMessage;
     private UserDashboardModel? dashboard;
 
-    // Quick Composer State
+    // Quick Composer
     private string newPostContent = string.Empty;
     private int selectedCommunityId = 0;
     private bool isPublishingPost;
@@ -380,7 +758,6 @@ else if (dashboard != null)
 
         if (user?.Identity == null || !user.Identity.IsAuthenticated)
         {
-            // Unauthenticated guest -> redirect to Guest landing page
             Navigation.NavigateTo("/guest", replace: true);
             return;
         }
@@ -432,7 +809,7 @@ else if (dashboard != null)
             var res = await PostApi.CreatePostAsync(req, _cts.Token);
             if (res.IsSuccess)
             {
-                Toast.Success("Post published successfully!");
+                Toast.Success("Broadcast published successfully!");
                 newPostContent = string.Empty;
                 await LoadDashboardAsync();
             }
@@ -443,7 +820,7 @@ else if (dashboard != null)
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to publish post: {ex.Message}");
+            Toast.Error($"Failed to publish: {ex.Message}");
         }
         finally
         {
@@ -467,12 +844,13 @@ else if (dashboard != null)
         }
     }
 
-    private string GetGreeting()
+    private async Task ScrollToComposer()
     {
-        var hour = DateTime.Now.Hour;
-        if (hour < 12) return "Good morning";
-        if (hour < 17) return "Good afternoon";
-        return "Good evening";
+        try
+        {
+            await JS.InvokeVoidAsync("eval", "document.getElementById('quick-composer')?.scrollIntoView({ behavior: 'smooth' })");
+        }
+        catch { }
     }
 
     public void Dispose()
