@@ -46,4 +46,7 @@ public sealed class AdministrationApiService(IHttpClientFactory clientFactory, I
 
     public Task<Result> RejectJoinRequestAsync(int id, CancellationToken cancellationToken = default) =>
         PostAsync($"api/admin/join-requests/{id}/reject", new { }, cancellationToken);
+
+    public Task<Result> AssignUserRoleAsync(AssignUserRoleRequestModel request, CancellationToken cancellationToken = default) =>
+        PostAsync("api/admin/users/assign-role", request, cancellationToken);
 }

@@ -63,4 +63,14 @@ public sealed class GroupController(IGroupService groupService) : BaseController
     [Authorize]
     public async Task<IActionResult> RejectJoinRequest(int requestId, CancellationToken cancellationToken) =>
         ToActionResult(await groupService.ReviewJoinRequestAsync(requestId, false, cancellationToken));
+
+    [HttpGet("{groupId:int}/ratings")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetGroupRatings(int groupId, CancellationToken cancellationToken) =>
+        ToActionResult(await groupService.GetGroupRatingsAsync(groupId, cancellationToken));
+
+    [HttpPost("{groupId:int}/ratings")]
+    [Authorize]
+    public async Task<IActionResult> RateGroup(int groupId, [FromBody] SubmitGroupRatingRequestModel request, CancellationToken cancellationToken) =>
+        ToActionResult(await groupService.RateGroupAsync(groupId, request, cancellationToken));
 }

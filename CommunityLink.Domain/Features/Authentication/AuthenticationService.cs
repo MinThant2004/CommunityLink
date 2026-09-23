@@ -518,8 +518,9 @@ public class AuthenticationService : IAuthenticationService
 
     private async Task<(string RoleCode, int RoleId)> ResolveMemberRoleAsync()
     {
-        var role = await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == MemberRoleCode);
-        return (MemberRoleCode, role?.RoleId ?? 3);
+        var role = await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "USER" && !r.IsDeleted)
+                   ?? await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == MemberRoleCode && !r.IsDeleted);
+        return (role?.RoleCode ?? "USER", role?.RoleId ?? 3);
     }
 
     private async Task<(string RoleCode, int RoleId)> ResolveAdminRoleAsync(bool isSuperAdmin)

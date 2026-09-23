@@ -15,4 +15,7 @@ public sealed class RoleAndPermissionApiService(IHttpClientFactory clientFactory
 
     public Task<Result> UpdateRolePermissionsAsync(UpdateRolePermissionsRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync("api/roles/permissions", request, cancellationToken);
+
+    public Task<Result<IReadOnlyList<string>>> GetMyPermissionsAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<string>>("api/roles/my-permissions", cancellationToken);
 }

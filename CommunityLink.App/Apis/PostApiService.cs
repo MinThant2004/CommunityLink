@@ -33,4 +33,7 @@ public sealed class PostApiService(IHttpClientFactory clientFactory, IHttpContex
 
     public Task<Result<IReadOnlyList<CommentModel>>> GetCommentsAsync(int postId, CancellationToken cancellationToken = default) =>
         GetAsync<IReadOnlyList<CommentModel>>($"api/posts/{postId}/comments", cancellationToken);
+
+    public Task<Result<bool>> ToggleSavePostAsync(int postId, CancellationToken cancellationToken = default) =>
+        PostAsync<bool, object>($"api/posts/{postId}/save", new { }, cancellationToken);
 }

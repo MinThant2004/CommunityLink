@@ -7,7 +7,10 @@
 @inject UserDashboardApiService DashboardApi
 @inject PostApiService PostApi
 @inject PollApiService PollApi
+@inject RoleAndPermissionApiService RoleApi
 @inject ToastService Toast
+@inject IWebHostEnvironment Environment
+@using System.IO
 
 <PageTitle>Member Home — CommunityLink</PageTitle>
 
@@ -132,48 +135,69 @@ else if (dashboard != null)
             <div class="lg:col-span-2 space-y-6">
                 
                 <!-- Quick Post Composer -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-                    <div class="flex items-center gap-3">
-                        @if (!string.IsNullOrWhiteSpace(dashboard.Profile?.AvatarUrl))
-                        {
-                            <img src="@dashboard.Profile.AvatarUrl" alt="Avatar" class="w-10 h-10 rounded-xl object-cover" />
-                        }
-                        else
-                        {
-                            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white font-bold text-base flex items-center justify-center">
-                                @(dashboard.Profile?.DisplayName?.FirstOrDefault().ToString().ToUpper() ?? "U")
-                            </div>
-                        }
-                        <div class="flex-1">
-                            <textarea @bind="newPostContent" rows="2" placeholder="Share an update, question, or thought with your communities..." class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none resize-none transition"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-semibold text-slate-500">Post to:</span>
-                            <select @bind="selectedCommunityId" class="text-xs font-medium px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 outline-none">
-                                <option value="0">🌐 Public / General Feed</option>
-                                @foreach (var comm in dashboard.JoinedCommunities)
-                                {
-                                    <option value="@comm.CommunityId">🏛️ @comm.Name</option>
-                                }
-                            </select>
-                        </div>
-
-                        <button @onclick="PublishPostAsync" disabled="@(isPublishingPost || string.IsNullOrWhiteSpace(newPostContent))" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs transition shadow-md shadow-indigo-600/20 flex items-center gap-2">
-                            @if (isPublishingPost)
+                @if (canPostStandalone)
+                {
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                        <div class="flex items-center gap-3">
+                            @if (!string.IsNullOrWhiteSpace(dashboard.Profile?.AvatarUrl))
                             {
-                                <span class="animate-spin text-xs">⌛</span>
-                                <span>Posting...</span>
+                                <img src="@dashboard.Profile.AvatarUrl" alt="Avatar" class="w-10 h-10 rounded-xl object-cover" />
                             }
                             else
                             {
-                                <span>🚀 Publish Post</span>
+                                <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white font-bold text-base flex items-center justify-center">
+                                    @(dashboard.Profile?.DisplayName?.FirstOrDefault().ToString().ToUpper() ?? "U")
+                                </div>
                             }
-                        </button>
+                            <div class="flex-1">
+                                <textarea @bind="newPostContent" rows="2" placeholder="Share an update, question, or thought with your communities..." class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none resize-none transition"></textarea>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(uploadedImageUrl))
+                        {
+                            <div class="relative w-fit group">
+                                <img src="@uploadedImageUrl" alt="Upload preview" class="w-32 h-32 object-cover rounded-xl border border-slate-200 shadow-sm" />
+                                <button type="button" @onclick="RemoveUploadedImage" class="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full p-1 shadow hover:bg-rose-700 transition" title="Remove image">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
+                        }
+
+                        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-semibold text-slate-500">Post to:</span>
+                                    <select @bind="selectedCommunityId" class="text-xs font-medium px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 outline-none">
+                                        <option value="0">🌐 Public / General Feed</option>
+                                        @foreach (var comm in dashboard.JoinedCommunities)
+                                        {
+                                            <option value="@comm.CommunityId">🏛️ @comm.Name</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-600 transition">
+                                    <span>📷</span>
+                                    <span>@(isUploadingImage ? "Uploading..." : "Attach Image")</span>
+                                    <InputFile OnChange="HandleFileSelected" accept="image/*" class="hidden" disabled="@isUploadingImage" />
+                                </label>
+                            </div>
+
+                            <button @onclick="PublishPostAsync" disabled="@(isPublishingPost || isUploadingImage || string.IsNullOrWhiteSpace(newPostContent))" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs transition shadow-md shadow-indigo-600/20 flex items-center gap-2 cursor-pointer">
+                                @if (isPublishingPost)
+                                {
+                                    <span class="animate-spin text-xs">⌛</span>
+                                    <span>Posting...</span>
+                                }
+                                else
+                                {
+                                    <span>🚀 Publish Post</span>
+                                }
+                            </button>
+                        </div>
                     </div>
-                </div>
+                }
 
                 <!-- Feed Stream Header -->
                 <div class="flex items-center justify-between">
@@ -199,34 +223,99 @@ else if (dashboard != null)
                     <div class="space-y-4">
                         @foreach (var post in dashboard.RecentPosts)
                         {
-                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-3 hover:border-slate-300 transition">
+                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-3 hover:border-slate-300 transition relative">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-3">
-                                        @if (!string.IsNullOrWhiteSpace(post.AuthorAvatar))
-                                        {
-                                            <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-10 h-10 rounded-xl object-cover" />
-                                        }
-                                        else
-                                        {
-                                            <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center">
-                                                @post.AuthorName.Substring(0, 1).ToUpper()
-                                            </div>
-                                        }
+                                        <a href="u/@post.AuthorId" class="shrink-0">
+                                            @if (!string.IsNullOrWhiteSpace(post.AuthorAvatar))
+                                            {
+                                                <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-10 h-10 rounded-xl object-cover ring-2 ring-transparent hover:ring-indigo-500 transition" />
+                                            }
+                                            else
+                                            {
+                                                <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center hover:bg-slate-300 transition">
+                                                    @post.AuthorName.Substring(0, 1).ToUpper()
+                                                </div>
+                                            }
+                                        </a>
                                         <div>
-                                            <a href="u/@post.AuthorName" class="font-bold text-sm text-slate-900 hover:text-indigo-600 transition">@post.AuthorName</a>
+                                            <a href="u/@post.AuthorId" class="font-bold text-sm text-slate-900 hover:text-indigo-600 transition">@post.AuthorName</a>
                                             <p class="text-xs text-slate-400">@post.CreatedAt.ToString("g")</p>
                                         </div>
                                     </div>
 
-                                    @if (!string.IsNullOrWhiteSpace(post.CommunityName))
-                                    {
-                                        <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold">
-                                            🏛️ @post.CommunityName
-                                        </span>
-                                    }
+                                    <div class="flex items-center gap-2">
+                                        @if (!string.IsNullOrWhiteSpace(post.CommunityName))
+                                        {
+                                            <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold">
+                                                🏛️ @post.CommunityName
+                                            </span>
+                                        }
+
+                                        <!-- Three-Dots Action Menu -->
+                                        <div class="relative">
+                                            <button type="button" @onclick="() => TogglePostMenu(post.PostId)"
+                                                    class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer" title="Options">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                </svg>
+                                            </button>
+
+                                            @if (activeMenuPostId == post.PostId)
+                                            {
+                                                <div class="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+                                                    <!-- Save Button (For all users) -->
+                                                    <button type="button" @onclick="() => ToggleSavePost(post.PostId)"
+                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
+                                                        <span>🔖</span>
+                                                        <span>@(post.IsSavedByCurrentUser ? "Unsave Post" : "Save Post")</span>
+                                                    </button>
+
+                                                    <!-- Edit & Delete Buttons (Only for author) -->
+                                                    @if (currentUserId.HasValue && post.AuthorId == currentUserId.Value)
+                                                    {
+                                                        <button type="button" @onclick="() => OpenEditPost(post)"
+                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
+                                                            <span>✏️</span>
+                                                            <span>Edit Description</span>
+                                                        </button>
+                                                        <div class="border-t border-slate-100 my-1"></div>
+                                                        <button type="button" @onclick="() => DeletePost(post.PostId)"
+                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
+                                                            <span>🗑️</span>
+                                                            <span>Delete Post</span>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <p class="text-slate-800 text-sm leading-relaxed whitespace-pre-line">@post.Content</p>
+
+                                @if (post.ImageUrls != null && post.ImageUrls.Any())
+                                {
+                                    <div class="rounded-xl overflow-hidden border border-slate-200 bg-slate-950 mt-2">
+                                        @if (post.ImageUrls.Count == 1)
+                                        {
+                                            <div class="max-h-96 overflow-hidden flex items-center justify-center">
+                                                <img src="@post.ImageUrls[0]" alt="Post attachment" class="w-full h-auto max-h-96 object-contain" />
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="grid grid-cols-2 gap-1 p-1 bg-slate-200">
+                                                @foreach (var img in post.ImageUrls)
+                                                {
+                                                    <div class="h-48 overflow-hidden bg-slate-900 flex items-center justify-center">
+                                                        <img src="@img" alt="Post attachment" class="w-full h-full object-cover" />
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                }
 
                                 <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
                                     <div class="flex items-center gap-4">
@@ -358,6 +447,44 @@ else if (dashboard != null)
 
         </div>
     </div>
+
+    <!-- Edit Post Description Modal -->
+    @if (showEditModal)
+    {
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                        <span>✏️</span> Edit Post Description
+                    </h3>
+                    <button type="button" @onclick="CloseEditModal" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-semibold text-slate-500">Post Description / Content</label>
+                    <textarea @bind="editingPostContent" rows="5" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none resize-none transition" placeholder="Update your post description..."></textarea>
+                    <p class="text-[11px] text-slate-400">Note: Post images cannot be modified.</p>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" @onclick="CloseEditModal" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="button" @onclick="SaveEditPostAsync" disabled="@(isSavingEdit || string.IsNullOrWhiteSpace(editingPostContent))" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-md shadow-indigo-600/20 flex items-center gap-2 cursor-pointer">
+                        @if (isSavingEdit)
+                        {
+                            <span class="animate-spin text-xs">⌛</span>
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save Changes</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -366,10 +493,23 @@ else if (dashboard != null)
     private string? errorMessage;
     private UserDashboardModel? dashboard;
 
+    // Permissions & User
+    private bool canPostStandalone = false;
+    private int? currentUserId = null;
+
     // Quick Composer State
     private string newPostContent = string.Empty;
     private int selectedCommunityId = 0;
     private bool isPublishingPost;
+    private string? uploadedImageUrl;
+    private bool isUploadingImage;
+
+    // Post Options Menu & Modal State
+    private int? activeMenuPostId = null;
+    private bool showEditModal = false;
+    private int? editingPostId = null;
+    private string editingPostContent = string.Empty;
+    private bool isSavingEdit = false;
 
     private readonly CancellationTokenSource _cts = new();
 
@@ -385,7 +525,25 @@ else if (dashboard != null)
             return;
         }
 
+        var subClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(subClaim, out var parsedId))
+        {
+            currentUserId = parsedId;
+        }
+
         isCheckingAuth = false;
+
+        // Check Permissions
+        try
+        {
+            var permRes = await RoleApi.GetMyPermissionsAsync(_cts.Token);
+            if (permRes.IsSuccess && permRes.Data != null)
+            {
+                canPostStandalone = permRes.Data.Any(p => p.Equals("POST.STANDALONE.CREATE", StringComparison.OrdinalIgnoreCase));
+            }
+        }
+        catch { }
+
         await LoadDashboardAsync();
     }
 
@@ -416,6 +574,48 @@ else if (dashboard != null)
         }
     }
 
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        try
+        {
+            isUploadingImage = true;
+            var uploadsDir = Path.Combine(Environment.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            var extension = Path.GetExtension(file.Name);
+            if (string.IsNullOrEmpty(extension)) extension = ".jpg";
+
+            var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow.Ticks}{extension}";
+            var fullPath = Path.Combine(uploadsDir, uniqueFileName);
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            using var fileStream = new FileStream(fullPath, FileMode.Create);
+            await stream.CopyToAsync(fileStream);
+
+            uploadedImageUrl = $"/uploads/{uniqueFileName}";
+            Toast.Success("Image attached!");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to process image: {ex.Message}");
+        }
+        finally
+        {
+            isUploadingImage = false;
+        }
+    }
+
+    private void RemoveUploadedImage()
+    {
+        uploadedImageUrl = null;
+    }
+
     private async Task PublishPostAsync()
     {
         if (string.IsNullOrWhiteSpace(newPostContent)) return;
@@ -423,10 +623,14 @@ else if (dashboard != null)
         isPublishingPost = true;
         try
         {
+            var images = !string.IsNullOrWhiteSpace(uploadedImageUrl)
+                ? new[] { uploadedImageUrl }
+                : null;
+
             var req = new CreatePostRequestModel(
                 selectedCommunityId > 0 ? selectedCommunityId : null,
                 newPostContent.Trim(),
-                null
+                images
             );
 
             var res = await PostApi.CreatePostAsync(req, _cts.Token);
@@ -434,6 +638,7 @@ else if (dashboard != null)
             {
                 Toast.Success("Post published successfully!");
                 newPostContent = string.Empty;
+                uploadedImageUrl = null;
                 await LoadDashboardAsync();
             }
             else
@@ -464,6 +669,109 @@ else if (dashboard != null)
         catch (Exception ex)
         {
             Toast.Error(ex.Message);
+        }
+    }
+
+    private void TogglePostMenu(int postId)
+    {
+        if (activeMenuPostId == postId)
+        {
+            activeMenuPostId = null;
+        }
+        else
+        {
+            activeMenuPostId = postId;
+        }
+    }
+
+    private async Task ToggleSavePost(int postId)
+    {
+        activeMenuPostId = null;
+        try
+        {
+            var res = await PostApi.ToggleSavePostAsync(postId, _cts.Token);
+            if (res.IsSuccess)
+            {
+                var isSaved = res.Data;
+                Toast.Success(isSaved ? "Post saved to your profile!" : "Post removed from saved.");
+                await LoadDashboardAsync();
+            }
+            else
+            {
+                Toast.Error(res.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+    }
+
+    private void OpenEditPost(PostModel post)
+    {
+        activeMenuPostId = null;
+        editingPostId = post.PostId;
+        editingPostContent = post.Content;
+        showEditModal = true;
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        editingPostId = null;
+        editingPostContent = string.Empty;
+    }
+
+    private async Task SaveEditPostAsync()
+    {
+        if (!editingPostId.HasValue || string.IsNullOrWhiteSpace(editingPostContent)) return;
+
+        isSavingEdit = true;
+        try
+        {
+            // Note: Per requirements, images are non-editable, only description
+            var req = new UpdatePostRequestModel(editingPostContent.Trim(), null);
+            var res = await PostApi.UpdatePostAsync(editingPostId.Value, req, _cts.Token);
+            if (res.IsSuccess)
+            {
+                Toast.Success("Post updated successfully!");
+                CloseEditModal();
+                await LoadDashboardAsync();
+            }
+            else
+            {
+                Toast.Error(res.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to update post: {ex.Message}");
+        }
+        finally
+        {
+            isSavingEdit = false;
+        }
+    }
+
+    private async Task DeletePost(int postId)
+    {
+        activeMenuPostId = null;
+        try
+        {
+            var res = await PostApi.DeletePostAsync(postId, _cts.Token);
+            if (res.IsSuccess)
+            {
+                Toast.Success("Post deleted successfully.");
+                await LoadDashboardAsync();
+            }
+            else
+            {
+                Toast.Error(res.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to delete post: {ex.Message}");
         }
     }
 

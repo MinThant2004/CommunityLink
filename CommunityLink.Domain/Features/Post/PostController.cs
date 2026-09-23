@@ -48,4 +48,9 @@ public sealed class PostController(IPostService postService) : BaseController
     [Authorize]
     public async Task<IActionResult> GetComments(int postId, CancellationToken cancellationToken) =>
         ToActionResult(await postService.GetCommentsAsync(postId, cancellationToken));
+
+    [HttpPost("{postId:int}/save")]
+    [Authorize]
+    public async Task<IActionResult> ToggleSavePost(int postId, CancellationToken cancellationToken) =>
+        ToActionResult(await postService.ToggleSavePostAsync(postId, cancellationToken));
 }

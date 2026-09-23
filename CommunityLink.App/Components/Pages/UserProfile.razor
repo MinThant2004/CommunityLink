@@ -109,6 +109,17 @@
                         else
                         {
                             <!-- Visitor View Action Buttons -->
+                            <button @onclick="ToggleFollowUserAsync" disabled="@isTogglingFollow" class="px-4 py-2.5 rounded-xl text-xs font-semibold border transition shadow-sm flex items-center gap-2 @(profile.Relationship.IsFollowedByMe ? "bg-indigo-600 text-white border-indigo-500 hover:bg-indigo-700" : "bg-white/10 hover:bg-white/20 text-white border-white/20")">
+                                @if (isTogglingFollow)
+                                {
+                                    <span class="animate-spin text-xs">⌛</span>
+                                }
+                                else
+                                {
+                                    <span>@(profile.Relationship.IsFollowedByMe ? "✓ Following" : "+ Follow")</span>
+                                }
+                            </button>
+
                             <button @onclick="ToggleSaveAccountAsync" disabled="@isSavingAccount" class="px-4 py-2.5 rounded-xl text-xs font-semibold border transition shadow-sm flex items-center gap-2 @(profile.Relationship.IsSavedByMe ? "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30" : "bg-white/10 hover:bg-white/20 text-white border-white/20")">
                                 @if (isSavingAccount)
                                 {
@@ -135,59 +146,79 @@
         </div>
 
         <!-- Metrics Overview Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
                 <div>
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Posts</div>
-                    <div class="text-2xl font-black text-slate-900 mt-1">@profile.Metrics.PostsCount</div>
+                    <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Posts</div>
+                    <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.PostsCount</div>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
                     📝
                 </div>
             </div>
 
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
                 <div>
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Communities</div>
-                    <div class="text-2xl font-black text-slate-900 mt-1">@profile.Metrics.JoinedCommunitiesCount</div>
+                    <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Followers</div>
+                    <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.FollowersCount</div>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+                    👥
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                <div>
+                    <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Following</div>
+                    <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.FollowingCount</div>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg">
+                    👣
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                <div>
+                    <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Communities</div>
+                    <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.JoinedCommunitiesCount</div>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
                     🏛️
                 </div>
             </div>
 
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
                 <div>
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rating</div>
-                    <div class="text-2xl font-black text-amber-500 mt-1">
+                    <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Rating</div>
+                    <div class="text-xl font-black text-amber-500 mt-1">
                         @(profile.Metrics.AverageRating.HasValue ? profile.Metrics.AverageRating.Value.ToString("0.0") : "—")
                     </div>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
                     ⭐
                 </div>
             </div>
 
             @if (isOwner)
             {
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
                     <div>
-                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saved Accounts</div>
-                        <div class="text-2xl font-black text-slate-900 mt-1">@profile.Metrics.SavedAccountsCount</div>
+                        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Saved Accounts</div>
+                        <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.SavedAccountsCount</div>
                     </div>
-                    <div class="w-11 h-11 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl">
-                        👥
+                    <div class="w-9 h-9 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-lg">
+                        🔖
                     </div>
                 </div>
             }
             else
             {
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
                     <div>
-                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reviews</div>
-                        <div class="text-2xl font-black text-slate-900 mt-1">@profile.Metrics.RatingCount</div>
+                        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Reviews</div>
+                        <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.RatingCount</div>
                     </div>
-                    <div class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl">
+                    <div class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg">
                         💬
                     </div>
                 </div>
@@ -211,6 +242,18 @@
                         <span>👥</span> Saved Accounts (@savedAccountsList.Count)
                     </button>
                 }
+
+                <button @onclick='() => SetTab("shares")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "shares" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
+                    <span>🔁</span> Shares (@sharesList.Count)
+                </button>
+
+                <button @onclick='() => SetTab("followers")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "followers" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
+                    <span>👥</span> Followers (@followersList.Count)
+                </button>
+
+                <button @onclick='() => SetTab("following")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "following" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
+                    <span>👣</span> Following (@followingList.Count)
+                </button>
 
                 <button @onclick='() => SetTab("communities")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "communities" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
                     <span>🏛️</span> Communities (@communitiesList.Count)
@@ -244,14 +287,41 @@
                         <div class="space-y-4">
                             @foreach (var post in postsList)
                             {
-                                <div class="p-5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition space-y-2">
+                                <div class="p-5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition space-y-3">
                                     <div class="flex items-center justify-between text-xs">
                                         <span class="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 font-bold">🏛️ @post.CommunityName</span>
                                         <span class="text-slate-400 font-medium">@post.CreatedAt.ToString("g")</span>
                                     </div>
-                                    <h3 class="font-bold text-base text-slate-900">@post.Title</h3>
-                                    <p class="text-slate-700 text-sm line-clamp-3 leading-relaxed">@post.Content</p>
-                                    <div class="flex items-center gap-4 text-xs font-semibold text-slate-500 pt-2">
+                                    @if (!string.IsNullOrWhiteSpace(post.Title))
+                                    {
+                                        <h3 class="font-bold text-base text-slate-900">@post.Title</h3>
+                                    }
+                                    <p class="text-slate-700 text-sm leading-relaxed whitespace-pre-line">@post.Content</p>
+
+                                    @if (post.ImageUrls != null && post.ImageUrls.Any())
+                                    {
+                                        <div class="rounded-xl overflow-hidden border border-slate-200/80 bg-slate-950 mt-2">
+                                            @if (post.ImageUrls.Count == 1)
+                                            {
+                                                <div class="max-h-96 overflow-hidden flex items-center justify-center">
+                                                    <img src="@post.ImageUrls[0]" alt="Post attachment" class="w-full h-auto max-h-96 object-contain" />
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="grid grid-cols-2 gap-1 p-1 bg-slate-200">
+                                                    @foreach (var img in post.ImageUrls)
+                                                    {
+                                                        <div class="h-48 overflow-hidden bg-slate-900 flex items-center justify-center">
+                                                            <img src="@img" alt="Post attachment" class="w-full h-full object-cover" />
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+
+                                    <div class="flex items-center gap-4 text-xs font-semibold text-slate-500 pt-2 border-t border-slate-200/60">
                                         <span>❤️ @post.LikeCount Likes</span>
                                         <span>💬 @post.CommentCount Comments</span>
                                     </div>
@@ -274,17 +344,44 @@
                         <div class="space-y-4">
                             @foreach (var post in savedPostsList)
                             {
-                                <div class="p-5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition space-y-2">
+                                <div class="p-5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition space-y-3">
                                     <div class="flex items-center justify-between text-xs">
                                         <div class="flex items-center gap-2">
                                             <span class="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 font-bold">🏛️ @post.CommunityName</span>
-                                            <span class="text-slate-500">by <strong>@@@post.AuthorUserName</strong></span>
+                                            <span class="text-slate-500">by <a href="u/@post.AuthorUserName" class="text-indigo-600 hover:underline"><strong>@@@post.AuthorUserName</strong></a></span>
                                         </div>
                                         <span class="text-slate-400 font-medium">@post.CreatedAt.ToString("g")</span>
                                     </div>
-                                    <h3 class="font-bold text-base text-slate-900">@post.Title</h3>
-                                    <p class="text-slate-700 text-sm line-clamp-3 leading-relaxed">@post.Content</p>
-                                    <div class="flex items-center gap-4 text-xs font-semibold text-slate-500 pt-2">
+                                    @if (!string.IsNullOrWhiteSpace(post.Title))
+                                    {
+                                        <h3 class="font-bold text-base text-slate-900">@post.Title</h3>
+                                    }
+                                    <p class="text-slate-700 text-sm leading-relaxed whitespace-pre-line">@post.Content</p>
+
+                                    @if (post.ImageUrls != null && post.ImageUrls.Any())
+                                    {
+                                        <div class="rounded-xl overflow-hidden border border-slate-200/80 bg-slate-950 mt-2">
+                                            @if (post.ImageUrls.Count == 1)
+                                            {
+                                                <div class="max-h-96 overflow-hidden flex items-center justify-center">
+                                                    <img src="@post.ImageUrls[0]" alt="Post attachment" class="w-full h-auto max-h-96 object-contain" />
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="grid grid-cols-2 gap-1 p-1 bg-slate-200">
+                                                    @foreach (var img in post.ImageUrls)
+                                                    {
+                                                        <div class="h-48 overflow-hidden bg-slate-900 flex items-center justify-center">
+                                                            <img src="@img" alt="Post attachment" class="w-full h-full object-cover" />
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+
+                                    <div class="flex items-center gap-4 text-xs font-semibold text-slate-500 pt-2 border-t border-slate-200/60">
                                         <span>❤️ @post.LikeCount Likes</span>
                                         <span>💬 @post.CommentCount Comments</span>
                                     </div>
@@ -410,6 +507,173 @@
                                     <div class="text-[11px] text-slate-400 font-medium text-right">
                                         @review.CreatedAt.ToString("g")
                                     </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else if (activeTab == "shares")
+                {
+                    @if (!sharesList.Any())
+                    {
+                        <div class="py-12 text-center text-slate-500">
+                            <span class="text-3xl">🔁</span>
+                            <p class="mt-2 text-sm font-semibold">No shared posts yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="space-y-4">
+                            @foreach (var share in sharesList)
+                            {
+                                <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+                                    <!-- Share Metadata -->
+                                    <div class="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-200/60">
+                                        <div class="flex items-center gap-2">
+                                            <span>🔁 Shared</span>
+                                            @if (!string.IsNullOrWhiteSpace(share.ShareNote))
+                                            {
+                                                <span class="text-slate-800 font-medium italic">"@share.ShareNote"</span>
+                                            }
+                                        </div>
+                                        <span>@share.SharedAt.ToString("g")</span>
+                                    </div>
+
+                                    <!-- Original Post Card -->
+                                    <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <div class="flex items-center gap-2">
+                                                @if (!string.IsNullOrWhiteSpace(share.AuthorAvatarUrl))
+                                                {
+                                                    <img src="@share.AuthorAvatarUrl" alt="@share.AuthorDisplayName" class="w-6 h-6 rounded-full object-cover" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-[10px]">
+                                                        @share.AuthorDisplayName.Substring(0, 1).ToUpper()
+                                                    </div>
+                                                }
+                                                <span class="font-bold text-slate-900">@share.AuthorDisplayName</span>
+                                                <span class="text-slate-400">@@@share.AuthorUserName</span>
+                                            </div>
+                                            @if (!string.IsNullOrWhiteSpace(share.CommunityName))
+                                            {
+                                                <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-medium">🏛️ @share.CommunityName</span>
+                                            }
+                                            else if (!string.IsNullOrWhiteSpace(share.GroupName))
+                                            {
+                                                <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-medium">👥 @share.GroupName</span>
+                                            }
+                                        </div>
+                                        <p class="text-slate-800 text-sm leading-relaxed whitespace-pre-line">@share.PostContent</p>
+
+                                        @if (share.ImageUrls != null && share.ImageUrls.Any())
+                                        {
+                                            <div class="rounded-xl overflow-hidden border border-slate-200/80 bg-slate-950 mt-2">
+                                                @if (share.ImageUrls.Count == 1)
+                                                {
+                                                    <div class="max-h-80 overflow-hidden flex items-center justify-center">
+                                                        <img src="@share.ImageUrls[0]" alt="Shared post attachment" class="w-full h-auto max-h-80 object-contain" />
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="grid grid-cols-2 gap-1 p-1 bg-slate-200">
+                                                        @foreach (var img in share.ImageUrls)
+                                                        {
+                                                            <div class="h-40 overflow-hidden bg-slate-900 flex items-center justify-center">
+                                                                <img src="@img" alt="Shared post attachment" class="w-full h-full object-cover" />
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+
+                                        <div class="flex items-center gap-4 text-xs font-semibold text-slate-500 pt-1 border-t border-slate-100">
+                                            <span>❤️ @share.LikeCount Likes</span>
+                                            <span>💬 @share.CommentCount Comments</span>
+                                            <span class="text-slate-400 font-normal ml-auto">@share.PostCreatedAt.ToString("g")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else if (activeTab == "followers")
+                {
+                    @if (!followersList.Any())
+                    {
+                        <div class="py-12 text-center text-slate-500">
+                            <span class="text-3xl">👥</span>
+                            <p class="mt-2 text-sm font-semibold">No followers yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            @foreach (var user in followersList)
+                            {
+                                <div class="p-4 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        @if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
+                                        {
+                                            <img src="@user.AvatarUrl" alt="@user.DisplayName" class="w-10 h-10 rounded-xl object-cover shrink-0" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center shrink-0">
+                                                @user.DisplayName.Substring(0, 1).ToUpper()
+                                            </div>
+                                        }
+                                        <div class="min-w-0">
+                                            <a href="u/@user.UserName" class="font-bold text-xs text-slate-900 hover:text-indigo-600 transition truncate block">@user.DisplayName</a>
+                                            <p class="text-[11px] text-slate-400 truncate">@@@user.UserName</p>
+                                        </div>
+                                    </div>
+                                    <a href="u/@user.UserName" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition shrink-0">
+                                        View
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else if (activeTab == "following")
+                {
+                    @if (!followingList.Any())
+                    {
+                        <div class="py-12 text-center text-slate-500">
+                            <span class="text-3xl">👣</span>
+                            <p class="mt-2 text-sm font-semibold">Not following anyone yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            @foreach (var user in followingList)
+                            {
+                                <div class="p-4 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/80 transition flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        @if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
+                                        {
+                                            <img src="@user.AvatarUrl" alt="@user.DisplayName" class="w-10 h-10 rounded-xl object-cover shrink-0" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-10 h-10 rounded-xl bg-sky-600 text-white font-bold text-sm flex items-center justify-center shrink-0">
+                                                @user.DisplayName.Substring(0, 1).ToUpper()
+                                            </div>
+                                        }
+                                        <div class="min-w-0">
+                                            <a href="u/@user.UserName" class="font-bold text-xs text-slate-900 hover:text-indigo-600 transition truncate block">@user.DisplayName</a>
+                                            <p class="text-[11px] text-slate-400 truncate">@@@user.UserName</p>
+                                        </div>
+                                    </div>
+                                    <a href="u/@user.UserName" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition shrink-0">
+                                        View
+                                    </a>
                                 </div>
                             }
                         </div>
@@ -583,6 +847,9 @@
     private List<UserPostItemDto> postsList = new();
     private List<UserPostItemDto> savedPostsList = new();
     private List<SavedAccountItemDto> savedAccountsList = new();
+    private List<UserSharedPostItemDto> sharesList = new();
+    private List<FollowUserItemDto> followersList = new();
+    private List<FollowUserItemDto> followingList = new();
     private List<UserCommunityItemDto> communitiesList = new();
     private List<UserRatingItemDto> reviewsList = new();
 
@@ -596,6 +863,7 @@
 
     // Save Account Action
     private bool isSavingAccount;
+    private bool isTogglingFollow;
 
     // Rating Modal
     private bool showRatingModal;
@@ -630,7 +898,18 @@
             {
                 profile = res.Data;
                 isOwner = profile.Relationship.IsSelf || string.IsNullOrWhiteSpace(UserNameOrId);
-                await SetTab("posts");
+                
+                var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+                var defaultTab = "posts";
+                if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("tab", out var tabVal))
+                {
+                    var tabStr = tabVal.ToString().ToLowerInvariant();
+                    if (!string.IsNullOrWhiteSpace(tabStr))
+                    {
+                        defaultTab = tabStr;
+                    }
+                }
+                await SetTab(defaultTab);
             }
             else
             {
@@ -675,6 +954,18 @@
                         if (saRes.IsSuccess && saRes.Data != null) savedAccountsList = saRes.Data;
                     }
                     break;
+                case "shares":
+                    var shRes = await ProfileApi.GetUserSharesAsync(profile.UserId, _cts.Token);
+                    if (shRes.IsSuccess && shRes.Data != null) sharesList = shRes.Data;
+                    break;
+                case "followers":
+                    var flRes = await ProfileApi.GetFollowersAsync(profile.UserId, _cts.Token);
+                    if (flRes.IsSuccess && flRes.Data != null) followersList = flRes.Data;
+                    break;
+                case "following":
+                    var fgRes = await ProfileApi.GetFollowingAsync(profile.UserId, _cts.Token);
+                    if (fgRes.IsSuccess && fgRes.Data != null) followingList = fgRes.Data;
+                    break;
                 case "communities":
                     var cRes = await ProfileApi.GetUserCommunitiesAsync(profile.UserId, _cts.Token);
                     if (cRes.IsSuccess && cRes.Data != null) communitiesList = cRes.Data;
@@ -692,6 +983,39 @@
         finally
         {
             isTabLoading = false;
+        }
+    }
+
+    // Toggle Follow User
+    private async Task ToggleFollowUserAsync()
+    {
+        if (profile == null || isOwner) return;
+        isTogglingFollow = true;
+        try
+        {
+            var res = await ProfileApi.ToggleFollowUserAsync(profile.UserId, _cts.Token);
+            if (res.IsSuccess)
+            {
+                var isFollowed = res.Data;
+                profile.Relationship.IsFollowedByMe = isFollowed;
+                profile.Metrics.FollowersCount += isFollowed ? 1 : -1;
+                if (profile.Metrics.FollowersCount < 0) profile.Metrics.FollowersCount = 0;
+
+                Toast.Success(isFollowed ? $"You are now following {profile.DisplayName}!" : $"Unfollowed {profile.DisplayName}.");
+                if (activeTab == "followers") await SetTab("followers");
+            }
+            else
+            {
+                Toast.Error(res.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+        finally
+        {
+            isTogglingFollow = false;
         }
     }
 

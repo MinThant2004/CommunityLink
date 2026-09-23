@@ -17,7 +17,34 @@ public sealed record GroupModel(
     int PostCount,
     DateTime CreatedAt,
     bool IsJoined = false,
-    string UserJoinStatus = "NONE" // NONE | PENDING | JOINED
+    string UserJoinStatus = "NONE", // NONE | PENDING | JOINED
+    double? AverageRating = null,
+    int RatingCount = 0
+);
+
+public sealed record GroupRatingDto(
+    int GroupRatingId,
+    int GroupId,
+    int UserId,
+    string UserName,
+    string DisplayName,
+    string? UserAvatar,
+    int Score,
+    string? ReviewText,
+    DateTime CreatedAt,
+    DateTime? UpdatedAt
+);
+
+public sealed record SubmitGroupRatingRequestModel(
+    int Score,
+    string? ReviewText
+);
+
+public sealed record GroupRatingSummaryDto(
+    double AverageScore,
+    int TotalRatings,
+    GroupRatingDto? UserRating,
+    IReadOnlyList<GroupRatingDto> Ratings
 );
 
 public sealed record CreateGroupRequestModel(

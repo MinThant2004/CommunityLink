@@ -141,6 +141,39 @@ public class UsersController : BaseController
         return ToActionResult(result);
     }
 
+    [Authorize]
+    [HttpPost("{targetUserId}/toggle-follow")]
+    public async Task<IActionResult> ToggleFollow(int targetUserId, CancellationToken cancellationToken)
+    {
+        var userId = CurrentUserId;
+        if (userId == null)
+            return Unauthorized(Result.Failure("Authentication required.", ResultStatus.Unauthorized));
+
+        var result = await _userProfileService.ToggleFollowUserAsync(userId.Value, targetUserId, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [HttpGet("{targetUserId}/followers")]
+    public async Task<IActionResult> GetFollowers(int targetUserId, CancellationToken cancellationToken)
+    {
+        var result = await _userProfileService.GetFollowersAsync(targetUserId, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [HttpGet("{targetUserId}/following")]
+    public async Task<IActionResult> GetFollowing(int targetUserId, CancellationToken cancellationToken)
+    {
+        var result = await _userProfileService.GetFollowingAsync(targetUserId, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [HttpGet("{targetUserId}/shares")]
+    public async Task<IActionResult> GetUserShares(int targetUserId, CancellationToken cancellationToken)
+    {
+        var result = await _userProfileService.GetUserSharesAsync(targetUserId, CurrentUserId, cancellationToken);
+        return ToActionResult(result);
+    }
+
     private int? CurrentUserId
     {
         get

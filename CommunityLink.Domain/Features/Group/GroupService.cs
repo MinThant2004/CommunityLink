@@ -5,6 +5,8 @@ using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Group;
 
 using CommunityLink.Domain.Features.Notification;
+using CommunityLink.Domain.Features.RoleAndPermission;
+using CommunityLink.Shared.Security;
 
 namespace CommunityLink.Domain.Features.Group;
 
@@ -19,9 +21,15 @@ public interface IGroupService
     Task<Result<IReadOnlyList<GroupMemberModel>>> GetGroupMembersAsync(int groupId, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<GroupJoinRequestModel>>> GetGroupJoinRequestsAsync(int groupId, CancellationToken cancellationToken = default);
     Task<Result> ReviewJoinRequestAsync(int requestId, bool approve, CancellationToken cancellationToken = default);
+    Task<Result<GroupRatingSummaryDto>> GetGroupRatingsAsync(int groupId, CancellationToken cancellationToken = default);
+    Task<Result<GroupRatingDto>> RateGroupAsync(int groupId, SubmitGroupRatingRequestModel request, CancellationToken cancellationToken = default);
 }
 
-public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext currentUser, INotificationService notificationService) : IGroupService
+public sealed class GroupService(
+    AppDbContext dbContext,
+    ICurrentUserContext currentUser,
+    INotificationService notificationService,
+    IPermissionEvaluator permissionEvaluator) : IGroupService
 {
     public async Task<Result<IReadOnlyList<GroupModel>>> GetGroupsAsync(int? subCommunityId, string? search, CancellationToken cancellationToken = default)
     {
@@ -49,11 +57,19 @@ public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext cur
 
         var groups = await query.ToListAsync(cancellationToken);
 
+        var groupIds = groups.Select(g => g.GroupId).ToList();
+        var ratingsData = await dbContext.TblGroupRatings
+            .Where(r => groupIds.Contains(r.GroupId) && !r.IsDeleted)
+            .GroupBy(r => r.GroupId)
+            .Select(g => new { GroupId = g.Key, Avg = Math.Round(g.Average(r => r.Score), 1), Count = g.Count() })
+            .ToDictionaryAsync(x => x.GroupId, cancellationToken);
+
         var list = groups.Select(g =>
         {
             var isMember = currentUserId.HasValue && g.TblGroupMembers.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
             var isPending = currentUserId.HasValue && g.TblGroupJoinRequests.Any(r => r.UserId == currentUserId.Value && r.Status == "PENDING" && !r.IsDeleted);
             var joinStatus = isMember ? "JOINED" : (isPending ? "PENDING" : "NONE");
+            ratingsData.TryGetValue(g.GroupId, out var rData);
 
             return new GroupModel(
                 g.GroupId,
@@ -72,7 +88,9 @@ public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext cur
                 g.TblPosts.Count(p => !p.IsDeleted),
                 g.CreatedAt,
                 isMember,
-                joinStatus
+                joinStatus,
+                rData?.Avg,
+                rData?.Count ?? 0
             );
         }).ToList();
 
@@ -96,6 +114,10 @@ public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext cur
         var isPending = currentUserId.HasValue && g.TblGroupJoinRequests.Any(r => r.UserId == currentUserId.Value && r.Status == "PENDING" && !r.IsDeleted);
         var joinStatus = isMember ? "JOINED" : (isPending ? "PENDING" : "NONE");
 
+        var ratingsQuery = dbContext.TblGroupRatings.Where(r => r.GroupId == groupId && !r.IsDeleted);
+        var ratingCount = await ratingsQuery.CountAsync(cancellationToken);
+        double? avgRating = ratingCount > 0 ? Math.Round(await ratingsQuery.AverageAsync(r => r.Score, cancellationToken), 1) : null;
+
         var model = new GroupModel(
             g.GroupId,
             g.SubCommunityId,
@@ -113,7 +135,9 @@ public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext cur
             g.TblPosts.Count(p => !p.IsDeleted),
             g.CreatedAt,
             isMember,
-            joinStatus
+            joinStatus,
+            avgRating,
+            ratingCount
         );
 
         return Result<GroupModel>.Success(model);
@@ -138,6 +162,13 @@ public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext cur
         if (subCommunity is null)
         {
             return Result<GroupModel>.Failure("The selected sub-community does not exist.", ResultStatus.NotFound);
+        }
+
+        // Check permission to create group
+        var hasGroupCreatePerm = await permissionEvaluator.HasPermissionAsync(PermissionCatalog.GroupCreate, cancellationToken);
+        if (!hasGroupCreatePerm && !currentUser.IsAdmin)
+        {
+            return Result<GroupModel>.Failure("You do not have permission to create groups.", ResultStatus.Forbidden);
         }
 
         // Resolve creator ID
@@ -506,5 +537,156 @@ public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext cur
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success(approve ? "Join request approved!" : "Join request rejected.");
+    }
+
+    public async Task<Result<GroupRatingSummaryDto>> GetGroupRatingsAsync(int groupId, CancellationToken cancellationToken = default)
+    {
+        var groupExists = await dbContext.TblGroups.AnyAsync(g => g.GroupId == groupId && !g.IsDeleted, cancellationToken);
+        if (!groupExists)
+        {
+            return Result<GroupRatingSummaryDto>.Failure("Group not found.", ResultStatus.NotFound);
+        }
+
+        var currentUserId = currentUser.UserId;
+
+        var ratings = await dbContext.TblGroupRatings
+            .Include(r => r.User)
+            .Where(r => r.GroupId == groupId && !r.IsDeleted)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new GroupRatingDto(
+                r.GroupRatingId,
+                r.GroupId,
+                r.UserId,
+                r.User.UserName,
+                string.IsNullOrWhiteSpace(r.User.DisplayName) ? r.User.UserName : r.User.DisplayName,
+                r.User.AvatarUrl,
+                r.Score,
+                r.ReviewText,
+                r.CreatedAt,
+                r.UpdatedAt))
+            .ToListAsync(cancellationToken);
+
+        var totalRatings = ratings.Count;
+        var averageScore = totalRatings > 0 ? Math.Round(ratings.Average(r => r.Score), 1) : 0.0;
+        var userRating = currentUserId.HasValue ? ratings.FirstOrDefault(r => r.UserId == currentUserId.Value) : null;
+
+        var summary = new GroupRatingSummaryDto(
+            averageScore,
+            totalRatings,
+            userRating,
+            ratings
+        );
+
+        return Result<GroupRatingSummaryDto>.Success(summary);
+    }
+
+    public async Task<Result<GroupRatingDto>> RateGroupAsync(int groupId, SubmitGroupRatingRequestModel request, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null)
+        {
+            return Result<GroupRatingDto>.Failure("Unauthorized", ResultStatus.Unauthorized);
+        }
+
+        var userId = currentUser.UserId.Value;
+
+        if (request.Score < 1 || request.Score > 5)
+        {
+            return Result<GroupRatingDto>.Failure("Rating score must be between 1 and 5.", ResultStatus.ValidationError);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.ReviewText) && request.ReviewText.Length > 1000)
+        {
+            return Result<GroupRatingDto>.Failure("Review text cannot exceed 1000 characters.", ResultStatus.ValidationError);
+        }
+
+        var group = await dbContext.TblGroups
+            .Include(g => g.TblGroupMembers)
+            .FirstOrDefaultAsync(g => g.GroupId == groupId && !g.IsDeleted, cancellationToken);
+
+        if (group == null)
+        {
+            return Result<GroupRatingDto>.Failure("Group not found.", ResultStatus.NotFound);
+        }
+
+        // Verify that the user is an active member of the group
+        var isMember = group.TblGroupMembers.Any(m => m.UserId == userId && !m.IsDeleted);
+        if (!isMember)
+        {
+            return Result<GroupRatingDto>.Failure("Only members in this group can give a rating or review.", ResultStatus.Forbidden);
+        }
+
+        var existingRating = await dbContext.TblGroupRatings
+            .FirstOrDefaultAsync(r => r.GroupId == groupId && r.UserId == userId && !r.IsDeleted, cancellationToken);
+
+        var now = DateTime.UtcNow;
+        bool isNewRating = false;
+
+        if (existingRating != null)
+        {
+            existingRating.Score = request.Score;
+            existingRating.ReviewText = request.ReviewText?.Trim();
+            existingRating.UpdatedAt = now;
+            existingRating.UpdatedBy = userId;
+        }
+        else
+        {
+            isNewRating = true;
+            existingRating = new TblGroupRating
+            {
+                GroupId = groupId,
+                UserId = userId,
+                Score = request.Score,
+                ReviewText = request.ReviewText?.Trim(),
+                CreatedAt = now,
+                CreatedBy = userId
+            };
+            await dbContext.TblGroupRatings.AddAsync(existingRating, cancellationToken);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify the group creator / owner if rater is not the creator
+        if (group.CreatorId != userId)
+        {
+            var reviewer = await dbContext.TblUsers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+
+            var reviewerName = reviewer != null
+                ? (!string.IsNullOrWhiteSpace(reviewer.DisplayName) ? reviewer.DisplayName : reviewer.UserName)
+                : "A member";
+
+            var notifTitle = isNewRating ? "New Group Review" : "Group Review Updated";
+            var notifMessage = $"{reviewerName} rated {group.Name} ({request.Score} ⭐): \"{(string.IsNullOrWhiteSpace(request.ReviewText) ? "No comment" : (request.ReviewText.Length > 60 ? request.ReviewText.Substring(0, 57) + "..." : request.ReviewText))}\"";
+
+            await notificationService.CreateNotificationAsync(
+                recipientUserId: group.CreatorId,
+                actorUserId: userId,
+                notificationType: "GROUP_RATING",
+                title: notifTitle,
+                message: notifMessage,
+                targetEntityName: "GROUP_RATING",
+                targetEntityId: groupId,
+                cancellationToken: cancellationToken);
+        }
+
+        var user = await dbContext.TblUsers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+
+        var dto = new GroupRatingDto(
+            existingRating.GroupRatingId,
+            existingRating.GroupId,
+            existingRating.UserId,
+            user?.UserName ?? "User",
+            string.IsNullOrWhiteSpace(user?.DisplayName) ? (user?.UserName ?? "User") : user.DisplayName,
+            user?.AvatarUrl,
+            existingRating.Score,
+            existingRating.ReviewText,
+            existingRating.CreatedAt,
+            existingRating.UpdatedAt
+        );
+
+        return Result<GroupRatingDto>.Success(dto, isNewRating ? "Rating submitted successfully!" : "Rating updated successfully!");
     }
 }

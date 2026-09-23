@@ -2,6 +2,8 @@
 @layout AdminLayout
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
 @inject AdministrationApiService AdminApi
+@inject RoleAndPermissionApiService RoleApi
+@inject ToastService Toast
 
 <PageTitle>User Management — Admin Control Panel</PageTitle>
 
@@ -46,7 +48,7 @@
                             <th class="px-6 py-3">Display Name</th>
                             <th class="px-6 py-3">Username</th>
                             <th class="px-6 py-3">Email</th>
-                            <th class="px-6 py-3">Role</th>
+                            <th class="px-6 py-3">Assigned Role</th>
                             <th class="px-6 py-3">Status</th>
                             <th class="px-6 py-3">Registered Date</th>
                         </tr>
@@ -60,9 +62,23 @@
                                 <td class="px-6 py-4 text-indigo-600 font-medium">@@@u.UserName</td>
                                 <td class="px-6 py-4 text-slate-600">@u.Email</td>
                                 <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold @(u.RoleCode == "ADMIN" || u.RoleCode == "SUPERADMIN" ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-indigo-50 text-indigo-700 border border-indigo-200")">
-                                        @u.RoleCode
-                                    </span>
+                                    <select value="@u.RoleId" @onchange="(e) => OnRoleSelected(u.UserId, e)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+                                        @if (availableRoles != null)
+                                        {
+                                            @if (!availableRoles.Any(r => r.RoleId == u.RoleId))
+                                            {
+                                                <option value="@u.RoleId" disabled selected>@u.RoleCode (Default)</option>
+                                            }
+                                            @foreach (var r in availableRoles)
+                                            {
+                                                <option value="@r.RoleId">@r.Name (@r.Code)</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option value="@u.RoleId">@u.RoleCode</option>
+                                        }
+                                    </select>
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold @(u.IsActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-slate-100 text-slate-600 border border-slate-300")">
@@ -93,6 +109,7 @@
 @code {
     private bool isLoading = true;
     private IReadOnlyList<UserInfoModel>? users;
+    private IReadOnlyList<CommunityLink.Shared.Features.RoleAndPermission.RoleModel>? availableRoles;
     private string searchFilter = "";
     private int pageNumber = 1;
     private int pageSize = 10;
@@ -101,7 +118,21 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadRolesAsync();
         await LoadUsersAsync();
+    }
+
+    private async Task LoadRolesAsync()
+    {
+        var res = await RoleApi.GetRolesAsync();
+        if (res.IsSuccess && res.Data != null)
+        {
+            // Per requirements: Remove default 'User' role (and 'Member') so admins only assign Domain Professional, Public Figure, etc.
+            availableRoles = res.Data
+                .Where(r => !r.Code.Equals("USER", StringComparison.OrdinalIgnoreCase)
+                         && !r.Code.Equals("MEMBER", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
     }
 
     private async Task LoadUsersAsync()
@@ -114,6 +145,23 @@
             totalCount = res.Data.TotalCount;
         }
         isLoading = false;
+    }
+
+    private async Task OnRoleSelected(int userId, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var roleId))
+        {
+            var res = await AdminApi.AssignUserRoleAsync(new CommunityLink.Shared.Features.Authentication.AssignUserRoleRequestModel(userId, roleId));
+            if (res.IsSuccess)
+            {
+                Toast.Success("Role updated successfully!");
+                await LoadUsersAsync();
+            }
+            else
+            {
+                Toast.Error(res.Message);
+            }
+        }
     }
 
     private async Task OnSearchChanged()

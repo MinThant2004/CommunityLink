@@ -48,3 +48,5 @@ public sealed record UserInfoModel(
     int RoleId,
     bool IsActive,
     DateTime CreatedAt);
+
+public sealed record AssignUserRoleRequestModel(int UserId, int RoleId);

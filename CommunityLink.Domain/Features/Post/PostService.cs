@@ -3,8 +3,9 @@ using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Post;
-
 using CommunityLink.Domain.Features.Notification;
+using CommunityLink.Domain.Features.RoleAndPermission;
+using CommunityLink.Shared.Security;
 
 namespace CommunityLink.Domain.Features.Post;
 
@@ -18,83 +19,107 @@ public interface IPostService
     Task<Result<PostModel>> UpdatePostAsync(int postId, UpdatePostRequestModel request, CancellationToken cancellationToken = default);
     Task<Result> DeletePostAsync(int postId, CancellationToken cancellationToken = default);
     Task<Result> SharePostAsync(int postId, SharePostRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result<bool>> ToggleSavePostAsync(int postId, CancellationToken cancellationToken = default);
 }
 
-public sealed class PostService(AppDbContext dbContext, ICurrentUserContext currentUser, INotificationService notificationService) : IPostService
+public sealed class PostService(
+    AppDbContext dbContext,
+    ICurrentUserContext currentUser,
+    INotificationService notificationService,
+    IPermissionEvaluator permissionEvaluator) : IPostService
 {
     public async Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default)
     {
-        var currentUserId = currentUser.UserId;
-
-        if (groupId.HasValue && groupId.Value > 0)
+        try
         {
-            var grp = await dbContext.TblGroups
-                .Include(g => g.TblGroupMembers)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(g => g.GroupId == groupId.Value && !g.IsDeleted, cancellationToken);
+            var currentUserId = currentUser.UserId;
 
-            if (grp == null)
+            if (groupId.HasValue && groupId.Value > 0)
             {
-                return Result<IReadOnlyList<PostModel>>.Failure("Group not found.", ResultStatus.NotFound);
-            }
+                var grp = await dbContext.TblGroups
+                    .Include(g => g.TblGroupMembers)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(g => g.GroupId == groupId.Value && !g.IsDeleted, cancellationToken);
 
-            if (grp.Visibility == "PRIVATE")
-            {
-                var isMember = currentUserId.HasValue && grp.TblGroupMembers.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
-                if (!isMember)
+                if (grp == null)
                 {
-                    return Result<IReadOnlyList<PostModel>>.Success([]);
+                    return Result<IReadOnlyList<PostModel>>.Failure("Group not found.", ResultStatus.NotFound);
+                }
+
+                if (grp.Visibility == "PRIVATE")
+                {
+                    var isMember = currentUserId.HasValue && grp.TblGroupMembers.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
+                    if (!isMember)
+                    {
+                        return Result<IReadOnlyList<PostModel>>.Success([]);
+                    }
                 }
             }
+
+            var query = dbContext.TblPosts
+                .Include(p => p.Author)
+                .Include(p => p.Community)
+                .Include(p => p.Group)
+                .Include(p => p.TblPostImages)
+                .Include(p => p.TblPostLikes)
+                .Include(p => p.TblComments)
+                .Include(p => p.TblPostShares)
+                .Include(p => p.TblSavedPosts)
+                .Where(p => !p.IsDeleted && !p.HasPoll)
+                .AsSplitQuery()
+                .AsNoTracking();
+
+            if (groupId.HasValue && groupId.Value > 0)
+            {
+                query = query.Where(p => p.GroupId == groupId.Value);
+            }
+            else if (communityId.HasValue && communityId.Value > 0)
+            {
+                query = query.Where(p => p.CommunityId == communityId.Value);
+            }
+
+            var posts = await query.OrderByDescending(p => p.CreatedAt).Take(50).ToListAsync(cancellationToken);
+
+            var list = posts.Select(p => new PostModel(
+                p.PostId,
+                p.CommunityId,
+                p.Community?.Name,
+                p.GroupId,
+                p.Group?.Name,
+                p.AuthorId,
+                p.Author != null ? (string.IsNullOrWhiteSpace(p.Author.DisplayName) ? p.Author.UserName : p.Author.DisplayName) : "Unknown",
+                p.Author?.AvatarUrl,
+                p.Content,
+                p.HasPoll,
+                p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
+                p.TblPostLikes.Count(l => !l.IsDeleted),
+                p.TblComments.Count(c => !c.IsDeleted),
+                p.TblPostShares.Count(s => !s.IsDeleted),
+                currentUserId.HasValue && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
+                currentUserId.HasValue && p.TblSavedPosts.Any(s => s.UserId == currentUserId.Value && !s.IsDeleted),
+                p.CreatedAt)).ToList();
+
+            return Result<IReadOnlyList<PostModel>>.Success(list);
         }
-
-        var query = dbContext.TblPosts
-            .Include(p => p.Author)
-            .Include(p => p.Community)
-            .Include(p => p.Group)
-            .Include(p => p.TblPostImages)
-            .Include(p => p.TblPostLikes)
-            .Include(p => p.TblComments)
-            .Include(p => p.TblPostShares)
-            .Where(p => !p.IsDeleted && !p.HasPoll)
-            .AsNoTracking();
-
-        if (groupId.HasValue && groupId.Value > 0)
+        catch (OperationCanceledException)
         {
-            query = query.Where(p => p.GroupId == groupId.Value);
+            return Result<IReadOnlyList<PostModel>>.Success([]);
         }
-        else if (communityId.HasValue && communityId.Value > 0)
-        {
-            query = query.Where(p => p.CommunityId == communityId.Value);
-        }
-
-        var posts = await query.OrderByDescending(p => p.CreatedAt).Take(50).ToListAsync(cancellationToken);
-
-        var list = posts.Select(p => new PostModel(
-            p.PostId,
-            p.CommunityId,
-            p.Community?.Name,
-            p.GroupId,
-            p.Group?.Name,
-            p.AuthorId,
-            p.Author != null ? (string.IsNullOrWhiteSpace(p.Author.DisplayName) ? p.Author.UserName : p.Author.DisplayName) : "Unknown",
-            p.Author?.AvatarUrl,
-            p.Content,
-            p.HasPoll,
-            p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
-            p.TblPostLikes.Count,
-            p.TblComments.Count(c => !c.IsDeleted),
-            p.TblPostShares.Count,
-            currentUserId.HasValue && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value),
-            false,
-            p.CreatedAt)).ToList();
-
-        return Result<IReadOnlyList<PostModel>>.Success(list);
     }
 
     public async Task<Result<PostModel>> CreatePostAsync(CreatePostRequestModel request, CancellationToken cancellationToken = default)
     {
         if (currentUser.UserId is null) return Result<PostModel>.Failure("Unauthorized", ResultStatus.Unauthorized);
+
+        // Standalone post check
+        if (!request.GroupId.HasValue)
+        {
+            var canPostStandalone = await permissionEvaluator.HasPermissionAsync(PermissionCatalog.PostStandaloneCreate, cancellationToken);
+            if (!canPostStandalone && !currentUser.IsAdmin)
+            {
+                return Result<PostModel>.Failure("You can only post inside a group you have joined. Standalone posting is not permitted for your role.", ResultStatus.Forbidden);
+            }
+        }
 
         int? communityId = request.CommunityId;
         if (request.GroupId.HasValue)
@@ -420,5 +445,37 @@ public sealed class PostService(AppDbContext dbContext, ICurrentUserContext curr
             .ToListAsync(cancellationToken);
 
         return Result<IReadOnlyList<CommentModel>>.Success(list);
+    }
+
+    public async Task<Result<bool>> ToggleSavePostAsync(int postId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result<bool>.Failure("Unauthorized", ResultStatus.Unauthorized);
+
+        var post = await dbContext.TblPosts.FirstOrDefaultAsync(p => p.PostId == postId && !p.IsDeleted, cancellationToken);
+        if (post == null) return Result<bool>.Failure("Post not found.", ResultStatus.NotFound);
+
+        var existingSave = await dbContext.TblSavedPosts
+            .FirstOrDefaultAsync(s => s.PostId == postId && s.UserId == currentUser.UserId.Value && !s.IsDeleted, cancellationToken);
+
+        bool isSaved;
+        if (existingSave != null)
+        {
+            dbContext.TblSavedPosts.Remove(existingSave);
+            isSaved = false;
+        }
+        else
+        {
+            dbContext.TblSavedPosts.Add(new TblSavedPost
+            {
+                PostId = postId,
+                UserId = currentUser.UserId.Value,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = currentUser.UserId.Value
+            });
+            isSaved = true;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result<bool>.Success(isSaved, isSaved ? "Post saved successfully." : "Post removed from saved.");
     }
 }

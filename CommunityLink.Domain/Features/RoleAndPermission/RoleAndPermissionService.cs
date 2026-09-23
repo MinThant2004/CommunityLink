@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.RoleAndPermission;
+using CommunityLink.Domain.Security;
 
 namespace CommunityLink.Domain.Features.RoleAndPermission;
 
@@ -10,10 +11,30 @@ public interface IRoleAndPermissionService
     Task<Result<IReadOnlyList<RoleModel>>> GetRolesAsync(CancellationToken cancellationToken = default);
     Task<Result<RolePermissionMatrixResponseModel>> GetRolePermissionsAsync(int roleId, CancellationToken cancellationToken = default);
     Task<Result> UpdateRolePermissionsAsync(UpdateRolePermissionsRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<string>>> GetCurrentUserPermissionsAsync(CancellationToken cancellationToken = default);
 }
 
-public sealed class RoleAndPermissionService(AppDbContext dbContext) : IRoleAndPermissionService
+public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUserContext currentUser) : IRoleAndPermissionService
 {
+    public async Task<Result<IReadOnlyList<string>>> GetCurrentUserPermissionsAsync(CancellationToken cancellationToken = default)
+    {
+        if (currentUser.RoleId is null)
+            return Result<IReadOnlyList<string>>.Success([]);
+
+        if (string.Equals(currentUser.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase))
+        {
+            var all = await dbContext.TblPermissions.Where(p => !p.IsDeleted).Select(p => p.PermissionCode).ToListAsync(cancellationToken);
+            return Result<IReadOnlyList<string>>.Success(all);
+        }
+
+        var perms = await dbContext.TblRolePermissions
+            .AsNoTracking()
+            .Where(rp => rp.RoleId == currentUser.RoleId.Value && !rp.IsDeleted)
+            .Select(rp => rp.Permission.PermissionCode)
+            .ToListAsync(cancellationToken);
+
+        return Result<IReadOnlyList<string>>.Success(perms);
+    }
     public async Task<Result<IReadOnlyList<RoleModel>>> GetRolesAsync(CancellationToken cancellationToken = default)
     {
         var roles = await dbContext.TblRoles

@@ -16,6 +16,7 @@ public static class PermissionCatalog
     public const string PostView = "POST.VIEW";
     public const string PostCreate = "POST.CREATE";
     public const string PostDelete = "POST.DELETE";
+    public const string PostStandaloneCreate = "POST.STANDALONE.CREATE";
 
     // Polls
     public const string PollView = "POLL.VIEW";
@@ -48,6 +49,7 @@ public static class PermissionCatalog
         new(PostView, "View Feed Posts", "Post", "/feed", true, true),
         new(PostCreate, "Create Post", "Post", "/feed", true, true),
         new(PostDelete, "Delete Post / Moderation", "Post", null, true, false),
+        new(PostStandaloneCreate, "Create Standalone Post & Poll", "Post", null, true, false),
         new(PollView, "View Polls", "Poll", "/polls", true, true),
         new(PollVote, "Vote on Polls", "Poll", "/polls", true, true),
         new(PollCreate, "Create Polls", "Poll", "/polls/create", true, false),
@@ -63,6 +65,7 @@ public static class PermissionCatalog
         "ADMIN" => All.Select(x => x.Code).ToArray(),
         "MODERATOR" => All.Where(x => x.AdminDefault || x.MemberDefault).Select(x => x.Code).ToArray(),
         "MEMBER" => All.Where(x => x.MemberDefault).Select(x => x.Code).ToArray(),
+        "USER" => All.Where(x => x.MemberDefault).Select(x => x.Code).ToArray(),
         _ => []
     };
 }

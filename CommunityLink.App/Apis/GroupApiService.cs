@@ -40,4 +40,10 @@ public sealed class GroupApiService(IHttpClientFactory clientFactory, IHttpConte
 
     public Task<Result> RejectJoinRequestAsync(int requestId, CancellationToken cancellationToken = default) =>
         PostAsync($"api/groups/join-requests/{requestId}/reject", new { }, cancellationToken);
+
+    public Task<Result<GroupRatingSummaryDto>> GetGroupRatingsAsync(int groupId, CancellationToken cancellationToken = default) =>
+        GetAsync<GroupRatingSummaryDto>($"api/groups/{groupId}/ratings", cancellationToken);
+
+    public Task<Result<GroupRatingDto>> RateGroupAsync(int groupId, SubmitGroupRatingRequestModel request, CancellationToken cancellationToken = default) =>
+        PostAsync<GroupRatingDto, SubmitGroupRatingRequestModel>($"api/groups/{groupId}/ratings", request, cancellationToken);
 }

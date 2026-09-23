@@ -239,6 +239,13 @@ public sealed class NotificationService(AppDbContext dbContext, ICurrentUserCont
                     // Navigate directly to the members tab where the owner can review requests
                     return $"/group/{targetEntityId.Value}?tab=members";
 
+                case "GROUP_RATING":
+                    return $"/group/{targetEntityId.Value}?tab=ratings";
+
+                case "USER_FOLLOWERS":
+                case "USER_FOLLOW":
+                    return "/profile?tab=followers";
+
                 default:
                     return "/groups";
             }

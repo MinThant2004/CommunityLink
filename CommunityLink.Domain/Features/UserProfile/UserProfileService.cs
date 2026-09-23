@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.UserProfile;
+using CommunityLink.Domain.Features.Notification;
 using Microsoft.EntityFrameworkCore;
 
 namespace CommunityLink.Domain.Features.UserProfile;
@@ -15,10 +16,12 @@ namespace CommunityLink.Domain.Features.UserProfile;
 public class UserProfileService : IUserProfileService
 {
     private readonly AppDbContext _dbContext;
+    private readonly INotificationService _notificationService;
 
-    public UserProfileService(AppDbContext dbContext)
+    public UserProfileService(AppDbContext dbContext, INotificationService notificationService)
     {
         _dbContext = dbContext;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<UserProfileDto>> GetOwnerProfileAsync(int currentUserId, CancellationToken cancellationToken = default)
@@ -260,6 +263,7 @@ public class UserProfileService : IUserProfileService
         var posts = await _dbContext.TblPosts
             .Include(p => p.Author)
             .Include(p => p.Community)
+            .Include(p => p.TblPostImages)
             .Include(p => p.TblPostLikes)
             .Include(p => p.TblComments)
             .Where(p => p.AuthorId == targetUserId && !p.IsDeleted)
@@ -277,6 +281,7 @@ public class UserProfileService : IUserProfileService
                 AuthorAvatarUrl = p.Author.AvatarUrl,
                 LikeCount = p.TblPostLikes.Count(l => !l.IsDeleted),
                 CommentCount = p.TblComments.Count(c => !c.IsDeleted),
+                ImageUrls = p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
                 CreatedAt = p.CreatedAt
             })
             .ToListAsync(cancellationToken);
@@ -291,6 +296,8 @@ public class UserProfileService : IUserProfileService
                 .ThenInclude(p => p.Author)
             .Include(sp => sp.Post)
                 .ThenInclude(p => p.Community)
+            .Include(sp => sp.Post)
+                .ThenInclude(p => p.TblPostImages)
             .Include(sp => sp.Post)
                 .ThenInclude(p => p.TblPostLikes)
             .Include(sp => sp.Post)
@@ -310,6 +317,7 @@ public class UserProfileService : IUserProfileService
                 AuthorAvatarUrl = sp.Post.Author.AvatarUrl,
                 LikeCount = sp.Post.TblPostLikes.Count(l => !l.IsDeleted),
                 CommentCount = sp.Post.TblComments.Count(c => !c.IsDeleted),
+                ImageUrls = sp.Post.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
                 CreatedAt = sp.Post.CreatedAt
             })
             .ToListAsync(cancellationToken);
@@ -384,6 +392,158 @@ public class UserProfileService : IUserProfileService
         return Result<List<UserRatingItemDto>>.Success(reviews);
     }
 
+    public async Task<Result<bool>> ToggleFollowUserAsync(int currentUserId, int targetUserId, CancellationToken cancellationToken = default)
+    {
+        if (currentUserId == targetUserId)
+            return Result<bool>.Failure("You cannot follow yourself.", ResultStatus.ValidationError);
+
+        var targetExists = await _dbContext.TblUsers.AnyAsync(u => u.UserId == targetUserId && !u.IsDeleted, cancellationToken);
+        if (!targetExists)
+            return Result<bool>.Failure("Target user not found.", ResultStatus.NotFound);
+
+        var existingFollow = await _dbContext.TblUserFollows
+            .FirstOrDefaultAsync(f => f.FollowerId == currentUserId && f.FolloweeId == targetUserId && !f.IsDeleted, cancellationToken);
+
+        bool isFollowed;
+        if (existingFollow != null)
+        {
+            _dbContext.TblUserFollows.Remove(existingFollow);
+            isFollowed = false;
+        }
+        else
+        {
+            var newFollow = new TblUserFollow
+            {
+                FollowerId = currentUserId,
+                FolloweeId = targetUserId,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = currentUserId
+            };
+            await _dbContext.TblUserFollows.AddAsync(newFollow, cancellationToken);
+            isFollowed = true;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        if (isFollowed)
+        {
+            var followerUser = await _dbContext.TblUsers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == currentUserId, cancellationToken);
+
+            var followerName = followerUser != null
+                ? (!string.IsNullOrWhiteSpace(followerUser.DisplayName) ? followerUser.DisplayName : followerUser.UserName)
+                : "Someone";
+
+            await _notificationService.CreateNotificationAsync(
+                recipientUserId: targetUserId,
+                actorUserId: currentUserId,
+                notificationType: "USER_FOLLOW",
+                title: "New Follower",
+                message: $"{followerName} started following you.",
+                targetEntityName: "USER_FOLLOWERS",
+                targetEntityId: currentUserId,
+                cancellationToken: cancellationToken);
+        }
+
+        return Result<bool>.Success(isFollowed, isFollowed ? "Followed user successfully." : "Unfollowed user successfully.");
+    }
+
+    public async Task<Result<List<FollowUserItemDto>>> GetFollowersAsync(int targetUserId, CancellationToken cancellationToken = default)
+    {
+        var followers = await _dbContext.TblUserFollows
+            .Include(f => f.Follower)
+            .Where(f => f.FolloweeId == targetUserId && !f.IsDeleted && f.Follower != null && !f.Follower.IsDeleted)
+            .OrderByDescending(f => f.CreatedAt)
+            .Select(f => new FollowUserItemDto
+            {
+                UserId = f.Follower.UserId,
+                UserName = f.Follower.UserName,
+                DisplayName = f.Follower.DisplayName,
+                AvatarUrl = f.Follower.AvatarUrl,
+                Bio = f.Follower.Bio,
+                IsVerified = f.Follower.IsVerified,
+                FollowedAt = f.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return Result<List<FollowUserItemDto>>.Success(followers);
+    }
+
+    public async Task<Result<List<FollowUserItemDto>>> GetFollowingAsync(int targetUserId, CancellationToken cancellationToken = default)
+    {
+        var following = await _dbContext.TblUserFollows
+            .Include(f => f.Followee)
+            .Where(f => f.FollowerId == targetUserId && !f.IsDeleted && f.Followee != null && !f.Followee.IsDeleted)
+            .OrderByDescending(f => f.CreatedAt)
+            .Select(f => new FollowUserItemDto
+            {
+                UserId = f.Followee.UserId,
+                UserName = f.Followee.UserName,
+                DisplayName = f.Followee.DisplayName,
+                AvatarUrl = f.Followee.AvatarUrl,
+                Bio = f.Followee.Bio,
+                IsVerified = f.Followee.IsVerified,
+                FollowedAt = f.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return Result<List<FollowUserItemDto>>.Success(following);
+    }
+
+    public async Task<Result<List<UserSharedPostItemDto>>> GetUserSharesAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default)
+    {
+        var shares = await _dbContext.TblPostShares
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.Author)
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.Community)
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.Group)
+                    .ThenInclude(g => g!.TblGroupMembers)
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.TblPostImages)
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.TblPostLikes)
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.TblComments)
+            .Where(ps => ps.UserId == targetUserId && !ps.IsDeleted && ps.Post != null && !ps.Post.IsDeleted)
+            .OrderByDescending(ps => ps.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        var list = new List<UserSharedPostItemDto>();
+        foreach (var s in shares)
+        {
+            var p = s.Post;
+            if (p.Group != null && p.Group.Visibility == "PRIVATE")
+            {
+                var isMember = currentUserId.HasValue && p.Group.TblGroupMembers.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
+                if (!isMember) continue;
+            }
+
+            list.Add(new UserSharedPostItemDto
+            {
+                ShareId = s.PostShareId,
+                PostId = s.PostId,
+                ShareNote = s.ShareNote,
+                SharedAt = s.CreatedAt,
+                PostContent = p.Content,
+                AuthorUserId = p.AuthorId,
+                AuthorUserName = p.Author.UserName,
+                AuthorDisplayName = p.Author.DisplayName,
+                AuthorAvatarUrl = p.Author.AvatarUrl,
+                CommunityName = p.Community?.Name,
+                GroupName = p.Group?.Name,
+                LikeCount = p.TblPostLikes.Count(l => !l.IsDeleted),
+                CommentCount = p.TblComments.Count(c => !c.IsDeleted),
+                ImageUrls = p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
+                PostCreatedAt = p.CreatedAt
+            });
+        }
+
+        return Result<List<UserSharedPostItemDto>>.Success(list);
+    }
+
     private async Task<UserProfileDto> BuildProfileDtoAsync(TblUser user, int? currentUserId, bool isOwnerView, CancellationToken cancellationToken)
     {
         // 1. Role Info & Badge
@@ -407,9 +567,19 @@ public class UserProfileService : IUserProfileService
         int postsCount = await _dbContext.TblPosts
             .CountAsync(p => p.AuthorId == user.UserId && !p.IsDeleted, cancellationToken);
 
+        int followersCount = await _dbContext.TblUserFollows
+            .CountAsync(f => f.FolloweeId == user.UserId && !f.IsDeleted, cancellationToken);
+
+        int followingCount = await _dbContext.TblUserFollows
+            .CountAsync(f => f.FollowerId == user.UserId && !f.IsDeleted, cancellationToken);
+
+        int sharesCount = await _dbContext.TblPostShares
+            .CountAsync(ps => ps.UserId == user.UserId && !ps.IsDeleted && ps.Post != null && !ps.Post.IsDeleted, cancellationToken);
+
         // 3. Relationship
         bool isSelf = currentUserId.HasValue && currentUserId.Value == user.UserId;
         bool isSavedByMe = false;
+        bool isFollowedByMe = false;
         bool hasRated = false;
         int? myRatingScore = null;
         string? myReviewText = null;
@@ -418,6 +588,9 @@ public class UserProfileService : IUserProfileService
         {
             isSavedByMe = await _dbContext.TblSavedAccounts
                 .AnyAsync(sa => sa.UserId == currentUserId.Value && sa.SavedUserId == user.UserId && !sa.IsDeleted, cancellationToken);
+
+            isFollowedByMe = await _dbContext.TblUserFollows
+                .AnyAsync(f => f.FollowerId == currentUserId.Value && f.FolloweeId == user.UserId && !f.IsDeleted, cancellationToken);
 
             var rating = await _dbContext.TblUserRatings
                 .FirstOrDefaultAsync(r => r.RaterUserId == currentUserId.Value && r.TargetUserId == user.UserId && !r.IsDeleted, cancellationToken);
@@ -451,12 +624,16 @@ public class UserProfileService : IUserProfileService
                 RatingCount = user.RatingCount,
                 JoinedCommunitiesCount = joinedCommunitiesCount,
                 SavedAccountsCount = savedAccountsCount,
-                PostsCount = postsCount
+                PostsCount = postsCount,
+                FollowersCount = followersCount,
+                FollowingCount = followingCount,
+                SharesCount = sharesCount
             },
             Relationship = new UserRelationshipInfoDto
             {
                 IsSelf = isSelf,
                 IsSavedByMe = isSavedByMe,
+                IsFollowedByMe = isFollowedByMe,
                 CanMessage = !isSelf,
                 HasRated = hasRated,
                 MyRatingScore = myRatingScore,

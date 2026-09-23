@@ -14,6 +14,11 @@ public sealed class RoleAndPermissionController(IRoleAndPermissionService roleSe
     public async Task<IActionResult> GetRoles(CancellationToken cancellationToken) =>
         ToActionResult(await roleService.GetRolesAsync(cancellationToken));
 
+    [HttpGet("my-permissions")]
+    [Authorize]
+    public async Task<IActionResult> GetMyPermissions(CancellationToken cancellationToken) =>
+        ToActionResult(await roleService.GetCurrentUserPermissionsAsync(cancellationToken));
+
     [HttpGet("{roleId:int}/permissions")]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminRbacManage)]
     public async Task<IActionResult> GetRolePermissions(int roleId, CancellationToken cancellationToken) =>
