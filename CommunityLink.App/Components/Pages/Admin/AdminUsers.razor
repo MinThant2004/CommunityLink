@@ -1,5 +1,4 @@
 @page "/admin/users"
-@layout AdminLayout
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
 @inject AdministrationApiService AdminApi
 @inject RoleAndPermissionApiService RoleApi
@@ -10,31 +9,31 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">👥 Platform User Directory</h1>
-            <p class="text-sm text-slate-500">Manage registered users, roles, and account statuses across the platform.</p>
+            <h1 class="text-2xl font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">👥 Platform User Directory</h1>
+            <p class="text-sm text-[#557392]">Manage registered users, roles, and account statuses across the platform.</p>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-sm">
+        <div class="p-4 border-b border-[#E2E8F0] bg-[#F8FAFC] flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="w-full md:w-80">
-                <input type="text" class="w-full px-3.5 py-2 rounded-lg text-sm border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" placeholder="Search by name, username, or email..." @bind="searchFilter" @bind:after="OnSearchChanged" />
+                <input type="text" class="w-full px-3.5 py-2 rounded-lg text-sm bg-white text-[#0A1B2E] placeholder-[#7A8CA6] border border-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] transition" placeholder="Search by name, username, or email..." @bind="searchFilter" @bind:after="OnSearchChanged" />
             </div>
-            <div class="text-xs text-slate-500">
+            <div class="text-xs text-[#7A8CA6] font-mono">
                 Showing page @pageNumber of @totalPages (@totalCount total users)
             </div>
         </div>
 
         @if (isLoading)
         {
-            <div class="p-12 text-center text-slate-500">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
+            <div class="p-12 text-center text-[#557392]">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] border-t-transparent"></div>
                 <p class="mt-2 text-sm font-medium">Loading user records...</p>
             </div>
         }
         else if (users == null || !users.Any())
         {
-            <div class="p-8 text-center text-slate-500">
+            <div class="p-8 text-center text-[#7A8CA6]">
                 <p class="text-sm font-medium">No users found matching query.</p>
             </div>
         }
@@ -43,7 +42,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        <tr class="bg-[#F1F5F9] border-b border-[#E2E8F0] text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
                             <th class="px-6 py-3">ID</th>
                             <th class="px-6 py-3">Display Name</th>
                             <th class="px-6 py-3">Username</th>
@@ -53,14 +52,14 @@
                             <th class="px-6 py-3">Registered Date</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200 text-sm">
+                    <tbody class="divide-y divide-[#E2E8F0] text-sm">
                         @foreach (var u in users)
                         {
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="px-6 py-4 font-mono text-xs text-slate-400">#@u.UserId</td>
-                                <td class="px-6 py-4 font-semibold text-slate-900">@u.DisplayName</td>
-                                <td class="px-6 py-4 text-indigo-600 font-medium">@@@u.UserName</td>
-                                <td class="px-6 py-4 text-slate-600">@u.Email</td>
+                            <tr class="hover:bg-[#F8FAFC] transition">
+                                <td class="px-6 py-4 font-mono text-xs text-[#7A8CA6]">#@u.UserId</td>
+                                <td class="px-6 py-4 font-semibold text-[#0A1B2E]">@u.DisplayName</td>
+                                <td class="px-6 py-4 text-[#557392] font-medium font-mono">@@@u.UserName</td>
+                                <td class="px-6 py-4 text-[#557392]">@u.Email</td>
                                 <td class="px-6 py-4">
                                     <select value="@u.RoleId" @onchange="(e) => OnRoleSelected(u.UserId, e)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
                                         @if (availableRoles != null)
@@ -81,11 +80,11 @@
                                     </select>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold @(u.IsActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-slate-100 text-slate-600 border border-slate-300")">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold @(u.IsActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-[#F1F5F9] text-[#7A8CA6] border border-[#E2E8F0]")">
                                         @(u.IsActive ? "Active" : "Inactive")
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-xs text-slate-500">@u.CreatedAt.ToString("g")</td>
+                                <td class="px-6 py-4 text-xs text-[#7A8CA6] font-mono">@u.CreatedAt.ToString("g")</td>
                             </tr>
                         }
                     </tbody>
@@ -93,12 +92,12 @@
             </div>
 
             <!-- Pagination Bar -->
-            <div class="px-6 py-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-                <button @onclick="PreviousPage" disabled="@(pageNumber <= 1)" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium hover:bg-slate-50 disabled:opacity-50 transition">
+            <div class="px-6 py-3 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#7A8CA6] bg-[#F8FAFC]">
+                <button @onclick="PreviousPage" disabled="@(pageNumber <= 1)" class="px-3 py-1.5 rounded-full border border-[#CBD5E1] bg-white text-[#557392] font-medium hover:border-[#0A1B2E] hover:text-[#0A1B2E] disabled:opacity-50 transition">
                     &larr; Previous
                 </button>
-                <span>Page @pageNumber of @totalPages</span>
-                <button @onclick="NextPage" disabled="@(pageNumber >= totalPages)" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium hover:bg-slate-50 disabled:opacity-50 transition">
+                <span class="font-mono">Page @pageNumber of @totalPages</span>
+                <button @onclick="NextPage" disabled="@(pageNumber >= totalPages)" class="px-3 py-1.5 rounded-full border border-[#CBD5E1] bg-white text-[#557392] font-medium hover:border-[#0A1B2E] hover:text-[#0A1B2E] disabled:opacity-50 transition">
                     Next &rarr;
                 </button>
             </div>

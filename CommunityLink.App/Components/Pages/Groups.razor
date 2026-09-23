@@ -15,17 +15,17 @@
 
 <PageTitle>Community Groups - CommunityLink</PageTitle>
 
-<div class="max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6">
+<div class="max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6 text-[#0A1B2E]">
     <!-- Top Header Banner -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] p-5 sm:p-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white text-2xl font-bold shadow-md shadow-indigo-500/20">
+                <div class="w-12 h-12 rounded-2xl bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center text-2xl font-bold shadow-sm">
                     👥
                 </div>
                 <div>
-                    <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Community Groups</h1>
-                    <p class="text-xs sm:text-sm text-slate-500">Discover focused sub-groups, join conversations, or launch your own room.</p>
+                    <h1 class="text-xl sm:text-2xl font-extrabold text-[#0A1B2E] tracking-tight" style="font-family:'Manrope',sans-serif">Community Groups</h1>
+                    <p class="text-xs sm:text-sm text-[#557392]">Discover focused sub-groups, join conversations, or launch your own room.</p>
                 </div>
             </div>
             @if (canCreateGroup)
@@ -44,11 +44,11 @@
     </div>
 
     <!-- Filters & Search Bar -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div class="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <!-- Sub-Community Filter Dropdown -->
         <div class="flex items-center gap-2 flex-1 max-w-xs">
-            <span class="text-xs font-semibold text-slate-500 shrink-0">Filter:</span>
-            <select class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            <span class="text-xs font-semibold text-[#557392] shrink-0">Filter:</span>
+            <select class="w-full text-xs sm:text-sm bg-white border border-[#CBD5E1] text-[#0A1B2E] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20"
                     value="@selectedSubCommunityFilter"
                     @onchange="OnSubCommunityFilterChanged">
                 <option value="0">All Sub-Communities</option>
@@ -63,8 +63,8 @@
         <div class="relative flex-1 max-w-sm">
             <input type="text" @bind="searchTerm" @bind:after="OnSearchInputChanged"
                    placeholder="Search groups by name or topic..."
-                   class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="w-full text-xs sm:text-sm bg-white border border-[#CBD5E1] text-[#0A1B2E] placeholder-[#7A8CA6] rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20" />
+            <svg class="w-4 h-4 text-[#7A8CA6] absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
         </div>
@@ -74,14 +74,14 @@
     @if (isLoading)
     {
         <div class="flex justify-center items-center py-20">
-            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+            <div class="animate-spin rounded-full h-10 w-10 border-4 border-[#0A1B2E] border-t-transparent"></div>
         </div>
     }
     else if (groups == null || groups.Count == 0)
     {
-        <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500">
+        <div class="bg-white rounded-2xl border border-dashed border-[#CBD5E1] p-12 text-center text-[#557392]">
             <div class="text-4xl mb-3">🏔️</div>
-            <h3 class="text-base font-semibold text-slate-800">No groups found</h3>
+            <h3 class="text-base font-semibold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">No groups found</h3>
             <p class="text-sm mt-1">Be the first to create a group under your sub-community!</p>
         </div>
     }
@@ -90,19 +90,19 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach (var grp in groups)
             {
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-200 hover:shadow-md hover:border-slate-300 flex flex-col justify-between">
+                <div class="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] hover:border-[#0A1B2E]/20 overflow-hidden transition-all duration-200 hover:shadow-md flex flex-col justify-between group">
                     <!-- Group Header & Info -->
                     <div>
                         <!-- Top Banner / Avatar Bar -->
-                        <div class="h-20 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative p-3">
+                        <div class="h-20 bg-gradient-to-r from-[#F1F5F9] via-[#E2E8F0] to-[#F8FAFC] border-b border-[#E2E8F0] relative p-3">
                             <div class="absolute -bottom-4 left-4">
                                 @if (!string.IsNullOrEmpty(grp.AvatarUrl))
                                 {
-                                    <img src="@grp.AvatarUrl" alt="@grp.Name" class="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-md bg-white" />
+                                    <img src="@grp.AvatarUrl" alt="@grp.Name" class="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-md bg-[#F1F5F9]" />
                                 }
                                 else
                                 {
-                                    <div class="w-12 h-12 rounded-xl bg-white border-2 border-white shadow-md flex items-center justify-center font-bold text-indigo-700 text-base">
+                                    <div class="w-12 h-12 rounded-xl bg-[#F1F5F9] border-2 border-white shadow-md flex items-center justify-center font-bold text-[#557392] text-base">
                                         @(string.IsNullOrWhiteSpace(grp.Name) ? "G" : grp.Name.Substring(0, 1).ToUpper())
                                     </div>
                                 }
@@ -110,13 +110,13 @@
                             <div class="flex justify-end">
                                 @if (grp.Visibility == "PRIVATE")
                                 {
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/90 text-white shadow-sm backdrop-blur-xs">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
                                         🔒 Private Group
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/90 text-white shadow-sm backdrop-blur-xs">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
                                         🔓 Public Group
                                     </span>
                                 }
@@ -126,42 +126,43 @@
                         <!-- Card Body -->
                         <div class="p-4 pt-6 space-y-2">
                             <div>
-                                <h3 class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition">
+                                <h3 class="text-base font-bold text-[#0A1B2E] group-hover:text-[#557392] transition" style="font-family:'Manrope',sans-serif">
                                     <a href="/group/@grp.GroupId">@grp.Name</a>
                                 </h3>
                                 @if (!string.IsNullOrEmpty(grp.SubCommunityName))
                                 {
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 mt-1">
-                                        📁 @grp.SubCommunityName
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#F1F5F9] text-[#557392] border border-[#E2E8F0] mt-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E]"></span>
+                                        @grp.SubCommunityName
                                     </span>
                                 }
                             </div>
 
                             @if (!string.IsNullOrWhiteSpace(grp.Description))
                             {
-                                <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">@grp.Description</p>
+                                <p class="text-xs text-[#557392] line-clamp-2 leading-relaxed">@grp.Description</p>
                             }
                             else
                             {
-                                <p class="text-xs text-slate-400 italic">No description provided.</p>
+                                <p class="text-xs text-[#7A8CA6] italic">No description provided.</p>
                             }
                         </div>
                     </div>
 
                     <!-- Card Footer: Stats & Action Button -->
-                    <div class="p-4 border-t border-slate-100 bg-slate-50/50 space-y-3">
-                        <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <div class="p-4 border-t border-[#E2E8F0] bg-[#F8FAFC] space-y-3">
+                        <div class="flex items-center justify-between text-xs text-[#557392] font-medium font-mono">
                             <div class="flex items-center gap-3">
                                 <span>👥 @grp.MemberCount members</span>
                                 <span>•</span>
                                 <span>📝 @grp.PostCount posts</span>
                             </div>
-                            <span class="text-[11px] text-slate-400">By @grp.CreatorName</span>
+                            <span class="text-[11px] text-[#7A8CA6]">By @grp.CreatorName</span>
                         </div>
 
                         <div class="flex items-center gap-2">
                             <a href="/group/@grp.GroupId"
-                               class="flex-1 text-center py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                               class="flex-1 text-center py-2 bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0A1B2E] text-xs font-semibold rounded-xl border border-[#E2E8F0] transition">
                                 View Group
                             </a>
 
@@ -180,7 +181,7 @@
                             else
                             {
                                 <button type="button" @onclick="() => JoinGroup(grp)"
-                                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition shadow-sm shrink-0">
+                                        class="px-4 py-2 bg-[#0A1B2E] hover:bg-[#112A46] text-white text-xs font-semibold rounded-xl transition shadow-sm shrink-0">
                                     @(grp.Visibility == "PRIVATE" ? "Request Join" : "Join Direct")
                                 </button>
                             }
@@ -189,7 +190,7 @@
                             {
                                 <button type="button" @onclick="() => OpenRequestsDrawer(grp.GroupId)"
                                         title="Manage Join Requests"
-                                        class="p-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-semibold transition shrink-0">
+                                        class="p-2 bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#557392] border border-[#E2E8F0] rounded-xl text-xs font-semibold transition shrink-0">
                                     📩 Requests
                                 </button>
                             }
@@ -204,15 +205,15 @@
 <!-- ================= CREATE GROUP MODAL ================= -->
 @if (showCreateModal)
 {
-    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-[#0A1B2E]/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-[#E2E8F0] w-full max-w-lg overflow-hidden">
             <!-- Modal Header -->
-            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="px-5 py-4 border-b border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="text-xl">👥</span>
-                    <h3 class="font-bold text-slate-900">Create New Group</h3>
+                    <h3 class="font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">Create New Group</h3>
                 </div>
-                <button type="button" @onclick="CloseModals" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                <button type="button" @onclick="CloseModals" class="text-[#7A8CA6] hover:text-[#0A1B2E] p-1 rounded-lg hover:bg-[#E2E8F0] transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
@@ -221,8 +222,8 @@
             <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
                 <!-- Parent Sub-Community Dropdown -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Select Sub-Community <span class="text-red-500">*</span></label>
-                    <select class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    <label class="block text-xs font-semibold text-[#0A1B2E] mb-1">Select Sub-Community <span class="text-red-500">*</span></label>
+                    <select class="w-full text-sm bg-white border border-[#CBD5E1] text-[#0A1B2E] rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20"
                             value="@createSubCommunityId"
                             @onchange="OnCreateSubCommunityChanged">
                         <option value="0">-- Select Sub-Community --</option>
@@ -234,7 +235,7 @@
 
                     @if (!isAdmin && createSubCommunityId > 0 && !isUserSubCommunityMember)
                     {
-                        <div class="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2">
+                        <div class="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700 flex items-start gap-2">
                             <span>⚠️</span>
                             <span>You must join <strong>@selectedSubCommunityName</strong> first before creating a group inside it.</span>
                         </div>
@@ -243,55 +244,55 @@
 
                 <!-- Group Name -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Group Name <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-semibold text-[#0A1B2E] mb-1">Group Name <span class="text-red-500">*</span></label>
                     <input type="text" @bind="createGroupName" placeholder="e.g. EF Core Developers Room"
-                           class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium" />
+                           class="w-full text-sm bg-white border border-[#CBD5E1] text-[#0A1B2E] placeholder-[#7A8CA6] rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 font-medium" />
                 </div>
 
                 <!-- Group Description -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Description <span class="text-slate-400 font-normal">(Optional)</span></label>
+                    <label class="block text-xs font-semibold text-[#0A1B2E] mb-1">Description <span class="text-[#7A8CA6] font-normal">(Optional)</span></label>
                     <textarea @bind="createGroupDescription" rows="3" placeholder="Briefly describe the purpose of this group room..."
-                              class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                              class="w-full text-sm bg-white border border-[#CBD5E1] text-[#0A1B2E] placeholder-[#7A8CA6] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20"></textarea>
                 </div>
 
                 <!-- Privacy & Access Type -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-2">Privacy & Access Control <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-semibold text-[#0A1B2E] mb-2">Privacy & Access Control <span class="text-red-500">*</span></label>
                     <div class="grid grid-cols-2 gap-3">
-                        <label class="flex flex-col p-3 rounded-xl border cursor-pointer transition @(createVisibility == "PUBLIC" ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20" : "border-slate-200 bg-slate-50")">
+                        <label class="flex flex-col p-3 rounded-xl border cursor-pointer transition @(createVisibility == "PUBLIC" ? "border-[#0A1B2E] bg-[#F1F5F9] ring-2 ring-[#0A1B2E]/10" : "border-[#E2E8F0] bg-white")">
                             <div class="flex items-center gap-2">
-                                <input type="radio" name="visibilityGroup" value="PUBLIC" checked="@(createVisibility == "PUBLIC")" @onchange='() => createVisibility = "PUBLIC"' class="text-indigo-600 focus:ring-indigo-500" />
-                                <span class="text-xs font-bold text-slate-900">🔓 Public Group</span>
+                                <input type="radio" name="visibilityGroup" value="PUBLIC" checked="@(createVisibility == "PUBLIC")" @onchange='() => createVisibility = "PUBLIC"' class="accent-[#0A1B2E]" />
+                                <span class="text-xs font-bold text-[#0A1B2E]">🔓 Public Group</span>
                             </div>
-                            <span class="text-[11px] text-slate-500 mt-1 pl-5">Anyone can join directly without approval.</span>
+                            <span class="text-[11px] text-[#557392] mt-1 pl-5">Anyone can join directly without approval.</span>
                         </label>
 
-                        <label class="flex flex-col p-3 rounded-xl border cursor-pointer transition @(createVisibility == "PRIVATE" ? "border-amber-600 bg-amber-50/50 ring-2 ring-amber-500/20" : "border-slate-200 bg-slate-50")">
+                        <label class="flex flex-col p-3 rounded-xl border cursor-pointer transition @(createVisibility == "PRIVATE" ? "border-amber-500 bg-amber-50 ring-2 ring-amber-500/20" : "border-[#E2E8F0] bg-white")">
                             <div class="flex items-center gap-2">
-                                <input type="radio" name="visibilityGroup" value="PRIVATE" checked="@(createVisibility == "PRIVATE")" @onchange='() => createVisibility = "PRIVATE"' class="text-amber-600 focus:ring-amber-500" />
-                                <span class="text-xs font-bold text-slate-900">🔒 Private Group</span>
+                                <input type="radio" name="visibilityGroup" value="PRIVATE" checked="@(createVisibility == "PRIVATE")" @onchange='() => createVisibility = "PRIVATE"' class="accent-amber-600" />
+                                <span class="text-xs font-bold text-[#0A1B2E]">🔒 Private Group</span>
                             </div>
-                            <span class="text-[11px] text-slate-500 mt-1 pl-5">Requires owner approval to join.</span>
+                            <span class="text-[11px] text-[#557392] mt-1 pl-5">Requires owner approval to join.</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- Group Avatar Image Upload (Computer file picker) -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Group Avatar Image</label>
-                    <InputFile OnChange="HandleGroupAvatarSelected" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" />
+                    <label class="block text-xs font-semibold text-[#0A1B2E] mb-1">Group Avatar Image</label>
+                    <InputFile OnChange="HandleGroupAvatarSelected" accept="image/*" class="w-full text-xs text-[#557392] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#E2E8F0] file:text-[#0A1B2E] hover:file:bg-[#CBD5E1] cursor-pointer" />
 
                     @if (isUploadingImage)
                     {
-                        <div class="mt-2 text-xs text-indigo-600 flex items-center gap-1.5">
+                        <div class="mt-2 text-xs text-[#557392] flex items-center gap-1.5">
                             <span class="animate-spin">🌀</span> Uploading avatar image...
                         </div>
                     }
 
                     @if (!string.IsNullOrEmpty(createAvatarUrl))
                     {
-                        <div class="mt-3 relative rounded-xl overflow-hidden border border-slate-200 w-24 h-24 bg-slate-100 flex items-center justify-center">
+                        <div class="mt-3 relative rounded-xl overflow-hidden border border-[#E2E8F0] w-24 h-24 bg-[#F8FAFC] flex items-center justify-center">
                             <img src="@createAvatarUrl" alt="Avatar Preview" class="w-full h-full object-cover" />
                             <button type="button" @onclick="RemoveGroupAvatar"
                                     class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow hover:bg-red-700 transition">
@@ -303,13 +304,13 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="px-5 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <div class="px-5 py-4 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-end gap-2.5">
                 <button type="button" @onclick="CloseModals"
-                        class="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium rounded-xl hover:bg-slate-200/60 transition">
+                        class="px-4 py-2 text-sm text-[#557392] hover:text-[#0A1B2E] font-medium rounded-xl hover:bg-[#E2E8F0] transition">
                     Cancel
                 </button>
                 <button type="button" @onclick="SubmitCreateGroup" disabled="@(isSubmitting || (!isAdmin && createSubCommunityId > 0 && !isUserSubCommunityMember))"
-                        class="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow transition disabled:opacity-50 flex items-center gap-2">
+                        class="px-5 py-2 text-sm bg-[#0A1B2E] hover:bg-[#112A46] text-white font-semibold rounded-xl shadow-sm transition disabled:opacity-50 flex items-center gap-2">
                     @if (isSubmitting)
                     {
                         <span class="animate-spin">⏳</span>
@@ -328,14 +329,14 @@
 <!-- ================= PENDING REQUESTS DRAWER ================= -->
 @if (showRequestsDrawer)
 {
-    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-[#0A1B2E]/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-[#E2E8F0] w-full max-w-md overflow-hidden">
+            <div class="px-5 py-4 border-b border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="text-xl">📩</span>
-                    <h3 class="font-bold text-slate-900">Pending Join Requests</h3>
+                    <h3 class="font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">Pending Join Requests</h3>
                 </div>
-                <button type="button" @onclick="CloseModals" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                <button type="button" @onclick="CloseModals" class="text-[#7A8CA6] hover:text-[#0A1B2E] p-1 rounded-lg hover:bg-[#E2E8F0] transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
@@ -343,29 +344,29 @@
             <div class="p-5 space-y-3 max-h-[60vh] overflow-y-auto">
                 @if (pendingRequests == null || pendingRequests.Count == 0)
                 {
-                    <p class="text-xs text-slate-400 text-center py-6">No pending join requests for this group.</p>
+                    <p class="text-xs text-[#7A8CA6] text-center py-6">No pending join requests for this group.</p>
                 }
                 else
                 {
                     @foreach (var req in pendingRequests)
                     {
-                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <div class="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-semibold text-slate-900">@req.UserName</span>
-                                <span class="text-[10px] text-slate-400">@req.CreatedAt.ToLocalTime().ToString("g")</span>
+                                <span class="text-sm font-semibold text-[#0A1B2E]">@req.UserName</span>
+                                <span class="text-[10px] text-[#7A8CA6] font-mono">@req.CreatedAt.ToLocalTime().ToString("g")</span>
                             </div>
-                            <p class="text-xs text-slate-500">@req.UserEmail</p>
+                            <p class="text-xs text-[#557392]">@req.UserEmail</p>
                             @if (!string.IsNullOrWhiteSpace(req.RequestNote))
                             {
-                                <p class="text-xs text-slate-700 bg-white p-2 rounded-lg border border-slate-200 italic">"@req.RequestNote"</p>
+                                <p class="text-xs text-[#557392] bg-white p-2 rounded-lg border border-[#E2E8F0] italic">"@req.RequestNote"</p>
                             }
                             <div class="flex items-center justify-end gap-2 pt-1">
                                 <button type="button" @onclick="() => ReviewRequest(req.GroupJoinRequestId, false)"
-                                        class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition">
+                                        class="px-3 py-1.5 bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#557392] text-xs font-semibold rounded-lg border border-[#E2E8F0] transition">
                                     Reject
                                 </button>
                                 <button type="button" @onclick="() => ReviewRequest(req.GroupJoinRequestId, true)"
-                                        class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-xs">
+                                        class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-sm">
                                     Approve
                                 </button>
                             </div>
@@ -374,8 +375,8 @@
                 }
             </div>
 
-            <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 text-right">
-                <button type="button" @onclick="CloseModals" class="px-4 py-1.5 text-xs text-slate-600 font-semibold rounded-lg bg-slate-200 hover:bg-slate-300 transition">
+            <div class="px-5 py-3 bg-[#F8FAFC] border-t border-[#E2E8F0] text-right">
+                <button type="button" @onclick="CloseModals" class="px-4 py-1.5 text-xs text-[#557392] hover:text-[#0A1B2E] font-semibold rounded-lg bg-[#E2E8F0] hover:bg-[#CBD5E1] transition">
                     Close
                 </button>
             </div>

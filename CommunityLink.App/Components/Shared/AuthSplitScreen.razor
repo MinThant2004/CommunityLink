@@ -1,18 +1,24 @@
 @namespace CommunityLink.App.Components.Shared
 
-<div class="min-h-screen w-full bg-white lg:grid lg:grid-cols-2">
+<div class="min-h-screen w-full bg-[#F8FAFC] lg:grid lg:grid-cols-2">
 
-    <aside class="@(IsAdmin ? "bg-gradient-to-br from-sky-700 via-sky-500 to-cyan-400" : "bg-gradient-to-br from-indigo-600 via-indigo-500 to-sky-400") hidden lg:flex flex-col justify-between p-12 text-white">
-        <div>
-            <a href="/" class="inline-flex items-center gap-3">
-                <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 font-bold text-lg backdrop-blur">@LogoText</span>
-                <span class="text-xl font-bold tracking-tight">CommunityLink</span>
-            </a>
+    <aside class="hidden lg:flex flex-col justify-between p-12 bg-[#0A1B2E] text-white border-r border-[#1B3B5A] relative overflow-hidden">
+        <!-- Ambient Subtle Accent -->
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-[#112A46] rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+
+        <div class="relative z-10">
+            <div class="flex items-center gap-3">
+                <a href="/" class="inline-flex items-center gap-3 group no-underline">
+                    <span class="flex h-10 w-10 items-center justify-center rounded bg-white text-[#0A1B2E] font-extrabold text-sm shadow-sm" style="font-family:'Manrope',sans-serif">@LogoText</span>
+                    <span class="text-xl font-bold tracking-tight text-white group-hover:text-[#E1E8F0] transition" style="font-family:'Manrope',sans-serif">Community<span class="text-[#38BDF8]">Link</span></span>
+                </a>
+                <span class="font-mono text-[9px] font-semibold uppercase tracking-wider text-[#7A8CA6] px-2 py-0.5 rounded border border-[#1B3B5A] bg-[#112A46]">VERIFIED NODE PROTOCOL</span>
+            </div>
 
             <div class="mt-16 max-w-md">
-                <p class="text-xs font-semibold uppercase tracking-widest opacity-80">@Eyebrow</p>
-                <h1 class="mt-3 text-4xl font-extrabold leading-tight tracking-tight">@Title</h1>
-                <p class="mt-4 text-sm leading-relaxed opacity-90">@Subtitle</p>
+                <p class="font-mono text-xs font-semibold uppercase tracking-widest text-[#7A8CA6]">@Eyebrow</p>
+                <h1 class="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight text-white" style="font-family:'Manrope',sans-serif">@Title</h1>
+                <p class="mt-4 text-sm leading-relaxed text-[#C4D2E1]" style="font-family:'Inter',sans-serif">@Subtitle</p>
 
                 @if (Features is not null)
                 {
@@ -32,10 +38,16 @@
             </div>
         </div>
 
-        <p class="text-xs opacity-70">© 2026 CommunityLink. All rights reserved.</p>
+        <div class="relative z-10 flex items-center justify-between pt-8 border-t border-[#1B3B5A] text-xs text-[#7A8CA6] font-mono">
+            <span>&copy; 2026 CommunityLink</span>
+            <span class="flex items-center gap-1.5 text-emerald-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>NODE ENCRYPTION ACTIVE</span>
+            </span>
+        </div>
     </aside>
 
-    <main class="flex min-h-screen items-center justify-center px-6 py-12 sm:px-10">
+    <main class="flex min-h-screen items-center justify-center p-6 sm:p-12 bg-[#F8FAFC]">
         <div class="w-full max-w-md">
             @ChildContent
         </div>
@@ -53,19 +65,37 @@
 
     private static RenderFragment MemberDefaultFeatures() => __builder =>
     {
-        <ul class="mt-8 space-y-3 text-sm">
-            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Join communities & topical hubs</li>
-            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Share posts, polls and ideas</li>
-            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Connect in real-time chat</li>
+        <ul class="mt-8 space-y-3.5 text-sm text-[#E1E8F0]" style="font-family:'Inter',sans-serif">
+            <li class="flex items-center gap-3">
+                <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
+                <span>Join topical communities &amp; global hubs</span>
+            </li>
+            <li class="flex items-center gap-3">
+                <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
+                <span>Participate in real-time polls &amp; feeds</span>
+            </li>
+            <li class="flex items-center gap-3">
+                <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
+                <span>Secure encrypted SignalR peer messaging</span>
+            </li>
         </ul>;
     };
 
     private static RenderFragment AdminDefaultFeatures() => __builder =>
     {
-        <ul class="mt-8 space-y-3 text-sm">
-            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Manage members, content & communities</li>
-            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Dynamic role-based permissions</li>
-            <li class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-xs">✓</span> Full platform oversight</li>
+        <ul class="mt-8 space-y-3.5 text-sm text-[#E1E8F0]" style="font-family:'Inter',sans-serif">
+            <li class="flex items-center gap-3">
+                <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
+                <span>Manage directory members &amp; node privileges</span>
+            </li>
+            <li class="flex items-center gap-3">
+                <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
+                <span>Dynamic RBAC matrix &amp; SLA compliance</span>
+            </li>
+            <li class="flex items-center gap-3">
+                <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
+                <span>Cryptographic audit trail oversight</span>
+            </li>
         </ul>;
     };
 }

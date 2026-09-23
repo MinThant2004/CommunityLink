@@ -1,5 +1,5 @@
 @page "/admin/rbac"
-@layout AdminLayout
+@page "/admin/roles"
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminRbacManage)]
 @inject RoleAndPermissionApiService RoleApi
 @inject ToastService Toast
@@ -9,12 +9,12 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">🔐 Role & Permission Matrix</h1>
-            <p class="text-sm text-slate-500">Manage dynamic database-driven authorization permissions per role in real time.</p>
+            <h1 class="text-2xl font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">🔐 Role &amp; Permission Matrix</h1>
+            <p class="text-sm text-[#557392]">Manage dynamic database-driven authorization permissions per role in real time.</p>
         </div>
         @if (matrix != null)
         {
-            <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition disabled:opacity-50" @onclick="SaveChanges" disabled="@isSaving">
+            <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#0A1B2E] hover:bg-[#112A46] text-white shadow-sm transition disabled:opacity-50 active:scale-[0.98]" @onclick="SaveChanges" disabled="@isSaving">
                 @(isSaving ? "Saving..." : "💾 Save Changes")
             </button>
         }
@@ -23,19 +23,19 @@
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Role Selection Sidebar -->
         <div class="space-y-2">
-            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-1 mb-2">Select Role</h2>
+            <h2 class="text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em] px-1 mb-2" style="font-family:'JetBrains Mono',monospace">Select Role</h2>
             @if (roles != null)
             {
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden divide-y divide-slate-100">
+                <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden divide-y divide-[#E2E8F0] shadow-sm">
                     @foreach (var r in roles)
                     {
-                        <button class="w-full text-left p-4 transition flex items-center justify-between @(selectedRoleId == r.RoleId ? "bg-indigo-50/80 border-l-4 border-indigo-600" : "hover:bg-slate-50")"
+                        <button class="w-full text-left p-4 transition flex items-center justify-between @(selectedRoleId == r.RoleId ? "bg-[#F1F5F9] border-l-2 border-l-[#0A1B2E]" : "hover:bg-[#F8FAFC]")"
                                 @onclick="() => SelectRole(r.RoleId)">
                             <div>
-                                <div class="font-bold text-sm @(selectedRoleId == r.RoleId ? "text-indigo-900" : "text-slate-800")">@r.Name</div>
-                                <div class="text-xs text-slate-400 font-mono mt-0.5">@r.Code</div>
+                                <div class="font-bold text-sm @(selectedRoleId == r.RoleId ? "text-[#0A1B2E]" : "text-[#557392]")">@r.Name</div>
+                                <div class="text-xs text-[#7A8CA6] font-mono mt-0.5">@r.Code</div>
                             </div>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[#F1F5F9] text-[#557392] border border-[#E2E8F0]">
                                 @r.UserCount users
                             </span>
                         </button>
@@ -48,45 +48,45 @@
         <div class="lg:col-span-3">
             @if (isLoading)
             {
-                <div class="p-12 text-center text-slate-500 bg-white rounded-xl shadow-sm border border-slate-200">
-                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
+                <div class="p-12 text-center text-[#557392] bg-white rounded-2xl border border-[#E2E8F0] shadow-sm">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] border-t-transparent"></div>
                     <p class="mt-2 text-sm font-medium">Loading permissions matrix...</p>
                 </div>
             }
             else if (matrix != null)
             {
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between">
-                        <div class="font-bold text-slate-900 text-sm">
-                            Permissions for: <span class="text-indigo-600">@matrix.RoleName (@matrix.RoleCode)</span>
+                <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-sm">
+                    <div class="px-6 py-4 border-b border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between">
+                        <div class="font-bold text-[#0A1B2E] text-sm" style="font-family:'Manrope',sans-serif">
+                            Permissions for: <span class="text-[#557392]">@matrix.RoleName (@matrix.RoleCode)</span>
                         </div>
-                        <span class="text-xs text-slate-500">
+                        <span class="text-xs text-[#7A8CA6] font-mono">
                             @grantedCodes.Count of @matrix.Permissions.Count granted
                         </span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                <tr class="bg-[#F1F5F9] border-b border-[#E2E8F0] text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
                                     <th class="w-16 px-6 py-3 text-center">Grant</th>
                                     <th class="px-6 py-3">Permission Code</th>
                                     <th class="px-6 py-3">Name</th>
                                     <th class="px-6 py-3">Module</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-200 text-sm">
+                            <tbody class="divide-y divide-[#E2E8F0] text-sm">
                                 @foreach (var p in matrix.Permissions)
                                 {
-                                    <tr class="hover:bg-slate-50/80 transition">
+                                    <tr class="hover:bg-[#F8FAFC] transition">
                                         <td class="px-6 py-4 text-center">
-                                            <input type="checkbox" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer"
+                                            <input type="checkbox" class="w-[18px] h-[18px] rounded cursor-pointer accent-[#0A1B2E]"
                                                    checked="@grantedCodes.Contains(p.Code)"
                                                    @onchange="(e) => TogglePermission(p.Code, (bool)(e.Value ?? false))" />
                                         </td>
-                                        <td class="px-6 py-4 font-mono text-xs text-indigo-600 font-semibold">@p.Code</td>
-                                        <td class="px-6 py-4 font-medium text-slate-800">@p.Name</td>
+                                        <td class="px-6 py-4 font-mono text-xs text-[#557392] font-semibold">@p.Code</td>
+                                        <td class="px-6 py-4 font-medium text-[#0A1B2E]">@p.Name</td>
                                         <td class="px-6 py-4">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F1F5F9] text-[#557392] border border-[#E2E8F0]">
                                                 @p.Module
                                             </span>
                                         </td>

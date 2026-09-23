@@ -2,47 +2,125 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
-<div class="min-h-screen flex bg-slate-100 text-slate-800 font-sans">
-    <div class="w-64 min-w-[16rem] bg-slate-900 text-slate-100 flex flex-col shadow-xl">
-        <NavMenu />
-    </div>
+<div class="h-screen flex overflow-hidden bg-[#F8FAFC] text-[#0A1B2E] font-sans antialiased">
+    <!-- Backdrop for mobile when sidebar is open -->
+    @if (isSidebarOpen)
+    {
+        <div class="fixed inset-0 bg-[#0A1B2E]/20 backdrop-blur-xs z-30 lg:hidden" @onclick="ToggleSidebar"></div>
+    }
 
-    <div class="flex-1 flex flex-col min-w-0">
-        <header class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center shadow-sm">
-            <div>
-                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">CommunityLink Enterprise Portal (.NET 10)</span>
+    <!-- Executive Minimalist Closeable Sidebar (Fixed / Stays in place) -->
+    <aside class="@(isSidebarOpen ? "w-64 min-w-[16rem]" : "w-0 min-w-0 border-r-0 overflow-hidden pointer-events-none") fixed lg:relative inset-y-0 left-0 h-screen bg-white text-[#0A1B2E] flex flex-col border-r border-[#E2E8F0] shadow-sm z-40 transition-all duration-200 ease-in-out shrink-0">
+        <NavMenu OnClose="ToggleSidebar" />
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
+        <!-- Top App Bar with Global Search & Protocol Status -->
+        <header class="bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] px-4 sm:px-6 py-2.5 flex justify-between items-center shadow-xs shrink-0 z-20 gap-3">
+            <!-- Left: Sidebar Toggle, Status & Search -->
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+                <button @onclick="ToggleSidebar" class="p-1.5 rounded text-[#557392] hover:text-[#0A1B2E] hover:bg-[#F1F5F9] transition cursor-pointer shrink-0" title="Toggle navigation sidebar" aria-label="Toggle navigation sidebar">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+
+                <div class="hidden sm:flex items-center gap-2 font-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#F1F5F9] border border-[#E2E8F0] px-2.5 py-1 rounded shrink-0">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="hidden md:inline">VERIFIED NODE PROTOCOL</span>
+                </div>
+
+                <!-- Global Search Box (Moved from User Profile) -->
+                <div class="relative w-48 sm:w-64 md:w-80">
+                    <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#7A8CA6]">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </span>
+                    <input type="text"
+                           placeholder="Search hubs, spaces, passes..."
+                           @bind="searchQuery"
+                           @bind:event="oninput"
+                           @onkeydown="HandleSearchKeyDown"
+                           class="w-full pl-8 pr-3 py-1.5 text-xs rounded border border-[#CBD5E1] bg-[#F1F5F9] text-[#0A1B2E] placeholder-[#7A8CA6] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] transition" />
+                </div>
             </div>
-            <div>
+
+            <!-- Right: Status Pill, Admin Badge, User Actions -->
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <!-- Protocol Credits & Passes Status Pill (Moved from Profile) -->
+                <div class="hidden xl:flex items-center font-mono text-[11px] font-semibold text-[#0A1B2E] bg-white border border-[#E2E8F0] px-3 py-1 rounded gap-2 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>1,450 CREDITS</span>
+                    <span class="text-[#CBD5E1]">·</span>
+                    <span class="text-[#64748B]">3 ACTIVE PASSES</span>
+                </div>
+
                 <AuthorizeView>
                     <Authorized>
-                        <div class="flex items-center gap-3">
-                            <NotificationBell />
-                            <span class="text-sm font-semibold text-slate-700">👤 @context.User.Identity?.Name</span>
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)" Context="adminCtx">
+                                <Authorized>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono font-bold bg-[#F1F5F9] text-[#0A1B2E] border border-[#E2E8F0] shadow-xs">
+                                        <svg class="w-3 h-3 text-[#0A1B2E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                        <span class="hidden sm:inline">ADMIN NODE</span>
+                                    </span>
+                                </Authorized>
+                            </AuthorizeView>
+
+                            <a href="profile" class="text-xs font-semibold text-[#0A1B2E] hover:text-[#557392] transition flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#F1F5F9] no-underline">
+                                <svg class="w-3.5 h-3.5 text-[#557392]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                <span class="hidden md:inline">@context.User.Identity?.Name</span>
+                            </a>
+
                             <form method="post" action="/account/logout" class="inline">
                                 <AntiforgeryToken />
-                                <button type="submit" class="px-3 py-1 rounded-lg text-xs font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition">Logout</button>
+                                <button type="submit" class="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-[#BA1A1A] bg-red-50 hover:bg-red-100 border border-red-200 transition shadow-xs cursor-pointer" title="Disconnect Session">
+                                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                    <span class="hidden md:inline">Logout</span>
+                                </button>
                             </form>
                         </div>
                     </Authorized>
                     <NotAuthorized>
                         <div class="flex items-center gap-2">
-                            <a href="login" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition">Login</a>
-                            <a href="register" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition">Register</a>
+                            <a href="login" class="px-3 py-1 rounded text-xs font-bold text-white bg-[#0A1B2E] hover:bg-[#112A46] shadow-xs transition no-underline">Login</a>
+                            <a href="register" class="px-3 py-1 rounded text-xs font-bold text-[#0A1B2E] bg-white hover:bg-[#F1F5F9] border border-[#CBD5E1] transition no-underline">Register</a>
                         </div>
                     </NotAuthorized>
                 </AuthorizeView>
             </div>
         </header>
 
-        <main class="flex-1 p-6 overflow-y-auto">
+        <!-- Body -->
+        <main class="flex-1 p-6 overflow-y-auto bg-[#F8FAFC]">
             @Body
         </main>
         <ToastContainer />
     </div>
 </div>
 
-<div id="blazor-error-ui" data-nosnippet class="hidden fixed bottom-0 inset-x-0 bg-amber-500 text-white p-3 z-50 text-center font-medium shadow-lg">
+<div id="blazor-error-ui" data-nosnippet class="hidden fixed bottom-0 inset-x-0 bg-amber-600 text-white p-3 z-50 text-center font-medium shadow-2xl">
     An unhandled error has occurred.
     <a href="." class="underline font-bold ml-2">Reload</a>
     <span class="dismiss cursor-pointer ml-4 font-bold">🗙</span>
 </div>
+
+@code {
+    private bool isSidebarOpen = true;
+    private string searchQuery = "";
+
+    private void ToggleSidebar()
+    {
+        isSidebarOpen = !isSidebarOpen;
+    }
+
+    private void HandleSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(searchQuery))
+        {
+            Navigation.NavigateTo($"communities?search={Uri.EscapeDataString(searchQuery.Trim())}");
+        }
+    }
+}
