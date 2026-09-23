@@ -7,15 +7,15 @@
 
 <div class="flex gap-6 h-[calc(100vh-8rem)]">
     <!-- Conversations Sidebar -->
-    <div class="w-72 shrink-0 bg-white rounded-2xl border border-[#E2E8F0] flex flex-col overflow-hidden shadow-sm">
-        <div class="px-4 py-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
-            <h2 class="text-sm font-bold text-[#0A1B2E] flex items-center gap-2" style="font-family:'Manrope',sans-serif">💬 Conversations</h2>
+    <div class="w-72 shrink-0 bg-white dark:bg-[#112A46] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex flex-col overflow-hidden shadow-xs">
+        <div class="px-4 py-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] bg-[#F8FAFC] dark:bg-[#0A1B2E]">
+            <h2 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Manrope',sans-serif">💬 Conversations</h2>
         </div>
         <div class="flex-1 overflow-y-auto">
             @if (conversations == null)
             {
                 <div class="p-6 text-center">
-                    <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#0A1B2E] border-t-transparent"></div>
+                    <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
                 </div>
             }
             else if (conversations.Count == 0)
@@ -24,12 +24,12 @@
             }
             else
             {
-                <div class="divide-y divide-[#E2E8F0]">
+                <div class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.08)]">
                     @foreach (var c in conversations)
                     {
-                        <button class="w-full text-left px-4 py-3 transition @(activeConversationId == c.ConversationId ? "bg-[#F1F5F9] border-l-2 border-l-[#0A1B2E]" : "hover:bg-[#F8FAFC]")"
+                        <button class="w-full text-left px-4 py-3 transition @(activeConversationId == c.ConversationId ? "bg-[#F1F5F9] dark:bg-[#1B3B5A] border-l-2 border-l-[#0A1B2E] dark:border-l-[#E1E8F0]" : "hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/50")"
                                 @onclick="() => SelectConversation(c.ConversationId)">
-                            <div class="font-semibold text-sm text-[#0A1B2E] truncate">@c.OtherDisplayName</div>
+                            <div class="font-semibold text-sm text-[#0A1B2E] dark:text-[#E1E8F0] truncate">@c.OtherDisplayName</div>
                             <div class="text-xs text-[#7A8CA6] truncate mt-0.5">@(c.LastMessagePreview ?? "Start chatting...")</div>
                         </button>
                     }
@@ -39,8 +39,8 @@
     </div>
 
     <!-- Chat Area -->
-    <div class="flex-1 bg-white rounded-2xl border border-[#E2E8F0] flex flex-col overflow-hidden shadow-sm">
-        <div class="flex-1 p-4 overflow-y-auto bg-[#F8FAFC]">
+    <div class="flex-1 bg-white dark:bg-[#112A46] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex flex-col overflow-hidden shadow-xs">
+        <div class="flex-1 p-4 overflow-y-auto bg-[#F8FAFC] dark:bg-[#0A1B2E]">
             @if (messages == null)
             {
                 <div class="flex items-center justify-center h-full text-[#7A8CA6] text-sm">Select a conversation or send a message below to start.</div>
@@ -51,8 +51,8 @@
                     @foreach (var m in messages)
                     {
                         <div class="flex items-start gap-2">
-                            <span class="text-xs font-bold text-[#557392] shrink-0 pt-1">@m.SenderName:</span>
-                            <div class="bg-white px-3 py-2 rounded-lg border border-[#E2E8F0] text-sm text-[#0A1B2E] max-w-[80%] shadow-sm">@m.MessageText</div>
+                            <span class="text-xs font-bold text-[#557392] dark:text-[#C4D2E1] shrink-0 pt-1">@m.SenderName:</span>
+                            <div class="bg-white dark:bg-[#112A46] px-3 py-2 rounded border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-sm text-[#0A1B2E] dark:text-[#E1E8F0] max-w-[80%] shadow-xs">@m.MessageText</div>
                             <span class="text-[10px] text-[#7A8CA6] shrink-0 pt-1.5 font-mono">@m.SentAt.ToLocalTime().ToString("t")</span>
                         </div>
                     }
@@ -60,9 +60,9 @@
             }
         </div>
 
-        <div class="px-4 py-3 border-t border-[#E2E8F0] flex gap-2 bg-white">
-            <input type="text" class="flex-1 px-3.5 py-2 rounded-lg text-sm bg-white text-[#0A1B2E] placeholder-[#7A8CA6] border border-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] transition" @bind="newMessage" @bind:event="oninput" placeholder="Type a message..." @onkeyup="HandleKeyUp" />
-            <button class="px-4 py-2 rounded-full text-xs font-semibold bg-[#0A1B2E] hover:bg-[#112A46] text-white shadow-sm transition active:scale-[0.98]" @onclick="SendMessage">Send</button>
+        <div class="px-4 py-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex gap-2 bg-white dark:bg-[#112A46]">
+            <input type="text" class="flex-1 px-3.5 py-2 rounded text-sm bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)] transition" @bind="newMessage" @bind:event="oninput" placeholder="Type a message..." @onkeyup="HandleKeyUp" />
+            <button class="px-5 py-2 rounded text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] shadow-sm transition active:scale-[0.98]" @onclick="SendMessage">Send</button>
         </div>
     </div>
 </div>

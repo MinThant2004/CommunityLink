@@ -5,6 +5,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('communitylink_theme');
+                var isDark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (e) { }
+        })();
+    </script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" />
     <link rel="stylesheet" href="css/app.css?v=2.0" />
     <link rel="stylesheet" href="CommunityLink.App.styles.css?v=2.0" />
@@ -13,9 +26,10 @@
     <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
-<body class="h-full overflow-hidden bg-[#F8FAFC] text-[#0A1B2E] antialiased font-sans">
+<body class="h-full overflow-hidden bg-[#F8FAFC] dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] antialiased font-sans transition-colors duration-150">
     <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
+    <script src="js/theme.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r125/three.min.js"></script>
     <script src="js/globe.js"></script>
     <script>

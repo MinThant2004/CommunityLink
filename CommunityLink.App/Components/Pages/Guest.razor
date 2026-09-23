@@ -13,7 +13,7 @@
         <a href="guest" class="cl-logo">
             <span class="cl-logo-mark">CL</span>
             <span class="cl-logo-text">Community<span class="cl-logo-accent">Link</span></span>
-            <span class="font-mono text-[9px] font-semibold uppercase tracking-wider text-[#557392] px-2 py-0.5 rounded border border-[#E2E8F0] bg-[#F1F5F9] hidden sm:inline-block">VERIFIED NODE PROTOCOL</span>
+            <span class="font-mono text-[9px] font-semibold uppercase tracking-wider text-[#557392] dark:text-[#C4D2E1] px-2 py-0.5 rounded border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] bg-[#F1F5F9] dark:bg-[#1B3B5A] hidden sm:inline-block">VERIFIED NODE PROTOCOL</span>
         </a>
 
         <div class="cl-nav-links">
@@ -22,6 +22,10 @@
         </div>
 
         <div class="cl-nav-actions">
+            <button class="w-8 h-8 rounded-full flex items-center justify-center text-[#557392] hover:text-[#0A1B2E] dark:text-[#C4D2E1] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition" @onclick="ToggleTheme" title="Toggle Theme" aria-label="Toggle Theme">
+                <span class="dark:hidden text-sm">🌙</span>
+                <span class="hidden dark:inline text-sm">☀️</span>
+            </button>
             <AuthorizeView>
                 <Authorized>
                     <a href="" class="cl-btn cl-btn-primary">Enter Dashboard</a>
@@ -238,8 +242,8 @@
     <div class="cl-footer-inner">
         <div class="cl-footer-brand">
             <div class="flex items-center gap-2">
-                <span class="font-bold text-sm text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">Community<span class="text-[#38BDF8]">Link</span></span>
-                <span class="font-mono text-[9px] font-semibold text-[#7A8CA6] px-1.5 py-0.5 rounded bg-[#F1F5F9] border border-[#E2E8F0]">STANDARD V2.0</span>
+                <span class="font-bold text-sm text-[#0A1B2E] dark:text-white" style="font-family:'Manrope',sans-serif">Community<span class="text-[#38BDF8]">Link</span></span>
+                <span class="font-mono text-[9px] font-semibold text-[#7A8CA6] dark:text-[#8899A6] px-1.5 py-0.5 rounded bg-[#F1F5F9] dark:bg-[#1B3B5A] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)]">STANDARD V2.0</span>
             </div>
             <p>Connecting verified global communities with institutional precision.</p>
         </div>
@@ -255,6 +259,11 @@
 
 @code {
     private bool _globeInitialized;
+
+    private async Task ToggleTheme()
+    {
+        await JS.InvokeVoidAsync("themeManager.toggleTheme");
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

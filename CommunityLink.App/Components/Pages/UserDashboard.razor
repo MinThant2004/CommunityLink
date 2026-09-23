@@ -6,26 +6,26 @@
 
 <PageTitle>My Dashboard — CommunityLink</PageTitle>
 
-<div class="space-y-6">
+<div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- User Welcome Hero Banner -->
-    <div class="relative overflow-hidden rounded-3xl bg-[#0A1B2E] text-white p-6 md:p-8 border border-[#0A1B2E]">
+    <div class="relative overflow-hidden rounded-3xl bg-[#0A1B2E] dark:bg-[#112A46] text-white p-6 md:p-8 border border-[#0A1B2E] dark:border-[rgba(196,210,225,0.15)] shadow-sm">
         <div class="absolute -top-20 -right-20 w-72 h-72 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-20 -left-20 w-72 h-72 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
         <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-white/15 text-white font-bold text-2xl flex items-center justify-center shadow-lg ring-4 ring-white/10">
+                <div class="w-14 h-14 rounded-2xl bg-white/15 dark:bg-white/10 text-white font-bold text-2xl flex items-center justify-center shadow-lg ring-4 ring-white/10">
                     @(model?.Profile?.DisplayName?.Substring(0, 1).ToUpper() ?? "U")
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-white" style="font-family:'Manrope',sans-serif">Welcome back, @(model?.Profile?.DisplayName ?? "Member")!</h1>
-                    <p class="text-white/60 text-sm mt-0.5">Here is your personal activity hub and community updates.</p>
+                    <p class="text-white/60 dark:text-[#C4D2E1] text-sm mt-0.5">Here is your personal activity hub and community updates.</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <a href="feed" class="px-4 py-2 rounded-full bg-white text-[#0A1B2E] font-semibold text-xs hover:bg-[#F1F5F9] transition shadow-sm">
+                <a href="feed" class="px-4 py-2 rounded-full bg-white dark:bg-[#E1E8F0] text-[#0A1B2E] font-semibold text-xs hover:bg-[#F1F5F9] dark:hover:bg-white transition shadow-sm no-underline">
                     📰 My Feed
                 </a>
-                <a href="communities" class="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/20 transition">
+                <a href="communities" class="px-4 py-2 rounded-full bg-white/10 dark:bg-[#1B3B5A] hover:bg-white/20 dark:hover:bg-[#1B3B5A]/80 text-white font-semibold text-xs border border-white/20 dark:border-[rgba(196,210,225,0.20)] transition no-underline">
                     🏛️ Explore Hubs
                 </a>
             </div>
@@ -34,16 +34,16 @@
 
     @if (isLoading)
     {
-        <div class="p-12 text-center text-[#557392] bg-white rounded-2xl border border-[#E2E8F0]">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] border-t-transparent"></div>
+        <div class="p-12 text-center text-[#557392] dark:text-[#C4D2E1] bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
             <p class="mt-2 text-sm font-medium">Loading your personalized dashboard...</p>
         </div>
     }
     else if (errorMessage != null)
     {
-        <div class="p-6 bg-red-50 border border-red-200 rounded-2xl text-red-700 flex items-center justify-between">
+        <div class="p-6 bg-red-50 dark:bg-rose-950/40 border border-red-200 dark:border-rose-900/50 rounded-2xl text-red-700 dark:text-rose-300 flex items-center justify-between">
             <span>@errorMessage</span>
-            <button @onclick="LoadDashboardAsync" class="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-full hover:bg-red-500 transition">
+            <button @onclick="LoadDashboardAsync" class="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-full hover:bg-red-500 transition cursor-pointer">
                 Retry
             </button>
         </div>
@@ -52,40 +52,40 @@
     {
         <!-- Stat Overview Cards -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] flex items-center justify-between hover:border-[#0A1B2E]/20 hover:-translate-y-0.5 hover:shadow-md transition-all">
+            <div class="bg-white dark:bg-[#112A46] p-5 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between hover:border-[#0A1B2E]/20 dark:hover:border-[rgba(196,210,225,0.35)] hover:-translate-y-0.5 hover:shadow-md transition-all">
                 <div>
                     <div class="text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">My Hubs</div>
-                    <div class="text-2xl font-black text-[#0A1B2E] mt-1" style="font-family:'Manrope',sans-serif">@model.JoinedCommunities.Count</div>
+                    <div class="text-2xl font-black text-[#0A1B2E] dark:text-white mt-1" style="font-family:'Manrope',sans-serif">@model.JoinedCommunities.Count</div>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-[#F1F5F9] text-[#557392] flex items-center justify-center text-xl font-bold">
+                <div class="w-12 h-12 rounded-xl bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] flex items-center justify-center text-xl font-bold">
                     🏛️
                 </div>
             </div>
-            <div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] flex items-center justify-between hover:border-[#0A1B2E]/20 hover:-translate-y-0.5 hover:shadow-md transition-all">
+            <div class="bg-white dark:bg-[#112A46] p-5 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between hover:border-[#0A1B2E]/20 dark:hover:border-[rgba(196,210,225,0.35)] hover:-translate-y-0.5 hover:shadow-md transition-all">
                 <div>
                     <div class="text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">Feed Posts</div>
-                    <div class="text-2xl font-black text-[#0A1B2E] mt-1" style="font-family:'Manrope',sans-serif">@model.RecentPosts.Count</div>
+                    <div class="text-2xl font-black text-[#0A1B2E] dark:text-white mt-1" style="font-family:'Manrope',sans-serif">@model.RecentPosts.Count</div>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-[#F1F5F9] text-[#557392] flex items-center justify-center text-xl font-bold">
+                <div class="w-12 h-12 rounded-xl bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] flex items-center justify-center text-xl font-bold">
                     📝
                 </div>
             </div>
-            <div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] flex items-center justify-between hover:border-[#0A1B2E]/20 hover:-translate-y-0.5 hover:shadow-md transition-all">
+            <div class="bg-white dark:bg-[#112A46] p-5 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between hover:border-[#0A1B2E]/20 dark:hover:border-[rgba(196,210,225,0.35)] hover:-translate-y-0.5 hover:shadow-md transition-all">
                 <div>
                     <div class="text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">Active Polls</div>
-                    <div class="text-2xl font-black text-[#0A1B2E] mt-1" style="font-family:'Manrope',sans-serif">@model.ActivePolls.Count</div>
+                    <div class="text-2xl font-black text-[#0A1B2E] dark:text-white mt-1" style="font-family:'Manrope',sans-serif">@model.ActivePolls.Count</div>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-[#F1F5F9] text-[#557392] flex items-center justify-center text-xl font-bold">
+                <div class="w-12 h-12 rounded-xl bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] flex items-center justify-center text-xl font-bold">
                     📊
                 </div>
             </div>
-            <div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] flex items-center justify-between hover:border-[#0A1B2E]/20 hover:-translate-y-0.5 hover:shadow-md transition-all">
+            <div class="bg-white dark:bg-[#112A46] p-5 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between hover:border-[#0A1B2E]/20 dark:hover:border-[rgba(196,210,225,0.35)] hover:-translate-y-0.5 hover:shadow-md transition-all">
                 <div>
                     <div class="text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">Messages</div>
-                    <div class="text-2xl font-black text-[#0A1B2E] mt-1" style="font-family:'Manrope',sans-serif">
+                    <div class="text-2xl font-black text-[#0A1B2E] dark:text-white mt-1" style="font-family:'Manrope',sans-serif">
                         @if (model.UnreadMessageCount > 0)
                         {
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 dark:bg-rose-950/50 text-red-600 dark:text-rose-300 border border-red-200 dark:border-rose-900/50">
                                 @model.UnreadMessageCount unread
                             </span>
                         }
@@ -95,7 +95,7 @@
                         }
                     </div>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-[#F1F5F9] text-[#557392] flex items-center justify-center text-xl font-bold">
+                <div class="w-12 h-12 rounded-xl bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] flex items-center justify-center text-xl font-bold">
                     💬
                 </div>
             </div>
@@ -106,31 +106,31 @@
             <!-- Left Column: Joined & Recommended Communities -->
             <div class="space-y-6">
                 <!-- Joined Communities -->
-                <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0]">
-                        <h2 class="text-base font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">🏛️ My Communities</h2>
-                        <a href="communities" class="text-xs font-semibold text-[#557392] hover:text-[#0A1B2E] transition">View All &rarr;</a>
+                <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                        <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">🏛️ My Communities</h2>
+                        <a href="communities" class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition">View All &rarr;</a>
                     </div>
                     @if (!model.JoinedCommunities.Any())
                     {
-                        <p class="text-xs text-[#7A8CA6] py-4">No communities joined yet. <a href="communities" class="text-[#557392] font-semibold underline">Discover hubs now!</a></p>
+                        <p class="text-xs text-[#7A8CA6] py-4">No communities joined yet. <a href="communities" class="text-[#557392] dark:text-[#C4D2E1] font-semibold underline">Discover hubs now!</a></p>
                     }
                     else
                     {
-                        <div class="divide-y divide-[#E2E8F0]">
+                        <div class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)]">
                             @foreach (var c in model.JoinedCommunities.Take(5))
                             {
                                 <div class="py-3 flex items-center justify-between gap-3">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-lg bg-[#F1F5F9] text-[#557392] font-bold text-sm flex items-center justify-center border border-[#E2E8F0]">
+                                        <div class="w-9 h-9 rounded-lg bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] font-bold text-sm flex items-center justify-center border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)]">
                                             @c.Name.Substring(0, 1).ToUpper()
                                         </div>
                                         <div>
-                                            <a href="communities" class="font-bold text-sm text-[#0A1B2E] hover:text-[#557392] transition">@c.Name</a>
+                                            <a href="communities" class="font-bold text-sm text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-[#557392] dark:hover:text-white transition no-underline">@c.Name</a>
                                             <div class="text-xs text-[#7A8CA6] font-mono">@c.MemberCount members &middot; @c.PostCount posts</div>
                                         </div>
                                     </div>
-                                    <a href="feed" class="px-3 py-1 rounded-full text-xs font-semibold text-[#0A1B2E] bg-[#F1F5F9] hover:bg-[#E2E8F0] border border-[#E2E8F0] transition">Open</a>
+                                    <a href="feed" class="px-3 py-1 rounded-full text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition no-underline">Open</a>
                                 </div>
                             }
                         </div>
@@ -138,9 +138,9 @@
                 </div>
 
                 <!-- Suggested Hubs -->
-                <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0]">
-                        <h2 class="text-base font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">✨ Recommended Hubs</h2>
+                <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                        <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">✨ Recommended Hubs</h2>
                         <span class="text-xs text-[#7A8CA6]">Tailored for you</span>
                     </div>
                     @if (!model.RecommendedCommunities.Any())
@@ -152,12 +152,12 @@
                         <div class="space-y-3">
                             @foreach (var c in model.RecommendedCommunities.Take(3))
                             {
-                                <div class="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] flex items-center justify-between gap-3 hover:border-[#CBD5E1] transition">
+                                <div class="p-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between gap-3 hover:border-[#CBD5E1] dark:hover:border-[rgba(196,210,225,0.30)] transition">
                                     <div>
-                                        <div class="font-bold text-xs text-[#0A1B2E]">@c.Name</div>
-                                        <div class="text-xs text-[#557392] line-clamp-1">@c.Description</div>
+                                        <div class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0]">@c.Name</div>
+                                        <div class="text-xs text-[#557392] dark:text-[#C4D2E1] line-clamp-1">@c.Description</div>
                                     </div>
-                                    <a href="communities" class="px-3 py-1 rounded-full text-xs font-semibold text-white bg-[#0A1B2E] hover:bg-[#112A46] transition shadow-sm whitespace-nowrap">
+                                    <a href="communities" class="px-3 py-1 rounded-full text-xs font-semibold text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white transition shadow-sm whitespace-nowrap no-underline">
                                         Explore
                                     </a>
                                 </div>
@@ -170,10 +170,10 @@
             <!-- Right Column: Feed Activity & Active Polls -->
             <div class="space-y-6">
                 <!-- Recent Activity Feed -->
-                <div class="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0]">
-                        <h2 class="text-base font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">📰 Recent Activity Feed</h2>
-                        <a href="feed" class="text-xs font-semibold text-[#557392] hover:text-[#0A1B2E] transition">Open Feed &rarr;</a>
+                <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                        <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">📰 Recent Activity Feed</h2>
+                        <a href="feed" class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition">Open Feed &rarr;</a>
                     </div>
                     @if (!model.RecentPosts.Any())
                     {
@@ -181,15 +181,15 @@
                     }
                     else
                     {
-                        <div class="divide-y divide-[#E2E8F0]">
+                        <div class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)]">
                             @foreach (var p in model.RecentPosts.Take(4))
                             {
                                 <div class="py-3">
                                     <div class="flex items-center justify-between text-xs mb-1">
-                                        <span class="font-bold text-[#557392]">@@@p.AuthorName</span>
+                                        <span class="font-bold text-[#557392] dark:text-[#C4D2E1]">@@@p.AuthorName</span>
                                         <span class="text-[#7A8CA6] font-mono">@p.CreatedAt.ToString("g")</span>
                                     </div>
-                                    <p class="text-sm text-[#0A1B2E] line-clamp-2 mb-2">@p.Content</p>
+                                    <p class="text-sm text-[#0A1B2E] dark:text-[#E1E8F0] line-clamp-2 mb-2">@p.Content</p>
                                     <div class="flex items-center gap-4 text-xs text-[#7A8CA6] font-medium font-mono">
                                         <span>❤️ @p.LikeCount</span>
                                         <span>💬 @p.CommentCount</span>

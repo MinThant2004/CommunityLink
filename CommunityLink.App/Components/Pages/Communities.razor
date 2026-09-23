@@ -6,16 +6,16 @@
 
 <PageTitle>Communities &amp; Sub-communities - CommunityLink</PageTitle>
 
-<div class="min-h-screen bg-[#F8FAFC] py-6 px-4 sm:px-6 lg:px-8 text-[#0A1B2E]">
+<div class="min-h-screen bg-[#F8FAFC] dark:bg-[#0A1B2E] py-6 px-4 sm:px-6 lg:px-8 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <div class="max-w-7xl mx-auto space-y-6">
         
         <!-- Header & Action Bar -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0A1B2E] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
                     Communities &amp; Sub-communities
                 </h1>
-                <p class="text-sm text-[#557392] mt-1" style="font-family:'Inter',sans-serif">
+                <p class="text-sm text-[#557392] dark:text-[#C4D2E1] mt-1" style="font-family:'Inter',sans-serif">
                     Explore hubs, collaborate, or establish a new community or sub-community.
                 </p>
             </div>
@@ -30,13 +30,13 @@
                         </svg>
                     </div>
                     <input type="text"
-                           class="w-full pl-9 pr-8 py-2 bg-white text-sm text-[#0A1B2E] placeholder-[#7A8CA6] rounded-full border border-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] transition shadow-sm"
+                           class="w-full pl-9 pr-8 py-2 bg-white dark:bg-[#112A46] text-sm text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-full border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] transition shadow-sm"
                            placeholder="Search communities..."
                            @bind="searchTerm"
                            @bind:after="LoadCommunities" />
                     @if (!string.IsNullOrEmpty(searchTerm))
                     {
-                        <button type="button" @onclick="ClearSearch" class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#7A8CA6] hover:text-[#0A1B2E]">
+                        <button type="button" @onclick="ClearSearch" class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -47,7 +47,7 @@
                 <!-- Create Community Button -->
                 <button type="button"
                         @onclick="OpenCreateCommunity"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-white bg-[#0A1B2E] hover:bg-[#112A46] active:scale-95 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0A1B2E] focus:ring-offset-2">
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white active:scale-95 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0A1B2E] focus:ring-offset-2">
                     <span class="text-base leading-none font-bold">+</span>
                     <span>Create Community</span>
                 </button>
@@ -55,8 +55,8 @@
                 <!-- Create Sub-community Button -->
                 <button type="button"
                         @onclick="OpenCreateSubCommunity"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-[#0A1B2E] bg-white hover:bg-[#F1F5F9] border border-[#CBD5E1] transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0A1B2E] focus:ring-offset-2">
-                    <span class="text-base leading-none font-bold text-[#557392]">+</span>
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-[#0A1B2E] dark:text-[#E1E8F0] bg-white dark:bg-[#112A46] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0A1B2E] focus:ring-offset-2">
+                    <span class="text-base leading-none font-bold text-[#557392] dark:text-[#C4D2E1]">+</span>
                     <span>Create Sub-community</span>
                 </button>
             </div>
@@ -69,23 +69,23 @@
             <div class="@(isSidePanelOpen ? "lg:col-span-2" : "col-span-1") space-y-6">
                 @if (isLoading)
                 {
-                    <div class="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm">
-                        <div class="animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] border-t-transparent"></div>
-                        <p class="text-sm text-[#557392] mt-3 font-medium">Loading communities...</p>
+                    <div class="flex flex-col items-center justify-center py-20 bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-sm">
+                        <div class="animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
+                        <p class="text-sm text-[#557392] dark:text-[#C4D2E1] mt-3 font-medium">Loading communities...</p>
                     </div>
                 }
                 else if (communities == null || communities.Count == 0)
                 {
-                    <div class="text-center py-16 bg-white rounded-2xl border border-dashed border-[#CBD5E1] p-8">
-                        <div class="w-12 h-12 rounded-full bg-[#F1F5F9] text-[#557392] flex items-center justify-center mx-auto mb-3">
+                    <div class="text-center py-16 bg-white dark:bg-[#112A46] rounded-2xl border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] p-8">
+                        <div class="w-12 h-12 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] flex items-center justify-center mx-auto mb-3">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-base font-semibold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">No communities found</h3>
-                        <p class="text-sm text-[#557392] mt-1 max-w-sm mx-auto">Get started by creating the very first community or refine your search query.</p>
+                        <h3 class="text-base font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">No communities found</h3>
+                        <p class="text-sm text-[#557392] dark:text-[#C4D2E1] mt-1 max-w-sm mx-auto">Get started by creating the very first community or refine your search query.</p>
                         <div class="mt-4">
-                            <button type="button" @onclick="OpenCreateCommunity" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white bg-[#0A1B2E] hover:bg-[#112A46] shadow-sm transition-all">
+                            <button type="button" @onclick="OpenCreateCommunity" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white shadow-sm transition-all">
                                 + Create Community
                             </button>
                         </div>
@@ -100,21 +100,21 @@
                         {
                             var subs = communities.Where(s => s.ParentCommunityId == c.CommunityId).ToList();
 
-                            <div class="bg-white rounded-2xl border border-[#E2E8F0] hover:border-[#0A1B2E]/30 p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between">
+                            <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] hover:border-[#0A1B2E]/30 dark:hover:border-[rgba(196,210,225,0.35)] p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between">
                                 <!-- Card Header -->
                                 <div>
                                     <div class="flex items-start justify-between gap-2">
                                         <div class="min-w-0 flex-1">
-                                            <h3 class="text-base font-bold text-[#0A1B2E] leading-snug truncate" style="font-family:'Manrope',sans-serif">@c.Name</h3>
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 mt-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#F1F5F9] text-[#557392] border border-[#E2E8F0]">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E]"></span>
+                                            <h3 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] leading-snug truncate" style="font-family:'Manrope',sans-serif">@c.Name</h3>
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 mt-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0]"></span>
                                                 Community
                                             </span>
                                         </div>
                                         <button type="button"
                                                 @onclick="() => OpenEditModal(c)"
                                                 title="Edit Community & History"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#557392] bg-[#F1F5F9] hover:bg-[#E2E8F0] rounded-lg border border-[#E2E8F0] transition-colors">
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#557392] dark:text-[#C4D2E1] bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition-colors">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                             </svg>
@@ -123,7 +123,7 @@
                                     </div>
 
                                     <!-- Description -->
-                                    <p class="text-xs text-[#557392] mt-2 line-clamp-2 leading-relaxed">
+                                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-2 line-clamp-2 leading-relaxed">
                                         @(string.IsNullOrWhiteSpace(c.Description) ? "No description provided." : c.Description)
                                     </p>
 
@@ -141,20 +141,20 @@
                                         <div class="mt-2 space-y-2">
                                             @foreach (var sub in subs)
                                             {
-                                                <div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3">
+                                                <div class="bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-xl p-3">
                                                     <div class="flex items-center justify-between gap-2 mb-1.5">
                                                         <div class="flex items-center gap-1.5 min-w-0">
-                                                            <span class="text-[#557392] text-xs font-bold">#</span>
-                                                            <span class="text-xs font-semibold text-[#0A1B2E] truncate">@sub.Name</span>
+                                                            <span class="text-[#557392] dark:text-[#C4D2E1] text-xs font-bold">#</span>
+                                                            <span class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] truncate">@sub.Name</span>
                                                         </div>
                                                         <div class="flex items-center gap-1.5">
                                                             <button type="button"
                                                                     @onclick="() => OpenEditModal(sub)"
                                                                     title="Edit Sub-community"
-                                                                    class="px-2 py-0.5 text-[11px] font-medium rounded-md border border-[#E2E8F0] text-[#557392] hover:text-[#0A1B2E] hover:bg-[#E2E8F0] transition-colors">
+                                                                    class="px-2 py-0.5 text-[11px] font-medium rounded-md border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#E2E8F0] dark:hover:bg-[#1B3B5A] transition-colors">
                                                                 Edit
                                                             </button>
-                                                            <button type="button" @onclick="() => JoinCommunity(sub.CommunityId)" class="px-2.5 py-0.5 text-[11px] font-medium rounded-md border border-[#CBD5E1] text-[#0A1B2E] bg-[#F1F5F9] hover:bg-[#E2E8F0] transition-colors">
+                                                            <button type="button" @onclick="() => JoinCommunity(sub.CommunityId)" class="px-2.5 py-0.5 text-[11px] font-medium rounded-md border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] transition-colors">
                                                                 Join
                                                             </button>
                                                         </div>
@@ -162,15 +162,15 @@
 
                                                     @if (!string.IsNullOrWhiteSpace(sub.Description))
                                                     {
-                                                        <p class="text-[11px] text-[#557392] mb-1.5 line-clamp-1">@sub.Description</p>
+                                                        <p class="text-[11px] text-[#557392] dark:text-[#C4D2E1] mb-1.5 line-clamp-1">@sub.Description</p>
                                                     }
 
                                                     <!-- Member Stats -->
-                                                    <div class="flex items-center justify-between text-[11px] text-[#7A8CA6] pt-1 border-t border-[#E2E8F0]">
+                                                    <div class="flex items-center justify-between text-[11px] text-[#7A8CA6] pt-1 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                                         <div class="flex items-center gap-1">
                                                             <div class="flex -space-x-1.5 overflow-hidden">
-                                                                <span class="inline-block h-4 w-4 rounded-full ring-1 ring-white bg-[#CBD5E1] text-[#0A1B2E] text-[8px] font-bold text-center leading-4">A</span>
-                                                                <span class="inline-block h-4 w-4 rounded-full ring-1 ring-white bg-[#557392] text-white text-[8px] font-bold text-center leading-4">U</span>
+                                                                <span class="inline-block h-4 w-4 rounded-full ring-1 ring-white dark:ring-[#112A46] bg-[#CBD5E1] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] text-[8px] font-bold text-center leading-4">A</span>
+                                                                <span class="inline-block h-4 w-4 rounded-full ring-1 ring-white dark:ring-[#112A46] bg-[#557392] text-white text-[8px] font-bold text-center leading-4">U</span>
                                                             </div>
                                                             <span class="ml-1 font-mono">@sub.MemberCount members</span>
                                                         </div>
@@ -185,23 +185,23 @@
                                     }
                                     else
                                     {
-                                        <div class="mt-2 text-[11px] text-[#7A8CA6] italic bg-[#F8FAFC] p-2 rounded-lg border border-dashed border-[#CBD5E1]">
+                                        <div class="mt-2 text-[11px] text-[#7A8CA6] italic bg-[#F8FAFC] dark:bg-[#0A1B2E] p-2 rounded-lg border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)]">
                                             No sub-communities yet.
                                         </div>
                                     }
                                 </div>
 
                                 <!-- Card Footer: Quick Actions -->
-                                <div class="mt-4 pt-3 border-t border-[#E2E8F0] flex items-center justify-between gap-2">
+                                <div class="mt-4 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between gap-2">
                                     <button type="button"
                                             @onclick="() => OpenSubCommunityForParent(c.CommunityId)"
-                                            class="text-xs font-medium text-[#557392] hover:text-[#0A1B2E] transition-colors flex items-center gap-1">
+                                            class="text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition-colors flex items-center gap-1">
                                         <span>+ Add Sub-community</span>
                                     </button>
 
                                     <button type="button"
                                             @onclick="() => JoinCommunity(c.CommunityId)"
-                                            class="px-3 py-1 text-xs font-medium rounded-lg text-[#0A1B2E] bg-[#F1F5F9] hover:bg-[#E2E8F0] border border-[#E2E8F0] transition-colors">
+                                            class="px-3 py-1 text-xs font-medium rounded-lg text-[#0A1B2E] dark:text-[#E1E8F0] bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition-colors">
                                         Join
                                     </button>
                                 </div>
@@ -214,12 +214,12 @@
             <!-- Right Column: Create Community or Sub-community Form Panel -->
             @if (isSidePanelOpen)
             {
-                <div class="col-span-1 bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm sticky top-6">
-                    <div class="flex items-center justify-between pb-3 border-b border-[#E2E8F0] mb-4">
-                        <h2 class="text-base font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">
+                <div class="col-span-1 bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] p-5 shadow-sm sticky top-6">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] mb-4">
+                        <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">
                             @(isCreatingSub ? "Create Sub-community" : "Create Community")
                         </h2>
-                        <button type="button" @onclick="CloseSidePanel" class="text-[#7A8CA6] hover:text-[#0A1B2E] p-1 rounded-lg">
+                        <button type="button" @onclick="CloseSidePanel" class="text-[#7A8CA6] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white p-1 rounded-lg">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -228,7 +228,7 @@
 
                     @if (!string.IsNullOrEmpty(panelErrorMessage))
                     {
-                        <div class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2">
+                        <div class="mb-4 p-3 rounded-xl bg-red-50 dark:bg-rose-950/40 border border-red-200 dark:border-rose-900/50 text-red-700 dark:text-rose-300 text-xs flex items-start gap-2">
                             <span class="text-red-500 font-bold">⚠</span>
                             <span class="flex-1">@panelErrorMessage</span>
                         </div>
@@ -239,18 +239,18 @@
                         {
                             <!-- Parent Community Select -->
                             <div>
-                                <label class="block text-xs font-semibold text-[#0A1B2E] mb-1">
+                                <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">
                                     Parent Community <span class="text-red-500">*</span>
                                 </label>
                                 @if (ParentCommunityOptions.Count == 0)
                                 {
-                                    <div class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs">
+                                    <div class="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-300 text-xs">
                                         No parent community exists. Please create a community first!
                                     </div>
                                 }
                                 else
                                 {
-                                    <select class="w-full px-3 py-2 bg-white text-xs text-[#0A1B2E] rounded-lg border border-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E]"
+                                    <select class="w-full px-3 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
                                             @bind="selectedParentCommunityId">
                                         <option value="0">-- Select a Community --</option>
                                         @foreach (var parent in ParentCommunityOptions)
@@ -263,20 +263,20 @@
 
                             <!-- Sub-community Name Input -->
                             <div>
-                                <label class="block text-xs font-semibold text-[#0A1B2E] mb-1">
+                                <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">
                                     Sub-community Name <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text"
-                                       class="w-full px-3 py-2 bg-white text-xs text-[#0A1B2E] placeholder-[#7A8CA6] rounded-lg border border-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E]"
+                                       class="w-full px-3 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
                                        placeholder="Sub-community Name"
                                        @bind="subCommunityName" />
                             </div>
 
                             <!-- Sub-community Description Input -->
                             <div>
-                                <label class="block text-xs font-semibold text-[#0A1B2E] mb-1">Description</label>
+                                <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Description</label>
                                 <textarea rows="3"
-                                          class="w-full px-3 py-2 bg-white text-xs text-[#0A1B2E] placeholder-[#7A8CA6] rounded-lg border border-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E]"
+                                          class="w-full px-3 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
                                           placeholder="Focus tech or description"
                                           @bind="subCommunityDesc"></textarea>
                             </div>
@@ -285,20 +285,20 @@
                         {
                             <!-- Community Name Input -->
                             <div>
-                                <label class="block text-xs font-semibold text-[#0A1B2E] mb-1">
+                                <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">
                                     Community Name <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text"
-                                       class="w-full px-3 py-2 bg-white text-xs text-[#0A1B2E] placeholder-[#7A8CA6] rounded-lg border border-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E]"
+                                       class="w-full px-3 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
                                        placeholder="e.g. Technology"
                                        @bind="communityName" />
                             </div>
 
                             <!-- Community Description Input -->
                             <div>
-                                <label class="block text-xs font-semibold text-[#0A1B2E] mb-1">Description</label>
+                                <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Description</label>
                                 <textarea rows="3"
-                                          class="w-full px-3 py-2 bg-white text-xs text-[#0A1B2E] placeholder-[#7A8CA6] rounded-lg border border-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E]"
+                                          class="w-full px-3 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
                                           placeholder="Describe the purpose of this community..."
                                           @bind="communityDesc"></textarea>
                             </div>
@@ -309,13 +309,13 @@
                             <button type="button"
                                     @onclick="CloseSidePanel"
                                     disabled="@isSubmitting"
-                                    class="px-3.5 py-1.5 text-xs font-medium text-[#557392] hover:text-[#0A1B2E] bg-white hover:bg-[#F1F5F9] rounded-lg border border-[#E2E8F0] transition-colors">
+                                    class="px-3.5 py-1.5 text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white bg-white dark:bg-[#112A46] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition-colors">
                                 Cancel
                             </button>
                             <button type="button"
                                     @onclick="SubmitForm"
                                     disabled="@isSubmitting"
-                                    class="px-4 py-1.5 text-xs font-medium text-white bg-[#0A1B2E] hover:bg-[#112A46] active:scale-95 rounded-lg transition-colors shadow-sm disabled:opacity-50">
+                                    class="px-4 py-1.5 text-xs font-medium text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white active:scale-95 rounded-lg transition-colors shadow-sm disabled:opacity-50">
                                 @(isSubmitting ? "Saving..." : (isCreatingSub ? "Create Sub-community" : "Create Community"))
                             </button>
                         </div>
@@ -329,20 +329,20 @@
 <!-- Edit Modal -->
 @if (isEditModalOpen && editingCommunity != null)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#0A1B2E]/50 backdrop-blur-sm p-4">
-        <div class="relative bg-white rounded-2xl shadow-xl border border-[#E2E8F0] w-full max-w-2xl overflow-hidden">
+    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#0A1B2E]/50 dark:bg-black/70 backdrop-blur-sm p-4">
+        <div class="relative bg-white dark:bg-[#112A46] rounded-2xl shadow-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] w-full max-w-2xl overflow-hidden">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E]">
                 <div>
-                    <h3 class="text-base font-bold text-[#0A1B2E] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
+                    <h3 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
                         <span>Edit @(editingCommunity.ParentCommunityId.HasValue ? "Sub-community" : "Community")</span>
-                        <span class="text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-[#F1F5F9] text-[#557392] border border-[#E2E8F0]">
+                        <span class="text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]">
                             @editingCommunity.Name
                         </span>
                     </h3>
-                    <p class="text-xs text-[#557392] mt-0.5">Manage details and view change audit history</p>
+                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-0.5">Manage details and view change audit history</p>
                 </div>
-                <button type="button" @onclick="CloseEditModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition-colors">
+                <button type="button" @onclick="CloseEditModal" class="text-[#7A8CA6] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white p-1.5 rounded-lg hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -350,10 +350,10 @@
             </div>
 
             <!-- Tab Switcher -->
-            <div class="flex border-b border-[#E2E8F0] bg-white px-6">
+            <div class="flex border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46] px-6">
                 <button type="button"
                         @onclick="() => activeTab = 0"
-                        class="py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 @(activeTab == 0 ? "border-[#0A1B2E] text-[#0A1B2E]" : "border-transparent text-[#557392] hover:text-[#0A1B2E]")">
+                        class="py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 @(activeTab == 0 ? "border-[#0A1B2E] dark:border-[#E1E8F0] text-[#0A1B2E] dark:text-[#E1E8F0]" : "border-transparent text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white")">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                     </svg>
@@ -361,14 +361,14 @@
                 </button>
                 <button type="button"
                         @onclick="() => SwitchToAuditTab()"
-                        class="py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 @(activeTab == 1 ? "border-[#0A1B2E] text-[#0A1B2E]" : "border-transparent text-[#557392] hover:text-[#0A1B2E]")">
+                        class="py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 @(activeTab == 1 ? "border-[#0A1B2E] dark:border-[#E1E8F0] text-[#0A1B2E] dark:text-[#E1E8F0]" : "border-transparent text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white")">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <span>Audit History</span>
                     @if (auditLogs != null && auditLogs.Count > 0)
                     {
-                        <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-[#F1F5F9] text-[#557392] font-bold border border-[#E2E8F0]">@auditLogs.Count</span>
+                        <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] font-bold border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]">@auditLogs.Count</span>
                     }
                 </button>
             </div>
@@ -380,7 +380,7 @@
                     <!-- Edit Tab -->
                     @if (!string.IsNullOrEmpty(editErrorMessage))
                     {
-                        <div class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2">
+                        <div class="mb-4 p-3 rounded-xl bg-red-50 dark:bg-rose-950/40 border border-red-200 dark:border-rose-900/50 text-red-700 dark:text-rose-300 text-xs flex items-start gap-2">
                             <span class="text-red-500 font-bold">⚠</span>
                             <span class="flex-1">@editErrorMessage</span>
                         </div>
@@ -388,34 +388,34 @@
 
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-[#0A1B2E] mb-1">
+                            <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">
                                 Name <span class="text-red-500">*</span>
                             </label>
                             <input type="text"
-                                   class="w-full px-3.5 py-2 bg-white text-xs text-[#0A1B2E] placeholder-[#7A8CA6] rounded-lg border border-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E]"
+                                   class="w-full px-3.5 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
                                    placeholder="Enter name"
                                    @bind="editFormName" />
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-[#0A1B2E] mb-1">Description</label>
+                            <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Description</label>
                             <textarea rows="4"
-                                      class="w-full px-3.5 py-2 bg-white text-xs text-[#0A1B2E] placeholder-[#7A8CA6] rounded-lg border border-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E]"
+                                      class="w-full px-3.5 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
                                       placeholder="Enter description"
                                       @bind="editFormDesc"></textarea>
                         </div>
 
-                        <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#E2E8F0]">
+                        <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                             <button type="button"
                                     @onclick="CloseEditModal"
                                     disabled="@isSavingEdit"
-                                    class="px-4 py-2 text-xs font-medium text-[#557392] hover:text-[#0A1B2E] bg-white hover:bg-[#F1F5F9] rounded-lg border border-[#E2E8F0] transition-colors">
+                                    class="px-4 py-2 text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white bg-white dark:bg-[#112A46] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition-colors">
                                 Cancel
                             </button>
                             <button type="button"
                                     @onclick="SubmitEditForm"
                                     disabled="@isSavingEdit"
-                                    class="px-5 py-2 text-xs font-medium text-white bg-[#0A1B2E] hover:bg-[#112A46] active:scale-95 rounded-lg transition-colors shadow-sm disabled:opacity-50">
+                                    class="px-5 py-2 text-xs font-medium text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white active:scale-95 rounded-lg transition-colors shadow-sm disabled:opacity-50">
                                 @(isSavingEdit ? "Saving Changes..." : "Save Changes")
                             </button>
                         </div>
@@ -426,26 +426,26 @@
                     <!-- Audit History Tab -->
                     @if (isLoadingAudits)
                     {
-                        <div class="py-12 flex flex-col items-center justify-center text-[#557392]">
-                            <div class="animate-spin rounded-full h-7 w-7 border-b-2 border-[#0A1B2E]"></div>
+                        <div class="py-12 flex flex-col items-center justify-center text-[#557392] dark:text-[#C4D2E1]">
+                            <div class="animate-spin rounded-full h-7 w-7 border-b-2 border-[#0A1B2E] dark:border-[#E1E8F0]"></div>
                             <span class="text-xs mt-3">Loading audit history...</span>
                         </div>
                     }
                     else if (auditLogs == null || auditLogs.Count == 0)
                     {
-                        <div class="text-center py-12 text-[#7A8CA6]">
-                            <svg class="w-8 h-8 mx-auto mb-2 text-[#CBD5E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="text-center py-12 text-[#7A8CA6] dark:text-[#C4D2E1]">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-[#CBD5E1] dark:text-[#7A8CA6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            <p class="text-xs font-medium text-[#557392]">No audit log entries found for this @(editingCommunity.ParentCommunityId.HasValue ? "sub-community" : "community").</p>
+                            <p class="text-xs font-medium text-[#557392] dark:text-[#C4D2E1]">No audit log entries found for this @(editingCommunity.ParentCommunityId.HasValue ? "sub-community" : "community").</p>
                             <p class="text-[11px] text-[#7A8CA6] mt-0.5">Edits made to the name or description will appear here.</p>
                         </div>
                     }
                     else
                     {
-                        <div class="overflow-x-auto border border-[#E2E8F0] rounded-xl max-h-80 overflow-y-auto">
-                            <table class="w-full text-left text-xs text-[#0A1B2E] border-collapse">
-                                <thead class="bg-[#F1F5F9] border-b border-[#E2E8F0] sticky top-0 text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
+                        <div class="overflow-x-auto border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-xl max-h-80 overflow-y-auto">
+                            <table class="w-full text-left text-xs text-[#0A1B2E] dark:text-[#E1E8F0] border-collapse">
+                                <thead class="bg-[#F1F5F9] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] sticky top-0 text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
                                     <tr>
                                         <th class="px-3 py-2.5">No.</th>
                                         <th class="px-3 py-2.5">Type</th>
@@ -455,26 +455,26 @@
                                         <th class="px-3 py-2.5">Date</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-[#E2E8F0]">
+                                <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)]">
                                     @for (int i = 0; i < auditLogs.Count; i++)
                                     {
                                         var log = auditLogs[i];
-                                        <tr class="hover:bg-[#F8FAFC] transition-colors">
+                                        <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/40 transition-colors">
                                             <td class="px-3 py-2.5 text-[#7A8CA6] font-mono text-[11px]">@(i + 1)</td>
                                             <td class="px-3 py-2.5">
                                                 <div class="flex items-center gap-1">
-                                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F1F5F9] text-[#557392] border border-[#E2E8F0]">
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]">
                                                         @log.FieldChanged
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td class="px-3 py-2.5 text-[#557392] max-w-[120px] truncate" title="@log.OldValue">
+                                            <td class="px-3 py-2.5 text-[#557392] dark:text-[#C4D2E1] max-w-[120px] truncate" title="@log.OldValue">
                                                 @(string.IsNullOrWhiteSpace(log.OldValue) ? "-" : log.OldValue)
                                             </td>
-                                            <td class="px-3 py-2.5 text-[#0A1B2E] font-medium max-w-[120px] truncate" title="@log.NewValue">
+                                            <td class="px-3 py-2.5 text-[#0A1B2E] dark:text-[#E1E8F0] font-medium max-w-[120px] truncate" title="@log.NewValue">
                                                 @(string.IsNullOrWhiteSpace(log.NewValue) ? "-" : log.NewValue)
                                             </td>
-                                            <td class="px-3 py-2.5 text-[#0A1B2E] font-medium">@log.EditorName</td>
+                                            <td class="px-3 py-2.5 text-[#0A1B2E] dark:text-[#E1E8F0] font-medium">@log.EditorName</td>
                                             <td class="px-3 py-2.5 text-[#7A8CA6] text-[11px] whitespace-nowrap font-mono">
                                                 @log.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
                                             </td>
@@ -485,8 +485,8 @@
                         </div>
                     }
 
-                    <div class="flex justify-end pt-4 border-t border-[#E2E8F0] mt-4">
-                        <button type="button" @onclick="CloseEditModal" class="px-4 py-1.5 text-xs font-medium text-[#557392] hover:text-[#0A1B2E] bg-white hover:bg-[#F1F5F9] rounded-lg border border-[#E2E8F0] transition-colors">
+                    <div class="flex justify-end pt-4 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] mt-4">
+                        <button type="button" @onclick="CloseEditModal" class="px-4 py-1.5 text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white bg-white dark:bg-[#112A46] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition-colors">
                             Close
                         </button>
                     </div>

@@ -3,25 +3,189 @@
 @tailwind utilities;
 
 @layer components {
-  /* Card Design Token */
+  /* ============================================================
+     COMMUNITYLINK EXECUTIVE DESIGN SYSTEM - CORE COMPONENTS
+     ============================================================ */
+
+  /* Executive Cards (Level 1 Surface) */
+  .card-executive {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px -2px rgba(10, 27, 46, 0.04), 0 1px 3px 0 rgba(10, 27, 46, 0.02);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+  .dark .card-executive {
+    background-color: #112A46;
+    border: 1px solid rgba(196, 210, 225, 0.12);
+    box-shadow: none;
+  }
+  .card-executive:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 8px 24px -4px rgba(10, 27, 46, 0.07);
+  }
+  .dark .card-executive:hover {
+    border-color: rgba(196, 210, 225, 0.35);
+    box-shadow: 0 0 16px rgba(225, 232, 240, 0.05);
+  }
+
+  /* Recessed Panels (Level 2 Surface) */
+  .panel-recessed {
+    background-color: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+  .dark .panel-recessed {
+    background-color: #1B3B5A;
+    border: 1px solid rgba(196, 210, 225, 0.15);
+  }
+
+  /* Buttons */
+  .btn-exec-primary {
+    background-color: #0A1B2E;
+    color: #FFFFFF !important;
+    border: 1px solid #0A1B2E;
+    border-radius: 0.25rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.18s ease;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .btn-exec-primary:hover:not(:disabled) {
+    background-color: #112A46;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px -2px rgba(10, 27, 46, 0.18);
+  }
+  .dark .btn-exec-primary {
+    background-color: #E1E8F0;
+    color: #0A1B2E !important;
+    border-color: #E1E8F0;
+  }
+  .dark .btn-exec-primary:hover:not(:disabled) {
+    background-color: #FFFFFF;
+    box-shadow: 0 0 16px rgba(225, 232, 240, 0.25);
+  }
+
+  .btn-exec-secondary {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    color: #0A1B2E !important;
+    border-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.18s ease;
+    cursor: pointer;
+  }
+  .btn-exec-secondary:hover {
+    background-color: #F1F5F9;
+    border-color: #CBD5E1;
+  }
+  .dark .btn-exec-secondary {
+    background-color: #112A46;
+    border-color: rgba(196, 210, 225, 0.20);
+    color: #E1E8F0 !important;
+  }
+  .dark .btn-exec-secondary:hover {
+    background-color: #1B3B5A;
+    border-color: rgba(196, 210, 225, 0.40);
+  }
+
+  /* Badges & Chips */
+  .chip-standard {
+    background-color: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    color: #334155;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 0.25rem;
+    padding: 2px 7px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.18s ease;
+  }
+  .dark .chip-standard {
+    background-color: rgba(27, 59, 90, 0.6);
+    border-color: rgba(196, 210, 225, 0.20);
+    color: #C4D2E1;
+  }
+
+  .chip-active {
+    background-color: #0A1B2E;
+    border: 1px solid #0A1B2E;
+    color: #FFFFFF !important;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 0.25rem;
+    padding: 2px 7px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .dark .chip-active {
+    background-color: #E1E8F0;
+    border-color: #E1E8F0;
+    color: #0A1B2E !important;
+  }
+
+  /* Input Fields */
+  .input-executive {
+    background-color: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 13px;
+    color: #0A1B2E;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+  }
+  .input-executive:focus {
+    border-color: #0A1B2E;
+    box-shadow: 0 0 0 3px rgba(10, 27, 46, 0.10);
+  }
+  .dark .input-executive {
+    background-color: #0A1B2E;
+    border-color: #1B3B5A;
+    color: #E1E8F0;
+  }
+  .dark .input-executive:focus {
+    border-color: #E1E8F0;
+    box-shadow: 0 0 0 3px rgba(225, 232, 240, 0.15);
+  }
+
+  /* Backward Compatible Design Tokens with Nocturne Enhancements */
   .card {
-    @apply bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 transition-all duration-200;
+    @apply bg-white dark:bg-[#112A46] rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] shadow-sm dark:shadow-none p-4 transition-all duration-200;
   }
-
-  /* Stat Card Design Token */
   .stat-card {
-    @apply bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex items-center justify-between;
+    @apply bg-white dark:bg-[#112A46] rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] shadow-sm dark:shadow-none p-4 flex items-center justify-between;
   }
-
-  /* Button Design Tokens */
   .btn {
     @apply inline-flex items-center justify-center font-medium rounded-lg text-sm px-4 py-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-primary {
-    @apply btn bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 shadow-sm;
+    @apply btn bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold focus:ring-[#0A1B2E] shadow-sm;
   }
   .btn-secondary {
-    @apply btn bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 focus:ring-slate-400;
+    @apply btn bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)];
   }
   .btn-danger {
     @apply btn bg-rose-600 hover:bg-rose-700 text-white focus:ring-rose-500 shadow-sm;
@@ -30,39 +194,58 @@
     @apply btn bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500 shadow-sm;
   }
   .btn-outline {
-    @apply btn border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700;
+    @apply btn border border-slate-300 dark:border-[rgba(196,210,225,0.20)] text-slate-700 dark:text-[#C4D2E1] hover:bg-slate-50 dark:hover:bg-[#112A46];
   }
   .btn-sm {
     @apply px-3 py-1.5 text-xs;
   }
 
-  /* Badge Design Tokens */
   .badge {
     @apply inline-flex items-center font-semibold text-xs px-2.5 py-0.5 rounded-full;
   }
   .badge-primary {
-    @apply badge bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300;
+    @apply badge bg-[#F1F5F9] text-[#0A1B2E] dark:bg-[#1B3B5A] dark:text-[#E1E8F0];
   }
   .badge-success {
-    @apply badge bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300;
+    @apply badge bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300;
   }
   .badge-warning {
-    @apply badge bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300;
+    @apply badge bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300;
   }
   .badge-danger {
-    @apply badge bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300;
+    @apply badge bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300;
   }
   .badge-secondary {
-    @apply badge bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300;
+    @apply badge bg-slate-100 text-slate-800 dark:bg-[#1B3B5A] dark:text-[#C4D2E1];
   }
 
-  /* Input Design Token */
   .input {
-    @apply w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors;
+    @apply w-full rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.15)] bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] px-3 py-2 text-sm focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none focus:ring-1 focus:ring-[#0A1B2E] dark:focus:ring-[#E1E8F0] transition-colors placeholder-slate-400 dark:placeholder-[rgba(196,210,225,0.40)];
   }
 
-  /* Skeleton Loading Placeholder */
   .skeleton {
-    @apply animate-pulse bg-slate-200 dark:bg-slate-700 rounded;
+    @apply animate-pulse bg-slate-200 dark:bg-[#1B3B5A] rounded;
   }
+}
+
+/* Custom Executive Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.25);
+  border-radius: 9999px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(196, 210, 225, 0.18);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.45);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(196, 210, 225, 0.35);
 }

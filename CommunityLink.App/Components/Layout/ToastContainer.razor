@@ -22,11 +22,11 @@
             <div class="flex-1 min-w-0">
                 @if (!string.IsNullOrWhiteSpace(toast.Message.Title))
                 {
-                    <h5 class="text-sm font-semibold text-slate-900 leading-tight mb-0.5">@toast.Message.Title</h5>
+                    <h5 class="text-sm font-semibold text-slate-900 dark:text-white leading-tight mb-0.5">@toast.Message.Title</h5>
                 }
-                <p class="text-xs font-medium text-slate-700 leading-relaxed break-words">@toast.Message.Message</p>
+                <p class="text-xs font-medium text-slate-700 dark:text-[#C4D2E1] leading-relaxed break-words">@toast.Message.Message</p>
             </div>
-            <button type="button" @onclick="() => RemoveToast(toast.Id)" class="shrink-0 text-slate-400 hover:text-slate-600 p-1 -mr-1 -mt-1 rounded-md transition-colors">
+            <button type="button" @onclick="() => RemoveToast(toast.Id)" class="shrink-0 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-200 p-1 -mr-1 -mt-1 rounded-md transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -69,10 +69,10 @@
 
     private string GetToastClasses(ToastLevel level) => level switch
     {
-        ToastLevel.Success => "bg-white border-emerald-500/30 ring-1 ring-emerald-500/20 text-slate-800",
-        ToastLevel.Warning => "bg-white border-rose-500/40 ring-1 ring-rose-500/20 text-slate-800",
-        ToastLevel.Error => "bg-white border-rose-600/40 ring-1 ring-rose-600/20 text-slate-800",
-        _ => "bg-white border-blue-500/30 ring-1 ring-blue-500/20 text-slate-800"
+        ToastLevel.Success => "bg-white dark:bg-[#112A46] border-emerald-500/30 dark:border-emerald-500/40 ring-1 ring-emerald-500/20 text-slate-800 dark:text-[#E1E8F0]",
+        ToastLevel.Warning => "bg-white dark:bg-[#112A46] border-rose-500/40 dark:border-rose-500/50 ring-1 ring-rose-500/20 text-slate-800 dark:text-[#E1E8F0]",
+        ToastLevel.Error => "bg-white dark:bg-[#112A46] border-rose-600/40 dark:border-rose-600/50 ring-1 ring-rose-600/20 text-slate-800 dark:text-[#E1E8F0]",
+        _ => "bg-white dark:bg-[#112A46] border-blue-500/30 dark:border-blue-500/40 ring-1 ring-blue-500/20 text-slate-800 dark:text-[#E1E8F0]"
     };
 
     public void Dispose()
