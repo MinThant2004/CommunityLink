@@ -339,183 +339,89 @@
                             </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex flex-wrap items-center justify-center gap-3 w-full md:w-auto">
+                    <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1">
                         @if (isOwner)
                         {
-                            <button @onclick="OpenEditModal" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-indigo-600/30 flex items-center gap-2">
-                                ✏️ Edit Profile
+                            <button @onclick="OpenEditModal" class="prof-btn-primary w-full text-xs">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                <span>Edit Profile Credentials</span>
                             </button>
                         }
                         else
                         {
-                            <!-- Visitor View Action Buttons -->
-                            <button @onclick="ToggleFollowUserAsync" disabled="@isTogglingFollow" class="px-4 py-2.5 rounded-xl text-xs font-semibold border transition shadow-sm flex items-center gap-2 @(profile.Relationship.IsFollowedByMe ? "bg-indigo-600 text-white border-indigo-500 hover:bg-indigo-700" : "bg-white/10 hover:bg-white/20 text-white border-white/20")">
+                            <button @onclick="ToggleFollowUserAsync" disabled="@isTogglingFollow" class="prof-btn-primary flex-1 text-xs">
                                 @if (isTogglingFollow)
                                 {
                                     <span class="animate-spin text-xs">⌛</span>
                                 }
                                 else
                                 {
-                                    <span>@(profile.Relationship.IsFollowedByMe ? "✓ Following" : "+ Follow")</span>
+                                    <span>@(profile.Relationship.IsFollowedByMe ? "✓ Following" : "+ Follow Expert")</span>
                                 }
                             </button>
 
-                            <button @onclick="ToggleSaveAccountAsync" disabled="@isSavingAccount" class="px-4 py-2.5 rounded-xl text-xs font-semibold border transition shadow-sm flex items-center gap-2 @(profile.Relationship.IsSavedByMe ? "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30" : "bg-white/10 hover:bg-white/20 text-white border-white/20")">
-                                @if (isSavingAccount)
-                                {
-                                    <span class="animate-spin text-xs">⌛</span>
-                                }
-                                else
-                                {
-                                    <span>@(profile.Relationship.IsSavedByMe ? "🔖 Saved" : "🔖 Save Account")</span>
-                                }
-                            </button>
-
-                            <a href="chat" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition shadow-lg shadow-sky-600/30 flex items-center gap-2">
-                                💬 Send Message
+                            <a href="chat" class="prof-btn-secondary text-xs">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                                <span>Message</span>
                             </a>
 
-                            <button @onclick="OpenRatingModal" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-amber-500/30 flex items-center gap-2">
-                                ⭐ @(profile.Relationship.HasRated ? "Update Rating" : "Rate User")
+                            <button @onclick="OpenRatingModal" class="prof-btn-secondary text-xs">
+                                <svg class="w-4 h-4 text-amber-500" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <span>@(profile.Relationship.HasRated ? "Edit Review" : "Rate Expert")</span>
                             </button>
                         }
                     </div>
 
-                        </div>
-                    </div>
-
-                </div>
-
-        <!-- Metrics Overview Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Posts</div>
-                    <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.PostsCount</div>
-                </div>
-                <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
-                    📝
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Followers</div>
-                    <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.FollowersCount</div>
-                </div>
-                <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
-                    👥
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Following</div>
-                    <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.FollowingCount</div>
-                </div>
-                <div class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg">
-                    👣
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Communities</div>
-                    <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.JoinedCommunitiesCount</div>
-                </div>
-                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
-                    🏛️
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                <div>
-                    <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Rating</div>
-                    <div class="text-xl font-black text-amber-500 mt-1">
-                        @(profile.Metrics.AverageRating.HasValue ? profile.Metrics.AverageRating.Value.ToString("0.0") : "—")
-                    </div>
-                </div>
-                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
-                    ⭐
-                </div>
-            </div>
-
-            @if (isOwner)
-            {
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                    <div>
-                        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Saved Accounts</div>
-                        <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.SavedAccountsCount</div>
-                    </div>
-                    <div class="w-9 h-9 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-lg">
-                        🔖
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
-                    <div>
-                        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Reviews</div>
-                        <div class="text-xl font-black text-slate-900 mt-1">@profile.Metrics.RatingCount</div>
-                    </div>
-                    <div class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg">
-                        💬
-                    </div>
-                </div>
-            }
         </div>
 
-                                <div class="grid grid-cols-3 gap-2">
-                                    <!-- Slot 1 -->
-                                    <button @onclick="() => selectedDateSlot = 0" class="p-2 rounded-lg text-center border transition @(selectedDateSlot == 0 ? "bg-[#0A1B2E] text-white border-[#0A1B2E] shadow-sm" : "bg-[#EDF4FF] text-[#0A1B2E] border-[#C4D2E1] hover:border-[#A1B2C4]")">
-                                        <div class="prof-mono text-[9px] uppercase font-semibold text-[#94A3B8]">THU</div>
-                                        <div class="prof-display text-xs font-bold leading-tight my-0.5">OCT 24</div>
-                                        <div class="prof-mono text-[9px]">10:00 AM</div>
-                                    </button>
+        <!-- ================= RIGHT COLUMN: PROFILE CONTENT & TABS (7 / 12 Cols) ================= -->
+        <div class="lg:col-span-7 xl:col-span-7 space-y-6">
 
-                                    <!-- Slot 2 (Active by default) -->
-                                    <button @onclick="() => selectedDateSlot = 1" class="p-2 rounded-lg text-center border transition @(selectedDateSlot == 1 ? "bg-[#0A1B2E] text-white border-[#0A1B2E] shadow-sm" : "bg-[#EDF4FF] text-[#0A1B2E] border-[#C4D2E1] hover:border-[#A1B2C4]")">
-                                        <div class="prof-mono text-[9px] uppercase font-semibold @(selectedDateSlot == 1 ? "text-slate-300" : "text-[#94A3B8]")">FRI</div>
-                                        <div class="prof-display text-xs font-bold leading-tight my-0.5">OCT 25</div>
-                                        <div class="prof-mono text-[9px]">02:30 PM</div>
-                                    </button>
+            <!-- Executive Navigation Tab Bar -->
+            <div class="prof-card p-2 sm:p-2.5">
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button @onclick='() => SetTab("posts")' class="@(activeTab == "posts" ? "prof-chip-active" : "prof-chip") text-xs font-semibold py-2 px-3 rounded-lg transition">
+                        <span>📝</span> Posts (@postsList.Count)
+                    </button>
 
-                                    <!-- Slot 3 -->
-                                    <button @onclick="() => selectedDateSlot = 2" class="p-2 rounded-lg text-center border transition @(selectedDateSlot == 2 ? "bg-[#0A1B2E] text-white border-[#0A1B2E] shadow-sm" : "bg-[#EDF4FF] text-[#0A1B2E] border-[#C4D2E1] hover:border-[#A1B2C4]")">
-                                        <div class="prof-mono text-[9px] uppercase font-semibold text-[#94A3B8]">TUE</div>
-                                        <div class="prof-display text-xs font-bold leading-tight my-0.5">OCT 29</div>
-                                        <div class="prof-mono text-[9px]">11:15 AM</div>
-                                    </button>
-                                </div>
-                            </div>
+                    @if (isOwner)
+                    {
+                        <button @onclick='() => SetTab("saved-posts")' class="@(activeTab == "saved-posts" ? "prof-chip-active" : "prof-chip") text-xs font-semibold py-2 px-3 rounded-lg transition">
+                            <span>🔖</span> Saved Posts (@savedPostsList.Count)
+                        </button>
 
-                        </div>
+                        <button @onclick='() => SetTab("saved-accounts")' class="@(activeTab == "saved-accounts" ? "prof-chip-active" : "prof-chip") text-xs font-semibold py-2 px-3 rounded-lg transition">
+                            <span>👥</span> Saved Accounts (@savedAccountsList.Count)
+                        </button>
+                    }
 
-                <button @onclick='() => SetTab("shares")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "shares" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
-                    <span>🔁</span> Shares (@sharesList.Count)
-                </button>
+                    <button @onclick='() => SetTab("shares")' class="@(activeTab == "shares" ? "prof-chip-active" : "prof-chip") text-xs font-semibold py-2 px-3 rounded-lg transition">
+                        <span>🔁</span> Shares (@sharesList.Count)
+                    </button>
 
-                <button @onclick='() => SetTab("followers")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "followers" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
-                    <span>👥</span> Followers (@followersList.Count)
-                </button>
+                    <button @onclick='() => SetTab("followers")' class="@(activeTab == "followers" ? "prof-chip-active" : "prof-chip") text-xs font-semibold py-2 px-3 rounded-lg transition">
+                        <span>👥</span> Followers (@followersList.Count)
+                    </button>
 
-                <button @onclick='() => SetTab("following")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "following" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
-                    <span>👣</span> Following (@followingList.Count)
-                </button>
+                    <button @onclick='() => SetTab("following")' class="@(activeTab == "following" ? "prof-chip-active" : "prof-chip") text-xs font-semibold py-2 px-3 rounded-lg transition">
+                        <span>👣</span> Following (@followingList.Count)
+                    </button>
 
-                <button @onclick='() => SetTab("communities")' class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 @(activeTab == "communities" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-600 hover:bg-slate-100")">
-                    <span>🏛️</span> Communities (@communitiesList.Count)
-                </button>
+                    <button @onclick='() => SetTab("communities")' class="@(activeTab == "communities" ? "prof-chip-active" : "prof-chip") text-xs font-semibold py-2 px-3 rounded-lg transition">
+                        <span>🏛️</span> Communities (@communitiesList.Count)
+                    </button>
 
-                            <button @onclick="BookAdvisorySessionAsync" class="prof-btn-primary">
-                                <span>Book &amp; Unlock Connection</span>
-                                &rarr;
-                            </button>
-                        </div>
+                    <button @onclick='() => SetTab("reviews")' class="@(activeTab == "reviews" ? "prof-chip-active" : "prof-chip") text-xs font-semibold py-2 px-3 rounded-lg transition">
+                        <span>⭐</span> Reviews (@reviewsList.Count)
+                    </button>
+                </div>
+            </div>
 
-            <!-- Tab Contents -->
-            <div class="p-4 md:p-6">
+            <!-- Tab Contents Card Container -->
+            <div class="prof-card p-4 sm:p-6">
                 @if (isTabLoading)
                 {
                     <div class="py-12 text-center text-slate-400 font-medium text-xs">
@@ -931,7 +837,10 @@
                 }
             </div>
         </div>
-    }
+
+    </div>
+</div>
+}
 
 </div>
 
@@ -1130,10 +1039,11 @@
         }
     }
 
-    private async Task ToggleSaveAccountAsync()
+    private async Task SetTab(string tab)
     {
-        if (profile == null || isOwner) return;
-        isSavingAccount = true;
+        activeTab = tab;
+        if (profile == null) return;
+        isTabLoading = true;
         try
         {
             switch (tab)
@@ -1184,7 +1094,7 @@
         }
         finally
         {
-            isSavingAccount = false;
+            isTabLoading = false;
         }
     }
 
@@ -1240,6 +1150,18 @@
             }
         }
         catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+        finally
+        {
+            isSavingAccount = false;
+        }
+    }
+
+    private async Task ShareProfile()
+    {
+        try
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", Navigation.Uri);
             Toast.Success("Profile node link copied to clipboard!");
