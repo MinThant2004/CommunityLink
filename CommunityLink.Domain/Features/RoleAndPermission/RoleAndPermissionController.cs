@@ -28,4 +28,14 @@ public sealed class RoleAndPermissionController(IRoleAndPermissionService roleSe
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminRbacManage)]
     public async Task<IActionResult> UpdateRolePermissions([FromBody] UpdateRolePermissionsRequestModel request, CancellationToken cancellationToken) =>
         ToActionResult(await roleService.UpdateRolePermissionsAsync(request, cancellationToken));
+
+    [HttpPost]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminRbacManage)]
+    public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequestModel request, CancellationToken cancellationToken) =>
+        ToActionResult(await roleService.CreateRoleAsync(request, cancellationToken));
+
+    [HttpDelete("{roleId:int}")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminRbacManage)]
+    public async Task<IActionResult> DeleteRole(int roleId, CancellationToken cancellationToken) =>
+        ToActionResult(await roleService.DeleteRoleAsync(roleId, cancellationToken));
 }

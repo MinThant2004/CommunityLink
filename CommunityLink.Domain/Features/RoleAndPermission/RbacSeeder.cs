@@ -78,16 +78,24 @@ public static class RbacSeeder
         }
         await db.SaveChangesAsync();
 
-        // 2. Seed Roles
+        // 2. Seed Roles (Only ADMIN and USER are System Roles)
         var rolesToSeed = new (string Code, string Name, string Description, bool IsSystem)[]
         {
             ("ADMIN", "Administrator", "Full system administrator", true),
-            ("MODERATOR", "Community Moderator", "Manages community content & moderation", true),
-            ("MEMBER", "Community Member", "Standard user account", true),
             ("USER", "User", "Default standard user", true),
+            ("MODERATOR", "Community Moderator", "Manages community content & moderation", false),
+            ("MEMBER", "Community Member", "Standard user account", false),
             ("DOMAIN_PRO", "Domain Professional", "Verified domain expert", false),
             ("PUBLIC_FIGURE", "Public Figure", "Notable community creator or public figure", false)
         };
+
+        // Sync IsSystemRole in the database so only ADMIN and USER are 1, while others are 0
+        await db.Database.ExecuteSqlRawAsync(@"
+            UPDATE dbo.TblRole
+            SET IsSystemRole = CASE 
+                WHEN UPPER(RoleCode) IN ('ADMIN', 'USER') THEN 1 
+                ELSE 0 
+            END;");
 
         foreach (var (code, name, desc, isSystem) in rolesToSeed)
         {
@@ -122,6 +130,11 @@ public static class RbacSeeder
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     });
+                }
+                else if (code == "ADMIN" && mapping.IsDeleted)
+                {
+                    mapping.IsDeleted = false;
+                    mapping.UpdatedAt = DateTime.UtcNow;
                 }
             }
         }

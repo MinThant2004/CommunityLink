@@ -5,3 +5,4 @@ public sealed record PermissionModel(int PermissionId, string Code, string Name,
 public sealed record RolePermissionItemModel(string Code, string Name, string Module, bool IsGranted);
 public sealed record RolePermissionMatrixResponseModel(int RoleId, string RoleCode, string RoleName, IReadOnlyList<RolePermissionItemModel> Permissions);
 public sealed record UpdateRolePermissionsRequestModel(int RoleId, IReadOnlyList<string> GrantedPermissionCodes);
+public sealed record CreateRoleRequestModel(string RoleCode, string RoleName, string? Description);
