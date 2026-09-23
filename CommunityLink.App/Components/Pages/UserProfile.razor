@@ -166,25 +166,25 @@
     {
         <div class="max-w-[1400px] mx-auto px-4 sm:px-6 pt-5 space-y-6">
 
-            <!-- SUB-HEADER / BREADCRUMB & REGISTRY STATUS (Matching Mockup) -->
+            <!-- SUB-HEADER / BREADCRUMB & REGISTRY STATUS -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E2E8F0]">
                 <div class="flex items-center gap-3">
                     <button @onclick='() => Navigation.NavigateTo("home")' class="w-8 h-8 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#0A1B2E] flex items-center justify-center transition shadow-sm" title="Back">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     </button>
                     <div class="prof-mono text-[11px] sm:text-xs text-[#64748B] flex items-center gap-2 tracking-wider">
-                        <span>REGISTRY</span>
+                        <span>MEMBER</span>
                         <span class="text-[#CBD5E1]">/</span>
-                        <span class="font-medium text-[#475569]">FRONTIER INTELLIGENCE</span>
+                        <span class="font-medium text-[#475569]">@(profile.Role?.RoleName?.ToUpper() ?? "USER")</span>
                         <span class="text-[#CBD5E1]">/</span>
-                        <span class="text-[#0A1B2E] font-bold">@(profile.UserName?.ToUpper() ?? "ELENA_VANCE")_ID:@(profile.UserId > 0 ? profile.UserId.ToString("D4") : "8042")</span>
+                        <span class="text-[#0A1B2E] font-bold">@(profile.UserName?.ToUpper())_ID:@(profile.UserId.ToString("D4"))</span>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-3">
                     <div class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-white border border-[#E2E8F0] px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>ACCEPTING DIRECT ENGAGEMENTS</span>
+                        <span class="w-2 h-2 rounded-full @(profile.IsVerified ? "bg-emerald-500" : "bg-blue-500") animate-pulse"></span>
+                        <span>@(profile.IsVerified ? "VERIFIED MEMBER" : "COMMUNITY MEMBER")</span>
                     </div>
 
                     <button @onclick="ShareProfile" class="w-8 h-8 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#0A1B2E] flex items-center justify-center transition shadow-sm" title="Share Profile">
@@ -197,23 +197,23 @@
                 </div>
             </div>
 
-            <!-- MAIN DUAL-COLUMN GRID LAYOUT (Exact Photo Mirror) -->
+            <!-- MAIN DUAL-COLUMN GRID LAYOUT -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
                 <!-- ================= LEFT COLUMN: EXECUTIVE PROFILE CARD (4.5 / 12 Cols) ================= -->
                 <div class="lg:col-span-5 xl:col-span-5 space-y-6">
 
                     <div class="prof-card overflow-hidden">
-                        <!-- Cover Banner with Keynote Fellow Tag -->
-                        <div class="relative h-44 sm:h-48 w-full bg-[#0A1B2E] overflow-hidden">
-                            <img src="/uploads/elena_banner.jpg" alt="Profile Banner" class="w-full h-full object-cover opacity-90" onerror="this.src='/uploads/group_f857a32c46bf45d99cb997034f47a326_639255571170737622.png';" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-[#0A1B2E]/60 via-transparent to-transparent"></div>
+                        <!-- Cover Banner with Role Badge -->
+                        <div class="relative h-44 sm:h-48 w-full bg-gradient-to-r from-[#0A1B2E] via-[#1E3A5F] to-[#0A1B2E] overflow-hidden">
+                            <div class="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] opacity-10"></div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#0A1B2E]/70 via-transparent to-transparent"></div>
 
                             <!-- Badge inside Banner Top-Left -->
                             <div class="absolute top-4 left-4">
                                 <span class="prof-mono text-[10px] font-semibold text-[#0A1B2E] bg-white/95 backdrop-blur-md px-3 py-1 rounded-full border border-white/40 flex items-center gap-1.5 shadow-md">
-                                    <svg class="w-3.5 h-3.5 text-[#0A1B2E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                                    <span>KEYNOTE FELLOW</span>
+                                    <span>@(profile.Role?.Badge ?? "👤")</span>
+                                    <span>@(profile.Role?.RoleName?.ToUpper() ?? "MEMBER")</span>
                                 </span>
                             </div>
                         </div>
@@ -223,43 +223,58 @@
                             <!-- Avatar & Credential Status Row -->
                             <div class="flex items-end justify-between -mt-12 sm:-mt-14 relative z-10 pb-2">
                                 <div class="relative">
-                                    <img src="@(!string.IsNullOrWhiteSpace(profile.AvatarUrl) ? profile.AvatarUrl : "/uploads/elena_avatar.jpg")" 
-                                         alt="@profile.DisplayName" 
-                                         class="w-24 h-24 sm:w-26 sm:h-26 rounded-2xl object-cover ring-4 ring-white shadow-xl bg-white"
-                                         onerror="this.src='/uploads/elena_avatar.jpg';" />
+                                    @if (!string.IsNullOrWhiteSpace(profile.AvatarUrl))
+                                    {
+                                        <img src="@profile.AvatarUrl" 
+                                             alt="@profile.DisplayName" 
+                                             class="w-24 h-24 sm:w-26 sm:h-26 rounded-2xl object-cover ring-4 ring-white shadow-xl bg-white" />
+                                    }
+                                    else
+                                    {
+                                        <div class="w-24 h-24 sm:w-26 sm:h-26 rounded-2xl ring-4 ring-white shadow-xl bg-gradient-to-br from-[#0A1B2E] to-[#1E3A5F] text-white flex items-center justify-center font-bold text-2xl font-mono">
+                                            @(string.IsNullOrWhiteSpace(profile.DisplayName) ? "U" : profile.DisplayName.Substring(0, 1).ToUpper())
+                                        </div>
+                                    }
                                     
-                                    <!-- Verified Pip Badge -->
-                                    <div class="absolute -bottom-1 -right-1 bg-[#0A1B2E] text-white p-1 rounded-full ring-2 ring-white shadow-md flex items-center justify-center" title="Verified Sovereign Node">
-                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
-                                            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                                        </svg>
-                                    </div>
+                                    @if (profile.IsVerified)
+                                    {
+                                        <!-- Verified Pip Badge -->
+                                        <div class="absolute -bottom-1 -right-1 bg-[#0A1B2E] text-white p-1 rounded-full ring-2 ring-white shadow-md flex items-center justify-center" title="Verified Member">
+                                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                                                <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                                            </svg>
+                                        </div>
+                                    }
                                 </div>
 
                                 <div class="text-right pb-1">
-                                    <div class="prof-label-xs text-[#94A3B8]">CREDENTIAL STATUS</div>
+                                    <div class="prof-label-xs text-[#94A3B8]">MEMBER STATUS</div>
                                     <div class="prof-mono text-xs font-bold text-[#0A1B2E] flex items-center justify-end gap-1.5 mt-0.5">
-                                        <span class="w-2 h-2 rounded-full bg-[#0A1B2E]"></span>
-                                        <span>TIER 0 VERIFIED</span>
+                                        <span class="w-2 h-2 rounded-full @(profile.IsVerified ? "bg-emerald-500" : "bg-blue-600")"></span>
+                                        <span>@(profile.IsVerified ? "VERIFIED ACCOUNT" : "ACTIVE MEMBER")</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Name, Role Title & Affiliations -->
+                            <!-- Name, Role Title & Member Handle -->
                             <div class="space-y-1.5">
                                 <div class="flex flex-wrap items-center gap-2.5">
                                     <h1 class="prof-display text-2xl sm:text-3xl font-bold text-[#0A1B2E] tracking-tight">
-                                        @(string.IsNullOrWhiteSpace(profile.DisplayName) ? "Elena Vance" : profile.DisplayName)
+                                        @(string.IsNullOrWhiteSpace(profile.DisplayName) ? profile.UserName : profile.DisplayName)
                                     </h1>
                                     <span class="prof-mono text-[10px] font-bold text-white bg-[#0A1B2E] border border-[#0A1B2E] px-2 py-0.5 rounded">
-                                        TOP 0.1%
+                                        @(profile.Role?.RoleName?.ToUpper() ?? "USER")
                                     </span>
                                 </div>
                                 <h2 class="text-sm font-semibold text-[#0F172A] leading-snug">
-                                    Chief AI Architect &amp; Former Research Director at AnthroVisions
+                                    @@@profile.UserName
                                 </h2>
                                 <p class="text-xs text-[#64748B] leading-relaxed">
-                                    Co-founder, Frontier Lab • Advisory Board, Global Open Weights Consortium
+                                    Member since @profile.CreatedAt.ToString("MMMM yyyy")
+                                    @if (!string.IsNullOrWhiteSpace(profile.Email) && isOwner)
+                                    {
+                                        <span> • @profile.Email</span>
+                                    }
                                 </p>
                             </div>
 
@@ -267,76 +282,65 @@
                             <div class="grid grid-cols-3 border border-[#C4D2E1] rounded-lg overflow-hidden bg-[#EDF4FF] text-center py-3 divide-x divide-[#C4D2E1]">
                                 <div class="px-2">
                                     <div class="prof-display text-lg sm:text-xl font-bold text-[#0A1B2E]">
-                                        @(profile.Metrics.PostsCount > 0 ? (profile.Metrics.PostsCount * 12 + 142) : 142)
+                                        @profile.Metrics.FollowersCount
                                     </div>
-                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">CONNECTIONS</div>
+                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">FOLLOWERS</div>
                                 </div>
                                 <div class="px-2">
                                     <div class="prof-display text-lg sm:text-xl font-bold text-[#0A1B2E]">
-                                        @(profile.Metrics.AverageRating.HasValue ? profile.Metrics.AverageRating.Value.ToString("0.00") : "4.98") <span class="text-xs text-amber-500">★</span>
+                                        @(profile.Metrics.AverageRating.HasValue ? profile.Metrics.AverageRating.Value.ToString("0.0") : "—") 
+                                        @if (profile.Metrics.AverageRating.HasValue)
+                                        {
+                                            <span class="text-xs text-amber-500">★</span>
+                                        }
                                     </div>
                                     <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">
-                                        @(profile.Metrics.RatingCount > 0 ? profile.Metrics.RatingCount : 118) REVIEWS
+                                        @profile.Metrics.RatingCount REVIEWS
                                     </div>
                                 </div>
                                 <div class="px-2">
-                                    <div class="prof-display text-lg sm:text-xl font-bold text-[#0A1B2E]">3.4h</div>
-                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">AVG SLA</div>
+                                    <div class="prof-display text-lg sm:text-xl font-bold text-[#0A1B2E]">
+                                        @profile.Metrics.PostsCount
+                                    </div>
+                                    <div class="prof-mono text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">POSTS</div>
                                 </div>
                             </div>
 
-                            <!-- Domain Expertise -->
+                            <!-- Bio / Domain Expertise -->
                             <div class="space-y-2.5 pt-1 border-t border-[#E2E8F0]">
-                                <div class="prof-label-xs text-[#64748B]">DOMAIN EXPERTISE</div>
+                                <div class="prof-label-xs text-[#64748B]">ABOUT / BIO</div>
                                 <p class="text-xs text-[#475569] leading-relaxed">
-                                    @(!string.IsNullOrWhiteSpace(profile.Bio) ? profile.Bio : "Pioneering distributed multi-agent systems, synthetic reasoning pipelines, and enterprise-grade inference acceleration. Advising select venture founders and research labs.")
+                                    @(!string.IsNullOrWhiteSpace(profile.Bio) ? profile.Bio : "No bio provided yet.")
                                 </p>
-                                <div class="flex flex-wrap gap-1.5 pt-1">
-                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#AgenticWorkflows</span>
-                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#DistributedInference</span>
-                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#ModelAlignment</span>
-                                    <span class="prof-mono text-[11px] font-semibold text-[#0A1B2E] bg-[#E3EFFF] border border-[#C4D2E1] px-2.5 py-1 rounded">#GPUClusterArch</span>
-                                </div>
                             </div>
 
-                            <!-- Affiliated Hubs & Collectives -->
-                            <div class="space-y-3 pt-2 border-t border-[#E2E8F0]">
-                                <div class="prof-label-xs text-[#64748B]">AFFILIATED HUBS &amp; COLLECTIVES</div>
-                                
-                                <div class="space-y-2">
-                                    <!-- Hub 1 -->
-                                    <div class="p-3 bg-white border border-[#E2E8F0] rounded-lg flex items-center justify-between hover:border-[#CBD5E1] transition">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded-lg bg-[#0A1B2E] text-white flex items-center justify-center font-bold text-xs">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                            <!-- Affiliated Communities / Hubs -->
+                            @if (communitiesList.Any())
+                            {
+                                <div class="space-y-3 pt-2 border-t border-[#E2E8F0]">
+                                    <div class="prof-label-xs text-[#64748B]">JOINED COMMUNITIES</div>
+                                    
+                                    <div class="space-y-2">
+                                        @foreach (var comm in communitiesList.Take(2))
+                                        {
+                                            <div class="p-3 bg-white border border-[#E2E8F0] rounded-lg flex items-center justify-between hover:border-[#CBD5E1] transition">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-9 h-9 rounded-lg bg-[#0A1B2E] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                                                        🏛️
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <div class="text-xs font-bold text-[#0A1B2E] truncate">@comm.Name</div>
+                                                        <div class="text-[11px] text-[#64748B] truncate">@comm.RoleName • @comm.MemberCount members</div>
+                                                    </div>
+                                                </div>
+                                                <button type="button" @onclick='() => SetTab("communities")' class="prof-mono text-[10px] font-semibold text-[#64748B] hover:text-[#0A1B2E] cursor-pointer shrink-0">
+                                                    View &gt;
+                                                </button>
                                             </div>
-                                            <div>
-                                                <div class="text-xs font-bold text-[#0A1B2E]">Frontier AI Alliance</div>
-                                                <div class="text-[11px] text-[#64748B]">Lead Architect • 1,940 verified partners</div>
-                                            </div>
-                                        </div>
-                                        <span class="prof-mono text-[10px] font-bold text-white bg-[#0A1B2E] border border-[#0A1B2E] px-2 py-0.5 rounded">
-                                            PRIMARY
-                                        </span>
-                                    </div>
-
-                                    <!-- Hub 2 -->
-                                    <div class="p-3 bg-white border border-[#E2E8F0] rounded-lg flex items-center justify-between hover:border-[#CBD5E1] transition">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded-lg bg-[#0A1B2E] text-white flex items-center justify-center font-bold text-xs">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-                                            </div>
-                                            <div>
-                                                <div class="text-xs font-bold text-[#0A1B2E]">LLM Infra Guild</div>
-                                                <div class="text-[11px] text-[#64748B]">Guild Host • 840 technical founders</div>
-                                            </div>
-                                        </div>
-                                        <span class="prof-mono text-[10px] font-semibold text-[#64748B] hover:text-[#0A1B2E] cursor-pointer">
-                                            Pass &gt;
-                                        </span>
+                                        }
                                     </div>
                                 </div>
-                            </div>
+                            }
 
                     <!-- Action Buttons -->
                     <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1">
