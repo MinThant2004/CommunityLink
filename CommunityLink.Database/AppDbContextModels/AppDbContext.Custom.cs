@@ -17,6 +17,18 @@ public partial class AppDbContext
             entity.HasKey(e => e.AuditId);
             entity.ToTable("TblCommunityAuditLog");
         });
+
+        modelBuilder.Entity<TblLinkDropTransaction>(entity =>
+        {
+            entity.Ignore(e => e.PurchasedBalanceBefore);
+            entity.Ignore(e => e.PurchasedBalanceAfter);
+            entity.Ignore(e => e.EarnedBalanceBefore);
+            entity.Ignore(e => e.EarnedBalanceAfter);
+            entity.Ignore(e => e.PurchasedAmountDeducted);
+            entity.Ignore(e => e.EarnedAmountDeducted);
+            entity.Ignore(e => e.RelatedUserId);
+            entity.Ignore(e => e.RelatedGroupId);
+        });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

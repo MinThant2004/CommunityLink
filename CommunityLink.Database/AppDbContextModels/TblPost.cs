@@ -39,6 +39,20 @@ public partial class TblPost
 
     public int? GroupId { get; set; }
 
+    public string PostType { get; set; } = null!;
+
+    public string? Subtitle { get; set; }
+
+    public string? CodeSnippet { get; set; }
+
+    public string? CodeLanguage { get; set; }
+
+    public string? CodeFileName { get; set; }
+
+    public string? DiagramImageUrl { get; set; }
+
+    public string? DiagramCaption { get; set; }
+
     public virtual TblUser Author { get; set; } = null!;
 
     public virtual TblCommunity? Community { get; set; }

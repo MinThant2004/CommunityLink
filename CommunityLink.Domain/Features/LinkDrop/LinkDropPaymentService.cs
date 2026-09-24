@@ -242,10 +242,17 @@ public class LinkDropPaymentService : ILinkDropPaymentService
             {
                 UserId = userId,
                 Balance = 0,
+                PurchasedBalance = 0,
+                EarnedBalance = 0,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = userId
             };
             _db.TblLinkDropWallets.Add(wallet);
+            await _db.SaveChangesAsync();
+        }
+        else if (wallet.PurchasedBalance == 0 && wallet.EarnedBalance == 0 && wallet.Balance > 0)
+        {
+            wallet.PurchasedBalance = wallet.Balance;
             await _db.SaveChangesAsync();
         }
 
@@ -330,6 +337,8 @@ public class LinkDropPaymentService : ILinkDropPaymentService
                 {
                     UserId = purchase.UserId,
                     Balance = 0,
+                    PurchasedBalance = 0,
+                    EarnedBalance = 0,
                     CreatedAt = DateTime.UtcNow,
                     CreatedBy = adminId
                 };
@@ -337,14 +346,39 @@ public class LinkDropPaymentService : ILinkDropPaymentService
                 await _db.SaveChangesAsync();
             }
 
-            long balanceBefore = wallet.Balance;
-            long balanceAfter = balanceBefore + purchase.SnapshotLinkDropAmount;
+            // Runtime Data Migration Safety: Initialize PurchasedBalance if legacy wallet had Balance > 0 but Purchased/Earned = 0
+            if (wallet.PurchasedBalance == 0 && wallet.EarnedBalance == 0 && wallet.Balance > 0)
+            {
+                wallet.PurchasedBalance = wallet.Balance;
+            }
 
-            wallet.Balance = balanceAfter;
+            long purchasedCredit = purchase.SnapshotLinkDropAmount;
+            long bonusCredit = 0;
+
+            if (purchase.PackageId.HasValue)
+            {
+                var package = await _db.TblLinkDropPackages
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.PackageId == purchase.PackageId.Value);
+
+                if (package != null)
+                {
+                    purchasedCredit = package.LinkDropAmount;
+                    bonusCredit = package.BonusAmount;
+                }
+            }
+
+            long pBefore = wallet.PurchasedBalance;
+            long eBefore = wallet.EarnedBalance;
+            long balanceBefore = wallet.Balance;
+
+            wallet.PurchasedBalance += purchasedCredit;
+            wallet.EarnedBalance += bonusCredit; // Existing EarnedBalance is preserved and incremented by bonusCredit
+            wallet.Balance = wallet.PurchasedBalance + wallet.EarnedBalance; // Maintain invariant: Balance = PurchasedBalance + EarnedBalance
             wallet.UpdatedAt = DateTime.UtcNow;
             wallet.UpdatedBy = adminId;
 
-            // 3. Insert transaction ledger entry
+            // 3. Insert transaction ledger entry with source-separated balance snapshots
             var transaction = new TblLinkDropTransaction
             {
                 WalletId = wallet.WalletId,
@@ -352,7 +386,13 @@ public class LinkDropPaymentService : ILinkDropPaymentService
                 TransactionType = "PURCHASE",
                 Amount = purchase.SnapshotLinkDropAmount,
                 BalanceBefore = balanceBefore,
-                BalanceAfter = balanceAfter,
+                BalanceAfter = wallet.Balance,
+                PurchasedBalanceBefore = pBefore,
+                PurchasedBalanceAfter = wallet.PurchasedBalance,
+                EarnedBalanceBefore = eBefore,
+                EarnedBalanceAfter = wallet.EarnedBalance,
+                PurchasedAmountDeducted = 0,
+                EarnedAmountDeducted = 0,
                 ReferenceType = "TblLinkDropPurchase",
                 ReferenceId = purchase.PurchaseId,
                 Notes = notes ?? $"Link Drops Purchase #{purchase.PurchaseNumber} Approved",
@@ -695,6 +735,8 @@ public class LinkDropPaymentService : ILinkDropPaymentService
             WalletId = w.WalletId,
             UserId = w.UserId,
             Balance = w.Balance,
+            PurchasedBalance = w.PurchasedBalance,
+            EarnedBalance = w.EarnedBalance,
             UpdatedAt = w.UpdatedAt ?? w.CreatedAt
         };
     }
@@ -710,6 +752,14 @@ public class LinkDropPaymentService : ILinkDropPaymentService
             Amount = t.Amount,
             BalanceBefore = t.BalanceBefore,
             BalanceAfter = t.BalanceAfter,
+            PurchasedBalanceBefore = t.PurchasedBalanceBefore,
+            PurchasedBalanceAfter = t.PurchasedBalanceAfter,
+            EarnedBalanceBefore = t.EarnedBalanceBefore,
+            EarnedBalanceAfter = t.EarnedBalanceAfter,
+            PurchasedAmountDeducted = t.PurchasedAmountDeducted,
+            EarnedAmountDeducted = t.EarnedAmountDeducted,
+            RelatedUserId = t.RelatedUserId,
+            RelatedGroupId = t.RelatedGroupId,
             ReferenceType = t.ReferenceType,
             ReferenceId = t.ReferenceId,
             Notes = t.Notes,

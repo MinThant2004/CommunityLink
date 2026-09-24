@@ -6,6 +6,9 @@ using CommunityLink.Shared.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using CommunityLink.Domain.Features.Admin;
+using CommunityLink.Shared.Features.Admin;
+
 namespace CommunityLink.Api.Controllers;
 
 [ApiController]
@@ -13,10 +16,12 @@ namespace CommunityLink.Api.Controllers;
 public class AdministrationController : ControllerBase
 {
     private readonly IAdministrationService _adminService;
+    private readonly IPlatformSettingService _platformSettingService;
 
-    public AdministrationController(IAdministrationService adminService)
+    public AdministrationController(IAdministrationService adminService, IPlatformSettingService platformSettingService)
     {
         _adminService = adminService;
+        _platformSettingService = platformSettingService;
     }
 
     [HttpGet("stats")]
@@ -88,6 +93,27 @@ public class AdministrationController : ControllerBase
     public async Task<IActionResult> RejectJoinRequest(int id, CancellationToken cancellationToken)
     {
         var result = await _adminService.RejectJoinRequestAsync(id, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("settings/commission")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+    public async Task<IActionResult> GetPlatformCommission(CancellationToken cancellationToken)
+    {
+        var result = await _platformSettingService.GetPlatformCommissionAsync(cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPut("settings/commission")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserManage)]
+    public async Task<IActionResult> UpdatePlatformCommission([FromBody] UpdateCommissionSettingRequestDto request, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(Result<PlatformCommissionSettingDto>.Failure("Invalid numeric value for commission percentage.", ResultStatus.ValidationError));
+        }
+
+        var result = await _platformSettingService.UpdatePlatformCommissionAsync(request, cancellationToken);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
 }

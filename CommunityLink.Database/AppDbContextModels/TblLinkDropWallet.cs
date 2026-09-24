@@ -21,6 +21,10 @@ public partial class TblLinkDropWallet
 
     public byte[] RowVersion { get; set; } = null!;
 
+    public long PurchasedBalance { get; set; }
+
+    public long EarnedBalance { get; set; }
+
     public virtual ICollection<TblLinkDropTransaction> TblLinkDropTransactions { get; set; } = new List<TblLinkDropTransaction>();
 
     public virtual TblUser User { get; set; } = null!;

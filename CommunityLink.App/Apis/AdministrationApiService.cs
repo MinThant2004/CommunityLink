@@ -7,6 +7,8 @@ using CommunityLink.Shared.Features.Administration;
 using CommunityLink.Shared.Features.Authentication;
 using Microsoft.AspNetCore.Http;
 
+using CommunityLink.Shared.Features.Admin;
+
 namespace CommunityLink.App.Apis;
 
 public sealed class AdministrationApiService(IHttpClientFactory clientFactory, IHttpContextAccessor httpContextAccessor)
@@ -46,4 +48,10 @@ public sealed class AdministrationApiService(IHttpClientFactory clientFactory, I
 
     public Task<Result> RejectJoinRequestAsync(int id, CancellationToken cancellationToken = default) =>
         PostAsync($"api/admin/join-requests/{id}/reject", new { }, cancellationToken);
+
+    public Task<Result<PlatformCommissionSettingDto>> GetPlatformCommissionAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<PlatformCommissionSettingDto>("api/admin/settings/commission", cancellationToken);
+
+    public Task<Result<PlatformCommissionSettingDto>> UpdatePlatformCommissionAsync(UpdateCommissionSettingRequestDto request, CancellationToken cancellationToken = default) =>
+        PutAsync<PlatformCommissionSettingDto, UpdateCommissionSettingRequestDto>("api/admin/settings/commission", request, cancellationToken);
 }

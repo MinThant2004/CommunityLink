@@ -62,3 +62,8 @@ public sealed record GroupJoinRequestModel(
     string Status, // PENDING | APPROVED | REJECTED
     DateTime CreatedAt
 );
+
+public sealed record GroupChatEligibilityModel(
+    bool IsEligible,
+    string? RoleCode
+);
