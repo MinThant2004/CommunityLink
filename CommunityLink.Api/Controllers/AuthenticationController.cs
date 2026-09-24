@@ -30,13 +30,7 @@ public class AuthenticationController : BaseController
     [HttpPost("user/login")]
     public async Task<IActionResult> LoginUser([FromBody] LoginRequestModel request)
     {
-        // Try member login first; if the account flag or credentials point to an admin, fall through.
         var result = await _authService.LoginUserAsync(request);
-        if (!result.IsSuccess && result.Status == ResultStatus.Unauthorized)
-        {
-            var adminResult = await _authService.LoginAdminAsync(request with { IsAdmin = true });
-            if (adminResult.IsSuccess) return ToActionResult(adminResult);
-        }
         return ToActionResult(result);
     }
 

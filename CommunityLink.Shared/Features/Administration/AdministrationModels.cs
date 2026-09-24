@@ -43,3 +43,31 @@ public sealed record AuditLogModel(
     string? Details,
     string? IpAddress,
     DateTime CreatedAt);
+
+public sealed record CreateAdminInviteRequestModel(
+    string Email,
+    string? FullName = null,
+    bool IsSuperAdmin = false);
+
+public sealed record VerifyAdminInviteResponseModel(
+    string Email,
+    string? FullName,
+    string RoleName,
+    bool IsSuperAdmin,
+    DateTime ExpiresAtUtc);
+
+public sealed record SetupAdminPasswordRequestModel(
+    string Token,
+    string Password,
+    string? ConfirmPassword = null);
+
+public sealed record AdminAccountModel(
+    int AdminId,
+    string Email,
+    string FullName,
+    string RoleCode,
+    string RoleName,
+    bool IsSuperAdmin,
+    bool IsActive,
+    DateTime? LastLoginAt,
+    DateTime CreatedAt);

@@ -1,0 +1,339 @@
+@page "/admin/accounts"
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+@inject AdministrationApiService AdminApi
+@inject ToastService Toast
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
+
+<PageTitle>Admin Account Creation &amp; Management — Admin Control Panel</PageTitle>
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">🛡️ Admin Account Management</h1>
+            <p class="text-sm text-[#557392]">Provision operator credentials, invite administrators via 15-minute secure setup links, and govern access.</p>
+        </div>
+        <button @onclick="OpenInviteModal" class="px-4 py-2.5 rounded-lg text-xs font-bold text-white bg-[#0A1B2E] hover:bg-[#112A46] shadow-sm transition flex items-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Account Creation</span>
+        </button>
+    </div>
+
+    <!-- Active Invite Link Banner (if generated) -->
+    @if (!string.IsNullOrEmpty(generatedInviteLink))
+    {
+        <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 space-y-2">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider font-mono flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>15-Minute Setup Link Dispatched</span>
+                </span>
+                <button @onclick="() => generatedInviteLink = null" class="text-emerald-600 hover:text-emerald-900 text-xs">✕ Close</button>
+            </div>
+            <p class="text-xs text-emerald-700">An email has been sent. You can also copy this setup link directly for the admin:</p>
+            <div class="flex items-center gap-2">
+                <input type="text" readonly value="@generatedInviteLink" class="w-full text-xs font-mono bg-white border border-emerald-300 rounded px-3 py-1.5 text-[#0A1B2E] select-all" />
+                <button @onclick="CopyInviteLink" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold whitespace-nowrap">
+                    @copyButtonText
+                </button>
+            </div>
+        </div>
+    }
+
+    <!-- Admin Directory Table -->
+    <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-sm">
+        <div class="p-4 border-b border-[#E2E8F0] bg-[#F8FAFC] flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="w-full md:w-80">
+                <input type="text" class="w-full px-3.5 py-2 rounded-lg text-sm bg-white text-[#0A1B2E] placeholder-[#7A8CA6] border border-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] transition" placeholder="Search admin by name or email..." @bind="searchFilter" @bind:event="oninput" />
+            </div>
+            <div class="text-xs text-[#7A8CA6] font-mono">
+                @FilteredAdmins.Count Administrator Accounts
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="p-12 text-center text-[#557392]">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] border-t-transparent"></div>
+                <p class="mt-2 text-sm font-medium">Loading administrator directory...</p>
+            </div>
+        }
+        else if (!FilteredAdmins.Any())
+        {
+            <div class="p-8 text-center text-[#7A8CA6]">
+                <p class="text-sm font-medium">No administrator accounts match your criteria.</p>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-[#F1F5F9] border-b border-[#E2E8F0] text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
+                            <th class="px-6 py-3">ID</th>
+                            <th class="px-6 py-3">Administrator</th>
+                            <th class="px-6 py-3">Email Address</th>
+                            <th class="px-6 py-3">Admin Type</th>
+                            <th class="px-6 py-3">Status</th>
+                            <th class="px-6 py-3">Last Login</th>
+                            <th class="px-6 py-3">Provisioned Date</th>
+                            <th class="px-6 py-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#E2E8F0] text-sm">
+                        @foreach (var admin in FilteredAdmins)
+                        {
+                            <tr class="hover:bg-[#F8FAFC] transition">
+                                <td class="px-6 py-4 font-mono text-xs text-[#7A8CA6]">#@admin.AdminId</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-7 h-7 rounded-full bg-[#0A1B2E] text-white flex items-center justify-center font-bold text-xs">
+                                            @admin.FullName.FirstOrDefault()
+                                        </div>
+                                        <div class="font-semibold text-[#0A1B2E]">@admin.FullName</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-[#557392] font-mono text-xs">@admin.Email</td>
+                                <td class="px-6 py-4">
+                                    @if (admin.IsSuperAdmin)
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold font-mono bg-amber-100 text-amber-900 border border-amber-300">
+                                            <span>👑</span> SYSTEMADMIN
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold font-mono bg-blue-50 text-blue-700 border border-blue-200">
+                                            <span>🛡️</span> ADMIN
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if (admin.IsActive)
+                                    {
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Deactivated
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 font-mono text-xs text-[#7A8CA6]">
+                                    @(admin.LastLoginAt.HasValue ? admin.LastLoginAt.Value.ToString("yyyy-MM-dd HH:mm") : "Never")
+                                </td>
+                                <td class="px-6 py-4 font-mono text-xs text-[#7A8CA6]">
+                                    @admin.CreatedAt.ToString("yyyy-MM-dd")
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    @if (isCurrentCallerSuperAdmin && !admin.IsSuperAdmin)
+                                    {
+                                        <button @onclick="() => ToggleAdminStatus(admin)" class="px-2.5 py-1 rounded text-xs font-semibold transition border @(admin.IsActive ? "text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200" : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200")">
+                                            @(admin.IsActive ? "Deactivate" : "Activate")
+                                        </button>
+                                    }
+                                    else if (admin.IsSuperAdmin)
+                                    {
+                                        <span class="text-xs text-[#7A8CA6] italic">Protected</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-xs text-[#7A8CA6] italic" title="Only SYSTEMADMIN can toggle account statuses">Read-only</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal: Account Creation / Invite Admin -->
+@if (showInviteModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-[#0A1B2E]/40 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div class="p-6 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="font-mono text-[10px] font-bold uppercase tracking-wider text-[#0A1B2E]">PROVISION OPERATOR</span>
+                        <h2 class="text-xl font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">Account Creation</h2>
+                    </div>
+                    <button @onclick="CloseInviteModal" class="p-1 rounded text-[#7A8CA6] hover:text-[#0A1B2E] hover:bg-[#E2E8F0] transition">✕</button>
+                </div>
+                <p class="mt-1 text-xs text-[#557392]">Enter the admin's Gmail/Email. A secure 15-minute link will be sent for password creation.</p>
+            </div>
+
+            <div class="p-6 space-y-4">
+                @if (!string.IsNullOrEmpty(modalError))
+                {
+                    <div class="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
+                        ⚠️ @modalError
+                    </div>
+                }
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-[#0A1B2E] uppercase font-mono tracking-wider">Admin Gmail / Email Address</label>
+                    <input type="email" @bind="targetEmail" placeholder="admin.name@gmail.com" class="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white text-[#0A1B2E] border border-[#CBD5E1] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] transition" />
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-[#0A1B2E] uppercase font-mono tracking-wider">Administrator Type</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex flex-col p-3 rounded-lg border cursor-pointer transition @(!inviteIsSuperAdmin ? "border-[#0A1B2E] bg-[#F1F5F9]" : "border-[#E2E8F0] bg-white")">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="adminType" checked="@(!inviteIsSuperAdmin)" @onchange="() => inviteIsSuperAdmin = false" />
+                                <span class="font-bold text-xs text-[#0A1B2E]">ADMIN</span>
+                            </div>
+                            <span class="text-[11px] text-[#557392] mt-1">Standard operator access without status toggle permissions.</span>
+                        </label>
+
+                        <label class="flex flex-col p-3 rounded-lg border cursor-pointer transition @(inviteIsSuperAdmin ? "border-[#0A1B2E] bg-[#F1F5F9]" : "border-[#E2E8F0] bg-white")">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="adminType" checked="@(inviteIsSuperAdmin)" @onchange="() => inviteIsSuperAdmin = true" />
+                                <span class="font-bold text-xs text-[#0A1B2E]">SYSTEMADMIN</span>
+                            </div>
+                            <span class="text-[11px] text-[#557392] mt-1">Can activate and deactivate other administrator accounts.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] text-xs text-[#557392] space-y-1">
+                    <p class="font-bold text-[#0A1B2E]">⏱️ 15-Minute Expiration Notice</p>
+                    <p>The invited admin will receive a link to set their password. Once created, they will log in strictly through the <strong>Admin Portal Login</strong>.</p>
+                </div>
+            </div>
+
+            <div class="p-4 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-end gap-2">
+                <button @onclick="CloseInviteModal" class="px-4 py-2 rounded-lg text-xs font-semibold text-[#557392] hover:bg-[#E2E8F0] transition">Cancel</button>
+                <button @onclick="SendAdminInvite" disabled="@isInviting" class="px-5 py-2 rounded-lg text-xs font-bold text-white bg-[#0A1B2E] hover:bg-[#112A46] shadow-sm transition flex items-center gap-2">
+                    @if (isInviting)
+                    {
+                        <span class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
+                        <span>Dispatching Link...</span>
+                    }
+                    else
+                    {
+                        <span>Send Setup Link</span>
+                        <span>&rarr;</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<AdminAccountModel> adminAccounts = [];
+    private bool isLoading = true;
+    private string searchFilter = "";
+    private bool isCurrentCallerSuperAdmin;
+
+    // Modal state
+    private bool showInviteModal;
+    private string targetEmail = "";
+    private bool inviteIsSuperAdmin = false;
+    private string? modalError;
+    private bool isInviting;
+
+    // Generated Invite Link
+    private string? generatedInviteLink;
+    private string copyButtonText = "Copy Link";
+
+    private List<AdminAccountModel> FilteredAdmins => string.IsNullOrWhiteSpace(searchFilter)
+        ? adminAccounts
+        : adminAccounts.Where(a => a.Email.Contains(searchFilter, StringComparison.OrdinalIgnoreCase) ||
+                                   a.FullName.Contains(searchFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roleCode = user.FindFirst("role")?.Value ?? user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        isCurrentCallerSuperAdmin = string.Equals(roleCode, "SUPERADMIN", StringComparison.OrdinalIgnoreCase);
+
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        var adminsRes = await AdminApi.GetAdminAccountsAsync();
+        if (adminsRes.IsSuccess && adminsRes.Data != null)
+        {
+            adminAccounts = adminsRes.Data.ToList();
+        }
+
+        isLoading = false;
+    }
+
+    private void OpenInviteModal()
+    {
+        targetEmail = "";
+        inviteIsSuperAdmin = false;
+        modalError = null;
+        showInviteModal = true;
+    }
+
+    private void CloseInviteModal()
+    {
+        showInviteModal = false;
+    }
+
+    private async Task SendAdminInvite()
+    {
+        modalError = null;
+        if (string.IsNullOrWhiteSpace(targetEmail))
+        {
+            modalError = "Please enter an email address.";
+            return;
+        }
+
+        isInviting = true;
+        var result = await AdminApi.CreateAdminInviteAsync(new CreateAdminInviteRequestModel(targetEmail.Trim(), null, inviteIsSuperAdmin));
+        isInviting = false;
+
+        if (!result.IsSuccess)
+        {
+            modalError = result.Message;
+        }
+        else
+        {
+            generatedInviteLink = result.Data;
+            copyButtonText = "Copy Link";
+            Toast.Success("Admin invitation link created! Valid for 15 minutes.");
+            showInviteModal = false;
+            await LoadDataAsync();
+        }
+    }
+
+    private async Task CopyInviteLink()
+    {
+        if (!string.IsNullOrEmpty(generatedInviteLink))
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", generatedInviteLink);
+            copyButtonText = "Copied!";
+            Toast.Success("Invite link copied to clipboard.");
+        }
+    }
+
+    private async Task ToggleAdminStatus(AdminAccountModel admin)
+    {
+        var result = await AdminApi.ToggleAdminStatusAsync(admin.AdminId);
+        if (result.IsSuccess)
+        {
+            Toast.Success(result.Message);
+            await LoadDataAsync();
+        }
+        else
+        {
+            Toast.Error(result.Message);
+        }
+    }
+}

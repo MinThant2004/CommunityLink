@@ -63,6 +63,34 @@ public static class RbacSeeder
             END;");
         }
 
+        // Auto-create TblAdminInvite table if it doesn't exist yet
+        await db.Database.ExecuteSqlRawAsync(@"
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TblAdminInvite' AND schema_id = SCHEMA_ID('dbo'))
+            BEGIN
+                CREATE TABLE dbo.TblAdminInvite (
+                    InviteId     INT IDENTITY(1,1) NOT NULL,
+                    Email        NVARCHAR(256) NOT NULL,
+                    Token        NVARCHAR(200) NOT NULL,
+                    RoleId       INT NOT NULL,
+                    ExpiresAtUtc DATETIME2(7) NOT NULL,
+                    IsUsed       BIT NOT NULL CONSTRAINT DF_TblAdminInvite_IsUsed DEFAULT (0),
+                    CreatedBy    INT NULL,
+                    CreatedAtUtc DATETIME2(7) NOT NULL CONSTRAINT DF_TblAdminInvite_CreatedAtUtc DEFAULT (SYSUTCDATETIME()),
+                    UsedAtUtc    DATETIME2(7) NULL,
+                    CONSTRAINT PK_TblAdminInvite PRIMARY KEY CLUSTERED (InviteId ASC),
+                    CONSTRAINT FK_TblAdminInvite_Role FOREIGN KEY (RoleId) REFERENCES dbo.TblRole (RoleId)
+                );
+                IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_TblAdminInvite_Token' AND object_id = OBJECT_ID('dbo.TblAdminInvite'))
+                BEGIN
+                    CREATE UNIQUE NONCLUSTERED INDEX IX_TblAdminInvite_Token 
+                        ON dbo.TblAdminInvite (Token ASC);
+                END;
+            END;
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblAdminInvite') AND name = 'IsSuperAdmin')
+            BEGIN
+                ALTER TABLE dbo.TblAdminInvite ADD IsSuperAdmin BIT NOT NULL CONSTRAINT DF_TblAdminInvite_IsSuperAdmin DEFAULT (0);
+            END;");
+
         // 1. Seed Permissions from Catalog
         foreach (var def in PermissionCatalog.All)
         {
@@ -186,6 +214,62 @@ public static class RbacSeeder
 
             db.TblUserRoles.Add(new TblUserRole { UserId = demoMember.UserId, RoleId = memberRole.RoleId, CreatedAt = DateTime.UtcNow });
             await db.SaveChangesAsync();
+        }
+
+        // 4. Seed Master Admin in TblAdmin (admin@communitylink.local / 123456789)
+        var masterAdminEmail = "admin@communitylink.local";
+        var normalizedMasterEmail = masterAdminEmail.ToUpperInvariant();
+        var existingAdmin = await db.TblAdmins.FirstOrDefaultAsync(a => a.NormalizedEmail == normalizedMasterEmail);
+        var adminRoleEntity = await db.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "ADMIN");
+
+        if (existingAdmin is null)
+        {
+            var masterAdmin = new TblAdmin
+            {
+                FullName = "Master System Admin",
+                Email = masterAdminEmail,
+                NormalizedEmail = normalizedMasterEmail,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456789", 12),
+                IsSuperAdmin = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+            db.TblAdmins.Add(masterAdmin);
+            await db.SaveChangesAsync();
+
+            if (adminRoleEntity != null)
+            {
+                db.TblAdminRoles.Add(new TblAdminRole
+                {
+                    AdminId = masterAdmin.AdminId,
+                    RoleId = adminRoleEntity.RoleId,
+                    CreatedAt = DateTime.UtcNow
+                });
+                await db.SaveChangesAsync();
+            }
+        }
+        else
+        {
+            // Ensure password is set to 123456789 and role is mapped
+            existingAdmin.PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456789", 12);
+            existingAdmin.IsActive = true;
+            existingAdmin.IsDeleted = false;
+            await db.SaveChangesAsync();
+
+            if (adminRoleEntity != null)
+            {
+                var hasAdminRole = await db.TblAdminRoles.AnyAsync(ar => ar.AdminId == existingAdmin.AdminId && ar.RoleId == adminRoleEntity.RoleId && !ar.IsDeleted);
+                if (!hasAdminRole)
+                {
+                    db.TblAdminRoles.Add(new TblAdminRole
+                    {
+                        AdminId = existingAdmin.AdminId,
+                        RoleId = adminRoleEntity.RoleId,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await db.SaveChangesAsync();
+                }
+            }
         }
     }
 }

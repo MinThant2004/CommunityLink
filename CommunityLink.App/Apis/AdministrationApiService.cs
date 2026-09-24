@@ -52,9 +52,18 @@ public sealed class AdministrationApiService(IHttpClientFactory clientFactory, I
     public Task<Result> AssignUserRoleAsync(AssignUserRoleRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync("api/admin/users/assign-role", request, cancellationToken);
 
-    public Task<Result<PlatformCommissionSettingDto>> GetPlatformCommissionAsync(CancellationToken cancellationToken = default) =>
-        GetAsync<PlatformCommissionSettingDto>("api/admin/settings/commission", cancellationToken);
+    public Task<Result<IReadOnlyList<AdminAccountModel>>> GetAdminAccountsAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<AdminAccountModel>>("api/admin/accounts", cancellationToken);
 
-    public Task<Result<PlatformCommissionSettingDto>> UpdatePlatformCommissionAsync(UpdateCommissionSettingRequestDto request, CancellationToken cancellationToken = default) =>
-        PutAsync<PlatformCommissionSettingDto, UpdateCommissionSettingRequestDto>("api/admin/settings/commission", request, cancellationToken);
+    public Task<Result<string>> CreateAdminInviteAsync(CreateAdminInviteRequestModel request, CancellationToken cancellationToken = default) =>
+        PostAsync<string, CreateAdminInviteRequestModel>("api/admin/accounts/invite", request, cancellationToken);
+
+    public Task<Result<VerifyAdminInviteResponseModel>> VerifyAdminInviteTokenAsync(string token, CancellationToken cancellationToken = default) =>
+        GetAsync<VerifyAdminInviteResponseModel>($"api/admin/accounts/verify-token?token={WebUtility.UrlEncode(token)}", cancellationToken);
+
+    public Task<Result> SetupAdminPasswordAsync(SetupAdminPasswordRequestModel request, CancellationToken cancellationToken = default) =>
+        PostAsync("api/admin/accounts/setup-password", request, cancellationToken);
+
+    public Task<Result> ToggleAdminStatusAsync(int id, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/admin/accounts/{id}/toggle-status", new { }, cancellationToken);
 }

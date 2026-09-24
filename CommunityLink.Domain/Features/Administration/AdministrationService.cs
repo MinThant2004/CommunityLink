@@ -1,13 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityLink.Database.AppDbContextModels;
+using CommunityLink.Domain.Security;
+using CommunityLink.Domain.Services;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Administration;
 using CommunityLink.Shared.Features.Authentication;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace CommunityLink.Domain.Features.Administration;
 
@@ -23,9 +28,20 @@ public interface IAdministrationService
     Task<Result> ApproveJoinRequestAsync(int requestId, CancellationToken cancellationToken = default);
     Task<Result> RejectJoinRequestAsync(int requestId, CancellationToken cancellationToken = default);
     Task<Result> AssignUserRoleAsync(AssignUserRoleRequestModel request, CancellationToken cancellationToken = default);
+
+    // Admin Account Management
+    Task<Result<IReadOnlyList<AdminAccountModel>>> GetAdminAccountsAsync(CancellationToken cancellationToken = default);
+    Task<Result<string>> CreateAdminInviteAsync(CreateAdminInviteRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result<VerifyAdminInviteResponseModel>> VerifyAdminInviteTokenAsync(string token, CancellationToken cancellationToken = default);
+    Task<Result> SetupAdminPasswordAsync(SetupAdminPasswordRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result> ToggleAdminStatusAsync(int adminId, CancellationToken cancellationToken = default);
 }
 
-public sealed class AdministrationService(AppDbContext dbContext) : IAdministrationService
+public sealed class AdministrationService(
+    AppDbContext dbContext,
+    IEmailSender emailSender,
+    IConfiguration configuration,
+    ICurrentUserContext currentUser) : IAdministrationService
 {
     public async Task<Result> AssignUserRoleAsync(AssignUserRoleRequestModel request, CancellationToken cancellationToken = default)
     {
@@ -254,5 +270,247 @@ public sealed class AdministrationService(AppDbContext dbContext) : IAdministrat
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success("Join request rejected.");
+    }
+
+    public async Task<Result<IReadOnlyList<AdminAccountModel>>> GetAdminAccountsAsync(CancellationToken cancellationToken = default)
+    {
+        var admins = await dbContext.TblAdmins
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted)
+            .Include(a => a.TblAdminRoles)
+            .ThenInclude(ar => ar.Role)
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => new AdminAccountModel(
+                a.AdminId,
+                a.Email,
+                a.FullName,
+                a.TblAdminRoles.Where(ar => !ar.IsDeleted).Select(ar => ar.Role.RoleCode).FirstOrDefault() ?? "ADMIN",
+                a.TblAdminRoles.Where(ar => !ar.IsDeleted).Select(ar => ar.Role.RoleName).FirstOrDefault() ?? "Administrator",
+                a.IsSuperAdmin,
+                a.IsActive,
+                a.LastLoginAt,
+                a.CreatedAt))
+            .ToListAsync(cancellationToken);
+
+        return Result<IReadOnlyList<AdminAccountModel>>.Success(admins);
+    }
+
+    public async Task<Result<string>> CreateAdminInviteAsync(CreateAdminInviteRequestModel request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email) || !Regex.IsMatch(request.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            return Result<string>.Failure("A valid email address is required.", ResultStatus.ValidationError);
+
+        var normalizedEmail = request.Email.ToUpperInvariant();
+
+        // Check if admin already exists
+        if (await dbContext.TblAdmins.AnyAsync(a => a.NormalizedEmail == normalizedEmail && !a.IsDeleted, cancellationToken))
+            return Result<string>.Failure("An administrator with this email already exists.", ResultStatus.Conflict);
+
+        // All invited accounts are given the ADMIN system role; distinction is made by IsSuperAdmin (SYSTEMADMIN vs ADMIN)
+        var role = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "ADMIN" && !r.IsDeleted, cancellationToken);
+        if (role == null)
+            return Result<string>.Failure("ADMIN role was not found in system.", ResultStatus.NotFound);
+
+        // Generate a 15-minute secure invitation token
+        var tokenBytes = RandomNumberGenerator.GetBytes(32);
+        var token = Convert.ToHexString(tokenBytes).ToLowerInvariant();
+        var expiresAtUtc = DateTime.UtcNow.AddMinutes(15);
+
+        // Invalidate any previous unconsumed invites for this email
+        var pendingInvites = await dbContext.TblAdminInvites
+            .Where(i => i.Email == normalizedEmail && !i.IsUsed)
+            .ToListAsync(cancellationToken);
+
+        foreach (var inv in pendingInvites)
+        {
+            inv.IsUsed = true;
+        }
+
+        var newInvite = new TblAdminInvite
+        {
+            Email = request.Email.Trim(),
+            Token = token,
+            RoleId = role.RoleId,
+            IsSuperAdmin = request.IsSuperAdmin,
+            ExpiresAtUtc = expiresAtUtc,
+            IsUsed = false,
+            CreatedBy = currentUser.UserId,
+            CreatedAtUtc = DateTime.UtcNow
+        };
+
+        dbContext.TblAdminInvites.Add(newInvite);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Generate setup link (expires in 15 minutes)
+        var appBaseUrl = configuration["AppBaseUrl"] ?? "https://localhost:56537";
+        var setupLink = $"{appBaseUrl.TrimEnd('/')}/admin/portal-entry/setup-password?token={token}";
+
+        // Send Email
+        var adminTypeLabel = request.IsSuperAdmin ? "System Administrator (SYSTEMADMIN)" : "Administrator (ADMIN)";
+        var emailSubject = "CommunityLink — Admin Account Creation & Setup";
+        var emailBody = $@"
+            <div style=""font-family: 'Inter', -apple-system, sans-serif; max-width: 560px; margin: 0 auto; padding: 28px; border: 1px solid #E2E8F0; border-radius: 12px; background: #ffffff;"">
+                <div style=""margin-bottom: 20px;"">
+                    <span style=""font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #557392; text-transform: uppercase;"">COMMUNITYLINK OPERATOR GATEWAY</span>
+                    <h2 style=""color: #0A1B2E; margin: 8px 0 4px 0; font-size: 22px;"">Admin Account Provisioned</h2>
+                    <p style=""color: #557392; font-size: 14px; margin: 0;"">You have been granted administrator access as <strong>{adminTypeLabel}</strong>.</p>
+                </div>
+                <div style=""background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 18px; margin: 20px 0;"">
+                    <p style=""margin: 0 0 12px 0; font-size: 13px; color: #0A1B2E;"">To complete your account initialization, please create your password below. This link is cryptographically signed and valid for <strong>15 minutes</strong>.</p>
+                    <div style=""text-align: center; margin: 18px 0;"">
+                        <a href=""{setupLink}"" style=""display: inline-block; background-color: #0A1B2E; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: 600; font-size: 14px;"">Set Up Admin Password &rarr;</a>
+                    </div>
+                    <p style=""margin: 10px 0 0 0; font-size: 11px; color: #BA1A1A; text-align: center;"">⚠️ Note: Link will expire strictly in 15 minutes.</p>
+                </div>
+                <p style=""font-size: 12px; color: #7A8CA6; margin-top: 24px;"">If you did not anticipate this invitation, please disregard this email or report to security.</p>
+            </div>";
+
+        try
+        {
+            await emailSender.SendEmailAsync(request.Email.Trim(), emailSubject, emailBody, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to send invitation email: {ex.Message}");
+        }
+
+        return Result<string>.Success(setupLink, "Admin account invitation link generated and sent. Valid for 15 minutes.");
+    }
+
+    public async Task<Result<VerifyAdminInviteResponseModel>> VerifyAdminInviteTokenAsync(string token, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return Result<VerifyAdminInviteResponseModel>.Failure("Invalid invitation link.", ResultStatus.ValidationError);
+
+        var invite = await dbContext.TblAdminInvites
+            .Include(i => i.Role)
+            .FirstOrDefaultAsync(i => i.Token == token, cancellationToken);
+
+        if (invite == null || invite.IsUsed)
+            return Result<VerifyAdminInviteResponseModel>.Failure("This setup link is invalid or has already been used.", ResultStatus.ValidationError);
+
+        if (DateTime.UtcNow > invite.ExpiresAtUtc)
+            return Result<VerifyAdminInviteResponseModel>.Failure("This setup link has expired (15-minute validity). Please request a new invitation from an administrator.", ResultStatus.ValidationError);
+
+        var adminTypeName = invite.IsSuperAdmin ? "System Administrator" : "Administrator";
+        var response = new VerifyAdminInviteResponseModel(
+            invite.Email,
+            null,
+            adminTypeName,
+            invite.IsSuperAdmin,
+            invite.ExpiresAtUtc);
+
+        return Result<VerifyAdminInviteResponseModel>.Success(response);
+    }
+
+    public async Task<Result> SetupAdminPasswordAsync(SetupAdminPasswordRequestModel request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Token))
+            return Result.Failure("Invalid invitation token.", ResultStatus.ValidationError);
+
+        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
+            return Result.Failure("Password must be at least 8 characters long.", ResultStatus.ValidationError);
+
+        var confirmPassword = string.IsNullOrWhiteSpace(request.ConfirmPassword) ? request.Password : request.ConfirmPassword;
+        if (request.Password != confirmPassword)
+            return Result.Failure("Passwords do not match.", ResultStatus.ValidationError);
+
+        var invite = await dbContext.TblAdminInvites
+            .Include(i => i.Role)
+            .FirstOrDefaultAsync(i => i.Token == request.Token, cancellationToken);
+
+        if (invite == null || invite.IsUsed)
+            return Result.Failure("This setup link is invalid or has already been used.", ResultStatus.ValidationError);
+
+        if (DateTime.UtcNow > invite.ExpiresAtUtc)
+            return Result.Failure("This setup link has expired (15-minute validity). Please request a new invitation from an administrator.", ResultStatus.ValidationError);
+
+        var normalizedEmail = invite.Email.ToUpperInvariant();
+
+        // Check if admin already exists
+        var existingAdmin = await dbContext.TblAdmins.FirstOrDefaultAsync(a => a.NormalizedEmail == normalizedEmail, cancellationToken);
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, workFactor: 12);
+
+        if (existingAdmin != null)
+        {
+            existingAdmin.PasswordHash = passwordHash;
+            existingAdmin.IsSuperAdmin = invite.IsSuperAdmin;
+            existingAdmin.IsActive = true;
+            existingAdmin.IsDeleted = false;
+            existingAdmin.UpdatedAt = DateTime.UtcNow;
+
+            var existingRole = await dbContext.TblAdminRoles.FirstOrDefaultAsync(ar => ar.AdminId == existingAdmin.AdminId && !ar.IsDeleted, cancellationToken);
+            if (existingRole != null)
+            {
+                existingRole.RoleId = invite.RoleId;
+                existingRole.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                dbContext.TblAdminRoles.Add(new TblAdminRole
+                {
+                    AdminId = existingAdmin.AdminId,
+                    RoleId = invite.RoleId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+        }
+        else
+        {
+            var admin = new TblAdmin
+            {
+                Email = invite.Email,
+                NormalizedEmail = normalizedEmail,
+                FullName = invite.Email.Split('@')[0],
+                PasswordHash = passwordHash,
+                IsSuperAdmin = invite.IsSuperAdmin,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            dbContext.TblAdmins.Add(admin);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            dbContext.TblAdminRoles.Add(new TblAdminRole
+            {
+                AdminId = admin.AdminId,
+                RoleId = invite.RoleId,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        // Mark invite as used
+        invite.IsUsed = true;
+        invite.UsedAtUtc = DateTime.UtcNow;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success("Admin password created successfully. You may now log in to the Admin Portal.");
+    }
+
+    public async Task<Result> ToggleAdminStatusAsync(int adminId, CancellationToken cancellationToken = default)
+    {
+        // Only SYSTEMADMIN (IsSuperAdmin) can activate or deactivate other admins
+        var callerAdmin = await dbContext.TblAdmins.FirstOrDefaultAsync(a => a.AdminId == currentUser.UserId && !a.IsDeleted, cancellationToken);
+        if (callerAdmin == null || !callerAdmin.IsSuperAdmin)
+        {
+            return Result.Failure("Only System Administrators (SYSTEMADMIN) have permission to activate or deactivate administrator accounts.", ResultStatus.Forbidden);
+        }
+
+        var targetAdmin = await dbContext.TblAdmins.FirstOrDefaultAsync(a => a.AdminId == adminId && !a.IsDeleted, cancellationToken);
+        if (targetAdmin == null)
+            return Result.Failure("Admin account not found.", ResultStatus.NotFound);
+
+        if (targetAdmin.AdminId == callerAdmin.AdminId)
+            return Result.Failure("You cannot deactivate your own account.", ResultStatus.Forbidden);
+
+        if (targetAdmin.IsSuperAdmin)
+            return Result.Failure("System Administrator (SYSTEMADMIN) accounts cannot be deactivated.", ResultStatus.Forbidden);
+
+        targetAdmin.IsActive = !targetAdmin.IsActive;
+        targetAdmin.UpdatedAt = DateTime.UtcNow;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        var status = targetAdmin.IsActive ? "activated" : "deactivated";
+        return Result.Success($"Admin account '{targetAdmin.Email}' has been {status}.");
     }
 }

@@ -116,4 +116,44 @@ public class AdministrationController : ControllerBase
         var result = await _platformSettingService.UpdatePlatformCommissionAsync(request, cancellationToken);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
+
+    [HttpGet("accounts")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+    public async Task<IActionResult> GetAdminAccounts(CancellationToken cancellationToken)
+    {
+        var result = await _adminService.GetAdminAccountsAsync(cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPost("accounts/invite")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserManage)]
+    public async Task<IActionResult> CreateAdminInvite([FromBody] CommunityLink.Shared.Features.Administration.CreateAdminInviteRequestModel request, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.CreateAdminInviteAsync(request, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("accounts/verify-token")]
+    [AllowAnonymous]
+    public async Task<IActionResult> VerifyAdminInviteToken([FromQuery] string token, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.VerifyAdminInviteTokenAsync(token, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPost("accounts/setup-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SetupAdminPassword([FromBody] CommunityLink.Shared.Features.Administration.SetupAdminPasswordRequestModel request, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.SetupAdminPasswordAsync(request, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPost("accounts/{id:int}/toggle-status")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserManage)]
+    public async Task<IActionResult> ToggleAdminStatus(int id, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.ToggleAdminStatusAsync(id, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
 }

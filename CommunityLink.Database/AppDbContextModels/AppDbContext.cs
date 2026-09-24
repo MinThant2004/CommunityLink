@@ -15,6 +15,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblAdminRole> TblAdminRoles { get; set; }
 
+    public virtual DbSet<TblAdminInvite> TblAdminInvites { get; set; }
+
     public virtual DbSet<TblAuditLog> TblAuditLogs { get; set; }
 
     public virtual DbSet<TblChatMessage> TblChatMessages { get; set; }
@@ -139,6 +141,20 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblAdminRole_Role");
+        });
+
+        modelBuilder.Entity<TblAdminInvite>(entity =>
+        {
+            entity.HasKey(e => e.InviteId);
+            entity.ToTable("TblAdminInvite");
+            entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.Token).HasMaxLength(200);
+            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(getutcdate())");
+            entity.HasOne(d => d.Role)
+                .WithMany()
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblAdminInvite_Role");
         });
 
         modelBuilder.Entity<TblAuditLog>(entity =>
