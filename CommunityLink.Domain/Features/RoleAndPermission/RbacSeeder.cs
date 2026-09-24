@@ -61,10 +61,9 @@ public static class RbacSeeder
                         WHERE IsDeleted = 0;
                 END;
             END;");
-        }
 
-        // Auto-create TblAdminInvite table if it doesn't exist yet
-        await db.Database.ExecuteSqlRawAsync(@"
+            // Auto-create TblAdminInvite table if it doesn't exist yet
+            await db.Database.ExecuteSqlRawAsync(@"
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TblAdminInvite' AND schema_id = SCHEMA_ID('dbo'))
             BEGIN
                 CREATE TABLE dbo.TblAdminInvite (
@@ -90,6 +89,7 @@ public static class RbacSeeder
             BEGIN
                 ALTER TABLE dbo.TblAdminInvite ADD IsSuperAdmin BIT NOT NULL CONSTRAINT DF_TblAdminInvite_IsSuperAdmin DEFAULT (0);
             END;");
+        }
 
         // 1. Seed Permissions from Catalog
         foreach (var def in PermissionCatalog.All)

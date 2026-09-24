@@ -106,7 +106,16 @@
                                 </span>
                             }
                         </div>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            @if (!IsSelectedRoleAdmin)
+                            {
+                                <button type="button"
+                                        class="px-2.5 py-1 rounded text-xs font-semibold border border-[#CBD5E1] bg-white hover:bg-[#F1F5F9] text-[#0A1B2E] transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+                                        @onclick="() => ToggleSelectAll(!IsAllSelected)">
+                                    <svg class="w-3.5 h-3.5 text-[#557392]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                    <span>@(IsAllSelected ? "Deselect All" : "Select All")</span>
+                                </button>
+                            }
                             <span class="text-xs text-[#7A8CA6] font-mono">
                                 @(IsSelectedRoleAdmin ? matrix.Permissions.Count : grantedCodes.Count) of @matrix.Permissions.Count granted
                             </span>
@@ -126,7 +135,21 @@
                             <thead>
                                 <tr class="bg-[#F1F5F9] border-b border-[#E2E8F0] text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
                                     <th class="w-16 px-6 py-3 text-center">
-                                        @(IsSelectedRoleAdmin ? "No." : "Grant")
+                                        @if (IsSelectedRoleAdmin)
+                                        {
+                                            <span>No.</span>
+                                        }
+                                        else
+                                        {
+                                            <div class="flex flex-col items-center gap-1">
+                                                <input type="checkbox"
+                                                       class="w-[18px] h-[18px] rounded cursor-pointer accent-[#0A1B2E]"
+                                                       title="Select / Deselect All Permissions"
+                                                       checked="@IsAllSelected"
+                                                       @onchange="(e) => ToggleSelectAll((bool)(e.Value ?? false))" />
+                                                <span class="text-[9px] font-bold tracking-tight">ALL</span>
+                                            </div>
+                                        }
                                     </th>
                                     <th class="px-6 py-3">Permission Code</th>
                                     <th class="px-6 py-3">Name</th>
@@ -383,6 +406,24 @@
             grantedCodes = new HashSet<string>(matrix.Permissions.Where(p => p.IsGranted).Select(p => p.Code), StringComparer.OrdinalIgnoreCase);
         }
         isLoading = false;
+    }
+
+    private bool IsAllSelected => matrix != null && matrix.Permissions.Count > 0 && matrix.Permissions.All(p => grantedCodes.Contains(p.Code));
+
+    private void ToggleSelectAll(bool selectAll)
+    {
+        if (IsSelectedRoleAdmin || matrix == null) return;
+        if (selectAll)
+        {
+            foreach (var p in matrix.Permissions)
+            {
+                grantedCodes.Add(p.Code);
+            }
+        }
+        else
+        {
+            grantedCodes.Clear();
+        }
     }
 
     private void TogglePermission(string code, bool grant)

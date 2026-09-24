@@ -66,4 +66,10 @@ public sealed class AdministrationApiService(IHttpClientFactory clientFactory, I
 
     public Task<Result> ToggleAdminStatusAsync(int id, CancellationToken cancellationToken = default) =>
         PostAsync($"api/admin/accounts/{id}/toggle-status", new { }, cancellationToken);
+
+    public Task<Result<PlatformCommissionSettingDto>> GetPlatformCommissionAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<PlatformCommissionSettingDto>("api/admin/settings/commission", cancellationToken);
+
+    public Task<Result<PlatformCommissionSettingDto>> UpdatePlatformCommissionAsync(UpdateCommissionSettingRequestDto request, CancellationToken cancellationToken = default) =>
+        PutAsync<PlatformCommissionSettingDto, UpdateCommissionSettingRequestDto>("api/admin/settings/commission", request, cancellationToken);
 }

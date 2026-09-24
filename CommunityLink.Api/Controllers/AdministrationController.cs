@@ -56,6 +56,14 @@ public class AdministrationController : ControllerBase
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
 
+    [HttpPost("users/assign-role")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserManage)]
+    public async Task<IActionResult> AssignUserRole([FromBody] CommunityLink.Shared.Features.Authentication.AssignUserRoleRequestModel request, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.AssignUserRoleAsync(request, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
     [HttpGet("audits")]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
     public async Task<IActionResult> GetAudits(CancellationToken cancellationToken)
