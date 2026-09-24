@@ -31,6 +31,7 @@ public static class PermissionCatalog
     // Chat & Messaging
     public const string ChatAccess = "CHAT.ACCESS";
     public const string ChatSend = "CHAT.SEND";
+    public const string GroupChatCreate = "GROUPCHAT.CREATE";
 
     // Administration & RBAC
     public const string AdminUserView = "ADMIN.USER.VIEW";
@@ -55,6 +56,7 @@ public static class PermissionCatalog
         new(PollCreate, "Create Polls", "Poll", "/polls/create", true, false),
         new(ChatAccess, "Access Chat Rooms", "Chat", "/chat", true, true),
         new(ChatSend, "Send Chat Messages", "Chat", "/chat", true, true),
+        new(GroupChatCreate, "Create Group Chat (Premium)", "Chat", null, false, false),
         new(AdminUserView, "View Admin Users", "Administration", "/admin/users", true, false),
         new(AdminUserManage, "Manage Admin Users", "Administration", "/admin/users", true, false),
         new(AdminRbacManage, "Manage RBAC Matrix", "Administration", "/admin/rbac", true, false)
@@ -65,7 +67,7 @@ public static class PermissionCatalog
         "ADMIN" => All.Select(x => x.Code).ToArray(),
         "MODERATOR" => All.Where(x => x.AdminDefault || x.MemberDefault).Select(x => x.Code).ToArray(),
         "MEMBER" => All.Where(x => x.MemberDefault).Select(x => x.Code).ToArray(),
-        "USER" => All.Where(x => x.MemberDefault).Select(x => x.Code).ToArray(),
+        "DOMAIN_PROFESSIONAL" or "PUBLIC_FIGURE" => All.Where(x => x.MemberDefault || x.Code == GroupChatCreate).Select(x => x.Code).ToArray(),
         _ => []
     };
 }

@@ -9,6 +9,47 @@ public static class LinkDropSeeder
     {
         await db.Database.EnsureCreatedAsync();
 
+        if (db.Database.IsRelational())
+        {
+            await db.Database.ExecuteSqlRawAsync(@"
+                IF EXISTS (SELECT * FROM sys.tables WHERE name = 'TblLinkDropTransaction' AND schema_id = SCHEMA_ID('dbo'))
+                BEGIN
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblLinkDropTransaction') AND name = 'PurchasedBalanceBefore')
+                        ALTER TABLE dbo.TblLinkDropTransaction ADD PurchasedBalanceBefore BIGINT NOT NULL CONSTRAINT DF_TblLinkDropTransaction_PurchasedBalanceBefore DEFAULT (0);
+
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblLinkDropTransaction') AND name = 'PurchasedBalanceAfter')
+                        ALTER TABLE dbo.TblLinkDropTransaction ADD PurchasedBalanceAfter BIGINT NOT NULL CONSTRAINT DF_TblLinkDropTransaction_PurchasedBalanceAfter DEFAULT (0);
+
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblLinkDropTransaction') AND name = 'EarnedBalanceBefore')
+                        ALTER TABLE dbo.TblLinkDropTransaction ADD EarnedBalanceBefore BIGINT NOT NULL CONSTRAINT DF_TblLinkDropTransaction_EarnedBalanceBefore DEFAULT (0);
+
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblLinkDropTransaction') AND name = 'EarnedBalanceAfter')
+                        ALTER TABLE dbo.TblLinkDropTransaction ADD EarnedBalanceAfter BIGINT NOT NULL CONSTRAINT DF_TblLinkDropTransaction_EarnedBalanceAfter DEFAULT (0);
+
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblLinkDropTransaction') AND name = 'PurchasedAmountDeducted')
+                        ALTER TABLE dbo.TblLinkDropTransaction ADD PurchasedAmountDeducted BIGINT NOT NULL CONSTRAINT DF_TblLinkDropTransaction_PurchasedAmountDeducted DEFAULT (0);
+
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblLinkDropTransaction') AND name = 'EarnedAmountDeducted')
+                        ALTER TABLE dbo.TblLinkDropTransaction ADD EarnedAmountDeducted BIGINT NOT NULL CONSTRAINT DF_TblLinkDropTransaction_EarnedAmountDeducted DEFAULT (0);
+
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblLinkDropTransaction') AND name = 'RelatedUserId')
+                        ALTER TABLE dbo.TblLinkDropTransaction ADD RelatedUserId INT NULL;
+
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblLinkDropTransaction') AND name = 'RelatedGroupId')
+                        ALTER TABLE dbo.TblLinkDropTransaction ADD RelatedGroupId INT NULL;
+                END;
+
+                IF EXISTS (SELECT * FROM sys.tables WHERE name = 'TblLinkDropWallet' AND schema_id = SCHEMA_ID('dbo'))
+                BEGIN
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblLinkDropWallet') AND name = 'PurchasedBalance')
+                        ALTER TABLE dbo.TblLinkDropWallet ADD PurchasedBalance BIGINT NOT NULL CONSTRAINT DF_TblLinkDropWallet_PurchasedBalance DEFAULT (0);
+
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblLinkDropWallet') AND name = 'EarnedBalance')
+                        ALTER TABLE dbo.TblLinkDropWallet ADD EarnedBalance BIGINT NOT NULL CONSTRAINT DF_TblLinkDropWallet_EarnedBalance DEFAULT (0);
+                END;
+            ");
+        }
+
         // ---------------------------------------------------------------------
         // Default Payment Channels (KPAY, WavePay, KBZPay, AYA Pay)
         // ---------------------------------------------------------------------

@@ -9,8 +9,6 @@ namespace CommunityLink.Database.AppDbContextModels;
 public partial class AppDbContext
 {
     public virtual DbSet<TblCommunityAuditLog> TblCommunityAuditLogs { get; set; }
-    public virtual DbSet<TblUserFollow> TblUserFollows { get; set; }
-    public virtual DbSet<TblGroupRating> TblGroupRatings { get; set; }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {

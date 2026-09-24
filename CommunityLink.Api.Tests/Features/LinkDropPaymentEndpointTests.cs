@@ -112,11 +112,14 @@ public class LinkDropPaymentEndpointTests(CommunityApiFactory factory) : IClassF
         Assert.NotNull(approveData?.Data);
         Assert.Equal("APPROVED", approveData.Data.Status);
 
-        // 5. Check user wallet balance increased
+        // 5. Check user wallet balance increased and separated properly
         var walletRes = await _client.GetAsync("/api/linkdrops/wallet");
         var walletData = await walletRes.Content.ReadFromJsonAsync<Result<LinkDropWalletDto>>();
         Assert.NotNull(walletData?.Data);
         Assert.Equal(150, walletData.Data.Balance); // 1500 MMK / 10 = 150 drops
+        Assert.Equal(150, walletData.Data.PurchasedBalance);
+        Assert.Equal(0, walletData.Data.EarnedBalance);
+        Assert.Equal(walletData.Data.Balance, walletData.Data.PurchasedBalance + walletData.Data.EarnedBalance);
 
         // 6. Check transaction ledger entry
         var txRes = await _client.GetAsync("/api/linkdrops/transactions");

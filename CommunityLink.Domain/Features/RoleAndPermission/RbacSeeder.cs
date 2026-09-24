@@ -10,8 +10,10 @@ public static class RbacSeeder
     {
         await db.Database.EnsureCreatedAsync();
 
-        // Auto-create TblUserFollow table if it doesn't exist yet (for database first setups)
-        await db.Database.ExecuteSqlRawAsync(@"
+        if (db.Database.IsRelational())
+        {
+            // Auto-create TblUserFollow table if it doesn't exist yet (for database first setups)
+            await db.Database.ExecuteSqlRawAsync(@"
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TblUserFollow' AND schema_id = SCHEMA_ID('dbo'))
             BEGIN
                 CREATE TABLE dbo.TblUserFollow (
@@ -30,8 +32,8 @@ public static class RbacSeeder
                 );
             END;");
 
-        // Auto-create TblGroupRating table if it doesn't exist yet
-        await db.Database.ExecuteSqlRawAsync(@"
+            // Auto-create TblGroupRating table if it doesn't exist yet
+            await db.Database.ExecuteSqlRawAsync(@"
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TblGroupRating' AND schema_id = SCHEMA_ID('dbo'))
             BEGIN
                 CREATE TABLE dbo.TblGroupRating (
@@ -59,6 +61,7 @@ public static class RbacSeeder
                         WHERE IsDeleted = 0;
                 END;
             END;");
+        }
 
         // 1. Seed Permissions from Catalog
         foreach (var def in PermissionCatalog.All)
@@ -89,13 +92,16 @@ public static class RbacSeeder
             ("PUBLIC_FIGURE", "Public Figure", "Notable community creator or public figure", false)
         };
 
-        // Sync IsSystemRole in the database so only ADMIN and USER are 1, while others are 0
-        await db.Database.ExecuteSqlRawAsync(@"
-            UPDATE dbo.TblRole
-            SET IsSystemRole = CASE 
-                WHEN UPPER(RoleCode) IN ('ADMIN', 'USER') THEN 1 
-                ELSE 0 
-            END;");
+        if (db.Database.IsRelational())
+        {
+            // Sync IsSystemRole in the database so only ADMIN and USER are 1, while others are 0
+            await db.Database.ExecuteSqlRawAsync(@"
+                UPDATE dbo.TblRole
+                SET IsSystemRole = CASE 
+                    WHEN UPPER(RoleCode) IN ('ADMIN', 'USER') THEN 1 
+                    ELSE 0 
+                END;");
+        }
 
         foreach (var (code, name, desc, isSystem) in rolesToSeed)
         {

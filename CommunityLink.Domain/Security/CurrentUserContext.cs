@@ -13,6 +13,7 @@ public interface ICurrentUserContext
     int? RoleId { get; }
     bool IsAuthenticated { get; }
     bool IsAdmin { get; }
+    bool IsPremiumCreator { get; }
 }
 
 public sealed class HttpCurrentUserContext(IHttpContextAccessor httpContextAccessor) : ICurrentUserContext
@@ -26,4 +27,6 @@ public sealed class HttpCurrentUserContext(IHttpContextAccessor httpContextAcces
     public int? RoleId => int.TryParse(User?.FindFirst("role_id")?.Value, out var roleId) ? roleId : null;
     public bool IsAuthenticated => User?.Identity?.IsAuthenticated ?? false;
     public bool IsAdmin => string.Equals(RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase) || (User?.HasClaim("permission", PermissionCatalog.AdminUserView) ?? false);
+    public bool IsPremiumCreator => string.Equals(RoleCode, "DOMAIN_PROFESSIONAL", StringComparison.OrdinalIgnoreCase)
+                                 || string.Equals(RoleCode, "PUBLIC_FIGURE", StringComparison.OrdinalIgnoreCase);
 }

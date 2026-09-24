@@ -33,9 +33,15 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblGroup> TblGroups { get; set; }
 
+    public virtual DbSet<TblGroupChatMessage> TblGroupChatMessages { get; set; }
+
+    public virtual DbSet<TblGroupChatRoom> TblGroupChatRooms { get; set; }
+
     public virtual DbSet<TblGroupJoinRequest> TblGroupJoinRequests { get; set; }
 
     public virtual DbSet<TblGroupMember> TblGroupMembers { get; set; }
+
+    public virtual DbSet<TblGroupRating> TblGroupRatings { get; set; }
 
     public virtual DbSet<TblLinkDropPackage> TblLinkDropPackages { get; set; }
 
@@ -54,6 +60,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<TblPaymentMethod> TblPaymentMethods { get; set; }
 
     public virtual DbSet<TblPermission> TblPermissions { get; set; }
+
+    public virtual DbSet<TblPlatformSetting> TblPlatformSettings { get; set; }
 
     public virtual DbSet<TblPoll> TblPolls { get; set; }
 
@@ -77,15 +85,17 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblSavedPost> TblSavedPosts { get; set; }
 
+    public virtual DbSet<TblSkillEndorsement> TblSkillEndorsements { get; set; }
+
     public virtual DbSet<TblUser> TblUsers { get; set; }
+
+    public virtual DbSet<TblUserFollow> TblUserFollows { get; set; }
 
     public virtual DbSet<TblUserRating> TblUserRatings { get; set; }
 
     public virtual DbSet<TblUserRole> TblUserRoles { get; set; }
 
     public virtual DbSet<TblUserSkill> TblUserSkills { get; set; }
-
-    public virtual DbSet<TblSkillEndorsement> TblSkillEndorsements { get; set; }
 
     public virtual DbSet<TblUserVerificationAudit> TblUserVerificationAudits { get; set; }
 
@@ -337,7 +347,11 @@ public partial class AppDbContext : DbContext
                 .IsUnique()
                 .HasFilter("([IsDeleted]=(0))");
 
+            entity.Property(e => e.CommissionPercentageSnapshot).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.GroupType)
+                .HasMaxLength(20)
+                .HasDefaultValue("FREE");
             entity.Property(e => e.JoinPolicy)
                 .HasMaxLength(50)
                 .HasDefaultValue("INSTANT");
@@ -359,6 +373,56 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.SubCommunityId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblGroup_SubCommunity");
+        });
+
+        modelBuilder.Entity<TblGroupChatMessage>(entity =>
+        {
+            entity.HasKey(e => e.GroupChatMessageId).HasName("PK__TblGroup__945876A171BE2C4B");
+
+            entity.ToTable("TblGroupChatMessage");
+
+            entity.HasIndex(e => e.GroupChatRoomId, "IX_TblGroupChatMessage_GroupChatRoomId");
+
+            entity.HasIndex(e => e.SenderId, "IX_TblGroupChatMessage_SenderId");
+
+            entity.Property(e => e.Content).HasMaxLength(4000);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(d => d.GroupChatRoom).WithMany(p => p.TblGroupChatMessages)
+                .HasForeignKey(d => d.GroupChatRoomId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroupChatMessage_TblGroupChatRoom");
+
+            entity.HasOne(d => d.Sender).WithMany(p => p.TblGroupChatMessages)
+                .HasForeignKey(d => d.SenderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroupChatMessage_TblUser_Sender");
+        });
+
+        modelBuilder.Entity<TblGroupChatRoom>(entity =>
+        {
+            entity.HasKey(e => e.GroupChatRoomId).HasName("PK__TblGroup__D2E8AA678BBE355A");
+
+            entity.ToTable("TblGroupChatRoom");
+
+            entity.HasIndex(e => e.GroupId, "UQ_TblGroupChatRoom_GroupId").IsUnique();
+
+            entity.Property(e => e.ChatType)
+                .HasMaxLength(20)
+                .HasDefaultValue("FREE");
+            entity.Property(e => e.CommissionPercentageSnapshot).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+            entity.HasOne(d => d.Creator).WithMany(p => p.TblGroupChatRooms)
+                .HasForeignKey(d => d.CreatorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroupChatRoom_TblUser_Creator");
+
+            entity.HasOne(d => d.Group).WithOne(p => p.TblGroupChatRoom)
+                .HasForeignKey<TblGroupChatRoom>(d => d.GroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroupChatRoom_TblGroup");
         });
 
         modelBuilder.Entity<TblGroupJoinRequest>(entity =>
@@ -420,6 +484,37 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblGroupMember_User");
+        });
+
+        modelBuilder.Entity<TblGroupRating>(entity =>
+        {
+            entity.HasKey(e => e.GroupRatingId);
+
+            entity.ToTable("TblGroupRating");
+
+            entity.HasIndex(e => new { e.GroupId, e.CreatedAt }, "IX_TblGroupRating_GroupId_CreatedAt")
+                .IsDescending(false, true)
+                .HasFilter("([IsDeleted]=(0))");
+
+            entity.HasIndex(e => new { e.GroupId, e.UserId }, "IX_TblGroupRating_Group_User")
+                .IsUnique()
+                .HasFilter("([IsDeleted]=(0))");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())", "DF_TblGroupRating_CreatedAt");
+            entity.Property(e => e.ReviewText).HasMaxLength(1000);
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasOne(d => d.Group).WithMany(p => p.TblGroupRatings)
+                .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroupRating_Group");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblGroupRatings)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblGroupRating_User");
         });
 
         modelBuilder.Entity<TblLinkDropPackage>(entity =>
@@ -640,6 +735,19 @@ public partial class AppDbContext : DbContext
                 .IsConcurrencyToken();
         });
 
+        modelBuilder.Entity<TblPlatformSetting>(entity =>
+        {
+            entity.HasKey(e => e.SettingKey).HasName("PK__TblPlatf__01E719ACE2914897");
+
+            entity.ToTable("TblPlatformSetting");
+
+            entity.Property(e => e.SettingKey).HasMaxLength(100);
+            entity.Property(e => e.DataType)
+                .HasMaxLength(50)
+                .HasDefaultValue("STRING");
+            entity.Property(e => e.Description).HasMaxLength(500);
+        });
+
         modelBuilder.Entity<TblPoll>(entity =>
         {
             entity.HasKey(e => e.PollId).HasName("PK__TblPoll__E1949E6AA43170C3");
@@ -709,10 +817,18 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.GroupId, "IX_TblPost_GroupId").HasFilter("([GroupId] IS NOT NULL AND [IsDeleted]=(0))");
 
+            entity.Property(e => e.CodeFileName).HasMaxLength(100);
+            entity.Property(e => e.CodeLanguage).HasMaxLength(50);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.DiagramCaption).HasMaxLength(250);
+            entity.Property(e => e.DiagramImageUrl).HasMaxLength(500);
+            entity.Property(e => e.PostType)
+                .HasMaxLength(50)
+                .HasDefaultValue("STANDARD");
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();
+            entity.Property(e => e.Subtitle).HasMaxLength(300);
 
             entity.HasOne(d => d.Author).WithMany(p => p.TblPosts)
                 .HasForeignKey(d => d.AuthorId)
@@ -876,6 +992,28 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_TblSavedPost_User");
         });
 
+        modelBuilder.Entity<TblSkillEndorsement>(entity =>
+        {
+            entity.HasKey(e => e.EndorsementId).HasName("PK__TblSkill__DBB8336F73611CFF");
+
+            entity.ToTable("TblSkillEndorsement");
+
+            entity.HasIndex(e => new { e.SkillId, e.EndorserUserId }, "UX_TblSkillEndorsement")
+                .IsUnique()
+                .HasFilter("([IsDeleted]=(0))");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+
+            entity.HasOne(d => d.EndorserUser).WithMany(p => p.TblSkillEndorsements)
+                .HasForeignKey(d => d.EndorserUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblSkillEndorsement_TblUser");
+
+            entity.HasOne(d => d.Skill).WithMany(p => p.TblSkillEndorsements)
+                .HasForeignKey(d => d.SkillId)
+                .HasConstraintName("FK_TblSkillEndorsement_TblUserSkill");
+        });
+
         modelBuilder.Entity<TblUser>(entity =>
         {
             entity.HasKey(e => e.UserId).HasName("PK__TblUser__1788CC4C528B3DC4");
@@ -886,17 +1024,57 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.UserName, "UQ__TblUser__C9F2845608BEC37A").IsUnique();
 
+            entity.Property(e => e.AvailabilityStatus).HasMaxLength(200);
             entity.Property(e => e.AverageRating).HasColumnType("decimal(3, 2)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.DisplayName).HasMaxLength(200);
             entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.Headline).HasMaxLength(200);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Location).HasMaxLength(150);
             entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
             entity.Property(e => e.NormalizedUserName).HasMaxLength(100);
+            entity.Property(e => e.PercentileBadgeText)
+                .HasMaxLength(100)
+                .HasDefaultValue("Top 1% Percentile");
+            entity.Property(e => e.Pronouns).HasMaxLength(50);
+            entity.Property(e => e.ResponseSlaText)
+                .HasMaxLength(100)
+                .HasDefaultValue("< 2 hrs Response");
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();
             entity.Property(e => e.UserName).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<TblUserFollow>(entity =>
+        {
+            entity.HasKey(e => e.FollowId);
+
+            entity.ToTable("TblUserFollow");
+
+            entity.HasIndex(e => new { e.FolloweeId, e.CreatedAt }, "IX_TblUserFollow_FolloweeId")
+                .IsDescending(false, true)
+                .HasFilter("([IsDeleted]=(0))");
+
+            entity.HasIndex(e => new { e.FollowerId, e.FolloweeId }, "IX_TblUserFollow_Follower_Followee")
+                .IsUnique()
+                .HasFilter("([IsDeleted]=(0))");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())", "DF_TblUserFollow_CreatedAt");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasOne(d => d.Followee).WithMany(p => p.TblUserFollowFollowees)
+                .HasForeignKey(d => d.FolloweeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblUserFollow_Followee");
+
+            entity.HasOne(d => d.Follower).WithMany(p => p.TblUserFollowFollowers)
+                .HasForeignKey(d => d.FollowerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblUserFollow_Follower");
         });
 
         modelBuilder.Entity<TblUserRating>(entity =>
@@ -985,6 +1163,40 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.TblUserVerificationAudits)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_TblUserVerificationAudit_TblUser");
+        });
+
+        modelBuilder.Entity<TblUserSkill>(entity =>
+        {
+            entity.HasKey(e => e.SkillId).HasName("PK__TblUserS__DFA09187469766C6");
+
+            entity.ToTable("TblUserSkill");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.SkillName).HasMaxLength(100);
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblUserSkills)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_TblUserSkill_TblUser");
+        });
+
+        modelBuilder.Entity<TblUserVerificationAudit>(entity =>
+        {
+            entity.HasKey(e => e.AuditId).HasName("PK__TblUserV__A17F2398A9B03547");
+
+            entity.ToTable("TblUserVerificationAudit");
+
+            entity.Property(e => e.AuditCode).HasMaxLength(100);
+            entity.Property(e => e.AuditTitle).HasMaxLength(200);
+            entity.Property(e => e.AuditedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.Authority).HasMaxLength(150);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasDefaultValue("ACTIVE");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblUserVerificationAudits)
+                .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_TblUserVerificationAudit_TblUser");
         });
 

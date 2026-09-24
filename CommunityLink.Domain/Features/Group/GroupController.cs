@@ -2,12 +2,25 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Group;
+using CommunityLink.Domain.Security;
 
 namespace CommunityLink.Domain.Features.Group;
 
 [Route("api/groups")]
-public sealed class GroupController(IGroupService groupService) : BaseController
+public sealed class GroupController(IGroupService groupService, ICurrentUserContext currentUser) : BaseController
 {
+    /// <summary>
+    /// Returns whether the current user is a Premium creator eligible to create Group Chats.
+    /// </summary>
+    [HttpGet("can-create-groupchat")]
+    [Authorize]
+    public IActionResult CanCreateGroupChat()
+    {
+        var result = new GroupChatEligibilityModel(
+            currentUser.IsPremiumCreator,
+            currentUser.RoleCode);
+        return Ok(Result<GroupChatEligibilityModel>.Success(result));
+    }
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetGroups([FromQuery] int? subCommunityId, [FromQuery] string? search, CancellationToken cancellationToken) =>
