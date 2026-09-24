@@ -68,4 +68,22 @@ public sealed class UserProfileApiService(IHttpClientFactory clientFactory, IHtt
 
     public Task<Result<List<UserRatingItemDto>>> GetUserReviewsAsync(int targetUserId, CancellationToken cancellationToken = default) =>
         GetAsync<List<UserRatingItemDto>>($"api/users/{targetUserId}/reviews", cancellationToken);
+
+    public Task<Result<bool>> ToggleFollowUserAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        PostAsync<bool, object?>($"api/users/{targetUserId}/toggle-follow", null, cancellationToken);
+
+    public Task<Result<List<FollowUserItemDto>>> GetFollowersAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        GetAsync<List<FollowUserItemDto>>($"api/users/{targetUserId}/followers", cancellationToken);
+
+    public Task<Result<List<FollowUserItemDto>>> GetFollowingAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        GetAsync<List<FollowUserItemDto>>($"api/users/{targetUserId}/following", cancellationToken);
+
+    public Task<Result<List<UserSharedPostItemDto>>> GetUserSharesAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        GetAsync<List<UserSharedPostItemDto>>($"api/users/{targetUserId}/shares", cancellationToken);
+
+    public Task<Result<bool>> EndorseSkillAsync(int skillId, CancellationToken cancellationToken = default) =>
+        PostAsync<bool, object?>($"api/users/skills/{skillId}/endorse", null, cancellationToken);
+
+    public Task<Result<bool>> VotePollAsync(int pollId, int optionId, CancellationToken cancellationToken = default) =>
+        PostAsync<bool, object?>($"api/users/polls/{pollId}/vote/{optionId}", null, cancellationToken);
 }

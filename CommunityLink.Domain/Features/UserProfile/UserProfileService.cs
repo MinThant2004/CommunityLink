@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.UserProfile;
+using CommunityLink.Domain.Features.Notification;
 using Microsoft.EntityFrameworkCore;
 
 namespace CommunityLink.Domain.Features.UserProfile;
@@ -15,10 +16,12 @@ namespace CommunityLink.Domain.Features.UserProfile;
 public class UserProfileService : IUserProfileService
 {
     private readonly AppDbContext _dbContext;
+    private readonly INotificationService _notificationService;
 
-    public UserProfileService(AppDbContext dbContext)
+    public UserProfileService(AppDbContext dbContext, INotificationService notificationService)
     {
         _dbContext = dbContext;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<UserProfileDto>> GetOwnerProfileAsync(int currentUserId, CancellationToken cancellationToken = default)
@@ -107,6 +110,10 @@ public class UserProfileService : IUserProfileService
         }
 
         user.DisplayName = displayName;
+        user.Headline = dto.Headline?.Trim();
+        user.Pronouns = dto.Pronouns?.Trim();
+        user.Location = dto.Location?.Trim();
+        user.AvailabilityStatus = dto.AvailabilityStatus?.Trim();
         user.Bio = dto.Bio?.Trim();
         user.UpdatedAt = DateTime.UtcNow;
         user.UpdatedBy = currentUserId;
@@ -257,64 +264,50 @@ public class UserProfileService : IUserProfileService
 
     public async Task<Result<List<UserPostItemDto>>> GetUserPostsAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default)
     {
-        var posts = await _dbContext.TblPosts
+        var rawPosts = await _dbContext.TblPosts
             .Include(p => p.Author)
             .Include(p => p.Community)
+            .Include(p => p.TblPostImages)
             .Include(p => p.TblPostLikes)
             .Include(p => p.TblComments)
+            .Include(p => p.TblPolls)
+                .ThenInclude(poll => poll.TblPollOptions)
+            .Include(p => p.TblPolls)
+                .ThenInclude(poll => poll.TblPollVotes)
             .Where(p => p.AuthorId == targetUserId && !p.IsDeleted)
             .OrderByDescending(p => p.CreatedAt)
-            .Select(p => new UserPostItemDto
-            {
-                PostId = p.PostId,
-                Title = string.Empty,
-                Content = p.Content,
-                CommunityId = p.CommunityId ?? 0,
-                CommunityName = p.Community != null ? p.Community.Name : "General",
-                AuthorUserId = p.AuthorId,
-                AuthorUserName = p.Author.UserName,
-                AuthorDisplayName = p.Author.DisplayName,
-                AuthorAvatarUrl = p.Author.AvatarUrl,
-                LikeCount = p.TblPostLikes.Count(l => !l.IsDeleted),
-                CommentCount = p.TblComments.Count(c => !c.IsDeleted),
-                CreatedAt = p.CreatedAt
-            })
             .ToListAsync(cancellationToken);
 
-        return Result<List<UserPostItemDto>>.Success(posts);
+        var list = rawPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
+        return Result<List<UserPostItemDto>>.Success(list);
     }
 
     public async Task<Result<List<UserPostItemDto>>> GetSavedPostsAsync(int currentUserId, CancellationToken cancellationToken = default)
     {
-        var posts = await _dbContext.TblSavedPosts
+        var rawPosts = await _dbContext.TblSavedPosts
             .Include(sp => sp.Post)
                 .ThenInclude(p => p.Author)
             .Include(sp => sp.Post)
                 .ThenInclude(p => p.Community)
             .Include(sp => sp.Post)
+                .ThenInclude(p => p.TblPostImages)
+            .Include(sp => sp.Post)
                 .ThenInclude(p => p.TblPostLikes)
             .Include(sp => sp.Post)
                 .ThenInclude(p => p.TblComments)
+            .Include(sp => sp.Post)
+                .ThenInclude(p => p.TblPolls)
+                    .ThenInclude(poll => poll.TblPollOptions)
+            .Include(sp => sp.Post)
+                .ThenInclude(p => p.TblPolls)
+                    .ThenInclude(poll => poll.TblPollVotes)
             .Where(sp => sp.UserId == currentUserId && !sp.IsDeleted && sp.Post != null && !sp.Post.IsDeleted)
             .OrderByDescending(sp => sp.CreatedAt)
-            .Select(sp => new UserPostItemDto
-            {
-                PostId = sp.Post.PostId,
-                Title = string.Empty,
-                Content = sp.Post.Content,
-                CommunityId = sp.Post.CommunityId ?? 0,
-                CommunityName = sp.Post.Community != null ? sp.Post.Community.Name : "General",
-                AuthorUserId = sp.Post.AuthorId,
-                AuthorUserName = sp.Post.Author.UserName,
-                AuthorDisplayName = sp.Post.Author.DisplayName,
-                AuthorAvatarUrl = sp.Post.Author.AvatarUrl,
-                LikeCount = sp.Post.TblPostLikes.Count(l => !l.IsDeleted),
-                CommentCount = sp.Post.TblComments.Count(c => !c.IsDeleted),
-                CreatedAt = sp.Post.CreatedAt
-            })
+            .Select(sp => sp.Post)
             .ToListAsync(cancellationToken);
 
-        return Result<List<UserPostItemDto>>.Success(posts);
+        var list = rawPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
+        return Result<List<UserPostItemDto>>.Success(list);
     }
 
     public async Task<Result<List<SavedAccountItemDto>>> GetSavedAccountsAsync(int currentUserId, CancellationToken cancellationToken = default)
@@ -384,6 +377,158 @@ public class UserProfileService : IUserProfileService
         return Result<List<UserRatingItemDto>>.Success(reviews);
     }
 
+    public async Task<Result<bool>> ToggleFollowUserAsync(int currentUserId, int targetUserId, CancellationToken cancellationToken = default)
+    {
+        if (currentUserId == targetUserId)
+            return Result<bool>.Failure("You cannot follow yourself.", ResultStatus.ValidationError);
+
+        var targetExists = await _dbContext.TblUsers.AnyAsync(u => u.UserId == targetUserId && !u.IsDeleted, cancellationToken);
+        if (!targetExists)
+            return Result<bool>.Failure("Target user not found.", ResultStatus.NotFound);
+
+        var existingFollow = await _dbContext.TblUserFollows
+            .FirstOrDefaultAsync(f => f.FollowerId == currentUserId && f.FolloweeId == targetUserId && !f.IsDeleted, cancellationToken);
+
+        bool isFollowed;
+        if (existingFollow != null)
+        {
+            _dbContext.TblUserFollows.Remove(existingFollow);
+            isFollowed = false;
+        }
+        else
+        {
+            var newFollow = new TblUserFollow
+            {
+                FollowerId = currentUserId,
+                FolloweeId = targetUserId,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = currentUserId
+            };
+            await _dbContext.TblUserFollows.AddAsync(newFollow, cancellationToken);
+            isFollowed = true;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        if (isFollowed)
+        {
+            var followerUser = await _dbContext.TblUsers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == currentUserId, cancellationToken);
+
+            var followerName = followerUser != null
+                ? (!string.IsNullOrWhiteSpace(followerUser.DisplayName) ? followerUser.DisplayName : followerUser.UserName)
+                : "Someone";
+
+            await _notificationService.CreateNotificationAsync(
+                recipientUserId: targetUserId,
+                actorUserId: currentUserId,
+                notificationType: "USER_FOLLOW",
+                title: "New Follower",
+                message: $"{followerName} started following you.",
+                targetEntityName: "USER_FOLLOWERS",
+                targetEntityId: currentUserId,
+                cancellationToken: cancellationToken);
+        }
+
+        return Result<bool>.Success(isFollowed, isFollowed ? "Followed user successfully." : "Unfollowed user successfully.");
+    }
+
+    public async Task<Result<List<FollowUserItemDto>>> GetFollowersAsync(int targetUserId, CancellationToken cancellationToken = default)
+    {
+        var followers = await _dbContext.TblUserFollows
+            .Include(f => f.Follower)
+            .Where(f => f.FolloweeId == targetUserId && !f.IsDeleted && f.Follower != null && !f.Follower.IsDeleted)
+            .OrderByDescending(f => f.CreatedAt)
+            .Select(f => new FollowUserItemDto
+            {
+                UserId = f.Follower.UserId,
+                UserName = f.Follower.UserName,
+                DisplayName = f.Follower.DisplayName,
+                AvatarUrl = f.Follower.AvatarUrl,
+                Bio = f.Follower.Bio,
+                IsVerified = f.Follower.IsVerified,
+                FollowedAt = f.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return Result<List<FollowUserItemDto>>.Success(followers);
+    }
+
+    public async Task<Result<List<FollowUserItemDto>>> GetFollowingAsync(int targetUserId, CancellationToken cancellationToken = default)
+    {
+        var following = await _dbContext.TblUserFollows
+            .Include(f => f.Followee)
+            .Where(f => f.FollowerId == targetUserId && !f.IsDeleted && f.Followee != null && !f.Followee.IsDeleted)
+            .OrderByDescending(f => f.CreatedAt)
+            .Select(f => new FollowUserItemDto
+            {
+                UserId = f.Followee.UserId,
+                UserName = f.Followee.UserName,
+                DisplayName = f.Followee.DisplayName,
+                AvatarUrl = f.Followee.AvatarUrl,
+                Bio = f.Followee.Bio,
+                IsVerified = f.Followee.IsVerified,
+                FollowedAt = f.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return Result<List<FollowUserItemDto>>.Success(following);
+    }
+
+    public async Task<Result<List<UserSharedPostItemDto>>> GetUserSharesAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default)
+    {
+        var shares = await _dbContext.TblPostShares
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.Author)
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.Community)
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.Group)
+                    .ThenInclude(g => g!.TblGroupMembers)
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.TblPostImages)
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.TblPostLikes)
+            .Include(ps => ps.Post)
+                .ThenInclude(p => p.TblComments)
+            .Where(ps => ps.UserId == targetUserId && !ps.IsDeleted && ps.Post != null && !ps.Post.IsDeleted)
+            .OrderByDescending(ps => ps.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        var list = new List<UserSharedPostItemDto>();
+        foreach (var s in shares)
+        {
+            var p = s.Post;
+            if (p.Group != null && p.Group.Visibility == "PRIVATE")
+            {
+                var isMember = currentUserId.HasValue && p.Group.TblGroupMembers.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
+                if (!isMember) continue;
+            }
+
+            list.Add(new UserSharedPostItemDto
+            {
+                ShareId = s.PostShareId,
+                PostId = s.PostId,
+                ShareNote = s.ShareNote,
+                SharedAt = s.CreatedAt,
+                PostContent = p.Content,
+                AuthorUserId = p.AuthorId,
+                AuthorUserName = p.Author.UserName,
+                AuthorDisplayName = p.Author.DisplayName,
+                AuthorAvatarUrl = p.Author.AvatarUrl,
+                CommunityName = p.Community?.Name,
+                GroupName = p.Group?.Name,
+                LikeCount = p.TblPostLikes.Count(l => !l.IsDeleted),
+                CommentCount = p.TblComments.Count(c => !c.IsDeleted),
+                ImageUrls = p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
+                PostCreatedAt = p.CreatedAt
+            });
+        }
+
+        return Result<List<UserSharedPostItemDto>>.Success(list);
+    }
+
     private async Task<UserProfileDto> BuildProfileDtoAsync(TblUser user, int? currentUserId, bool isOwnerView, CancellationToken cancellationToken)
     {
         // 1. Role Info & Badge
@@ -407,9 +552,19 @@ public class UserProfileService : IUserProfileService
         int postsCount = await _dbContext.TblPosts
             .CountAsync(p => p.AuthorId == user.UserId && !p.IsDeleted, cancellationToken);
 
+        int followersCount = await _dbContext.TblUserFollows
+            .CountAsync(f => f.FolloweeId == user.UserId && !f.IsDeleted, cancellationToken);
+
+        int followingCount = await _dbContext.TblUserFollows
+            .CountAsync(f => f.FollowerId == user.UserId && !f.IsDeleted, cancellationToken);
+
+        int sharesCount = await _dbContext.TblPostShares
+            .CountAsync(ps => ps.UserId == user.UserId && !ps.IsDeleted && ps.Post != null && !ps.Post.IsDeleted, cancellationToken);
+
         // 3. Relationship
         bool isSelf = currentUserId.HasValue && currentUserId.Value == user.UserId;
         bool isSavedByMe = false;
+        bool isFollowedByMe = false;
         bool hasRated = false;
         int? myRatingScore = null;
         string? myReviewText = null;
@@ -418,6 +573,9 @@ public class UserProfileService : IUserProfileService
         {
             isSavedByMe = await _dbContext.TblSavedAccounts
                 .AnyAsync(sa => sa.UserId == currentUserId.Value && sa.SavedUserId == user.UserId && !sa.IsDeleted, cancellationToken);
+
+            isFollowedByMe = await _dbContext.TblUserFollows
+                .AnyAsync(f => f.FollowerId == currentUserId.Value && f.FolloweeId == user.UserId && !f.IsDeleted, cancellationToken);
 
             var rating = await _dbContext.TblUserRatings
                 .FirstOrDefaultAsync(r => r.RaterUserId == currentUserId.Value && r.TargetUserId == user.UserId && !r.IsDeleted, cancellationToken);
@@ -430,12 +588,73 @@ public class UserProfileService : IUserProfileService
             }
         }
 
+        // 4. Rating Distribution Breakdown (5★ to 1★ percentages)
+        var ratingScores = await _dbContext.TblUserRatings
+            .Where(r => r.TargetUserId == user.UserId && !r.IsDeleted)
+            .Select(r => r.Score)
+            .ToListAsync(cancellationToken);
+
+        var ratingDistribution = new RatingDistributionDto();
+        if (ratingScores.Any())
+        {
+            int total = ratingScores.Count;
+            ratingDistribution.Star5Count = ratingScores.Count(s => s == 5);
+            ratingDistribution.Star4Count = ratingScores.Count(s => s == 4);
+            ratingDistribution.Star3Count = ratingScores.Count(s => s == 3);
+            ratingDistribution.Star2Count = ratingScores.Count(s => s == 2);
+            ratingDistribution.Star1Count = ratingScores.Count(s => s == 1);
+
+            ratingDistribution.Star5Percentage = (int)Math.Round((double)ratingDistribution.Star5Count * 100 / total);
+            ratingDistribution.Star4Percentage = (int)Math.Round((double)ratingDistribution.Star4Count * 100 / total);
+            ratingDistribution.Star3Percentage = (int)Math.Round((double)ratingDistribution.Star3Count * 100 / total);
+            ratingDistribution.Star2Percentage = (int)Math.Round((double)ratingDistribution.Star2Count * 100 / total);
+            ratingDistribution.Star1Percentage = (int)Math.Round((double)ratingDistribution.Star1Count * 100 / total);
+        }
+
+        // 5. Domain Competencies / Skills
+        var userSkills = await _dbContext.TblUserSkills
+            .Include(s => s.TblSkillEndorsements)
+            .Where(s => s.UserId == user.UserId && !s.IsDeleted)
+            .OrderBy(s => s.DisplayOrder)
+            .ThenByDescending(s => s.EndorsementCount)
+            .Select(s => new UserSkillDto
+            {
+                SkillId = s.SkillId,
+                SkillName = s.SkillName,
+                EndorsementCount = s.EndorsementCount,
+                IsVerified = s.IsVerified,
+                IsEndorsedByMe = currentUserId.HasValue && s.TblSkillEndorsements.Any(e => e.EndorserUserId == currentUserId.Value && !e.IsDeleted)
+            })
+            .ToListAsync(cancellationToken);
+
+        // 6. Identity Verification Audit
+        var audit = await _dbContext.TblUserVerificationAudits
+            .Where(a => a.UserId == user.UserId && !a.IsDeleted)
+            .OrderByDescending(a => a.AuditedAt)
+            .Select(a => new UserVerificationAuditDto
+            {
+                AuditCode = a.AuditCode,
+                AuditTitle = a.AuditTitle,
+                AuditDescription = a.AuditDescription,
+                Authority = a.Authority,
+                Status = a.Status,
+                AuditedAt = a.AuditedAt
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
         return new UserProfileDto
         {
             UserId = user.UserId,
             UserName = user.UserName,
             Email = isOwnerView ? user.Email : string.Empty,
             DisplayName = user.DisplayName,
+            Headline = user.Headline,
+            Pronouns = user.Pronouns,
+            Location = user.Location,
+            AvailabilityStatus = user.AvailabilityStatus,
+            ResponseSlaText = user.ResponseSlaText ?? "< 2 hrs Response",
+            PercentileBadgeText = user.PercentileBadgeText ?? "Top 1% Percentile",
+            IsOnline = user.LastActiveAt.HasValue && user.LastActiveAt.Value > DateTime.UtcNow.AddMinutes(-10),
             AvatarUrl = user.AvatarUrl,
             Bio = user.Bio,
             IsVerified = user.IsVerified,
@@ -451,18 +670,176 @@ public class UserProfileService : IUserProfileService
                 RatingCount = user.RatingCount,
                 JoinedCommunitiesCount = joinedCommunitiesCount,
                 SavedAccountsCount = savedAccountsCount,
-                PostsCount = postsCount
+                PostsCount = postsCount,
+                FollowersCount = followersCount,
+                FollowingCount = followingCount,
+                SharesCount = sharesCount
             },
             Relationship = new UserRelationshipInfoDto
             {
                 IsSelf = isSelf,
                 IsSavedByMe = isSavedByMe,
+                IsFollowedByMe = isFollowedByMe,
                 CanMessage = !isSelf,
                 HasRated = hasRated,
                 MyRatingScore = myRatingScore,
                 MyReviewText = myReviewText
             },
+            RatingDistribution = ratingDistribution,
+            Skills = userSkills,
+            VerificationAudit = audit,
             CreatedAt = user.CreatedAt
+        };
+    }
+
+    public async Task<Result<bool>> EndorseSkillAsync(int currentUserId, int skillId, CancellationToken cancellationToken = default)
+    {
+        var skill = await _dbContext.TblUserSkills
+            .FirstOrDefaultAsync(s => s.SkillId == skillId && !s.IsDeleted, cancellationToken);
+
+        if (skill == null)
+            return Result<bool>.Failure("Competency skill not found.", ResultStatus.NotFound);
+
+        if (skill.UserId == currentUserId)
+            return Result<bool>.Failure("You cannot endorse your own competency skill.", ResultStatus.ValidationError);
+
+        var existing = await _dbContext.TblSkillEndorsements
+            .FirstOrDefaultAsync(e => e.SkillId == skillId && e.EndorserUserId == currentUserId, cancellationToken);
+
+        bool isEndorsed;
+        if (existing != null)
+        {
+            if (existing.IsDeleted)
+            {
+                existing.IsDeleted = false;
+                skill.EndorsementCount++;
+                isEndorsed = true;
+            }
+            else
+            {
+                existing.IsDeleted = true;
+                skill.EndorsementCount = Math.Max(0, skill.EndorsementCount - 1);
+                isEndorsed = false;
+            }
+        }
+        else
+        {
+            var endorsement = new TblSkillEndorsement
+            {
+                SkillId = skillId,
+                EndorserUserId = currentUserId,
+                CreatedAt = DateTime.UtcNow,
+                IsDeleted = false
+            };
+            await _dbContext.TblSkillEndorsements.AddAsync(endorsement, cancellationToken);
+            skill.EndorsementCount++;
+            isEndorsed = true;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return Result<bool>.Success(isEndorsed, isEndorsed ? "Skill endorsed successfully." : "Endorsement removed.");
+    }
+
+    public async Task<Result<bool>> VotePollAsync(int currentUserId, int pollId, int optionId, CancellationToken cancellationToken = default)
+    {
+        var poll = await _dbContext.TblPolls
+            .Include(p => p.TblPollOptions)
+            .Include(p => p.TblPollVotes)
+            .FirstOrDefaultAsync(p => p.PollId == pollId && !p.IsDeleted, cancellationToken);
+
+        if (poll == null)
+            return Result<bool>.Failure("Poll not found.", ResultStatus.NotFound);
+
+        bool isPollActive = !poll.IsDeleted && (!poll.ExpiresAt.HasValue || poll.ExpiresAt.Value > DateTime.UtcNow);
+        if (!isPollActive)
+            return Result<bool>.Failure("This poll is closed.", ResultStatus.ValidationError);
+
+        var option = poll.TblPollOptions.FirstOrDefault(o => o.PollOptionId == optionId && !o.IsDeleted);
+        if (option == null)
+            return Result<bool>.Failure("Selected option is invalid.", ResultStatus.ValidationError);
+
+        var existingVote = poll.TblPollVotes.FirstOrDefault(v => v.UserId == currentUserId && !v.IsDeleted);
+        if (existingVote != null)
+        {
+            return Result<bool>.Failure("You have already voted in this poll.", ResultStatus.Conflict);
+        }
+
+        var vote = new TblPollVote
+        {
+            PollId = pollId,
+            PollOptionId = optionId,
+            UserId = currentUserId,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = currentUserId,
+            IsDeleted = false
+        };
+
+        option.VoteCount++;
+        poll.TotalVotes++;
+
+        await _dbContext.TblPollVotes.AddAsync(vote, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return Result<bool>.Success(true, "Vote cast successfully.");
+    }
+
+    private static UserPostItemDto MapPostToDto(TblPost p, int? currentUserId)
+    {
+        UserPollDetailDto? pollDto = null;
+        if (p.HasPoll && p.TblPolls.Any(pl => !pl.IsDeleted))
+        {
+            var poll = p.TblPolls.First(pl => !pl.IsDeleted);
+            var myVote = currentUserId.HasValue
+                ? poll.TblPollVotes.FirstOrDefault(v => v.UserId == currentUserId.Value && !v.IsDeleted)
+                : null;
+
+            int totalVotes = poll.TotalVotes > 0 ? poll.TotalVotes : poll.TblPollOptions.Sum(o => o.VoteCount);
+            bool isPollActive = !poll.IsDeleted && (!poll.ExpiresAt.HasValue || poll.ExpiresAt.Value > DateTime.UtcNow);
+
+            pollDto = new UserPollDetailDto
+            {
+                PollId = poll.PollId,
+                Question = poll.Question,
+                TotalVotes = totalVotes,
+                IsActive = isPollActive,
+                ExpiresAt = poll.ExpiresAt,
+                HasVoted = myVote != null,
+                MyVotedOptionId = myVote?.PollOptionId,
+                Options = poll.TblPollOptions.Where(o => !o.IsDeleted).OrderBy(o => o.DisplayOrder).Select(o => new UserPollOptionDto
+                {
+                    OptionId = o.PollOptionId,
+                    OptionText = o.OptionText,
+                    VoteCount = o.VoteCount,
+                    VotePercentage = totalVotes > 0 ? (int)Math.Round((double)o.VoteCount * 100 / totalVotes) : 0,
+                    IsSelectedByMe = myVote != null && myVote.PollOptionId == o.PollOptionId
+                }).ToList()
+            };
+        }
+
+        return new UserPostItemDto
+        {
+            PostId = p.PostId,
+            Title = string.Empty,
+            Subtitle = p.Subtitle,
+            Content = p.Content,
+            PostType = p.PostType ?? "STANDARD",
+            CodeSnippet = p.CodeSnippet,
+            CodeLanguage = p.CodeLanguage,
+            CodeFileName = p.CodeFileName,
+            DiagramImageUrl = p.DiagramImageUrl,
+            DiagramCaption = p.DiagramCaption,
+            HasPoll = p.HasPoll,
+            Poll = pollDto,
+            CommunityId = p.CommunityId ?? 0,
+            CommunityName = p.Community != null ? p.Community.Name : "General",
+            AuthorUserId = p.AuthorId,
+            AuthorUserName = p.Author.UserName,
+            AuthorDisplayName = p.Author.DisplayName,
+            AuthorAvatarUrl = p.Author.AvatarUrl,
+            LikeCount = p.TblPostLikes.Count(l => !l.IsDeleted),
+            CommentCount = p.TblComments.Count(c => !c.IsDeleted),
+            ImageUrls = p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
+            CreatedAt = p.CreatedAt
         };
     }
 }

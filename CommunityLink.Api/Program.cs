@@ -4,6 +4,7 @@ using CommunityLink.Api.Middlewares;
 using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Features.RoleAndPermission;
 using CommunityLink.Domain.Features.Authentication;
+using CommunityLink.Domain.Features.LinkDrop;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -59,6 +60,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await RbacSeeder.SeedAsync(db);
+    await LinkDropSeeder.SeedAsync(db);
 }
 
 // Middleware Pipeline

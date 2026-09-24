@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -12,6 +12,20 @@ public partial class TblPost
     public int? CommunityId { get; set; }
 
     public string Content { get; set; } = null!;
+
+    public string PostType { get; set; } = "STANDARD";
+
+    public string? Subtitle { get; set; }
+
+    public string? CodeSnippet { get; set; }
+
+    public string? CodeLanguage { get; set; }
+
+    public string? CodeFileName { get; set; }
+
+    public string? DiagramImageUrl { get; set; }
+
+    public string? DiagramCaption { get; set; }
 
     public bool HasPoll { get; set; }
 

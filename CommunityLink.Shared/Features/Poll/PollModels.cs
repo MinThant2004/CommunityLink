@@ -36,3 +36,4 @@ public sealed record CreatePollRequestModel(
     int? GroupId = null);
 
 public sealed record VoteRequestModel(int PollId, IReadOnlyList<int> OptionIds);
+public sealed record UpdatePollRequestModel(string Question, string? Content);

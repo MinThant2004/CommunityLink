@@ -1,0 +1,634 @@
+@page "/admin/linkdrops"
+@page "/admin/link-drops"
+@attribute [Authorize]
+@inject LinkDropApiService LinkDropApi
+@inject ToastService Toast
+
+<PageTitle>Link Drops Verification - Admin Portal</PageTitle>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Admin Header Banner -->
+    <div class="bg-gradient-to-r from-amber-950/80 via-slate-900 to-indigo-950/80 border border-amber-500/20 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xl">
+        <div>
+            <div class="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider mb-1">
+                <span>🛡️</span> Administrative Portal
+            </div>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">Link Drops Review & Catalog</h1>
+            <p class="text-slate-400 text-sm mt-1">Review pending user payment receipts, approve token wallet allocations, and manage purchase packages.</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <span class="bg-amber-500/20 text-amber-300 font-extrabold px-4 py-2 rounded-xl text-sm border border-amber-500/30">
+                @pendingList.Count Pending Review
+            </span>
+            <button @onclick="RefreshAllAsync" class="bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl transition">
+                🔄
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex items-center border-b border-slate-800 space-x-2">
+        <button @onclick='() => activeTab = "pending"'
+                class="@(activeTab == "pending" ? "border-amber-500 text-amber-400 font-bold" : "border-transparent text-slate-400 hover:text-slate-200 font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
+            <span>⏳</span> Pending Queue (@pendingList.Count)
+        </button>
+        <button @onclick='() => activeTab = "packages"'
+                class="@(activeTab == "packages" ? "border-amber-500 text-amber-400 font-bold" : "border-transparent text-slate-400 hover:text-slate-200 font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
+            <span>🎁</span> Packages Catalog (@packagesList.Count)
+        </button>
+        <button @onclick='() => activeTab = "methods"'
+                class="@(activeTab == "methods" ? "border-amber-500 text-amber-400 font-bold" : "border-transparent text-slate-400 hover:text-slate-200 font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
+            <span>💳</span> Payment Methods (@methodsList.Count)
+        </button>
+    </div>
+
+    <!-- TAB 1: PENDING QUEUE -->
+    @if (activeTab == "pending")
+    {
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+                <h2 class="text-lg font-bold text-white">Pending Payment Verification Requests</h2>
+            </div>
+
+            @if (isLoadingPending)
+            {
+                <div class="p-12 text-center text-slate-400">Loading pending verification queue...</div>
+            }
+            else if (!pendingList.Any())
+            {
+                <div class="p-12 text-center text-emerald-400 font-semibold">🎉 All purchase requests have been reviewed!</div>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-950 text-xs uppercase text-slate-400 border-b border-slate-800">
+                            <tr>
+                                <th class="py-3.5 px-6">Purchase #</th>
+                                <th class="py-3.5 px-6">Buyer</th>
+                                <th class="py-3.5 px-6">Package / Type</th>
+                                <th class="py-3.5 px-6">Real Money</th>
+                                <th class="py-3.5 px-6">Drops Granted</th>
+                                <th class="py-3.5 px-6">Channel & Ref No.</th>
+                                <th class="py-3.5 px-6">Proof Receipt</th>
+                                <th class="py-3.5 px-6">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            @foreach (var p in pendingList)
+                            {
+                                <tr class="hover:bg-slate-800/40 transition">
+                                    <td class="py-4 px-6 font-mono font-bold text-indigo-400">@p.PurchaseNumber</td>
+                                    <td class="py-4 px-6 font-semibold text-white">@p.UserName</td>
+                                    <td class="py-4 px-6 text-slate-300">@(p.PackageName ?? "Custom Purchase")</td>
+                                    <td class="py-4 px-6 font-bold text-white">@p.SnapshotRealMoneyAmount.ToString("N0") @p.SnapshotCurrency</td>
+                                    <td class="py-4 px-6 font-extrabold text-amber-400">💧 @p.SnapshotLinkDropAmount.ToString("N0")</td>
+                                    <td class="py-4 px-6">
+                                        <div class="font-medium text-slate-200">@p.PaymentMethodName</div>
+                                        <div class="font-mono text-xs text-slate-400">Ref: @p.TransactionReferenceNo</div>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        @if (p.Proof != null && !string.IsNullOrWhiteSpace(p.Proof.FileUrl))
+                                        {
+                                            <button @onclick="() => OpenProofModal(p.Proof.FileUrl)"
+                                                    class="text-xs text-indigo-400 hover:underline flex items-center gap-1 font-semibold">
+                                                <span>🖼️</span> View Receipt
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-xs text-slate-400">No image</span>
+                                        }
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center gap-2">
+                                            <button @onclick="() => OpenApproveModal(p)"
+                                                    class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                                                Approve
+                                            </button>
+                                            <button @onclick="() => OpenRejectModal(p)"
+                                                    class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                                                Reject
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- TAB 2: PACKAGES CATALOG -->
+    @if (activeTab == "packages")
+    {
+        <div class="space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <h2 class="text-lg font-bold text-white">Create New Package</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="text" @bind="newPkgName" placeholder="Package Name (e.g. 100 Link Drops)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="number" @bind="newPkgDrops" placeholder="Link Drops (e.g. 100)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="number" @bind="newPkgBonus" placeholder="Bonus Drops (e.g. 0)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="number" step="100" @bind="newPkgPrice" placeholder="Price (MMK)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                </div>
+                <div class="flex justify-end">
+                    <button @onclick="CreatePackageAsync" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2 rounded-xl transition">
+                        + Add Package
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-950 text-xs uppercase text-slate-400 border-b border-slate-800">
+                        <tr>
+                            <th class="py-3 px-6">Package</th>
+                            <th class="py-3 px-6">Drops</th>
+                            <th class="py-3 px-6">Bonus</th>
+                            <th class="py-3 px-6">Price</th>
+                            <th class="py-3 px-6">Status</th>
+                            <th class="py-3 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        @foreach (var pkg in packagesList)
+                        {
+                            <tr class="hover:bg-slate-800/40 transition">
+                                <td class="py-4 px-6 font-bold text-white">@pkg.PackageName</td>
+                                <td class="py-4 px-6 font-bold text-amber-400">💧 @pkg.LinkDropAmount.ToString("N0")</td>
+                                <td class="py-4 px-6 text-amber-300">+@pkg.BonusAmount.ToString("N0")</td>
+                                <td class="py-4 px-6 font-bold text-white">@pkg.RealMoneyAmount.ToString("N0") @pkg.Currency</td>
+                                <td class="py-4 px-6">
+                                    <span class="@(pkg.IsActive ? "text-emerald-400 bg-emerald-500/10" : "text-slate-400 bg-slate-800") text-xs font-bold px-2 py-0.5 rounded-md border border-slate-700">
+                                        @(pkg.IsActive ? "Active" : "Disabled")
+                                    </span>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center justify-end gap-3">
+                                        <button @onclick="() => OpenEditPackageModal(pkg)" class="text-xs text-sky-400 hover:underline font-semibold">Edit</button>
+                                        <button @onclick="() => TogglePackageStatusAsync(pkg.PackageId)" class="text-xs text-indigo-400 hover:underline font-semibold">Toggle Status</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <!-- TAB 3: PAYMENT METHODS -->
+    @if (activeTab == "methods")
+    {
+        <div class="space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <h2 class="text-lg font-bold text-white">Add New Payment Channel</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" @bind="newMethodName" placeholder="Channel Name (e.g. KPAY)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="text" @bind="newAccountName" placeholder="Account Holder Name" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="text" @bind="newAccountNumber" placeholder="Account / Phone Number" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="text" @bind="newQrUrl" placeholder="QR Code Image URL (optional)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <textarea @bind="newInstructions" rows="2" placeholder="Payment instructions shown to buyers (optional)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm md:col-span-2"></textarea>
+                </div>
+                <div class="flex justify-end">
+                    <button @onclick="CreatePaymentMethodAsync" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2 rounded-xl transition">
+                        + Add Channel
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-950 text-xs uppercase text-slate-400 border-b border-slate-800">
+                        <tr>
+                            <th class="py-3 px-6">Channel</th>
+                            <th class="py-3 px-6">Account Holder</th>
+                            <th class="py-3 px-6">Account Number</th>
+                            <th class="py-3 px-6">Status</th>
+                            <th class="py-3 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        @foreach (var m in methodsList)
+                        {
+                            <tr class="hover:bg-slate-800/40 transition">
+                                <td class="py-4 px-6 font-bold text-white">@m.MethodName</td>
+                                <td class="py-4 px-6 text-slate-200">@m.AccountName</td>
+                                <td class="py-4 px-6 font-mono font-bold text-amber-400">@m.AccountNumber</td>
+                                <td class="py-4 px-6">
+                                    <span class="@(m.IsActive ? "text-emerald-400 bg-emerald-500/10" : "text-slate-400 bg-slate-800") text-xs font-bold px-2 py-0.5 rounded-md border border-slate-700">
+                                        @(m.IsActive ? "Active" : "Disabled")
+                                    </span>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center justify-end gap-3">
+                                        <button @onclick="() => OpenEditMethodModal(m)" class="text-xs text-sky-400 hover:underline font-semibold">Edit</button>
+                                        <button @onclick="() => TogglePaymentMethodStatusAsync(m.PaymentMethodId)" class="text-xs text-indigo-400 hover:underline font-semibold">Toggle Status</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+</div>
+
+<!-- Approve Confirmation Modal -->
+@if (showApproveModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="text-lg font-bold text-white">Approve Purchase Request #@targetPurchase?.PurchaseNumber</h3>
+            <p class="text-xs text-slate-400">
+                This will credit <strong class="text-amber-400">💧 @targetPurchase?.SnapshotLinkDropAmount.ToString("N0") Drops</strong> to user <strong>@targetPurchase?.UserName</strong>.
+            </p>
+            <input type="text" @bind="approveNotes" placeholder="Optional audit notes..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+            <div class="flex justify-end gap-3 pt-2">
+                <button @onclick="() => showApproveModal = false" class="px-4 py-2 text-sm text-slate-300">Cancel</button>
+                <button @onclick="ConfirmApproveAsync" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl">Confirm & Credit Wallet</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Reject Confirmation Modal -->
+@if (showRejectModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="text-lg font-bold text-white">Reject Purchase Request #@targetPurchase?.PurchaseNumber</h3>
+            <p class="text-xs text-slate-400">Enter the reason for rejection (visible to buyer):</p>
+            <input type="text" @bind="rejectReason" placeholder="Reason (e.g. Unverified ref number, invalid slip photo)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+            <div class="flex justify-end gap-3 pt-2">
+                <button @onclick="() => showRejectModal = false" class="px-4 py-2 text-sm text-slate-300">Cancel</button>
+                <button @onclick="ConfirmRejectAsync" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold rounded-xl">Confirm Rejection</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Proof Image Viewer Modal -->
+@if (showProofModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white">Payment Receipt Proof</h3>
+                <button @onclick="() => showProofModal = false" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <div class="max-h-[70vh] overflow-y-auto flex justify-center bg-slate-950 rounded-xl p-2">
+                <img src="@previewProofUrl" alt="Receipt proof" class="max-w-full h-auto rounded-lg object-contain" />
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Edit Package Modal -->
+@if (showEditPackageModal && editPackage != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white">Edit Package</h3>
+                <button @onclick="() => showEditPackageModal = false" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <div class="space-y-3">
+                <input type="text" @bind="editPackage.PackageName" placeholder="Package Name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                <textarea @bind="editPackage.Description" rows="2" placeholder="Description (optional)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm"></textarea>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" @bind="editPackage.LinkDropAmount" placeholder="Link Drops" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="number" @bind="editPackage.BonusAmount" placeholder="Bonus Drops" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="number" step="100" @bind="editPackage.RealMoneyAmount" placeholder="Price (MMK)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="number" @bind="editPackage.DisplayOrder" placeholder="Display Order" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                </div>
+                <label class="flex items-center gap-2 text-sm text-slate-300">
+                    <input type="checkbox" @bind="editPackage.IsActive" class="accent-indigo-500" />
+                    Active (visible for purchase)
+                </label>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button @onclick="() => showEditPackageModal = false" class="px-4 py-2 text-sm text-slate-300">Cancel</button>
+                <button @onclick="SavePackageAsync" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl">Save Package</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Edit Payment Method Modal -->
+@if (showEditMethodModal && editMethod != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white">Edit Payment Channel</h3>
+                <button @onclick="() => showEditMethodModal = false" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <div class="space-y-3">
+                <input type="text" @bind="editMethod.MethodName" placeholder="Channel Name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <input type="text" @bind="editMethod.AccountName" placeholder="Account Holder Name" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="text" @bind="editMethod.AccountNumber" placeholder="Account / Phone Number" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                </div>
+                <input type="text" @bind="editMethod.QrCodeImageUrl" placeholder="QR Code Image URL (optional)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                <textarea @bind="editMethod.Instructions" rows="3" placeholder="Payment instructions shown to buyers (optional)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm"></textarea>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" @bind="editMethod.DisplayOrder" placeholder="Display Order" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                </div>
+                <label class="flex items-center gap-2 text-sm text-slate-300">
+                    <input type="checkbox" @bind="editMethod.IsActive" class="accent-indigo-500" />
+                    Active (visible for purchase)
+                </label>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button @onclick="() => showEditMethodModal = false" class="px-4 py-2 text-sm text-slate-300">Cancel</button>
+                <button @onclick="SaveMethodAsync" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl">Save Channel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string activeTab = "pending";
+
+    private List<PurchaseResponseDto> pendingList = new();
+    private List<LinkDropPackageDto> packagesList = new();
+    private List<PaymentMethodDto> methodsList = new();
+
+    private bool isLoadingPending = true;
+
+    // Modals
+    private bool showApproveModal = false;
+    private bool showRejectModal = false;
+    private bool showProofModal = false;
+    private PurchaseResponseDto? targetPurchase;
+    private string approveNotes = string.Empty;
+    private string rejectReason = string.Empty;
+    private string previewProofUrl = string.Empty;
+
+    // Package creation state
+    private string newPkgName = string.Empty;
+    private long newPkgDrops = 100;
+    private long newPkgBonus = 0;
+    private decimal newPkgPrice = 1000.00m;
+
+    // Payment Method creation state
+    private string newMethodName = string.Empty;
+    private string newAccountName = string.Empty;
+    private string newAccountNumber = string.Empty;
+    private string newQrUrl = string.Empty;
+    private string newInstructions = string.Empty;
+
+    // Edit modals
+    private bool showEditPackageModal = false;
+    private LinkDropPackageDto? editPackage;
+    private bool showEditMethodModal = false;
+    private PaymentMethodDto? editMethod;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAllAsync();
+    }
+
+    private async Task RefreshAllAsync()
+    {
+        await LoadPendingAsync();
+        await LoadPackagesAsync();
+        await LoadMethodsAsync();
+    }
+
+    private async Task LoadPendingAsync()
+    {
+        isLoadingPending = true;
+        var res = await LinkDropApi.GetPendingPurchasesAsync();
+        if (res.IsSuccess && res.Data != null)
+            pendingList = res.Data.ToList();
+        isLoadingPending = false;
+    }
+
+    private async Task LoadPackagesAsync()
+    {
+        var res = await LinkDropApi.GetAllPackagesAsync();
+        if (res.IsSuccess && res.Data != null)
+            packagesList = res.Data.ToList();
+    }
+
+    private async Task LoadMethodsAsync()
+    {
+        var res = await LinkDropApi.GetAllPaymentMethodsAsync();
+        if (res.IsSuccess && res.Data != null)
+            methodsList = res.Data.ToList();
+    }
+
+    private void OpenProofModal(string url)
+    {
+        previewProofUrl = url;
+        showProofModal = true;
+    }
+
+    private void OpenApproveModal(PurchaseResponseDto p)
+    {
+        targetPurchase = p;
+        approveNotes = string.Empty;
+        showApproveModal = true;
+    }
+
+    private void OpenRejectModal(PurchaseResponseDto p)
+    {
+        targetPurchase = p;
+        rejectReason = string.Empty;
+        showRejectModal = true;
+    }
+
+    private async Task ConfirmApproveAsync()
+    {
+        if (targetPurchase == null) return;
+        var res = await LinkDropApi.ApprovePurchaseAsync(targetPurchase.PurchaseId, approveNotes);
+        if (res.IsSuccess)
+        {
+            Toast.Success($"Purchase #{targetPurchase.PurchaseNumber} approved successfully.");
+            showApproveModal = false;
+            await RefreshAllAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to approve purchase.");
+        }
+    }
+
+    private async Task ConfirmRejectAsync()
+    {
+        if (targetPurchase == null) return;
+        if (string.IsNullOrWhiteSpace(rejectReason))
+        {
+            Toast.Error("Please enter a reason for rejection.");
+            return;
+        }
+
+        var res = await LinkDropApi.RejectPurchaseAsync(targetPurchase.PurchaseId, rejectReason);
+        if (res.IsSuccess)
+        {
+            Toast.Success($"Purchase #{targetPurchase.PurchaseNumber} rejected.");
+            showRejectModal = false;
+            await RefreshAllAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to reject purchase.");
+        }
+    }
+
+    private async Task CreatePackageAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newPkgName)) return;
+        var request = new CreatePackageRequestDto
+        {
+            PackageName = newPkgName,
+            LinkDropAmount = newPkgDrops,
+            BonusAmount = newPkgBonus,
+            RealMoneyAmount = newPkgPrice,
+            Currency = "MMK"
+        };
+        var res = await LinkDropApi.CreatePackageAsync(request);
+        if (res.IsSuccess)
+        {
+            Toast.Success("Package created successfully.");
+            newPkgName = string.Empty;
+            await LoadPackagesAsync();
+        }
+    }
+
+    private void OpenEditPackageModal(LinkDropPackageDto pkg)
+    {
+        editPackage = new LinkDropPackageDto
+        {
+            PackageId = pkg.PackageId,
+            PackageName = pkg.PackageName,
+            Description = pkg.Description,
+            LinkDropAmount = pkg.LinkDropAmount,
+            BonusAmount = pkg.BonusAmount,
+            RealMoneyAmount = pkg.RealMoneyAmount,
+            Currency = pkg.Currency,
+            DisplayOrder = pkg.DisplayOrder,
+            IsActive = pkg.IsActive
+        };
+        showEditPackageModal = true;
+    }
+
+    private async Task SavePackageAsync()
+    {
+        if (editPackage == null) return;
+        var res = await LinkDropApi.UpdatePackageAsync(editPackage.PackageId, new UpdatePackageRequestDto
+        {
+            PackageName = editPackage.PackageName,
+            Description = editPackage.Description,
+            LinkDropAmount = editPackage.LinkDropAmount,
+            BonusAmount = editPackage.BonusAmount,
+            RealMoneyAmount = editPackage.RealMoneyAmount,
+            Currency = editPackage.Currency,
+            DisplayOrder = editPackage.DisplayOrder,
+            IsActive = editPackage.IsActive
+        });
+        if (res.IsSuccess)
+        {
+            Toast.Success("Package updated successfully.");
+            showEditPackageModal = false;
+            await LoadPackagesAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to update package.");
+        }
+    }
+
+    private async Task TogglePackageStatusAsync(int packageId)
+    {
+        var res = await LinkDropApi.TogglePackageStatusAsync(packageId);
+        if (res.IsSuccess)
+        {
+            Toast.Success("Package status updated.");
+            await LoadPackagesAsync();
+        }
+    }
+
+    private async Task CreatePaymentMethodAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newMethodName)) return;
+        var request = new CreatePaymentMethodRequestDto
+        {
+            MethodName = newMethodName,
+            AccountName = newAccountName,
+            AccountNumber = newAccountNumber,
+            QrCodeImageUrl = string.IsNullOrWhiteSpace(newQrUrl) ? null : newQrUrl.Trim(),
+            Instructions = string.IsNullOrWhiteSpace(newInstructions) ? null : newInstructions.Trim()
+        };
+        var res = await LinkDropApi.CreatePaymentMethodAsync(request);
+        if (res.IsSuccess)
+        {
+            Toast.Success("Payment method created successfully.");
+            newMethodName = string.Empty;
+            newAccountName = string.Empty;
+            newAccountNumber = string.Empty;
+            newQrUrl = string.Empty;
+            newInstructions = string.Empty;
+            await LoadMethodsAsync();
+        }
+    }
+
+    private void OpenEditMethodModal(PaymentMethodDto m)
+    {
+        editMethod = new PaymentMethodDto
+        {
+            PaymentMethodId = m.PaymentMethodId,
+            MethodName = m.MethodName,
+            AccountName = m.AccountName,
+            AccountNumber = m.AccountNumber,
+            QrCodeImageUrl = m.QrCodeImageUrl,
+            Instructions = m.Instructions,
+            DisplayOrder = m.DisplayOrder,
+            IsActive = m.IsActive
+        };
+        showEditMethodModal = true;
+    }
+
+    private async Task SaveMethodAsync()
+    {
+        if (editMethod == null) return;
+        var res = await LinkDropApi.UpdatePaymentMethodAsync(editMethod.PaymentMethodId, new UpdatePaymentMethodRequestDto
+        {
+            MethodName = editMethod.MethodName,
+            AccountName = editMethod.AccountName,
+            AccountNumber = editMethod.AccountNumber,
+            QrCodeImageUrl = string.IsNullOrWhiteSpace(editMethod.QrCodeImageUrl) ? null : editMethod.QrCodeImageUrl.Trim(),
+            Instructions = string.IsNullOrWhiteSpace(editMethod.Instructions) ? null : editMethod.Instructions.Trim(),
+            DisplayOrder = editMethod.DisplayOrder,
+            IsActive = editMethod.IsActive
+        });
+        if (res.IsSuccess)
+        {
+            Toast.Success("Payment channel updated successfully.");
+            showEditMethodModal = false;
+            await LoadMethodsAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to update channel.");
+        }
+    }
+
+    private async Task TogglePaymentMethodStatusAsync(int methodId)
+    {
+        var res = await LinkDropApi.TogglePaymentMethodStatusAsync(methodId);
+        if (res.IsSuccess)
+        {
+            Toast.Success("Payment method status updated.");
+            await LoadMethodsAsync();
+        }
+    }
+}

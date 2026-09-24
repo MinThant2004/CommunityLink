@@ -90,4 +90,12 @@ public class AdministrationController : ControllerBase
         var result = await _adminService.RejectJoinRequestAsync(id, cancellationToken);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
+
+    [HttpPost("users/assign-role")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserManage)]
+    public async Task<IActionResult> AssignUserRole([FromBody] CommunityLink.Shared.Features.Authentication.AssignUserRoleRequestModel request, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.AssignUserRoleAsync(request, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
 }

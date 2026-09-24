@@ -18,4 +18,10 @@ public sealed class PollApiService(IHttpClientFactory clientFactory, IHttpContex
 
     public Task<Result<PollModel>> VoteAsync(VoteRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync<PollModel, VoteRequestModel>("api/polls/vote", request, cancellationToken);
+
+    public Task<Result<PollModel>> UpdatePollAsync(int pollId, UpdatePollRequestModel request, CancellationToken cancellationToken = default) =>
+        PutAsync<PollModel, UpdatePollRequestModel>($"api/polls/{pollId}", request, cancellationToken);
+
+    public Task<Result> DeletePollAsync(int pollId, CancellationToken cancellationToken = default) =>
+        DeleteAsync($"api/polls/{pollId}", cancellationToken);
 }

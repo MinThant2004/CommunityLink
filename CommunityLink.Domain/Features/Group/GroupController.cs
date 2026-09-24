@@ -23,6 +23,17 @@ public sealed class GroupController(IGroupService groupService) : BaseController
     public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequestModel request, CancellationToken cancellationToken) =>
         ToActionResult(await groupService.CreateGroupAsync(request, cancellationToken));
 
+    [HttpPut("{groupId:int}")]
+    [Authorize]
+    public async Task<IActionResult> UpdateGroup(int groupId, [FromBody] UpdateGroupRequestModel request, CancellationToken cancellationToken)
+    {
+        if (groupId != request.GroupId)
+        {
+            return BadRequest(Result.Failure("Mismatched group id."));
+        }
+        return ToActionResult(await groupService.UpdateGroupAsync(request, cancellationToken));
+    }
+
     [HttpPost("{groupId:int}/join")]
     [Authorize]
     public async Task<IActionResult> JoinGroup(int groupId, [FromBody] string? requestNote, CancellationToken cancellationToken) =>
@@ -52,4 +63,14 @@ public sealed class GroupController(IGroupService groupService) : BaseController
     [Authorize]
     public async Task<IActionResult> RejectJoinRequest(int requestId, CancellationToken cancellationToken) =>
         ToActionResult(await groupService.ReviewJoinRequestAsync(requestId, false, cancellationToken));
+
+    [HttpGet("{groupId:int}/ratings")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetGroupRatings(int groupId, CancellationToken cancellationToken) =>
+        ToActionResult(await groupService.GetGroupRatingsAsync(groupId, cancellationToken));
+
+    [HttpPost("{groupId:int}/ratings")]
+    [Authorize]
+    public async Task<IActionResult> RateGroup(int groupId, [FromBody] SubmitGroupRatingRequestModel request, CancellationToken cancellationToken) =>
+        ToActionResult(await groupService.RateGroupAsync(groupId, request, cancellationToken));
 }

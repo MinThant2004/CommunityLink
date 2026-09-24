@@ -11,6 +11,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
 @inject IWebHostEnvironment Environment
+@inject RoleAndPermissionApiService RoleApi
 
 <PageTitle>Community Groups - CommunityLink</PageTitle>
 
@@ -27,15 +28,18 @@
                     <p class="text-xs sm:text-sm text-[#557392] dark:text-[#C4D2E1]">Discover focused sub-groups, join conversations, or launch your own room.</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <button type="button" @onclick="OpenCreateGroupModal"
-                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-sm rounded-full shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    <span>Create Group</span>
-                </button>
-            </div>
+            @if (canCreateGroup)
+            {
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" @onclick="OpenCreateGroupModal"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-full shadow hover:shadow-md transition-all active:scale-95 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span>Create Group</span>
+                    </button>
+                </div>
+            }
         </div>
     </div>
 
@@ -388,6 +392,7 @@
 
     private int? currentUserId;
     private bool isAdmin;
+    private bool canCreateGroup = false;
     private bool isLoading = true;
     private bool isSubmitting;
     private int selectedSubCommunityFilter = 0;
@@ -418,6 +423,23 @@
         if (int.TryParse(sub, out var uid))
         {
             currentUserId = uid;
+        }
+
+        if (isAdmin)
+        {
+            canCreateGroup = true;
+        }
+        else
+        {
+            try
+            {
+                var permRes = await RoleApi.GetMyPermissionsAsync();
+                if (permRes.IsSuccess && permRes.Data != null)
+                {
+                    canCreateGroup = permRes.Data.Any(p => p.Equals("GROUP.CREATE", StringComparison.OrdinalIgnoreCase));
+                }
+            }
+            catch { }
         }
 
         await Task.WhenAll(LoadSubCommunities(), LoadGroups());

@@ -1,0 +1,615 @@
+@page "/link-drops"
+@page "/linkdrops"
+@using CommunityLink.App.Apis
+@using CommunityLink.App.Services
+@using CommunityLink.Shared.Features.LinkDrop
+@inject LinkDropApiService LinkDropApi
+@inject ToastService Toast
+@inject NavigationManager Navigation
+
+<PageTitle>Link Drops Top-Up</PageTitle>
+
+<div class="max-w-4xl mx-auto px-4 py-6 text-slate-800 space-y-5">
+
+    <!-- TOP BAR / TABS -->
+    <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+        <div class="flex items-center gap-2">
+            <button @onclick='() => SetTab("buy")'
+                    class="px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 @(activeTab == "buy" ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200")">
+                💧 Top-Up Link Drops
+            </button>
+            <button @onclick='() => SetTab("purchases")'
+                    class="px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 @(activeTab == "purchases" ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200")">
+                📋 My Purchases
+                @if (userPurchases.Any(p => p.Status == "PENDING"))
+                {
+                    <span class="px-2 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded-full font-extrabold border border-amber-300">
+                        @(userPurchases.Count(p => p.Status == "PENDING"))
+                    </span>
+                }
+            </button>
+            <button @onclick='() => SetTab("ledger")'
+                    class="px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 @(activeTab == "ledger" ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200")">
+                💳 Wallet & Ledger
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-lg text-xs">
+            <span class="text-slate-500 font-medium">Balance:</span>
+            <span class="font-extrabold text-indigo-700">💧 @(wallet?.Balance.ToString("N0") ?? "0") Drops</span>
+        </div>
+    </div>
+
+    <!-- TAB 1: SINGLE-PAGE TOP-UP FORM (LIGHT WHITE UI MATCHING MOCKUP) -->
+    @if (activeTab == "buy")
+    {
+        @if (submissionCompleted)
+        {
+            <!-- SUBMISSION SUCCESS CONFIRMATION BANNER -->
+            <div class="bg-white border border-emerald-200 rounded-2xl p-8 text-center space-y-5 shadow-sm max-w-xl mx-auto">
+                <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto border border-emerald-200">
+                    ✓
+                </div>
+                <div class="space-y-1.5">
+                    <span class="inline-block px-3 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold rounded-full uppercase tracking-wider">
+                        Status: PENDING ADMIN VERIFICATION
+                    </span>
+                    <h2 class="text-xl font-extrabold text-slate-900">Payment Request Submitted!</h2>
+                    <p class="text-slate-600 text-xs max-w-sm mx-auto">
+                        Your receipt slip and transaction reference have been received. Link Drops will be credited after admin manual verification.
+                    </p>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left text-xs space-y-2 max-w-md mx-auto">
+                    <div class="flex justify-between border-b border-slate-200 pb-1.5">
+                        <span class="text-slate-500">Request #:</span>
+                        <span class="font-mono text-slate-900 font-bold">@submittedPurchaseNumber</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-200 pb-1.5">
+                        <span class="text-slate-500">Transaction ID:</span>
+                        <span class="font-mono text-indigo-600 font-bold">@transactionRefNo</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Target Credit:</span>
+                        <span class="text-emerald-700 font-extrabold">+@calculatedDrops.ToString("N0") Link Drops</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 justify-center pt-2">
+                    <button @onclick='() => SetTab("purchases")' class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition-all shadow-sm">
+                        View My Purchases
+                    </button>
+                    <button @onclick="ResetForm" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-all border border-slate-200">
+                        Submit Another Request
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+
+                <!-- MODAL / FORM HEADER -->
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center font-bold text-xl">
+                            🪙
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-extrabold text-slate-900">Link Drops Top-Up</h1>
+                            <p class="text-slate-500 text-xs">Refill your wallet balance to purchase premium apps, features, and passes</p>
+                        </div>
+                    </div>
+                    <button @onclick="ResetForm" class="text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
+                </div>
+
+                <!-- CURRENT BALANCE BANNER -->
+                <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-4 text-white flex items-center justify-between shadow-sm">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Current Balance</span>
+                        <div class="text-xl font-black text-amber-300 flex items-center gap-1.5 mt-0.5">
+                            <span>💧</span> @(wallet?.Balance.ToString("N0") ?? "0") Link Drops
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold rounded-full">
+                        ⚡ Manual Verification
+                    </span>
+                </div>
+
+                <!-- 1. SELECT LINK DROP AMOUNT -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">1. Select Link Drop Amount</h2>
+                        <span class="text-[11px] text-indigo-600 font-medium">Custom amount supported</span>
+                    </div>
+
+                    <!-- PREDEFINED PACKAGES GRID -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        @foreach (var pkg in activePackages)
+                        {
+                            var isSelected = !isCustomPurchase && selectedPackage?.PackageId == pkg.PackageId;
+                            <div @onclick="() => SelectPackage(pkg)"
+                                 class="p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between space-y-2 relative @(isSelected ? "bg-amber-500/10 border-amber-500 shadow-sm" : "bg-slate-50 border-slate-200 hover:border-slate-300")">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider @(isSelected ? "text-amber-800" : "text-slate-500")">
+                                        @pkg.PackageName
+                                    </span>
+                                    @if (isSelected)
+                                    {
+                                        <span class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+                                    }
+                                </div>
+                                <div>
+                                    <div class="text-base font-black text-slate-900 flex items-center gap-1">
+                                        <span>💧</span> +@((pkg.LinkDropAmount + pkg.BonusAmount).ToString("N0"))
+                                    </div>
+                                    <div class="text-[11px] font-bold text-slate-500">
+                                        $@pkg.RealMoneyAmount.ToString("F2") USD
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- CUSTOM AMOUNT BAR -->
+                    <div class="p-3 rounded-xl border-2 transition-all flex flex-col sm:flex-row items-center gap-3 @(isCustomPurchase ? "bg-amber-500/10 border-amber-500" : "bg-slate-50 border-slate-200")">
+                        <button @onclick="EnableCustomPurchase" class="px-3 py-1.5 bg-amber-500 text-white font-extrabold text-xs rounded-lg shrink-0 flex items-center gap-1">
+                            <span>💧</span> Custom Amount
+                        </button>
+                        <div class="flex-1 flex items-center gap-2 w-full">
+                            <span class="text-xs font-bold text-slate-500">$</span>
+                            <input type="number" min="1" max="10000" step="0.5"
+                                   @bind="customUsdAmount" @bind:after="OnCustomAmountChanged"
+                                   class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-500"
+                                   placeholder="e.g. 10.00 USD" />
+                            <span class="text-xs font-extrabold text-indigo-600 whitespace-nowrap">
+                                = 💧 @calculatedDrops.ToString("N0") Drops
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. SELECT PAYMENT METHOD -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">2. Select Payment Method</h2>
+                        <span class="text-[11px] text-slate-500">@activeMethods.Count methods available</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        @foreach (var method in activeMethods)
+                        {
+                            var isSelected = selectedPaymentMethod?.PaymentMethodId == method.PaymentMethodId;
+                            <div @onclick="() => SelectPaymentMethod(method)"
+                                 class="p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between @(isSelected ? "bg-indigo-50 border-indigo-600 shadow-sm" : "bg-slate-50 border-slate-200 hover:border-slate-300")">
+                                <div class="space-y-0.5">
+                                    <div class="text-xs font-extrabold text-slate-900">@method.MethodName</div>
+                                    <div class="text-[11px] font-mono text-indigo-700">@method.AccountName (@method.AccountNumber)</div>
+                                </div>
+                                <span class="w-4 h-4 rounded-full border flex items-center justify-center @(isSelected ? "border-indigo-600 bg-indigo-600 text-white text-[10px] font-bold" : "border-slate-400")">
+                                    @if (isSelected) { <span>✓</span> }
+                                </span>
+                            </div>
+                        }
+                    </div>
+
+                    @if (selectedPaymentMethod != null)
+                    {
+                        <div class="bg-indigo-50/60 border border-indigo-100 rounded-xl p-4 text-xs space-y-2">
+                            <div class="font-extrabold text-indigo-900 flex items-center gap-1.5">
+                                <span>📌</span> Instructions — @selectedPaymentMethod.MethodName
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-1 text-slate-700">
+                                    <div>Account Name: <span class="font-bold text-slate-900">@selectedPaymentMethod.AccountName</span></div>
+                                    <div>Account Number / Phone: <span class="font-mono font-bold text-indigo-700">@selectedPaymentMethod.AccountNumber</span></div>
+                                    @if (!string.IsNullOrWhiteSpace(selectedPaymentMethod.Instructions))
+                                    {
+                                        <div class="text-[11px] text-slate-600 pt-1 leading-relaxed">@selectedPaymentMethod.Instructions</div>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(selectedPaymentMethod.QrCodeImageUrl))
+                                {
+                                    <div class="text-center">
+                                        <img src="@selectedPaymentMethod.QrCodeImageUrl" class="w-24 h-24 object-contain mx-auto bg-white p-1 rounded-lg border border-slate-200 shadow-sm" />
+                                        <span class="text-[10px] text-slate-500 mt-1 block">Scan QR Code to Transfer</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- SUMMARY BANNER -->
+                <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-xl p-4 text-white space-y-1.5 shadow-sm">
+                    <div class="flex justify-between text-xs text-slate-300">
+                        <span>Link Drops to Recharge:</span>
+                        <span class="font-black text-amber-400">💧 +@calculatedDrops.ToString("N0") Drops</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-300">
+                        <span>Selected Payment Method:</span>
+                        <span class="font-bold text-indigo-300">@(selectedPaymentMethod?.MethodName ?? "None")</span>
+                    </div>
+                    <div class="flex justify-between text-sm font-black text-white border-t border-slate-700/80 pt-2 mt-1">
+                        <span>Total Amount Charged:</span>
+                        <span class="text-emerald-400 font-extrabold text-base">$@calculatedUsdPrice.ToString("F2") USD</span>
+                    </div>
+                </div>
+
+                <!-- 3. PAYMENT INFORMATION & RECEIPT SLIP -->
+                <div class="space-y-3">
+                    <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">3. Transaction Details & Payment Slip</h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold text-slate-700">
+                                Transaction Reference ID <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" @bind="transactionRefNo"
+                                   class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-indigo-600"
+                                   placeholder="e.g. TXN9841203" />
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold text-slate-700">
+                                Upload Payment Slip Screenshot <span class="text-rose-500">*</span>
+                            </label>
+                            <InputFile OnChange="OnFileInputChange" accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                       class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-700">User Notes (Optional)</label>
+                        <input type="text" @bind="userNotes"
+                               class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-indigo-600"
+                               placeholder="Additional information for admin review..." />
+                    </div>
+                </div>
+
+                <!-- ACTION FOOTER BAR -->
+                <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                    <button @onclick="ResetForm" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-all">
+                        Cancel
+                    </button>
+                    <button @onclick="SubmitPurchaseAsync" disabled="@isSubmitting"
+                            class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-lg transition-all shadow-sm disabled:opacity-50 flex items-center gap-1.5">
+                        <span>💳</span>
+                        <span>@(isSubmitting ? "Submitting..." : $"Pay ${calculatedUsdPrice:F2} & Top Up +{calculatedDrops:N0} Link Drops")</span>
+                    </button>
+                </div>
+
+            </div>
+        }
+    }
+
+    <!-- TAB 2: MY PURCHASES -->
+    @if (activeTab == "purchases")
+    {
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+            <h2 class="text-base font-extrabold text-slate-900">My Purchase Requests</h2>
+
+            @if (userPurchases.Count == 0)
+            {
+                <div class="p-8 text-center text-slate-400 text-xs">No purchase requests submitted yet.</div>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                            <tr>
+                                <th class="p-2.5">Date</th>
+                                <th class="p-2.5">Ref No</th>
+                                <th class="p-2.5">Type</th>
+                                <th class="p-2.5">Amount</th>
+                                <th class="p-2.5">Link Drops</th>
+                                <th class="p-2.5">Status</th>
+                                <th class="p-2.5 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach (var item in userPurchases)
+                            {
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2.5 font-mono text-slate-500">@item.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                                    <td class="p-2.5 font-mono font-bold text-indigo-700">@item.TransactionReferenceNo</td>
+                                    <td class="p-2.5 text-slate-700">@(item.IsCustomPurchase ? "Custom" : item.SnapshotPackageName)</td>
+                                    <td class="p-2.5 font-bold text-slate-900">$@item.SnapshotRealMoneyAmount.ToString("F2")</td>
+                                    <td class="p-2.5 font-black text-indigo-700">💧 @item.SnapshotLinkDropAmount.ToString("N0")</td>
+                                    <td class="p-2.5">
+                                        @if (item.Status == "PENDING")
+                                        {
+                                            <span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 font-bold text-[10px] rounded-full">PENDING</span>
+                                        }
+                                        else if (item.Status == "APPROVED")
+                                        {
+                                            <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] rounded-full">APPROVED</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 font-bold text-[10px] rounded-full">REJECTED</span>
+                                        }
+                                    </td>
+                                    <td class="p-2.5 text-right">
+                                        <button @onclick="() => selectedDetailPurchase = item" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-bold text-[11px]">
+                                            Details
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- TAB 3: WALLET & LEDGER -->
+    @if (activeTab == "ledger")
+    {
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+            <h2 class="text-base font-extrabold text-slate-900">Wallet Transaction Ledger</h2>
+
+            @if (userTransactions.Count == 0)
+            {
+                <div class="p-8 text-center text-slate-400 text-xs">No transactions logged yet.</div>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                            <tr>
+                                <th class="p-2.5">Date</th>
+                                <th class="p-2.5">Type</th>
+                                <th class="p-2.5">Amount</th>
+                                <th class="p-2.5">Balance Before</th>
+                                <th class="p-2.5">Balance After</th>
+                                <th class="p-2.5">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach (var tx in userTransactions)
+                            {
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2.5 font-mono text-slate-500">@tx.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                                    <td class="p-2.5 font-bold text-indigo-700">@tx.TransactionType</td>
+                                    <td class="p-2.5 font-black text-emerald-600">+@tx.Amount.ToString("N0")</td>
+                                    <td class="p-2.5 font-mono text-slate-500">@tx.BalanceBefore.ToString("N0")</td>
+                                    <td class="p-2.5 font-mono text-slate-900 font-bold">@tx.BalanceAfter.ToString("N0")</td>
+                                    <td class="p-2.5 text-slate-600">@(tx.Notes ?? "-")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- DETAIL MODAL -->
+@if (selectedDetailPurchase != null)
+{
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 max-w-md w-full space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-sm font-extrabold text-slate-900">Purchase Request Detail</h3>
+                <button @onclick="() => selectedDetailPurchase = null" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between"><span class="text-slate-500">Request #:</span><span class="font-mono text-slate-900 font-bold">@selectedDetailPurchase.PurchaseNumber</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Status:</span>
+                    <span class="font-bold uppercase @(selectedDetailPurchase.Status == "APPROVED" ? "text-emerald-700" : selectedDetailPurchase.Status == "REJECTED" ? "text-rose-700" : "text-amber-700")">@selectedDetailPurchase.Status</span>
+                </div>
+                <div class="flex justify-between"><span class="text-slate-500">Transaction ID:</span><span class="font-mono text-indigo-700 font-bold">@selectedDetailPurchase.TransactionReferenceNo</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Amount Paid:</span><span class="font-bold text-slate-900">$@selectedDetailPurchase.SnapshotRealMoneyAmount.ToString("F2")</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Drops Granted:</span><span class="font-black text-indigo-700">💧 @selectedDetailPurchase.SnapshotLinkDropAmount.ToString("N0")</span></div>
+                @if (!string.IsNullOrWhiteSpace(selectedDetailPurchase.RejectionReason))
+                {
+                    <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-rose-800 space-y-1 mt-2">
+                        <div class="font-bold">Rejection Reason:</div>
+                        <div>@selectedDetailPurchase.RejectionReason</div>
+                    </div>
+                }
+                @if (selectedDetailPurchase.Proof != null && !string.IsNullOrWhiteSpace(selectedDetailPurchase.Proof.FileUrl))
+                {
+                    <div class="pt-2">
+                        <span class="text-slate-500 block mb-1">Receipt Proof Image:</span>
+                        <img src="@selectedDetailPurchase.Proof.FileUrl" class="w-full max-h-48 object-contain bg-slate-100 rounded-xl border border-slate-200" />
+                    </div>
+                }
+            </div>
+
+            <div class="pt-2">
+                <button @onclick="() => selectedDetailPurchase = null" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string activeTab = "buy";
+    private bool submissionCompleted = false;
+    private string submittedPurchaseNumber = string.Empty;
+
+    private LinkDropWalletDto? wallet;
+    private List<LinkDropPackageDto> activePackages = new();
+    private List<PaymentMethodDto> activeMethods = new();
+    private List<PurchaseResponseDto> userPurchases = new();
+    private List<LinkDropTransactionDto> userTransactions = new();
+
+    private bool isCustomPurchase = false;
+    private LinkDropPackageDto? selectedPackage;
+    private PaymentMethodDto? selectedPaymentMethod;
+    private decimal customUsdAmount = 10.0m;
+    private decimal conversionRate = 100.0m;
+    private long calculatedDrops = 1000;
+    private decimal calculatedUsdPrice = 10.0m;
+
+    private string transactionRefNo = string.Empty;
+    private string userNotes = string.Empty;
+    private IBrowserFile? uploadedProofFile;
+    private bool isSubmitting = false;
+
+    private PurchaseResponseDto? selectedDetailPurchase;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllAsync();
+    }
+
+    private async Task LoadAllAsync()
+    {
+        var walletRes = await LinkDropApi.GetUserWalletAsync();
+        if (walletRes.IsSuccess) wallet = walletRes.Data;
+
+        var rateRes = await LinkDropApi.GetConversionRateAsync();
+        if (rateRes.IsSuccess) conversionRate = rateRes.Data;
+
+        var pkgRes = await LinkDropApi.GetActivePackagesAsync();
+        if (pkgRes.IsSuccess)
+        {
+            activePackages = pkgRes.Data.ToList();
+            if (activePackages.Count > 0 && selectedPackage == null)
+            {
+                selectedPackage = activePackages.First();
+                Recalculate();
+            }
+        }
+
+        var methodRes = await LinkDropApi.GetActivePaymentMethodsAsync();
+        if (methodRes.IsSuccess)
+        {
+            activeMethods = methodRes.Data.ToList();
+            if (activeMethods.Count > 0 && selectedPaymentMethod == null)
+            {
+                selectedPaymentMethod = activeMethods.First();
+            }
+        }
+
+        await LoadPurchasesAsync();
+        await LoadTransactionsAsync();
+    }
+
+    private async Task LoadPurchasesAsync()
+    {
+        var res = await LinkDropApi.GetUserPurchasesAsync();
+        if (res.IsSuccess) userPurchases = res.Data.ToList();
+    }
+
+    private async Task LoadTransactionsAsync()
+    {
+        var res = await LinkDropApi.GetUserTransactionsAsync();
+        if (res.IsSuccess) userTransactions = res.Data.ToList();
+    }
+
+    private void SetTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private void SelectPackage(LinkDropPackageDto pkg)
+    {
+        selectedPackage = pkg;
+        isCustomPurchase = false;
+        Recalculate();
+    }
+
+    private void EnableCustomPurchase()
+    {
+        isCustomPurchase = true;
+        Recalculate();
+    }
+
+    private void SelectPaymentMethod(PaymentMethodDto method)
+    {
+        selectedPaymentMethod = method;
+    }
+
+    private void OnCustomAmountChanged()
+    {
+        if (customUsdAmount < 1) customUsdAmount = 1;
+        Recalculate();
+    }
+
+    private void Recalculate()
+    {
+        if (!isCustomPurchase && selectedPackage != null)
+        {
+            calculatedUsdPrice = selectedPackage.RealMoneyAmount;
+            calculatedDrops = selectedPackage.LinkDropAmount + selectedPackage.BonusAmount;
+        }
+        else
+        {
+            calculatedUsdPrice = customUsdAmount;
+            calculatedDrops = (long)(customUsdAmount * conversionRate);
+        }
+    }
+
+    private void OnFileInputChange(InputFileChangeEventArgs e)
+    {
+        uploadedProofFile = e.File;
+    }
+
+    private async Task SubmitPurchaseAsync()
+    {
+        if (selectedPaymentMethod == null)
+        {
+            Toast.Error("Please select a payment method.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(transactionRefNo))
+        {
+            Toast.Error("Please enter your Transaction Reference ID.");
+            return;
+        }
+
+        if (uploadedProofFile == null)
+        {
+            Toast.Error("Please upload your payment slip receipt screenshot.");
+            return;
+        }
+
+        isSubmitting = true;
+
+        var request = new CreatePurchaseRequestDto
+        {
+            PackageId = isCustomPurchase ? null : selectedPackage?.PackageId,
+            PaymentMethodId = selectedPaymentMethod.PaymentMethodId,
+            IsCustomPurchase = isCustomPurchase,
+            CustomRealMoneyAmount = isCustomPurchase ? customUsdAmount : null,
+            CustomLinkDropAmount = isCustomPurchase ? calculatedDrops : null,
+            TransactionReferenceNo = transactionRefNo.Trim(),
+            UserNotes = string.IsNullOrWhiteSpace(userNotes) ? null : userNotes.Trim()
+        };
+
+        var res = await LinkDropApi.SubmitPurchaseAsync(request, uploadedProofFile);
+        isSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Payment request submitted successfully! Waiting for admin verification.");
+            submittedPurchaseNumber = res.Data.PurchaseNumber;
+            submissionCompleted = true;
+            await LoadPurchasesAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to submit payment request.");
+        }
+    }
+
+    private void ResetForm()
+    {
+        submissionCompleted = false;
+        transactionRefNo = string.Empty;
+        userNotes = string.Empty;
+        uploadedProofFile = null;
+    }
+}

@@ -4,6 +4,10 @@ using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Poll;
 
+using CommunityLink.Domain.Features.Notification;
+using CommunityLink.Domain.Features.RoleAndPermission;
+using CommunityLink.Shared.Security;
+
 namespace CommunityLink.Domain.Features.Poll;
 
 public interface IPollService
@@ -11,9 +15,15 @@ public interface IPollService
     Task<Result<IReadOnlyList<PollModel>>> GetPollsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default);
     Task<Result<PollModel>> CreatePollAsync(CreatePollRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<PollModel>> VoteAsync(VoteRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result<PollModel>> UpdatePollAsync(int pollId, UpdatePollRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result> DeletePollAsync(int pollId, CancellationToken cancellationToken = default);
 }
 
-public sealed class PollService(AppDbContext dbContext, ICurrentUserContext currentUser) : IPollService
+public sealed class PollService(
+    AppDbContext dbContext,
+    ICurrentUserContext currentUser,
+    INotificationService notificationService,
+    IPermissionEvaluator permissionEvaluator) : IPollService
 {
     public async Task<Result<IReadOnlyList<PollModel>>> GetPollsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default)
     {
@@ -114,6 +124,16 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
     public async Task<Result<PollModel>> CreatePollAsync(CreatePollRequestModel request, CancellationToken cancellationToken = default)
     {
         if (currentUser.UserId is null) return Result<PollModel>.Failure("Unauthorized", ResultStatus.Unauthorized);
+
+        // Standalone poll check
+        if (!request.GroupId.HasValue)
+        {
+            var canPostStandalone = await permissionEvaluator.HasPermissionAsync(PermissionCatalog.PostStandaloneCreate, cancellationToken);
+            if (!canPostStandalone && !currentUser.IsAdmin)
+            {
+                return Result<PollModel>.Failure("You can only create polls inside a group you have joined. Standalone polls are not permitted for your role.", ResultStatus.Forbidden);
+            }
+        }
         
         var trimmedOptions = request.Options
             .Where(o => !string.IsNullOrWhiteSpace(o))
@@ -196,9 +216,35 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
         }
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var polls = await GetPollsAsync(communityId, request.GroupId, cancellationToken);
-        var created = polls.Data?.FirstOrDefault(p => p.PollId == poll.PollId);
-        return Result<PollModel>.Success(created!);
+        var refreshedPolls = await GetPollsAsync(communityId, request.GroupId, cancellationToken);
+        var created = refreshedPolls.Data?.FirstOrDefault(p => p.PollId == poll.PollId);
+
+        if (created is null)
+        {
+            // Build a minimal model directly from what we saved
+            created = new PollModel(
+                poll.PollId,
+                post.PostId,
+                communityId,
+                null,
+                request.GroupId,
+                null,
+                currentUser.UserId!.Value,
+                "You",
+                null,
+                poll.Question,
+                post.Content,
+                poll.IsMultipleChoice,
+                poll.ExpiresAt,
+                false,
+                0,
+                false,
+                trimmedOptions.Select((o, i) => new PollOptionModel(0, o, 0, 0, false)).ToList(),
+                0, 0, 0, false,
+                poll.CreatedAt);
+        }
+
+        return Result<PollModel>.Success(created);
     }
 
     public async Task<Result<PollModel>> VoteAsync(VoteRequestModel request, CancellationToken cancellationToken = default)
@@ -249,9 +295,84 @@ public sealed class PollService(AppDbContext dbContext, ICurrentUserContext curr
 
         poll.TotalVotes += request.OptionIds.Count;
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify poll author
+        if (poll.Post != null)
+        {
+            var voter = await dbContext.TblUsers.FindAsync([currentUser.UserId.Value], cancellationToken);
+            var voterName = voter?.DisplayName ?? voter?.UserName ?? "Someone";
+            await notificationService.CreateNotificationAsync(
+                poll.Post.AuthorId,
+                currentUser.UserId.Value,
+                "POLL_VOTE",
+                "New Poll Vote",
+                $"{voterName} voted on your poll",
+                "POLL",
+                poll.PollId,
+                cancellationToken);
+        }
         
-        var refreshed = await GetPollsAsync(poll.Post.CommunityId, poll.Post.GroupId, cancellationToken);
+        var refreshed = await GetPollsAsync(poll.Post?.CommunityId, poll.Post?.GroupId, cancellationToken);
         var model = refreshed.Data?.FirstOrDefault(p => p.PollId == poll.PollId);
         return Result<PollModel>.Success(model!, "Vote recorded.");
+    }
+
+    public async Task<Result<PollModel>> UpdatePollAsync(int pollId, UpdatePollRequestModel request, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result<PollModel>.Failure("Unauthorized", ResultStatus.Unauthorized);
+
+        var poll = await dbContext.TblPolls
+            .Include(p => p.Post)
+            .FirstOrDefaultAsync(p => p.PollId == pollId && !p.IsDeleted, cancellationToken);
+
+        if (poll is null || poll.Post is null) return Result<PollModel>.Failure("Poll not found.", ResultStatus.NotFound);
+
+        if (poll.Post.AuthorId != currentUser.UserId.Value)
+            return Result<PollModel>.Failure("You can only edit your own polls.", ResultStatus.Forbidden);
+
+        if (string.IsNullOrWhiteSpace(request.Question))
+            return Result<PollModel>.Failure("Poll question cannot be empty.", ResultStatus.ValidationError);
+
+        poll.Question = request.Question.Trim();
+        if (request.Content != null)
+        {
+            poll.Post.Content = request.Content.Trim();
+            poll.Post.UpdatedAt = DateTime.UtcNow;
+            poll.Post.UpdatedBy = currentUser.UserId.Value;
+        }
+
+        poll.UpdatedAt = DateTime.UtcNow;
+        poll.UpdatedBy = currentUser.UserId.Value;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var refreshed = await GetPollsAsync(poll.Post.CommunityId, poll.Post.GroupId, cancellationToken);
+        var updated = refreshed.Data?.FirstOrDefault(p => p.PollId == poll.PollId);
+        return Result<PollModel>.Success(updated!, "Poll updated successfully.");
+    }
+
+    public async Task<Result> DeletePollAsync(int pollId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
+
+        var poll = await dbContext.TblPolls
+            .Include(p => p.Post)
+            .FirstOrDefaultAsync(p => p.PollId == pollId && !p.IsDeleted, cancellationToken);
+
+        if (poll is null || poll.Post is null) return Result.Failure("Poll not found.", ResultStatus.NotFound);
+
+        if (poll.Post.AuthorId != currentUser.UserId.Value && !currentUser.IsAdmin)
+            return Result.Failure("You can only delete your own polls.", ResultStatus.Forbidden);
+
+        poll.IsDeleted = true;
+        poll.DeletedAt = DateTime.UtcNow;
+        poll.DeletedBy = currentUser.UserId.Value;
+
+        poll.Post.IsDeleted = true;
+        poll.Post.DeletedAt = DateTime.UtcNow;
+        poll.Post.DeletedBy = currentUser.UserId.Value;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success("Poll deleted successfully.");
     }
 }

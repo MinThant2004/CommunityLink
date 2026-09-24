@@ -38,4 +38,6 @@ public partial class TblAdmin
     public byte[] RowVersion { get; set; } = null!;
 
     public virtual ICollection<TblAdminRole> TblAdminRoles { get; set; } = new List<TblAdminRole>();
+
+    public virtual ICollection<TblLinkDropPurchase> TblLinkDropPurchases { get; set; } = new List<TblLinkDropPurchase>();
 }

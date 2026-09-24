@@ -114,6 +114,12 @@
                         <span>•</span>
                         <span>📝 @group.PostCount posts</span>
                         <span>•</span>
+                        <span class="inline-flex items-center gap-1 text-amber-600">
+                            <span>⭐</span>
+                            <span>@(group.AverageRating.HasValue ? group.AverageRating.Value.ToString("0.0") : "No ratings")</span>
+                            <span class="text-slate-400">(@(group.RatingCount))</span>
+                        </span>
+                        <span>•</span>
                         <span>Created by @group.CreatorName</span>
                     </div>
 
@@ -167,18 +173,23 @@
         else
         {
             <!-- Navigation Tabs: Feed, Polls, Members -->
-            <div class="bg-white dark:bg-[#112A46] rounded-2xl shadow-sm border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-2 flex items-center gap-2">
-                <button type="button" @onclick='() => activeTab = "feed"'
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "feed" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] shadow-sm" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
-                    📝 Group Feed (@(posts?.Count ?? 0))
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-2 flex items-center gap-2">
+                <button type="button" @onclick='() => SetActiveTab("feed")'
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "feed" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                    📝 Feed (@(posts?.Count ?? 0))
                 </button>
-                <button type="button" @onclick='() => activeTab = "polls"'
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "polls" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] shadow-sm" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
-                    📊 Live Polls (@(polls?.Count ?? 0))
+                <button type="button" @onclick='() => SetActiveTab("polls")'
+                        style="@(activeTab == "polls" ? "background-color: #7c3aed; color: #ffffff !important;" : "")"
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "polls" ? "bg-purple-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                    📊 Polls (@(polls?.Count ?? 0))
                 </button>
-                <button type="button" @onclick='() => activeTab = "members"'
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "members" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] shadow-sm" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
+                <button type="button" @onclick='() => SetActiveTab("members")'
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "members" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
                     👥 Members (@(members?.Count ?? 0))
+                </button>
+                <button type="button" @onclick='() => SetActiveTab("ratings")'
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "ratings" ? "bg-amber-500 text-slate-950 shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                    ⭐ Ratings (@(ratingSummary?.TotalRatings ?? group?.RatingCount ?? 0))
                 </button>
             </div>
 
@@ -261,7 +272,7 @@
                     <div class="space-y-6">
                         @foreach (var post in posts)
                         {
-                            <div class="bg-white dark:bg-[#112A46] rounded-2xl shadow-sm border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] hover:border-[#0A1B2E]/20 dark:hover:border-[rgba(196,210,225,0.35)] overflow-hidden transition duration-200">
+                            <div id="post-@post.PostId" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
                                 <!-- Post Author Header -->
                                 <div class="p-4 sm:p-5 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                     <div class="flex items-center gap-3">
@@ -281,13 +292,42 @@
                                         </div>
                                     </div>
 
-                                    @if (currentUserId.HasValue && post.AuthorId == currentUserId.Value)
-                                    {
-                                        <button type="button" @onclick="() => ConfirmDeletePost(post.PostId)"
-                                                class="text-[#7A8CA6] hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-lg hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition" title="Delete Post">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    <div class="relative">
+                                        <button type="button" @onclick="() => TogglePostMenu(post.PostId)"
+                                                class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer" title="Options">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            </svg>
                                         </button>
-                                    }
+
+                                        @if (activeMenuPostId == post.PostId)
+                                        {
+                                            <div class="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+                                                <!-- Save Button (For all users) -->
+                                                <button type="button" @onclick="() => ToggleSavePost(post.PostId)"
+                                                        class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
+                                                    <span>🔖</span>
+                                                    <span>@(post.IsSavedByCurrentUser ? "Unsave Post" : "Save Post")</span>
+                                                </button>
+
+                                                <!-- Edit & Delete (Author only) -->
+                                                @if (currentUserId.HasValue && post.AuthorId == currentUserId.Value)
+                                                {
+                                                    <button type="button" @onclick="() => OpenEditPost(post)"
+                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
+                                                        <span>✏️</span>
+                                                        <span>Edit Description</span>
+                                                    </button>
+                                                    <div class="border-t border-slate-100 my-1"></div>
+                                                    <button type="button" @onclick="() => ConfirmDeletePost(post.PostId)"
+                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
+                                                        <span>🗑️</span>
+                                                        <span>Delete Post</span>
+                                                    </button>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
 
                                 <!-- Post Text Content -->
@@ -417,7 +457,7 @@
                     <div class="space-y-6">
                         @foreach (var poll in polls)
                         {
-                            <div class="bg-white dark:bg-[#112A46] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-xs overflow-hidden transition duration-200">
+                            <div id="poll-@poll.PollId" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
                                 <!-- Poll Author Info -->
                                 <div class="p-4 sm:p-5 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
                                     <div class="flex items-center gap-3">
@@ -429,12 +469,52 @@
                                             <span class="text-[11px] text-[#557392] dark:text-[#7A8CA6]">@poll.CreatedAt.ToLocalTime().ToString("g")</span>
                                         </div>
                                     </div>
-                                    @if (poll.ExpiresAt.HasValue)
-                                    {
-                                        <span class="text-xs px-2.5 py-1 rounded @(poll.IsExpired ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30")">
-                                            @(poll.IsExpired ? "Closed" : $"Ends {poll.ExpiresAt.Value.ToLocalTime():g}")
-                                        </span>
-                                    }
+                                    <div class="flex items-center gap-2">
+                                        @if (poll.ExpiresAt.HasValue)
+                                        {
+                                            <span class="text-xs px-2.5 py-1 rounded-full @(poll.IsExpired ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-emerald-50 text-emerald-700 border border-emerald-100")">
+                                                @(poll.IsExpired ? "Closed" : $"Ends {poll.ExpiresAt.Value.ToLocalTime():g}")
+                                            </span>
+                                        }
+
+                                        <!-- Three-Dots Action Menu for Poll -->
+                                        <div class="relative">
+                                            <button type="button" @onclick="() => TogglePollMenu(poll.PollId)"
+                                                    class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer" title="Options">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                </svg>
+                                            </button>
+
+                                            @if (activeMenuPollId == poll.PollId)
+                                            {
+                                                <div class="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+                                                    <!-- Save Button (All users) -->
+                                                    <button type="button" @onclick="() => ToggleSavePoll(poll.PostId)"
+                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
+                                                        <span>🔖</span>
+                                                        <span>Save Poll</span>
+                                                    </button>
+
+                                                    <!-- Edit & Delete (Author only) -->
+                                                    @if (currentUserId.HasValue && poll.AuthorId == currentUserId.Value)
+                                                    {
+                                                        <button type="button" @onclick="() => OpenEditPoll(poll)"
+                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
+                                                            <span>✏️</span>
+                                                            <span>Edit Poll</span>
+                                                        </button>
+                                                        <div class="border-t border-slate-100 my-1"></div>
+                                                        <button type="button" @onclick="() => DeletePoll(poll.PollId)"
+                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
+                                                            <span>🗑️</span>
+                                                            <span>Delete Poll</span>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Poll Content & Question -->
@@ -626,6 +706,150 @@
                     </div>
                 }
             }
+            <!-- TAB 4: GROUP RATINGS & REVIEWS -->
+            else if (activeTab == "ratings")
+            {
+                <div class="space-y-6">
+                    <!-- Rating Header Card -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                        <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
+                            <div class="flex items-center gap-5">
+                                <div class="w-20 h-20 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col items-center justify-center text-amber-500 shadow-xs">
+                                    <span class="text-3xl font-black text-amber-600">
+                                        @(ratingSummary != null && ratingSummary.TotalRatings > 0 ? ratingSummary.AverageScore.ToString("0.0") : "—")
+                                    </span>
+                                    <div class="flex text-xs text-amber-400 mt-0.5">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <span>@(ratingSummary != null && ratingSummary.TotalRatings > 0 && i <= Math.Round(ratingSummary.AverageScore) ? "★" : "☆")</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-slate-900">Group Ratings & Reviews</h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">
+                                        @(ratingSummary != null && ratingSummary.TotalRatings > 0 
+                                            ? $"Based on {ratingSummary.TotalRatings} member review{(ratingSummary.TotalRatings > 1 ? "s" : "")}."
+                                            : "No member ratings yet. Be the first member to review this group!")
+                                    </p>
+                                </div>
+                            </div>
+
+                            @if (group.IsJoined)
+                            {
+                                <button type="button" @onclick="OpenRatingModal"
+                                        class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-amber-500/20 transition active:scale-95 inline-flex items-center gap-2 cursor-pointer">
+                                    <span>⭐</span>
+                                    <span>@(ratingSummary?.UserRating != null ? "Edit Your Review" : "Rate This Group")</span>
+                                </button>
+                            }
+                        </div>
+
+                        @if (!group.IsJoined)
+                        {
+                            <div class="mt-4 p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between gap-3 text-xs text-amber-800">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-base">🔒</span>
+                                    <span>Only approved group members can rate and review this group. You can still view all reviews below.</span>
+                                </div>
+                                <button type="button" @onclick="JoinGroup" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shrink-0 transition">
+                                    Join Group
+                                </button>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Reviews List -->
+                    @if (isLoadingRatings)
+                    {
+                        <div class="flex justify-center py-12">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+                        </div>
+                    }
+                    else if (ratingSummary == null || ratingSummary.Ratings.Count == 0)
+                    {
+                        <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500">
+                            <div class="text-4xl mb-3">⭐</div>
+                            <h4 class="font-semibold text-slate-800 text-base">No reviews yet</h4>
+                            <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+                                @(group.IsJoined ? "Share your rating and feedback to help others know what this group is about." : "Members have not reviewed this group yet.")
+                            </p>
+                            @if (group.IsJoined)
+                            {
+                                <button type="button" @onclick="OpenRatingModal" class="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow transition">
+                                    Write the First Review
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="space-y-3">
+                            @foreach (var review in ratingSummary.Ratings)
+                            {
+                                var isMyReview = currentUserId.HasValue && review.UserId == currentUserId.Value;
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs transition hover:border-slate-300 @(isMyReview ? "ring-2 ring-amber-400/40" : "")">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <!-- Reviewer Profile Info (Clickable link to user profile) -->
+                                        <div class="flex items-center gap-3">
+                                            <a href="u/@review.UserName" class="shrink-0 group">
+                                                @if (!string.IsNullOrEmpty(review.UserAvatar))
+                                                {
+                                                    <img src="@review.UserAvatar" alt="@review.DisplayName" class="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-100 group-hover:ring-indigo-400 transition" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold text-sm flex items-center justify-center ring-2 ring-slate-100 group-hover:ring-indigo-400 transition">
+                                                        @(string.IsNullOrWhiteSpace(review.DisplayName) ? "U" : review.DisplayName.Substring(0, 1).ToUpper())
+                                                    </div>
+                                                }
+                                            </a>
+                                            <div>
+                                                <div class="flex items-center gap-2">
+                                                    <a href="u/@review.UserName" class="font-bold text-sm text-slate-900 hover:text-indigo-600 transition">
+                                                        @review.DisplayName
+                                                    </a>
+                                                    @if (isMyReview)
+                                                    {
+                                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                                                            Your review
+                                                        </span>
+                                                    }
+                                                </div>
+                                                <a href="u/@review.UserName" class="text-[11px] text-slate-400 hover:text-slate-600 transition block">
+                                                    @@@review.UserName
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Stars and Date -->
+                                        <div class="text-right">
+                                            <div class="flex items-center justify-end text-amber-400 text-sm">
+                                                @for (int s = 1; s <= 5; s++)
+                                                {
+                                                    <span class="@(s <= review.Score ? "text-amber-400" : "text-slate-200")">★</span>
+                                                }
+                                                <span class="ml-1 text-xs font-black text-slate-800">@review.Score.0</span>
+                                            </div>
+                                            <span class="text-[11px] text-slate-400 block mt-0.5">
+                                                @FormatTimeAgo(review.CreatedAt)
+                                                @(review.UpdatedAt.HasValue ? " (edited)" : "")
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(review.ReviewText))
+                                    {
+                                        <p class="text-sm text-slate-700 mt-3 pl-13 leading-relaxed whitespace-pre-line">
+                                            @review.ReviewText
+                                        </p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
         }
     }
 </div>
@@ -674,8 +898,8 @@
                     }
                     else
                     {
-                        <div class="relative rounded overflow-hidden border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] max-h-48 bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center">
-                            <img src="@uploadedImageUrl" alt="Preview" class="max-h-48 object-contain" />
+                        <div class="modal-image-preview-container relative rounded-xl overflow-hidden border border-slate-200 bg-slate-950 flex items-center justify-center" style="height: 140px; max-height: 140px; width: 100%;">
+                            <img src="@uploadedImageUrl" alt="Preview" class="modal-image-preview-img object-contain" style="max-height: 140px; max-width: 100%; height: auto; width: auto; display: block; margin: 0 auto;" />
                             <button type="button" @onclick="() => uploadedImageUrl = null"
                                     class="absolute top-2 right-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full p-1.5 shadow transition text-xs font-bold" title="Remove image">
                                 ✕
@@ -844,6 +1068,157 @@
     </div>
 }
 
+<!-- ================= MODAL: EDIT POST ================= -->
+@if (showEditPostModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <span>✏️</span> Edit Post Description
+                </h3>
+                <button type="button" @onclick="() => showEditPostModal = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-xs font-semibold text-slate-500">Post Description / Content</label>
+                <textarea @bind="editingPostContent" rows="5" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none resize-none transition" placeholder="Update your post description..."></textarea>
+                <p class="text-[11px] text-slate-400">Note: Post images cannot be modified.</p>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button type="button" @onclick="() => showEditPostModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" @onclick="SaveEditPostAsync" disabled="@(isSavingEditPost || string.IsNullOrWhiteSpace(editingPostContent))" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-md shadow-indigo-600/20 flex items-center gap-2 cursor-pointer">
+                    @if (isSavingEditPost)
+                    {
+                        <span class="animate-spin text-xs">⌛</span>
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span>Save Changes</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ================= MODAL: EDIT POLL ================= -->
+@if (showEditPollModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <span>✏️</span> Edit Poll
+                </h3>
+                <button type="button" @onclick="() => showEditPollModal = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Poll Question <span class="text-rose-500">*</span></label>
+                    <input type="text" @bind="editingPollQuestion" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition" />
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Description <span class="text-slate-400 font-normal">(Optional)</span></label>
+                    <textarea @bind="editingPollContent" rows="3" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none resize-none transition" placeholder="Add additional context for voters..."></textarea>
+                </div>
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 flex items-center gap-2">
+                    <span>ℹ️</span>
+                    <span>Options and existing votes cannot be modified to maintain voting integrity.</span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button type="button" @onclick="() => showEditPollModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" @onclick="SaveEditPollAsync" disabled="@(isSavingEditPoll || string.IsNullOrWhiteSpace(editingPollQuestion))" class="px-5 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-md shadow-purple-600/20 flex items-center gap-2 cursor-pointer">
+                    @if (isSavingEditPoll)
+                    {
+                        <span class="animate-spin text-xs">⌛</span>
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span>Save Poll</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ================= MODAL: RATE / REVIEW GROUP ================= -->
+@if (showRatingModal)
+{
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150 p-6 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">⭐</span>
+                    <h3 class="font-bold text-base text-slate-900">
+                        @(ratingSummary?.UserRating != null ? "Edit Your Review" : "Rate This Group")
+                    </h3>
+                </div>
+                <button type="button" @onclick="CloseRatingModal" class="text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+            </div>
+
+            <div class="text-center space-y-3">
+                <p class="text-xs text-slate-500">Tap a star to rate your experience in <strong class="text-slate-700">@group?.Name</strong></p>
+                
+                <!-- Interactive Star Selector -->
+                <div class="flex items-center justify-center gap-2 text-3xl py-1">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        var starScore = i;
+                        <button type="button" @onclick="() => selectedRatingScore = starScore" class="transition-transform hover:scale-125 cursor-pointer focus:outline-none">
+                            <span class="@(starScore <= selectedRatingScore ? "text-amber-400" : "text-slate-200")">★</span>
+                        </button>
+                    }
+                </div>
+                <div class="text-xs font-bold text-amber-600 uppercase tracking-wider">
+                    @selectedRatingScore Star@(selectedRatingScore > 1 ? "s" : "")
+                </div>
+
+                <div class="text-left mt-2">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Your Review / Comments</label>
+                    <textarea @bind="ratingReviewText" rows="3" maxlength="1000" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition" placeholder="Tell other members what you think of this group, its topics, and discussions..."></textarea>
+                    <div class="text-[11px] text-slate-400 text-right mt-0.5">@(ratingReviewText?.Length ?? 0)/1000</div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(ratingErrorMessage))
+            {
+                <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-medium">
+                    @ratingErrorMessage
+                </div>
+            }
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button type="button" @onclick="CloseRatingModal" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" @onclick="SubmitRatingAsync" disabled="@isSubmittingRating" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition shadow-md shadow-amber-500/30 flex items-center gap-2 cursor-pointer">
+                    @if (isSubmittingRating)
+                    {
+                        <span class="animate-spin text-xs">⌛</span>
+                        <span>Submitting...</span>
+                    }
+                    else
+                    {
+                        <span>@(ratingSummary?.UserRating != null ? "Update Review" : "Submit Review")</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter] public int groupId { get; set; }
 
@@ -851,12 +1226,21 @@
     private IReadOnlyList<PostModel>? posts;
     private IReadOnlyList<PollModel>? polls;
     private IReadOnlyList<GroupMemberModel>? members;
+    private GroupRatingSummaryDto? ratingSummary;
 
     private int? currentUserId;
     private bool isLoadingGroup = true;
     private bool isLoadingFeed = true;
+    private bool isLoadingRatings = false;
     private bool isSubmitting;
     private string activeTab = "feed";
+
+    // Ratings Modal State
+    private bool showRatingModal = false;
+    private int selectedRatingScore = 5;
+    private string? ratingReviewText = "";
+    private bool isSubmittingRating = false;
+    private string? ratingErrorMessage = null;
 
     // Social Interactions
     private HashSet<int> openCommentPostIds = [];
@@ -867,6 +1251,21 @@
     private bool showShareModal;
     private int sharingPostId;
     private string shareNoteText = "";
+
+    // Post Options & Edit Post State
+    private int? activeMenuPostId = null;
+    private bool showEditPostModal = false;
+    private int? editingPostId = null;
+    private string editingPostContent = string.Empty;
+    private bool isSavingEditPost = false;
+
+    // Poll Options & Edit Poll State
+    private int? activeMenuPollId = null;
+    private bool showEditPollModal = false;
+    private int? editingPollId = null;
+    private string editingPollQuestion = string.Empty;
+    private string editingPollContent = string.Empty;
+    private bool isSavingEditPoll = false;
 
     // Create Post Modal State
     private bool showPostModal;
@@ -894,7 +1293,26 @@
             currentUserId = uid;
         }
 
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("tab", out var tabVal))
+        {
+            var tabStr = tabVal.ToString().ToLowerInvariant();
+            if (tabStr == "polls" || tabStr == "feed" || tabStr == "members" || tabStr == "ratings")
+            {
+                activeTab = tabStr;
+            }
+        }
+
         await LoadGroupData();
+    }
+
+    private async Task SetActiveTab(string tab)
+    {
+        activeTab = tab;
+        if (tab == "ratings" && ratingSummary == null)
+        {
+            await LoadGroupRatings();
+        }
     }
 
     private async Task LoadGroupData()
@@ -904,10 +1322,14 @@
         if (res.IsSuccess && res.Data != null)
         {
             group = res.Data;
+            var tasks = new List<Task> { LoadGroupRatings() };
             if (group.Visibility != "PRIVATE" || group.IsJoined)
             {
-                await Task.WhenAll(LoadGroupPosts(), LoadGroupPolls(), LoadGroupMembers());
+                tasks.Add(LoadGroupPosts());
+                tasks.Add(LoadGroupPolls());
+                tasks.Add(LoadGroupMembers());
             }
+            await Task.WhenAll(tasks);
         }
         isLoadingGroup = false;
     }
@@ -944,6 +1366,66 @@
     {
         var res = await GroupApi.GetGroupMembersAsync(groupId);
         if (res.IsSuccess) members = res.Data;
+    }
+
+    private async Task LoadGroupRatings()
+    {
+        isLoadingRatings = true;
+        var res = await GroupApi.GetGroupRatingsAsync(groupId);
+        if (res.IsSuccess)
+        {
+            ratingSummary = res.Data;
+        }
+        isLoadingRatings = false;
+    }
+
+    private void OpenRatingModal()
+    {
+        ratingErrorMessage = null;
+        if (ratingSummary?.UserRating != null)
+        {
+            selectedRatingScore = ratingSummary.UserRating.Score;
+            ratingReviewText = ratingSummary.UserRating.ReviewText ?? "";
+        }
+        else
+        {
+            selectedRatingScore = 5;
+            ratingReviewText = "";
+        }
+        showRatingModal = true;
+    }
+
+    private void CloseRatingModal()
+    {
+        showRatingModal = false;
+        ratingErrorMessage = null;
+    }
+
+    private async Task SubmitRatingAsync()
+    {
+        if (selectedRatingScore < 1 || selectedRatingScore > 5)
+        {
+            ratingErrorMessage = "Please select a rating between 1 and 5 stars.";
+            return;
+        }
+
+        isSubmittingRating = true;
+        ratingErrorMessage = null;
+
+        var req = new SubmitGroupRatingRequestModel(selectedRatingScore, ratingReviewText);
+        var res = await GroupApi.RateGroupAsync(groupId, req);
+        isSubmittingRating = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success(res.Message ?? "Rating saved!");
+            showRatingModal = false;
+            await Task.WhenAll(LoadGroupRatings(), LoadGroupData());
+        }
+        else
+        {
+            ratingErrorMessage = res.Message ?? "Failed to submit rating.";
+        }
     }
 
     private async Task JoinGroup()
@@ -1098,7 +1580,7 @@
 
         isSubmitting = true;
         var desc = string.IsNullOrWhiteSpace(newPollDescription) ? newPollQuestion : newPollDescription;
-        var req = new CreatePollRequestModel(null, newPollQuestion, desc, pollIsMultipleChoice, expiresAt, validOptions, groupId);
+        var req = new CreatePollRequestModel(null, desc, newPollQuestion, pollIsMultipleChoice, expiresAt, validOptions, groupId);
 
         var res = await PollApi.CreatePollAsync(req);
         isSubmitting = false;
@@ -1213,6 +1695,7 @@
 
     private async Task ConfirmDeletePost(int postId)
     {
+        activeMenuPostId = null;
         var res = await PostApi.DeletePostAsync(postId);
         if (res.IsSuccess)
         {
@@ -1223,5 +1706,126 @@
         {
             Toast.Error(res.Message ?? "Failed to delete post.");
         }
+    }
+
+    private void TogglePostMenu(int postId)
+    {
+        activeMenuPostId = (activeMenuPostId == postId) ? null : postId;
+    }
+
+    private async Task ToggleSavePost(int postId)
+    {
+        activeMenuPostId = null;
+        var res = await PostApi.ToggleSavePostAsync(postId);
+        if (res.IsSuccess)
+        {
+            Toast.Success(res.Data ? "Post saved to your profile!" : "Post removed from saved.");
+            await LoadGroupPosts();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to save post.");
+        }
+    }
+
+    private void OpenEditPost(PostModel post)
+    {
+        activeMenuPostId = null;
+        editingPostId = post.PostId;
+        editingPostContent = post.Content;
+        showEditPostModal = true;
+    }
+
+    private async Task SaveEditPostAsync()
+    {
+        if (!editingPostId.HasValue || string.IsNullOrWhiteSpace(editingPostContent)) return;
+
+        isSavingEditPost = true;
+        var res = await PostApi.UpdatePostAsync(editingPostId.Value, new UpdatePostRequestModel(editingPostContent.Trim(), null));
+        isSavingEditPost = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Post description updated!");
+            showEditPostModal = false;
+            await LoadGroupPosts();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to update post.");
+        }
+    }
+
+    private void TogglePollMenu(int pollId)
+    {
+        activeMenuPollId = (activeMenuPollId == pollId) ? null : pollId;
+    }
+
+    private async Task ToggleSavePoll(int postId)
+    {
+        activeMenuPollId = null;
+        var res = await PostApi.ToggleSavePostAsync(postId);
+        if (res.IsSuccess)
+        {
+            Toast.Success(res.Data ? "Poll saved to your profile!" : "Poll removed from saved.");
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to save poll.");
+        }
+    }
+
+    private void OpenEditPoll(PollModel poll)
+    {
+        activeMenuPollId = null;
+        editingPollId = poll.PollId;
+        editingPollQuestion = poll.Question;
+        editingPollContent = (poll.Content != poll.Question) ? (poll.Content ?? "") : "";
+        showEditPollModal = true;
+    }
+
+    private async Task SaveEditPollAsync()
+    {
+        if (!editingPollId.HasValue || string.IsNullOrWhiteSpace(editingPollQuestion)) return;
+
+        isSavingEditPoll = true;
+        var res = await PollApi.UpdatePollAsync(editingPollId.Value, new UpdatePollRequestModel(editingPollQuestion.Trim(), string.IsNullOrWhiteSpace(editingPollContent) ? null : editingPollContent.Trim()));
+        isSavingEditPoll = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Poll updated successfully!");
+            showEditPollModal = false;
+            await LoadGroupPolls();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to update poll.");
+        }
+    }
+
+    private async Task DeletePoll(int pollId)
+    {
+        activeMenuPollId = null;
+        var res = await PollApi.DeletePollAsync(pollId);
+        if (res.IsSuccess)
+        {
+            Toast.Success("Poll deleted successfully.");
+            await LoadGroupPolls();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to delete poll.");
+        }
+    }
+
+    private string FormatTimeAgo(DateTime utcDate)
+    {
+        var span = DateTime.UtcNow - utcDate;
+        if (span.TotalMinutes < 1) return "Just now";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
+        if (span.TotalDays < 7) return $"{(int)span.TotalDays}d ago";
+        return utcDate.ToLocalTime().ToString("MMM d, yyyy");
     }
 }

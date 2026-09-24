@@ -22,10 +22,32 @@ public interface IAdministrationService
     Task<Result<IReadOnlyList<JoinRequestModel>>> GetPendingJoinRequestsAsync(CancellationToken cancellationToken = default);
     Task<Result> ApproveJoinRequestAsync(int requestId, CancellationToken cancellationToken = default);
     Task<Result> RejectJoinRequestAsync(int requestId, CancellationToken cancellationToken = default);
+    Task<Result> AssignUserRoleAsync(AssignUserRoleRequestModel request, CancellationToken cancellationToken = default);
 }
 
 public sealed class AdministrationService(AppDbContext dbContext) : IAdministrationService
 {
+    public async Task<Result> AssignUserRoleAsync(AssignUserRoleRequestModel request, CancellationToken cancellationToken = default)
+    {
+        var user = await dbContext.TblUsers.FirstOrDefaultAsync(u => u.UserId == request.UserId && !u.IsDeleted, cancellationToken);
+        if (user is null) return Result.Failure("User not found.", ResultStatus.NotFound);
+
+        var role = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleId == request.RoleId && !r.IsDeleted, cancellationToken);
+        if (role is null) return Result.Failure("Role not found.", ResultStatus.NotFound);
+
+        var existingUserRoles = await dbContext.TblUserRoles.Where(ur => ur.UserId == request.UserId).ToListAsync(cancellationToken);
+        dbContext.TblUserRoles.RemoveRange(existingUserRoles);
+
+        dbContext.TblUserRoles.Add(new TblUserRole
+        {
+            UserId = request.UserId,
+            RoleId = request.RoleId,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success($"Role assigned to '{role.RoleName}' successfully.");
+    }
     public async Task<Result<AdminDashboardStatsModel>> GetDashboardStatsAsync(CancellationToken cancellationToken = default)
     {
         var totalUsers = await dbContext.TblUsers.CountAsync(u => !u.IsDeleted, cancellationToken);

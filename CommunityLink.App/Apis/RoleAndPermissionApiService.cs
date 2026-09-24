@@ -15,4 +15,13 @@ public sealed class RoleAndPermissionApiService(IHttpClientFactory clientFactory
 
     public Task<Result> UpdateRolePermissionsAsync(UpdateRolePermissionsRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync("api/roles/permissions", request, cancellationToken);
+
+    public Task<Result<IReadOnlyList<string>>> GetMyPermissionsAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<string>>("api/roles/my-permissions", cancellationToken);
+
+    public Task<Result<RoleModel>> CreateRoleAsync(CreateRoleRequestModel request, CancellationToken cancellationToken = default) =>
+        PostAsync<RoleModel, CreateRoleRequestModel>("api/roles", request, cancellationToken);
+
+    public Task<Result> DeleteRoleAsync(int roleId, CancellationToken cancellationToken = default) =>
+        DeleteAsync($"api/roles/{roleId}", cancellationToken);
 }

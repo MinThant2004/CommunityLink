@@ -58,7 +58,7 @@ public class AuthenticationEndpointTests(CommunityApiFactory factory) : IClassFi
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Data);
         Assert.Equal(uniqueEmail, result.Data.Email);
-        Assert.Equal("MEMBER", result.Data.RoleCode);
+        Assert.Equal("USER", result.Data.RoleCode);
         Assert.True(result.Data.RoleId > 0);
         Assert.False(string.IsNullOrWhiteSpace(result.Data.AccessToken));
     }
@@ -82,7 +82,7 @@ public class AuthenticationEndpointTests(CommunityApiFactory factory) : IClassFi
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Data);
         Assert.Equal(uniqueEmail, result.Data.Email);
-        Assert.Equal("MEMBER", result.Data.RoleCode);
+        Assert.Equal("USER", result.Data.RoleCode);
         Assert.False(string.IsNullOrWhiteSpace(result.Data.AccessToken));
     }
 

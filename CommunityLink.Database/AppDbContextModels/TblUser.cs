@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -26,6 +26,20 @@ public partial class TblUser
     public bool IsVerified { get; set; }
 
     public bool IsActive { get; set; }
+
+    public string? Headline { get; set; }
+
+    public string? Pronouns { get; set; }
+
+    public string? Location { get; set; }
+
+    public string? AvailabilityStatus { get; set; }
+
+    public string? ResponseSlaText { get; set; }
+
+    public string? PercentileBadgeText { get; set; }
+
+    public DateTime? LastActiveAt { get; set; }
 
     public decimal? AverageRating { get; set; }
 
@@ -75,6 +89,12 @@ public partial class TblUser
 
     public virtual ICollection<TblGroup> TblGroups { get; set; } = new List<TblGroup>();
 
+    public virtual ICollection<TblLinkDropPurchase> TblLinkDropPurchases { get; set; } = new List<TblLinkDropPurchase>();
+
+    public virtual ICollection<TblLinkDropTransaction> TblLinkDropTransactions { get; set; } = new List<TblLinkDropTransaction>();
+
+    public virtual TblLinkDropWallet? TblLinkDropWallet { get; set; }
+
     public virtual ICollection<TblNotification> TblNotificationActorUsers { get; set; } = new List<TblNotification>();
 
     public virtual ICollection<TblNotification> TblNotificationRecipientUsers { get; set; } = new List<TblNotification>();
@@ -98,4 +118,10 @@ public partial class TblUser
     public virtual ICollection<TblUserRating> TblUserRatingTargetUsers { get; set; } = new List<TblUserRating>();
 
     public virtual ICollection<TblUserRole> TblUserRoles { get; set; } = new List<TblUserRole>();
+
+    public virtual ICollection<TblUserSkill> TblUserSkills { get; set; } = new List<TblUserSkill>();
+
+    public virtual ICollection<TblSkillEndorsement> TblSkillEndorsements { get; set; } = new List<TblSkillEndorsement>();
+
+    public virtual ICollection<TblUserVerificationAudit> TblUserVerificationAudits { get; set; } = new List<TblUserVerificationAudit>();
 }

@@ -23,4 +23,14 @@ public sealed class PollController(IPollService pollService) : BaseController
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PollVote)]
     public async Task<IActionResult> Vote([FromBody] VoteRequestModel request, CancellationToken cancellationToken) =>
         ToActionResult(await pollService.VoteAsync(request, cancellationToken));
+
+    [HttpPut("{pollId:int}")]
+    [Authorize]
+    public async Task<IActionResult> UpdatePoll(int pollId, [FromBody] UpdatePollRequestModel request, CancellationToken cancellationToken) =>
+        ToActionResult(await pollService.UpdatePollAsync(pollId, request, cancellationToken));
+
+    [HttpDelete("{pollId:int}")]
+    [Authorize]
+    public async Task<IActionResult> DeletePoll(int pollId, CancellationToken cancellationToken) =>
+        ToActionResult(await pollService.DeletePollAsync(pollId, cancellationToken));
 }
