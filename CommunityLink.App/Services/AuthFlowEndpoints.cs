@@ -53,27 +53,12 @@ public static class AuthFlowEndpoints
                    AuthSessionService sessions) =>
         {
             await antiforgery.ValidateRequestAsync(context);
-            return await HandleLoginAsync(authApi, sessions, "/admin/portal-entry/login", email, password, rememberMe == true, "/admin");
-        });
-
-        endpoints.MapPost("/account/admin/register",
-            async ([FromForm] string fullName,
-                   [FromForm] string email,
-                   [FromForm] string password,
-                   [FromForm] string? confirmPassword,
-                   [FromForm] string adminInviteCode,
-                   HttpContext context,
-                   IAntiforgery antiforgery,
-                   AuthenticationApiService authApi) =>
-        {
-            await antiforgery.ValidateRequestAsync(context);
-            var result = await authApi.RegisterAdminAsync(new RegisterAdminRequestModel(
-                fullName, email, password, adminInviteCode, ConfirmPassword: confirmPassword));
-
+            var result = await authApi.LoginAdminAsync(new LoginRequestModel(email, password, rememberMe == true, IsAdmin: true));
             if (!result.IsSuccess || result.Data is null)
-                return RedirectWithError("/admin/portal-entry/register", result.Message);
+                return RedirectWithError("/admin/portal-entry/login", result.Message);
 
-            return Results.Redirect("/admin/portal-entry/login");
+            await sessions.SignInAsync(result.Data, rememberMe == true);
+            return Results.Redirect("/admin/dashboard");
         });
 
         return endpoints;

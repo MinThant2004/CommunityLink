@@ -9,6 +9,7 @@ using CommunityLink.Domain.Security;
 using CommunityLink.Domain.Services;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Authentication;
+using CommunityLink.Shared.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -202,49 +203,24 @@ public class AuthenticationService : IAuthenticationService
             .ThenInclude(ar => ar.Role)
             .FirstOrDefaultAsync(a => a.NormalizedEmail == normalizedEmail);
 
-        if (admin != null && admin.IsActive && !admin.IsDeleted)
-        {
-            bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, admin.PasswordHash);
-            if (!isValidPassword)
-                return Result<LoginResponseModel>.Failure("Invalid admin credentials.", ResultStatus.Unauthorized);
+        if (admin == null || !admin.IsActive || admin.IsDeleted)
+            return Result<LoginResponseModel>.Failure("Invalid admin credentials or account is deactivated.", ResultStatus.Unauthorized);
 
-            admin.LastLoginAt = DateTime.UtcNow;
-            await _dbContext.SaveChangesAsync();
+        bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, admin.PasswordHash);
+        if (!isValidPassword)
+            return Result<LoginResponseModel>.Failure("Invalid admin credentials.", ResultStatus.Unauthorized);
 
-            var roleMapping = admin.TblAdminRoles.FirstOrDefault(ar => !ar.IsDeleted);
-            var roleCode = admin.IsSuperAdmin ? SuperAdminRoleCode : (roleMapping?.Role?.RoleCode ?? AdminRoleCode);
-            var roleId = admin.IsSuperAdmin
-                ? (roleMapping?.RoleId ?? (await ResolveAdminRoleAsync(true)).RoleId)
-                : (roleMapping?.RoleId ?? (await ResolveAdminRoleAsync(false)).RoleId);
+        var roleMapping = admin.TblAdminRoles.FirstOrDefault(ar => !ar.IsDeleted);
+        var roleCode = admin.IsSuperAdmin ? SuperAdminRoleCode : (roleMapping?.Role?.RoleCode ?? AdminRoleCode);
+        var roleId = admin.IsSuperAdmin
+            ? (roleMapping?.RoleId ?? (await ResolveAdminRoleAsync(true)).RoleId)
+            : (roleMapping?.RoleId ?? (await ResolveAdminRoleAsync(false)).RoleId);
 
-            var response = await BuildLoginResponseAsync(admin.AdminId, admin.Email, admin.FullName, roleCode, roleId, request.RememberMe);
-            return Result<LoginResponseModel>.Success(response, "Admin login successful.");
-        }
+        admin.LastLoginAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync();
 
-        var user = await _dbContext.TblUsers
-            .Include(u => u.TblUserRoles)
-            .ThenInclude(ur => ur.Role)
-            .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
-
-        if (user != null && user.IsActive && !user.IsDeleted)
-        {
-            bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
-            if (!isValidPassword)
-                return Result<LoginResponseModel>.Failure("Invalid admin credentials.", ResultStatus.Unauthorized);
-
-            var adminRoleId = (await ResolveAdminRoleAsync(false)).RoleId;
-            var adminMapping = user.TblUserRoles.FirstOrDefault(ur => !ur.IsDeleted && ur.RoleId == adminRoleId);
-            if (adminMapping == null)
-                return Result<LoginResponseModel>.Failure("This account does not have administrator privileges.", ResultStatus.Unauthorized);
-
-            user.LastLoginAt = DateTime.UtcNow;
-            await _dbContext.SaveChangesAsync();
-
-            var response = await BuildLoginResponseAsync(user.UserId, user.Email, user.DisplayName, AdminRoleCode, adminRoleId, request.RememberMe);
-            return Result<LoginResponseModel>.Success(response, "Admin login successful.");
-        }
-
-        return Result<LoginResponseModel>.Failure("Invalid admin credentials.", ResultStatus.Unauthorized);
+        var response = await BuildLoginResponseAsync(admin.AdminId, admin.Email, admin.FullName, roleCode, roleId, request.RememberMe);
+        return Result<LoginResponseModel>.Success(response, "Admin login successful.");
     }
 
     public async Task<Result<UserInfoModel>> GetCurrentUserAsync(int userId)
