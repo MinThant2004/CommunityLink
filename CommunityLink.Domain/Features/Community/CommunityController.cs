@@ -20,7 +20,7 @@ public sealed class CommunityController(ICommunityService communityService) : Ba
         ToActionResult(await communityService.GetCommunityByIdAsync(communityId, cancellationToken));
 
     [HttpPost]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<IActionResult> CreateCommunity([FromBody] CreateCommunityRequestModel request, CancellationToken cancellationToken) =>
         ToActionResult(await communityService.CreateCommunityAsync(request, cancellationToken));
 

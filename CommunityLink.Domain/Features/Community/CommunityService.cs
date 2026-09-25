@@ -4,6 +4,9 @@ using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Community;
 
+using CommunityLink.Domain.Features.RoleAndPermission;
+using CommunityLink.Shared.Security;
+
 namespace CommunityLink.Domain.Features.Community;
 
 public interface ICommunityService
@@ -18,43 +21,48 @@ public interface ICommunityService
     Task<Result<IReadOnlyList<CommunityModel>>> GetRecommendedCommunitiesAsync(int userId, int take = 6, CancellationToken cancellationToken = default);
 }
 
-public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext currentUser) : ICommunityService
+public sealed class CommunityService(
+    AppDbContext dbContext,
+    ICurrentUserContext currentUser,
+    IPermissionEvaluator permissionEvaluator) : ICommunityService
 {
     public async Task<Result<IReadOnlyList<CommunityModel>>> GetCommunitiesAsync(string? search, CancellationToken cancellationToken = default)
     {
-        var query = dbContext.TblCommunities
-            .Include(c => c.Owner)
-            .Include(c => c.ParentCommunity)
-            .Include(c => c.TblCommunityMembers)
-            .Include(c => c.TblPosts)
-            .Include(c => c.TblCommunityRatings)
-            .Where(c => !c.IsDeleted)
-            .AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(search))
+        try
         {
-            query = query.Where(c => c.Name.Contains(search) || c.Slug.Contains(search));
+            var query = dbContext.TblCommunities
+                .Where(c => !c.IsDeleted)
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(c => c.Name.Contains(search) || c.Slug.Contains(search));
+            }
+
+            var list = await query.Select(c => new CommunityModel(
+                c.CommunityId,
+                c.Name,
+                c.Slug,
+                c.Description,
+                c.AvatarUrl,
+                c.BannerUrl,
+                c.Visibility,
+                c.JoinPolicy,
+                c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                c.TblPosts.Count(p => !p.IsDeleted),
+                c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
+                c.OwnerId,
+                c.Owner != null ? c.Owner.DisplayName : "Admin",
+                c.CreatedAt,
+                c.ParentCommunityId,
+                c.ParentCommunity != null ? c.ParentCommunity.Name : null)).ToListAsync(cancellationToken);
+
+            return Result<IReadOnlyList<CommunityModel>>.Success(list);
         }
-
-        var list = await query.Select(c => new CommunityModel(
-            c.CommunityId,
-            c.Name,
-            c.Slug,
-            c.Description,
-            c.AvatarUrl,
-            c.BannerUrl,
-            c.Visibility,
-            c.JoinPolicy,
-            c.TblCommunityMembers.Count(m => !m.IsDeleted),
-            c.TblPosts.Count(p => !p.IsDeleted),
-            c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
-            c.OwnerId,
-            c.Owner != null ? c.Owner.DisplayName : "Admin",
-            c.CreatedAt,
-            c.ParentCommunityId,
-            c.ParentCommunity != null ? c.ParentCommunity.Name : null)).ToListAsync(cancellationToken);
-
-        return Result<IReadOnlyList<CommunityModel>>.Success(list);
+        catch (OperationCanceledException)
+        {
+            return Result<IReadOnlyList<CommunityModel>>.Success([]);
+        }
     }
 
     public async Task<Result<CommunityModel>> GetCommunityByIdAsync(int communityId, CancellationToken cancellationToken = default)
@@ -112,14 +120,21 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
             return Result<CommunityModel>.Failure(errorMessage, ResultStatus.Conflict);
         }
 
+        // Check permissions: COMMUNITY.CREATE for top-level, SUBCOMMUNITY.CREATE for nested
+        var requiredPermission = request.ParentCommunityId.HasValue
+            ? PermissionCatalog.SubCommunityCreate
+            : PermissionCatalog.CommunityCreate;
+
+        var hasPermission = await permissionEvaluator.HasPermissionAsync(requiredPermission, cancellationToken);
+        if (!hasPermission && !currentUser.IsAdmin)
+        {
+            var actionType = request.ParentCommunityId.HasValue ? "sub-communities" : "communities";
+            return Result<CommunityModel>.Failure($"You do not have permission to create {actionType}.", ResultStatus.Forbidden);
+        }
+
         // Validate parent community if sub-community
         if (request.ParentCommunityId.HasValue)
         {
-            if (currentUser.UserId.HasValue && !currentUser.IsAdmin)
-            {
-                return Result<CommunityModel>.Failure("Only platform administrators can create sub-communities.", ResultStatus.Forbidden);
-            }
-
             var parentExists = await dbContext.TblCommunities
                 .AnyAsync(c => c.CommunityId == request.ParentCommunityId.Value && !c.IsDeleted, cancellationToken);
 

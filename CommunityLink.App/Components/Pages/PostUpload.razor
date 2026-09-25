@@ -8,10 +8,22 @@
 @inject CommunityApiService CommunityApi
 @inject ToastService Toast
 @inject AuthenticationStateProvider AuthStateProvider
+@inject RoleAndPermissionApiService RoleApi
 @inject IWebHostEnvironment Environment
 @inject NavigationManager NavManager
 
 <PageTitle>Post Upload & Feed - CommunityLink</PageTitle>
+
+<style>
+    .prof-code-block {
+        background-color: #0d1117;
+        color: #c9d1d9;
+        font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
+        font-size: 11px;
+        border-radius: 0.5rem;
+        border: 1px solid #30363d;
+    }
+</style>
 
 <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Top Header & Upload Trigger -->
@@ -26,15 +38,18 @@
                     <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Create posts with images in your favorite community and interact with members.</p>
                 </div>
             </div>
-            <div>
-                <button type="button" @onclick="OpenCreatePostModal"
-                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-sm rounded-full shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    <span>Upload Post</span>
-                </button>
-            </div>
+            @if (canCreatePost)
+            {
+                <div>
+                    <button type="button" @onclick="OpenCreatePostModal"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-sm rounded-full shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span>Upload Post</span>
+                    </button>
+                </div>
+            }
         </div>
     </div>
 
@@ -100,9 +115,9 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg>
                                 </button>
-                                <button type="button" @onclick="() => ConfirmDeletePost(post.PostId)"
-                                        title="Delete your post"
-                                        class="p-1.5 text-[#7A8CA6] hover:text-red-600 dark:hover:text-rose-400 rounded-lg hover:bg-red-50 dark:hover:bg-rose-950/40 transition">
+                                <button type="button" @onclick="() => PromptRecyclePost(post.PostId)"
+                                        title="Move to Recycle Bin"
+                                        class="p-1.5 text-[#7A8CA6] hover:text-amber-600 dark:hover:text-amber-400 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/40 transition">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                     </svg>
@@ -115,6 +130,22 @@
                     <div class="px-4 sm:px-5 pb-3">
                         <p class="text-sm text-[#0A1B2E] dark:text-[#E1E8F0] whitespace-pre-line leading-relaxed">@post.Content</p>
                     </div>
+
+                    <!-- Code Snippet / Text File Display -->
+                    @if (!string.IsNullOrWhiteSpace(post.CodeSnippet))
+                    {
+                        <div class="px-4 sm:px-5 pb-3">
+                            <div class="prof-code-block p-3 space-y-1.5">
+                                <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
+                                    <span class="font-bold text-emerald-400 font-mono">@(string.IsNullOrWhiteSpace(post.CodeFileName) ? "attachment.txt" : post.CodeFileName)</span>
+                                    <span class="font-mono">@(string.IsNullOrWhiteSpace(post.CodeLanguage) ? "TEXT" : post.CodeLanguage)</span>
+                                </div>
+                                <div class="overflow-x-auto overflow-y-auto max-h-72 text-[11px] leading-relaxed">
+                                    <pre class="whitespace-pre font-mono"><code>@post.CodeSnippet</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    }
 
                     <!-- Post Images -->
                     @if (post.ImageUrls != null && post.ImageUrls.Count > 0)
@@ -259,52 +290,82 @@
 
             <!-- Modal Form Body -->
             <div class="p-5 space-y-4">
-                <!-- Community Dropdown (Mandatory) -->
-                <div>
-                    <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Select Community <span class="text-red-500">*</span></label>
-                    <select class="w-full text-sm bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20"
-                            value="@selectedParentCommunityId"
-                            @onchange="OnParentCommunityChanged">
-                        <option value="0">-- Select a Community --</option>
-                        @foreach (var c in mainCommunities)
-                        {
-                            <option value="@c.CommunityId">@c.Name</option>
-                        }
-                    </select>
-                </div>
-
-                <!-- Sub-community Dropdown -->
+                <!-- Free Public Post Note / Optional Community Selection -->
                 <div>
                     <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">
-                        Select Sub-community
-                        @if (filteredSubCommunities.Count == 0 && selectedParentCommunityId > 0)
-                        {
-                            <span class="text-[#7A8CA6] font-normal">(No sub-communities found)</span>
-                        }
+                        Community <span class="text-[#7A8CA6] font-normal">(Optional — defaults to Free Public Post)</span>
                     </label>
-                    <select class="w-full text-sm bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 disabled:opacity-50"
-                            disabled="@(selectedParentCommunityId == 0 || filteredSubCommunities.Count == 0)"
-                            @bind="selectedSubCommunityId">
-                        <option value="0">-- (Optional) Use Main Community or Pick Sub-community --</option>
-                        @foreach (var sc in filteredSubCommunities)
-                        {
-                            <option value="@sc.CommunityId">@sc.Name</option>
-                        }
-                    </select>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <select class="w-full text-xs bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20"
+                                value="@selectedParentCommunityId"
+                                @onchange="OnParentCommunityChanged">
+                            <option value="0">🌐 Free Public Post (No Community)</option>
+                            @foreach (var c in mainCommunities)
+                            {
+                                <option value="@c.CommunityId">@c.Name</option>
+                            }
+                        </select>
+
+                        <select class="w-full text-xs bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 disabled:opacity-50"
+                                disabled="@(selectedParentCommunityId == 0 || filteredSubCommunities.Count == 0)"
+                                @bind="selectedSubCommunityId">
+                            <option value="0">-- Optional Sub-community --</option>
+                            @foreach (var sc in filteredSubCommunities)
+                            {
+                                <option value="@sc.CommunityId">@sc.Name</option>
+                            }
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Post Text Content (Mandatory) -->
                 <div>
                     <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Content <span class="text-red-500">*</span></label>
                     <textarea @bind="newPostText" rows="4"
-                              placeholder="What's happening in this community? Share thoughts, updates, or details..."
+                              placeholder="What's on your mind? Share thoughts, updates, code, or details..."
                               class="w-full text-sm bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20"></textarea>
+                </div>
+
+                <!-- Text File (.txt) Attachment -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">
+                            Attach Text File <span class="text-[#7A8CA6] font-normal">(.txt only)</span>
+                        </label>
+                        @if (!string.IsNullOrEmpty(uploadedCodeSnippet))
+                        {
+                            <button type="button" @onclick="RemoveUploadedCodeFile" class="text-xs text-rose-500 hover:underline">
+                                Remove File
+                            </button>
+                        }
+                    </div>
+                    <InputFile OnChange="HandleTextFileSelected" accept=".txt" class="w-full text-xs text-[#557392] dark:text-[#C4D2E1] file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#E2E8F0] dark:file:bg-[#1B3B5A] file:text-[#0A1B2E] dark:file:text-[#E1E8F0] hover:file:bg-[#CBD5E1] cursor-pointer" />
+
+                    @if (isReadingTextFile)
+                    {
+                        <div class="mt-2 text-xs text-[#557392] dark:text-[#C4D2E1] flex items-center gap-1.5">
+                            <span class="animate-spin">🌀</span> Scanning text file...
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(uploadedCodeSnippet))
+                    {
+                        <div class="mt-2 prof-code-block p-3 space-y-1.5">
+                            <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
+                                <span class="font-bold text-emerald-400 font-mono">📄 @(string.IsNullOrWhiteSpace(uploadedCodeFileName) ? "attached.txt" : uploadedCodeFileName)</span>
+                                <span class="font-mono">TEXT FILE</span>
+                            </div>
+                            <div class="overflow-x-auto overflow-y-auto max-h-48 text-[11px] leading-relaxed">
+                                <pre class="whitespace-pre font-mono"><code>@uploadedCodeSnippet</code></pre>
+                            </div>
+                        </div>
+                    }
                 </div>
 
                 <!-- Image Upload (Computer file picker) -->
                 <div>
                     <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Attach Image</label>
-                    <InputFile OnChange="HandleFileSelected" accept="image/*" class="w-full text-xs text-[#557392] dark:text-[#C4D2E1] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#E2E8F0] dark:file:bg-[#1B3B5A] file:text-[#0A1B2E] dark:file:text-[#E1E8F0] hover:file:bg-[#CBD5E1] cursor-pointer" />
+                    <InputFile OnChange="HandleFileSelected" accept="image/*" class="w-full text-xs text-[#557392] dark:text-[#C4D2E1] file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#E2E8F0] dark:file:bg-[#1B3B5A] file:text-[#0A1B2E] dark:file:text-[#E1E8F0] hover:file:bg-[#CBD5E1] cursor-pointer" />
 
                     @if (isUploadingImage)
                     {
@@ -366,16 +427,45 @@
             </div>
 
             <!-- Modal Body -->
-            <div class="p-5 space-y-4">
+            <div class="px-5 py-4 space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Content <span class="text-red-500">*</span></label>
                     <textarea @bind="editPostText" rows="4"
                               class="w-full text-sm bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20"></textarea>
                 </div>
 
+                <!-- Text File (.txt) Attachment -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">
+                            Attached Text File <span class="text-[#7A8CA6] font-normal">(.txt only)</span>
+                        </label>
+                        @if (!string.IsNullOrEmpty(editCodeSnippet))
+                        {
+                            <button type="button" @onclick="RemoveEditCodeFile" class="text-xs text-rose-500 hover:underline">
+                                Remove File
+                            </button>
+                        }
+                    </div>
+                    <InputFile OnChange="HandleEditTextFileSelected" accept=".txt" class="w-full text-xs text-[#557392] dark:text-[#C4D2E1] file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#E2E8F0] dark:file:bg-[#1B3B5A] file:text-[#0A1B2E] dark:file:text-[#E1E8F0] hover:file:bg-[#CBD5E1] cursor-pointer" />
+
+                    @if (!string.IsNullOrEmpty(editCodeSnippet))
+                    {
+                        <div class="mt-2 prof-code-block p-3 space-y-1.5">
+                            <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
+                                <span class="font-bold text-emerald-400 font-mono">📄 @(string.IsNullOrWhiteSpace(editCodeFileName) ? "attached.txt" : editCodeFileName)</span>
+                                <span class="font-mono">TEXT FILE</span>
+                            </div>
+                            <div class="overflow-x-auto overflow-y-auto max-h-48 text-[11px] leading-relaxed">
+                                <pre class="whitespace-pre font-mono"><code>@editCodeSnippet</code></pre>
+                            </div>
+                        </div>
+                    }
+                </div>
+
                 <div>
                     <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Change / Update Image</label>
-                    <InputFile OnChange="HandleFileSelected" accept="image/*" class="w-full text-xs text-[#557392] dark:text-[#C4D2E1] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#E2E8F0] dark:file:bg-[#1B3B5A] file:text-[#0A1B2E] dark:file:text-[#E1E8F0] hover:file:bg-[#CBD5E1] cursor-pointer" />
+                    <InputFile OnChange="HandleFileSelected" accept="image/*" class="w-full text-xs text-[#557392] dark:text-[#C4D2E1] file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#E2E8F0] dark:file:bg-[#1B3B5A] file:text-[#0A1B2E] dark:file:text-[#E1E8F0] hover:file:bg-[#CBD5E1] cursor-pointer" />
 
                     @if (isUploadingImage)
                     {
@@ -467,6 +557,47 @@
     </div>
 }
 
+<!-- ================= RECYCLE POST CONFIRMATION MODAL ================= -->
+@if (showRecycleModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 dark:bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-[#112A46] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 flex items-center justify-center shrink-0 text-xl font-bold">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-base" style="font-family:'Manrope',sans-serif">Move Post to Recycle Bin?</h3>
+                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-0.5">You can restore this post anytime within 10 days from your profile.</p>
+                </div>
+            </div>
+
+            <p class="text-xs text-[#557392] dark:text-[#C4D2E1] bg-[#F8FAFC] dark:bg-[#0A1B2E] p-3.5 rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] leading-relaxed">
+                This post will be hidden from the feed immediately. Posts kept in the Recycle Bin for more than 10 days will be permanently erased.
+            </p>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button type="button" @onclick="CloseRecycleModal" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-xl hover:bg-[#E2E8F0] dark:hover:bg-[#1B3B5A] transition" disabled="@isRecyclingPost">
+                    Cancel
+                </button>
+                <button type="button" @onclick="ConfirmRecyclePostAsync" class="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition shadow-sm flex items-center gap-1.5" disabled="@isRecyclingPost">
+                    @if (isRecyclingPost)
+                    {
+                        <span class="animate-spin">⏳</span>
+                        <span>Moving...</span>
+                    }
+                    else
+                    {
+                        <span>Move to Recycle Bin</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private IReadOnlyList<PostModel>? posts;
     private List<CommunityModel> allCommunities = [];
@@ -495,10 +626,26 @@
     private int sharingPostId;
     private string shareNoteText = "";
 
+    // Permissions
+    private bool canCreatePost;
+
     // Comment State
     private HashSet<int> openCommentPostIds = [];
     private Dictionary<int, string> commentInputs = [];
     private Dictionary<int, IReadOnlyList<CommentModel>> commentsByPost = [];
+
+    // Text file snippet state
+    private string? uploadedCodeSnippet;
+    private string? uploadedCodeFileName;
+    private bool isReadingTextFile;
+
+    private string? editCodeSnippet;
+    private string? editCodeFileName;
+
+    // Recycle modal state
+    private bool showRecycleModal;
+    private int? pendingRecyclePostId;
+    private bool isRecyclingPost;
 
     protected override async Task OnInitializedAsync()
     {
@@ -508,6 +655,24 @@
         if (int.TryParse(sub, out var uid))
         {
             currentUserId = uid;
+        }
+
+        var isAdmin = user.IsInRole("ADMIN") || user.HasClaim("permission", PermissionCatalog.AdminUserView);
+        if (isAdmin)
+        {
+            canCreatePost = true;
+        }
+        else
+        {
+            try
+            {
+                var permRes = await RoleApi.GetMyPermissionsAsync();
+                if (permRes.IsSuccess && permRes.Data != null)
+                {
+                    canCreatePost = permRes.Data.Any(p => p.Equals(PermissionCatalog.PostCreate, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+            catch { }
         }
 
         await Task.WhenAll(LoadCommunities(), LoadFeed());
@@ -564,15 +729,10 @@
     {
         newPostText = "";
         uploadedImageUrl = null;
-        selectedParentCommunityId = mainCommunities.FirstOrDefault()?.CommunityId ?? 0;
-        if (selectedParentCommunityId > 0)
-        {
-            filteredSubCommunities = allCommunities.Where(c => c.ParentCommunityId == selectedParentCommunityId).OrderBy(c => c.Name).ToList();
-        }
-        else
-        {
-            filteredSubCommunities.Clear();
-        }
+        uploadedCodeSnippet = null;
+        uploadedCodeFileName = null;
+        selectedParentCommunityId = 0; // Default to free public post
+        filteredSubCommunities.Clear();
         selectedSubCommunityId = 0;
         showCreateModal = true;
     }
@@ -582,6 +742,8 @@
         editingPostId = post.PostId;
         editPostText = post.Content;
         uploadedImageUrl = post.ImageUrls.FirstOrDefault();
+        editCodeSnippet = post.CodeSnippet;
+        editCodeFileName = post.CodeFileName;
         showEditModal = true;
     }
 
@@ -599,6 +761,59 @@
         showShareModal = false;
     }
 
+    private async Task HandleTextFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        try
+        {
+            isReadingTextFile = true;
+            uploadedCodeFileName = file.Name;
+            using var reader = new StreamReader(file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024));
+            uploadedCodeSnippet = await reader.ReadToEndAsync();
+            Toast.Success($"Scanned {file.Name} ({uploadedCodeSnippet.Length} characters)");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to read text file: {ex.Message}");
+        }
+        finally
+        {
+            isReadingTextFile = false;
+        }
+    }
+
+    private void RemoveUploadedCodeFile()
+    {
+        uploadedCodeSnippet = null;
+        uploadedCodeFileName = null;
+    }
+
+    private async Task HandleEditTextFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        try
+        {
+            editCodeFileName = file.Name;
+            using var reader = new StreamReader(file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024));
+            editCodeSnippet = await reader.ReadToEndAsync();
+            Toast.Success($"Attached {file.Name}");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to read text file: {ex.Message}");
+        }
+    }
+
+    private void RemoveEditCodeFile()
+    {
+        editCodeSnippet = null;
+        editCodeFileName = null;
+    }
+
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
         var file = e.File;
@@ -607,7 +822,6 @@
         try
         {
             isUploadingImage = true;
-            // Target upload directory: wwwroot/uploads
             var uploadsDir = Path.Combine(Environment.WebRootPath, "uploads");
             if (!Directory.Exists(uploadsDir))
             {
@@ -620,7 +834,6 @@
             var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow.Ticks}{extension}";
             var fullPath = Path.Combine(uploadsDir, uniqueFileName);
 
-            // Limit file size to 10MB
             using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
             using var fileStream = new FileStream(fullPath, FileMode.Create);
             await stream.CopyToAsync(fileStream);
@@ -645,12 +858,6 @@
 
     private async Task SubmitCreatePost()
     {
-        if (selectedParentCommunityId == 0)
-        {
-            Toast.Warning("Please select a community for your post.");
-            return;
-        }
-
         if (string.IsNullOrWhiteSpace(newPostText))
         {
             Toast.Warning("Post text content cannot be empty.");
@@ -658,11 +865,29 @@
         }
 
         isSubmitting = true;
-        // Priority to sub-community if chosen, otherwise main community
-        var targetCommunityId = selectedSubCommunityId > 0 ? selectedSubCommunityId : selectedParentCommunityId;
+        // Optional community: null if 0 (Free public post)
+        int? targetCommunityId = null;
+        if (selectedSubCommunityId > 0)
+        {
+            targetCommunityId = selectedSubCommunityId;
+        }
+        else if (selectedParentCommunityId > 0)
+        {
+            targetCommunityId = selectedParentCommunityId;
+        }
+
         var images = string.IsNullOrWhiteSpace(uploadedImageUrl) ? null : new List<string> { uploadedImageUrl };
 
-        var res = await PostApi.CreatePostAsync(new CreatePostRequestModel(targetCommunityId, newPostText, images));
+        var req = new CreatePostRequestModel(
+            targetCommunityId,
+            newPostText,
+            images,
+            GroupId: null,
+            CodeSnippet: uploadedCodeSnippet,
+            CodeFileName: uploadedCodeFileName,
+            CodeLanguage: "TEXT");
+
+        var res = await PostApi.CreatePostAsync(req);
         isSubmitting = false;
 
         if (res.IsSuccess)
@@ -687,7 +912,14 @@
 
         isSubmitting = true;
         var images = string.IsNullOrWhiteSpace(uploadedImageUrl) ? null : new List<string> { uploadedImageUrl };
-        var res = await PostApi.UpdatePostAsync(editingPostId, new UpdatePostRequestModel(editPostText, images));
+        var req = new UpdatePostRequestModel(
+            editPostText,
+            images,
+            CodeSnippet: editCodeSnippet,
+            CodeFileName: editCodeFileName,
+            CodeLanguage: "TEXT");
+
+        var res = await PostApi.UpdatePostAsync(editingPostId, req);
         isSubmitting = false;
 
         if (res.IsSuccess)
@@ -702,17 +934,36 @@
         }
     }
 
-    private async Task ConfirmDeletePost(int postId)
+    private void PromptRecyclePost(int postId)
     {
-        var res = await PostApi.DeletePostAsync(postId);
+        pendingRecyclePostId = postId;
+        showRecycleModal = true;
+    }
+
+    private void CloseRecycleModal()
+    {
+        showRecycleModal = false;
+        pendingRecyclePostId = null;
+        isRecyclingPost = false;
+    }
+
+    private async Task ConfirmRecyclePostAsync()
+    {
+        if (!pendingRecyclePostId.HasValue) return;
+
+        isRecyclingPost = true;
+        var res = await PostApi.DeletePostAsync(pendingRecyclePostId.Value);
+        isRecyclingPost = false;
+
         if (res.IsSuccess)
         {
-            Toast.Success("Post deleted successfully.");
+            Toast.Success("Post moved to Recycle Bin.");
+            CloseRecycleModal();
             await LoadFeed();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to delete post.");
+            Toast.Error(res.Message ?? "Failed to recycle post.");
         }
     }
 

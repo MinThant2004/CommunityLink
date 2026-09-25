@@ -116,6 +116,42 @@ public class UsersController : BaseController
     }
 
     [Authorize]
+    [HttpGet("me/recycled-posts")]
+    public async Task<IActionResult> GetRecycledPosts(CancellationToken cancellationToken)
+    {
+        var userId = CurrentUserId;
+        if (userId == null)
+            return Unauthorized(Result.Failure("Authentication required.", ResultStatus.Unauthorized));
+
+        var result = await _userProfileService.GetRecycledPostsAsync(userId.Value, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [Authorize]
+    [HttpPost("me/recycled-posts/{postId:int}/restore")]
+    public async Task<IActionResult> RestorePost(int postId, CancellationToken cancellationToken)
+    {
+        var userId = CurrentUserId;
+        if (userId == null)
+            return Unauthorized(Result.Failure("Authentication required.", ResultStatus.Unauthorized));
+
+        var result = await _userProfileService.RestorePostAsync(userId.Value, postId, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [Authorize]
+    [HttpDelete("me/recycled-posts/{postId:int}/permanent")]
+    public async Task<IActionResult> PermanentlyDeletePost(int postId, CancellationToken cancellationToken)
+    {
+        var userId = CurrentUserId;
+        if (userId == null)
+            return Unauthorized(Result.Failure("Authentication required.", ResultStatus.Unauthorized));
+
+        var result = await _userProfileService.PermanentlyDeletePostAsync(userId.Value, postId, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [Authorize]
     [HttpGet("me/saved-accounts")]
     public async Task<IActionResult> GetSavedAccounts(CancellationToken cancellationToken)
     {

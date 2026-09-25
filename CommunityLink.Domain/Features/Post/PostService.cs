@@ -78,26 +78,47 @@ public sealed class PostService(
                 query = query.Where(p => p.CommunityId == communityId.Value);
             }
 
+            List<int> followedAuthorIds = [];
+            List<int> joinedGroupIds = [];
+            if (currentUserId.HasValue)
+            {
+                followedAuthorIds = await dbContext.TblUserFollows
+                    .Where(f => f.FollowerId == currentUserId.Value && !f.IsDeleted)
+                    .Select(f => f.FolloweeId)
+                    .ToListAsync(cancellationToken);
+
+                joinedGroupIds = await dbContext.TblGroupMembers
+                    .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
+                    .Select(m => m.GroupId)
+                    .ToListAsync(cancellationToken);
+            }
+
             var posts = await query.OrderByDescending(p => p.CreatedAt).Take(50).ToListAsync(cancellationToken);
 
-            var list = posts.Select(p => new PostModel(
-                p.PostId,
-                p.CommunityId,
-                p.Community?.Name,
-                p.GroupId,
-                p.Group?.Name,
-                p.AuthorId,
-                p.Author != null ? (string.IsNullOrWhiteSpace(p.Author.DisplayName) ? p.Author.UserName : p.Author.DisplayName) : "Unknown",
-                p.Author?.AvatarUrl,
-                p.Content,
-                p.HasPoll,
-                p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
-                p.TblPostLikes.Count(l => !l.IsDeleted),
-                p.TblComments.Count(c => !c.IsDeleted),
-                p.TblPostShares.Count(s => !s.IsDeleted),
-                currentUserId.HasValue && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
-                currentUserId.HasValue && p.TblSavedPosts.Any(s => s.UserId == currentUserId.Value && !s.IsDeleted),
-                p.CreatedAt)).ToList();
+            var list = posts
+                .OrderByDescending(p => followedAuthorIds.Contains(p.AuthorId) || (p.GroupId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)))
+                .ThenByDescending(p => p.CreatedAt)
+                .Select(p => new PostModel(
+                    p.PostId,
+                    p.CommunityId,
+                    p.Community?.Name,
+                    p.GroupId,
+                    p.Group?.Name,
+                    p.AuthorId,
+                    p.Author != null ? (string.IsNullOrWhiteSpace(p.Author.DisplayName) ? p.Author.UserName : p.Author.DisplayName) : "Unknown",
+                    p.Author?.AvatarUrl,
+                    p.Content,
+                    p.HasPoll,
+                    p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
+                    p.TblPostLikes.Count(l => !l.IsDeleted),
+                    p.TblComments.Count(c => !c.IsDeleted),
+                    p.TblPostShares.Count(s => !s.IsDeleted),
+                    currentUserId.HasValue && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
+                    currentUserId.HasValue && p.TblSavedPosts.Any(s => s.UserId == currentUserId.Value && !s.IsDeleted),
+                    p.CreatedAt,
+                    p.CodeSnippet,
+                    p.CodeFileName,
+                    p.CodeLanguage)).ToList();
 
             return Result<IReadOnlyList<PostModel>>.Success(list);
         }
@@ -152,6 +173,9 @@ public sealed class PostService(
             AuthorId = currentUser.UserId.Value,
             Content = request.Content.Trim(),
             HasPoll = false,
+            CodeSnippet = request.CodeSnippet,
+            CodeFileName = request.CodeFileName,
+            CodeLanguage = request.CodeLanguage ?? "TEXT",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -202,7 +226,10 @@ public sealed class PostService(
             0,
             false,
             false,
-            post.CreatedAt);
+            post.CreatedAt,
+            post.CodeSnippet,
+            post.CodeFileName,
+            post.CodeLanguage);
 
         return Result<PostModel>.Success(response, "Post created successfully.");
     }
@@ -228,6 +255,9 @@ public sealed class PostService(
             return Result<PostModel>.Failure("You can only edit your own posts.", ResultStatus.Forbidden);
 
         post.Content = request.Content.Trim();
+        post.CodeSnippet = request.CodeSnippet;
+        post.CodeFileName = request.CodeFileName;
+        post.CodeLanguage = request.CodeLanguage ?? "TEXT";
         post.UpdatedAt = DateTime.UtcNow;
         post.UpdatedBy = currentUser.UserId.Value;
 
@@ -274,7 +304,10 @@ public sealed class PostService(
             post.TblPostShares.Count,
             post.TblPostLikes.Any(l => l.UserId == currentUser.UserId.Value),
             false,
-            post.CreatedAt);
+            post.CreatedAt,
+            post.CodeSnippet,
+            post.CodeFileName,
+            post.CodeLanguage);
 
         return Result<PostModel>.Success(response, "Post updated successfully.");
     }

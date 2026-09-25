@@ -16,6 +16,9 @@ public interface IUserProfileService
     Task<Result<UserProfileDto>> RateUserAsync(int currentUserId, int targetUserId, RateUserRequestDto dto, CancellationToken cancellationToken = default);
     Task<Result<List<UserPostItemDto>>> GetUserPostsAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default);
     Task<Result<List<UserPostItemDto>>> GetSavedPostsAsync(int currentUserId, CancellationToken cancellationToken = default);
+    Task<Result<List<UserPostItemDto>>> GetRecycledPostsAsync(int currentUserId, CancellationToken cancellationToken = default);
+    Task<Result> RestorePostAsync(int currentUserId, int postId, CancellationToken cancellationToken = default);
+    Task<Result> PermanentlyDeletePostAsync(int currentUserId, int postId, CancellationToken cancellationToken = default);
     Task<Result<List<SavedAccountItemDto>>> GetSavedAccountsAsync(int currentUserId, CancellationToken cancellationToken = default);
     Task<Result<List<UserCommunityItemDto>>> GetUserCommunitiesAsync(int targetUserId, CancellationToken cancellationToken = default);
     Task<Result<List<UserRatingItemDto>>> GetUserReviewsAsync(int targetUserId, CancellationToken cancellationToken = default);

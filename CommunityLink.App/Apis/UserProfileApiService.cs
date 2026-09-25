@@ -60,6 +60,15 @@ public sealed class UserProfileApiService(IHttpClientFactory clientFactory, IHtt
     public Task<Result<List<UserPostItemDto>>> GetSavedPostsAsync(CancellationToken cancellationToken = default) =>
         GetAsync<List<UserPostItemDto>>("api/users/me/saved-posts", cancellationToken);
 
+    public Task<Result<List<UserPostItemDto>>> GetRecycledPostsAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<List<UserPostItemDto>>("api/users/me/recycled-posts", cancellationToken);
+
+    public Task<Result> RestorePostAsync(int postId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/users/me/recycled-posts/{postId}/restore", new { }, cancellationToken);
+
+    public Task<Result> PermanentlyDeletePostAsync(int postId, CancellationToken cancellationToken = default) =>
+        DeleteAsync($"api/users/me/recycled-posts/{postId}/permanent", cancellationToken);
+
     public Task<Result<List<SavedAccountItemDto>>> GetSavedAccountsAsync(CancellationToken cancellationToken = default) =>
         GetAsync<List<SavedAccountItemDto>>("api/users/me/saved-accounts", cancellationToken);
 

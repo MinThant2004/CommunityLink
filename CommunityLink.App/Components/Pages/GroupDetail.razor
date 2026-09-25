@@ -7,6 +7,7 @@
 @inject PollApiService PollApi
 @inject ToastService Toast
 @inject AuthenticationStateProvider AuthStateProvider
+@inject RoleAndPermissionApiService RoleApi
 @inject NavigationManager NavManager
 @inject IWebHostEnvironment Environment
 
@@ -225,14 +226,14 @@
                         <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">Group Discussion</h3>
                         <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Stay updated and connect with other members in this group.</p>
                     </div>
-                    @if (group.IsJoined)
+                    @if (group.IsJoined && canCreatePost)
                     {
                         <button type="button" @onclick="OpenCreatePostModal"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95">
                             <span>✍️ Create Post</span>
                         </button>
                     }
-                    else
+                    else if (!group.IsJoined)
                     {
                         <button type="button" @onclick="JoinGroup"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold text-xs rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] transition">
@@ -1283,6 +1284,8 @@
     private bool pollIsMultipleChoice;
     private List<string> pollOptionsList = ["", ""];
 
+    private bool canCreatePost;
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -1291,6 +1294,24 @@
         if (int.TryParse(sub, out var uid))
         {
             currentUserId = uid;
+        }
+
+        var isAdmin = user.IsInRole("ADMIN") || user.HasClaim("permission", PermissionCatalog.AdminUserView);
+        if (isAdmin)
+        {
+            canCreatePost = true;
+        }
+        else
+        {
+            try
+            {
+                var permRes = await RoleApi.GetMyPermissionsAsync();
+                if (permRes.IsSuccess && permRes.Data != null)
+                {
+                    canCreatePost = permRes.Data.Any(p => p.Equals(PermissionCatalog.PostCreate, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+            catch { }
         }
 
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);

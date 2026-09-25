@@ -310,6 +310,83 @@ public class UserProfileService : IUserProfileService
         return Result<List<UserPostItemDto>>.Success(list);
     }
 
+    public async Task<Result<List<UserPostItemDto>>> GetRecycledPostsAsync(int currentUserId, CancellationToken cancellationToken = default)
+    {
+        var tenDaysAgo = DateTime.UtcNow.AddDays(-10);
+
+        // Auto-purge any recycled posts older than 10 days
+        var expiredPosts = await _dbContext.TblPosts
+            .Where(p => p.AuthorId == currentUserId && p.IsDeleted && p.DeletedAt.HasValue && p.DeletedAt.Value < tenDaysAgo)
+            .ToListAsync(cancellationToken);
+
+        if (expiredPosts.Any())
+        {
+            _dbContext.TblPosts.RemoveRange(expiredPosts);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        var recycledPosts = await _dbContext.TblPosts
+            .Include(p => p.Author)
+            .Include(p => p.Community)
+            .Include(p => p.TblPostImages)
+            .Include(p => p.TblPostLikes)
+            .Include(p => p.TblComments)
+            .Include(p => p.TblPolls)
+                .ThenInclude(poll => poll.TblPollOptions)
+            .Include(p => p.TblPolls)
+                .ThenInclude(poll => poll.TblPollVotes)
+            .Where(p => p.AuthorId == currentUserId && p.IsDeleted && (!p.DeletedAt.HasValue || p.DeletedAt.Value >= tenDaysAgo))
+            .OrderByDescending(p => p.DeletedAt ?? p.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        var list = recycledPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
+        return Result<List<UserPostItemDto>>.Success(list);
+    }
+
+    public async Task<Result> RestorePostAsync(int currentUserId, int postId, CancellationToken cancellationToken = default)
+    {
+        var post = await _dbContext.TblPosts
+            .FirstOrDefaultAsync(p => p.PostId == postId && p.AuthorId == currentUserId && p.IsDeleted, cancellationToken);
+
+        if (post == null)
+            return Result.Failure("Recycled post not found.", ResultStatus.NotFound);
+
+        post.IsDeleted = false;
+        post.DeletedAt = null;
+        post.DeletedBy = null;
+        post.UpdatedAt = DateTime.UtcNow;
+        post.UpdatedBy = currentUserId;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success("Post restored successfully.");
+    }
+
+    public async Task<Result> PermanentlyDeletePostAsync(int currentUserId, int postId, CancellationToken cancellationToken = default)
+    {
+        var post = await _dbContext.TblPosts
+            .Include(p => p.TblPostImages)
+            .Include(p => p.TblPostLikes)
+            .Include(p => p.TblComments)
+            .Include(p => p.TblSavedPosts)
+            .Include(p => p.TblPostShares)
+            .Include(p => p.TblPolls)
+            .FirstOrDefaultAsync(p => p.PostId == postId && p.AuthorId == currentUserId, cancellationToken);
+
+        if (post == null)
+            return Result.Failure("Post not found.", ResultStatus.NotFound);
+
+        // Permanently remove related child records if any exist
+        if (post.TblPostImages.Any()) _dbContext.TblPostImages.RemoveRange(post.TblPostImages);
+        if (post.TblPostLikes.Any()) _dbContext.TblPostLikes.RemoveRange(post.TblPostLikes);
+        if (post.TblComments.Any()) _dbContext.TblComments.RemoveRange(post.TblComments);
+        if (post.TblSavedPosts.Any()) _dbContext.TblSavedPosts.RemoveRange(post.TblSavedPosts);
+        if (post.TblPostShares.Any()) _dbContext.TblPostShares.RemoveRange(post.TblPostShares);
+
+        _dbContext.TblPosts.Remove(post);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success("Post permanently deleted.");
+    }
+
     public async Task<Result<List<SavedAccountItemDto>>> GetSavedAccountsAsync(int currentUserId, CancellationToken cancellationToken = default)
     {
         var savedAccounts = await _dbContext.TblSavedAccounts
@@ -839,7 +916,8 @@ public class UserProfileService : IUserProfileService
             LikeCount = p.TblPostLikes.Count(l => !l.IsDeleted),
             CommentCount = p.TblComments.Count(c => !c.IsDeleted),
             ImageUrls = p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
-            CreatedAt = p.CreatedAt
+            CreatedAt = p.CreatedAt,
+            DeletedAt = p.DeletedAt
         };
     }
 }

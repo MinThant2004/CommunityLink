@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CommunityLink.Shared.Features.Authentication;
 using CommunityLink.Shared.Features.Community;
+using CommunityLink.Shared.Features.Group;
 using CommunityLink.Shared.Features.Poll;
 using CommunityLink.Shared.Features.Post;
 
@@ -15,7 +16,8 @@ public sealed record UserDashboardModel(
     IReadOnlyList<DirectoryPersonModel> People,
     IReadOnlyList<PostModel> RecentPosts,
     IReadOnlyList<PollModel> ActivePolls,
-    int UnreadMessageCount);
+    int UnreadMessageCount,
+    IReadOnlyList<GroupModel>? Groups = null);
 
 public sealed record DirectoryPersonModel(
     int UserId,
@@ -27,4 +29,5 @@ public sealed record DirectoryPersonModel(
     bool IsVerified,
     int JoinedCommunitiesCount,
     int PostsCount,
-    decimal? AverageRating);
+    decimal? AverageRating,
+    bool IsFollowedByCurrentUser = false);

@@ -138,6 +138,8 @@ public class UserPostItemDto
     public int CommentCount { get; set; }
     public List<string> ImageUrls { get; set; } = new();
     public DateTime CreatedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public int? DaysRemaining => DeletedAt.HasValue ? Math.Max(0, 10 - (int)(DateTime.UtcNow - DeletedAt.Value).TotalDays) : null;
 }
 
 public class UserPollDetailDto
