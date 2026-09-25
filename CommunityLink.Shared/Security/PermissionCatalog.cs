@@ -38,6 +38,10 @@ public static class PermissionCatalog
     public const string AdminUserView = "ADMIN.USER.VIEW";
     public const string AdminUserManage = "ADMIN.USER.MANAGE";
     public const string AdminRbacManage = "ADMIN.RBAC.MANAGE";
+    public const string SystemAuditView = "SYSTEMAUDIT.VIEW";
+
+    // Reports
+    public const string ReportView = "REPORT.VIEW";
 
     public static readonly IReadOnlyList<PermissionDefinition> All =
     [
@@ -61,7 +65,9 @@ public static class PermissionCatalog
         new(GroupChatCreate, "Create Group Chat (Premium)", "Chat", null, false, false),
         new(AdminUserView, "View Admin Users", "Administration", "/admin/users", true, false),
         new(AdminUserManage, "Manage Admin Users", "Administration", "/admin/users", true, false),
-        new(AdminRbacManage, "Manage RBAC Matrix", "Administration", "/admin/rbac", true, false)
+        new(AdminRbacManage, "Manage RBAC Matrix", "Administration", "/admin/rbac", true, false),
+        new(SystemAuditView, "View System Audit Logs", "Administration", "/admin/audits", true, false),
+        new(ReportView, "View Reports", "Reports", "/reports", true, true)
     ];
 
     public static IReadOnlyList<string> DefaultForRole(string roleCode) => roleCode.ToUpperInvariant() switch

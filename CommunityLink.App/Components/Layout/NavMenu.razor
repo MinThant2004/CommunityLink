@@ -77,6 +77,36 @@
                         </NavLink>
                     </div>
 
+                    <!-- Reports Section / Dropdown -->
+                    <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.ReportView)" Context="reportCtx">
+                        <Authorized>
+                            <div class="px-1 py-0.5">
+                                <button type="button" @onclick="ToggleReportMenu" class="w-full px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] hover:text-[#0A1B2E] dark:hover:text-white transition flex items-center justify-between cursor-pointer">
+                                    <div class="flex items-center gap-2.5">
+                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                                        <span>Reports</span>
+                                    </div>
+                                    <svg class="w-3.5 h-3.5 transform transition-transform duration-200 @(isReportOpen ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                @if (isReportOpen)
+                                {
+                                    <div class="pl-6 pr-1 py-1 space-y-1 mt-0.5 border-l-2 border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] ml-4">
+                                        <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] hover:text-[#0A1B2E] dark:hover:text-white transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#E1E8F0] dark:!text-[#0A1B2E] shadow-sm" href="reports/communities">
+                                            <span class="text-xs">🏛️</span>
+                                            <span>Community Report</span>
+                                        </NavLink>
+                                        <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] hover:text-[#0A1B2E] dark:hover:text-white transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#E1E8F0] dark:!text-[#0A1B2E] shadow-sm" href="reports/users">
+                                            <span class="text-xs">👥</span>
+                                            <span>User Report</span>
+                                        </NavLink>
+                                    </div>
+                                }
+                            </div>
+                        </Authorized>
+                    </AuthorizeView>
+
                     <!-- Administration Section for Admins -->
                     <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)" Context="adminContext">
                         <Authorized>
@@ -191,4 +221,10 @@
 
 @code {
     [Parameter] public EventCallback OnClose { get; set; }
+    private bool isReportOpen = true;
+
+    private void ToggleReportMenu()
+    {
+        isReportOpen = !isReportOpen;
+    }
 }

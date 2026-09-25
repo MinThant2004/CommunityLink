@@ -40,9 +40,13 @@ public sealed record AuditLogModel(
     string Action,
     string EntityName,
     string? EntityId,
+    string? OldValues,
+    string? NewValues,
+    string? ChangedColumns,
     string? Details,
     string? IpAddress,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    DateTime? UpdatedAt = null);
 
 public sealed record CreateAdminInviteRequestModel(
     string Email,

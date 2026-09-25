@@ -1,0 +1,316 @@
+@page "/reports/users"
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ReportView)]
+@using CommunityLink.Shared.Features.Report
+@inject ReportApiService ReportApi
+
+<PageTitle>User Popularity & Top Content Report — CommunityLink</PageTitle>
+
+<div class="max-w-7xl mx-auto space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150 p-4 md:p-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-4">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">👥</span>
+                <h1 class="text-2xl font-bold tracking-tight" style="font-family:'Manrope',sans-serif">User Popularity &amp; Top Content Report</h1>
+            </div>
+            <p class="text-sm text-[#557392] dark:text-[#C4D2E1] mt-1">
+                Users sorted by highest followers count. Select any user to inspect their most engaged posts and top-performing polls.
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button @onclick="LoadUsersAsync" class="px-3.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Refresh Data
+            </button>
+        </div>
+    </div>
+
+    @if (isLoadingUsers)
+    {
+        <div class="p-16 text-center text-[#557392] dark:text-[#C4D2E1]">
+            <div class="inline-block animate-spin rounded-full h-9 w-9 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
+            <p class="mt-3 text-sm font-medium">Aggregating user popularity report...</p>
+        </div>
+    }
+    else if (users == null || !users.Any())
+    {
+        <div class="bg-white dark:bg-[#112A46] rounded-2xl p-12 text-center border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+            <span class="text-4xl">👥</span>
+            <p class="mt-3 text-sm font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">No users found</p>
+        </div>
+    }
+    else
+    {
+        <!-- Main Layout: User List (Left) and Content Details (Right) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- Left Panel: Ranked Users List -->
+            <div class="lg:col-span-5 bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden shadow-sm">
+                <div class="p-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-[#7A8CA6] font-mono">Ranked Users (By Followers)</span>
+                    <span class="text-xs text-[#7A8CA6] font-mono">@users.Count users</span>
+                </div>
+
+                <div class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)] max-h-[720px] overflow-y-auto">
+                    @for (int i = 0; i < users.Count; i++)
+                    {
+                        var u = users[i];
+                        var rank = i + 1;
+                        var isSelected = selectedUserId == u.UserId;
+
+                        <button type="button" @onclick="() => SelectUserAsync(u.UserId)" class="w-full text-left p-4 hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/40 transition flex items-center gap-3 cursor-pointer @(isSelected ? "bg-indigo-50/80 dark:bg-indigo-950/40 border-l-4 border-indigo-600" : "")">
+                            <span class="font-mono text-xs font-bold @(rank <= 3 ? "text-amber-500" : "text-[#7A8CA6]") w-6 shrink-0">
+                                #@rank
+                            </span>
+
+                            <div class="w-9 h-9 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-bold text-xs flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                                @if (!string.IsNullOrWhiteSpace(u.AvatarUrl))
+                                {
+                                    <img src="@u.AvatarUrl" class="w-full h-full object-cover" alt="@u.DisplayName" />
+                                }
+                                else
+                                {
+                                    @u.DisplayName.Substring(0, 1).ToUpper()
+                                }
+                            </div>
+
+                            <div class="min-w-0 flex-1">
+                                <div class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0] truncate">
+                                    @u.DisplayName
+                                </div>
+                                <div class="text-[11px] text-[#7A8CA6] font-mono truncate">
+                                    @@@u.UserName
+                                </div>
+                            </div>
+
+                            <div class="text-right shrink-0">
+                                <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                                    @u.FollowersCount
+                                </div>
+                                <div class="text-[10px] text-[#7A8CA6]">
+                                    followers
+                                </div>
+                            </div>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Right Panel: Selected User Most Liked Posts & Polls -->
+            <div class="lg:col-span-7 space-y-6">
+                @if (isLoadingContent)
+                {
+                    <div class="bg-white dark:bg-[#112A46] rounded-2xl p-12 text-center border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
+                        <p class="mt-2 text-xs font-medium text-[#557392] dark:text-[#C4D2E1]">Loading top content...</p>
+                    </div>
+                }
+                else if (userContent == null)
+                {
+                    <div class="bg-white dark:bg-[#112A46] rounded-2xl p-12 text-center border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                        <span class="text-3xl">👈</span>
+                        <p class="mt-2 text-sm font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">Select a user</p>
+                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1">Click any user on the left list to see their most liked posts and live polls.</p>
+                    </div>
+                }
+                else
+                {
+                    <!-- Selected User Header -->
+                    <div class="bg-white dark:bg-[#112A46] p-5 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-sm flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-bold text-base flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                                @if (!string.IsNullOrWhiteSpace(userContent.User.AvatarUrl))
+                                {
+                                    <img src="@userContent.User.AvatarUrl" class="w-full h-full object-cover" alt="@userContent.User.DisplayName" />
+                                }
+                                else
+                                {
+                                    @userContent.User.DisplayName.Substring(0, 1).ToUpper()
+                                }
+                            </div>
+                            <div>
+                                <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@userContent.User.DisplayName</h2>
+                                <p class="text-xs text-[#7A8CA6] font-mono">@@@userContent.User.UserName • Joined @userContent.User.CreatedAt.ToString("MMM yyyy")</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div class="text-center px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-[#0A1B2E] border border-slate-200 dark:border-slate-800">
+                                <div class="text-sm font-bold text-indigo-600 dark:text-indigo-400">@userContent.User.FollowersCount</div>
+                                <div class="text-[10px] text-[#7A8CA6]">Followers</div>
+                            </div>
+                            <div class="text-center px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-[#0A1B2E] border border-slate-200 dark:border-slate-800">
+                                <div class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@userContent.User.PostCount</div>
+                                <div class="text-[10px] text-[#7A8CA6]">Posts</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Posts Section -->
+                    <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden shadow-sm">
+                        <div class="p-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-between">
+                            <div class="text-xs font-bold uppercase tracking-wider text-[#7A8CA6] font-mono flex items-center gap-2">
+                                <span>❤️</span> Most Liked Posts (Public &amp; In-Group)
+                            </div>
+                            <span class="text-xs text-[#7A8CA6] font-mono">@userContent.TopPosts.Count items</span>
+                        </div>
+
+                        @if (!userContent.TopPosts.Any())
+                        {
+                            <div class="p-8 text-center text-xs text-slate-500 italic">
+                                This user hasn't published any posts yet.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)]">
+                                @foreach (var p in userContent.TopPosts)
+                                {
+                                    <div class="p-4 hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/30 transition space-y-2">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <div class="flex items-center gap-2">
+                                                @if (!string.IsNullOrWhiteSpace(p.GroupName))
+                                                {
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
+                                                        Group: @p.GroupName
+                                                    </span>
+                                                }
+                                                else if (!string.IsNullOrWhiteSpace(p.CommunityName))
+                                                {
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300">
+                                                        Community: @p.CommunityName
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                                                        Public Post
+                                                    </span>
+                                                }
+                                                <span class="text-[11px] text-[#7A8CA6] font-mono">@p.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                            </div>
+
+                                            <div class="flex items-center gap-3">
+                                                <span class="flex items-center gap-1 font-bold text-xs text-rose-500">
+                                                    ❤️ @p.LikeCount
+                                                </span>
+                                                <span class="flex items-center gap-1 text-xs text-[#7A8CA6]">
+                                                    💬 @p.CommentCount
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <p class="text-xs text-[#0A1B2E] dark:text-[#E1E8F0] leading-relaxed whitespace-pre-line line-clamp-3">
+                                            @p.Content
+                                        </p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Top Polls Section -->
+                    <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden shadow-sm">
+                        <div class="p-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-between">
+                            <div class="text-xs font-bold uppercase tracking-wider text-[#7A8CA6] font-mono flex items-center gap-2">
+                                <span>📊</span> Top Polls (By Votes &amp; Engagement)
+                            </div>
+                            <span class="text-xs text-[#7A8CA6] font-mono">@userContent.TopPolls.Count polls</span>
+                        </div>
+
+                        @if (!userContent.TopPolls.Any())
+                        {
+                            <div class="p-8 text-center text-xs text-slate-500 italic">
+                                This user hasn't created any polls yet.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)]">
+                                @foreach (var pl in userContent.TopPolls)
+                                {
+                                    <div class="p-4 hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/30 transition space-y-2">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <div class="flex items-center gap-2">
+                                                @if (!string.IsNullOrWhiteSpace(pl.GroupName))
+                                                {
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
+                                                        Group: @pl.GroupName
+                                                    </span>
+                                                }
+                                                <span class="text-[11px] text-[#7A8CA6] font-mono">@pl.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                            </div>
+
+                                            <div class="flex items-center gap-3">
+                                                <span class="flex items-center gap-1 font-bold text-xs text-indigo-600 dark:text-indigo-400">
+                                                    🗳️ @pl.TotalVotes votes
+                                                </span>
+                                                <span class="flex items-center gap-1 text-xs text-rose-500">
+                                                    ❤️ @pl.LikeCount
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                            @pl.Question
+                                        </div>
+
+                                        @if (pl.Options.Any())
+                                        {
+                                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                                @foreach (var opt in pl.Options)
+                                                {
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 dark:bg-[#0A1B2E] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
+                                                        @opt
+                                                    </span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoadingUsers = true;
+    private bool isLoadingContent = false;
+    private IReadOnlyList<UserReportItemModel>? users;
+    private int? selectedUserId;
+    private UserTopContentModel? userContent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        isLoadingUsers = true;
+        var res = await ReportApi.GetUserReportAsync();
+        if (res.IsSuccess && res.Data != null)
+        {
+            users = res.Data;
+            if (users.Any())
+            {
+                await SelectUserAsync(users.First().UserId);
+            }
+        }
+        isLoadingUsers = false;
+    }
+
+    private async Task SelectUserAsync(int userId)
+    {
+        selectedUserId = userId;
+        isLoadingContent = true;
+        var res = await ReportApi.GetUserTopContentAsync(userId);
+        if (res.IsSuccess && res.Data != null)
+        {
+            userContent = res.Data;
+        }
+        isLoadingContent = false;
+    }
+}

@@ -51,13 +51,32 @@ public sealed class AdministrationService(
         var role = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleId == request.RoleId && !r.IsDeleted, cancellationToken);
         if (role is null) return Result.Failure("Role not found.", ResultStatus.NotFound);
 
-        var existingUserRoles = await dbContext.TblUserRoles.Where(ur => ur.UserId == request.UserId).ToListAsync(cancellationToken);
+        var existingUserRoles = await dbContext.TblUserRoles
+            .Include(ur => ur.Role)
+            .Where(ur => ur.UserId == request.UserId)
+            .ToListAsync(cancellationToken);
+
+        var oldRoleName = existingUserRoles.Select(ur => ur.Role?.RoleName ?? ur.Role?.RoleCode).FirstOrDefault() ?? "None";
         dbContext.TblUserRoles.RemoveRange(existingUserRoles);
 
         dbContext.TblUserRoles.Add(new TblUserRole
         {
             UserId = request.UserId,
             RoleId = request.RoleId,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        // Audit Log for USER role change
+        dbContext.TblAuditLogs.Add(new TblAuditLog
+        {
+            ActorType = currentUser.RoleCode ?? "ADMIN",
+            ActorId = currentUser.UserId,
+            Action = "CHANGE",
+            EntityName = "USER",
+            EntityId = user.UserId,
+            OldValues = $"Role: {oldRoleName}",
+            NewValues = $"Role: {role.RoleName} ({role.RoleCode})",
+            ChangedColumns = "RoleId",
             CreatedAt = DateTime.UtcNow
         });
 
@@ -191,18 +210,38 @@ public sealed class AdministrationService(
         var userMap = await dbContext.TblUsers
             .Where(u => actorIds.Contains(u.UserId))
             .ToDictionaryAsync(u => u.UserId, u => u.DisplayName, cancellationToken);
+        var adminMap = await dbContext.TblAdmins
+            .Where(a => actorIds.Contains(a.AdminId))
+            .ToDictionaryAsync(a => a.AdminId, a => string.IsNullOrWhiteSpace(a.FullName) ? a.Email : a.FullName, cancellationToken);
 
-        var items = rawLogs.Select(a => new AuditLogModel(
-            a.AuditLogId,
-            a.ActorId,
-            a.ActorId.HasValue && userMap.TryGetValue(a.ActorId.Value, out var name) ? name : "System",
-            a.ActorType ?? "User",
-            a.Action,
-            a.EntityName,
-            a.EntityId != null ? a.EntityId.ToString() : null,
-            a.NewValues ?? a.OldValues,
-            a.IpAddress,
-            a.CreatedAt)).ToList();
+        var items = rawLogs.Select(a => {
+            string actorName = "System";
+            if (a.ActorId.HasValue)
+            {
+                if (adminMap.TryGetValue(a.ActorId.Value, out var admName))
+                    actorName = admName;
+                else if (userMap.TryGetValue(a.ActorId.Value, out var usrName))
+                    actorName = usrName;
+                else
+                    actorName = $"User #{a.ActorId.Value}";
+            }
+
+            return new AuditLogModel(
+                a.AuditLogId,
+                a.ActorId,
+                actorName,
+                a.ActorType ?? "User",
+                a.Action,
+                a.EntityName,
+                a.EntityId != null ? a.EntityId.ToString() : null,
+                a.OldValues,
+                a.NewValues,
+                a.ChangedColumns,
+                a.NewValues ?? a.OldValues,
+                a.IpAddress,
+                a.CreatedAt,
+                a.UpdatedAt);
+        }).ToList();
 
         return Result<PagedResult<AuditLogModel>>.Success(new PagedResult<AuditLogModel>(items, totalCount, page, pageSize));
     }
@@ -373,6 +412,20 @@ public sealed class AdministrationService(
         {
             System.Diagnostics.Debug.WriteLine($"Failed to send invitation email: {ex.Message}");
         }
+
+        // Audit log for admin invitation / account creation
+        dbContext.TblAuditLogs.Add(new TblAuditLog
+        {
+            ActorType = currentUser.RoleCode ?? "ADMIN",
+            ActorId = currentUser.UserId,
+            Action = "CREATE",
+            EntityName = "USER",
+            OldValues = null,
+            NewValues = $"Admin Invite: {request.Email.Trim()} (SuperAdmin: {request.IsSuperAdmin})",
+            ChangedColumns = "AdminInvite",
+            CreatedAt = DateTime.UtcNow
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return Result<string>.Success(setupLink, "Admin account invitation link generated and sent. Valid for 15 minutes.");
     }

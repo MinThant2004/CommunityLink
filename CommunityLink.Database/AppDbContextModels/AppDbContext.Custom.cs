@@ -18,26 +18,6 @@ public partial class AppDbContext
             entity.ToTable("TblCommunityAuditLog");
         });
 
-        modelBuilder.Entity<TblUserFollow>(entity =>
-        {
-            entity.HasKey(e => e.FollowId);
-            entity.ToTable("TblUserFollow");
-
-            entity.Property(e => e.RowVersion)
-                .IsRowVersion()
-                .IsConcurrencyToken();
-
-            entity.HasOne(d => d.Follower)
-                .WithMany()
-                .HasForeignKey(d => d.FollowerId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-
-            entity.HasOne(d => d.Followee)
-                .WithMany()
-                .HasForeignKey(d => d.FolloweeId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-        });
-
         modelBuilder.Entity<TblGroupRating>(entity =>
         {
             entity.HasKey(e => e.GroupRatingId);
