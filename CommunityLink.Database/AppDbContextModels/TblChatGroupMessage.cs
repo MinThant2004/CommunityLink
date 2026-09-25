@@ -1,13 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
 
-public partial class TblGroupChatMessage
+public partial class TblChatGroupMessage
 {
-    public int GroupChatMessageId { get; set; }
+    public int ChatGroupMessageId { get; set; }
 
-    public int GroupChatRoomId { get; set; }
+    public int ChatGroupId { get; set; }
 
     public int SenderId { get; set; }
 
@@ -17,13 +17,19 @@ public partial class TblGroupChatMessage
 
     public int? CreatedBy { get; set; }
 
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? UpdatedBy { get; set; }
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }
 
     public int? DeletedBy { get; set; }
 
-    public virtual TblGroupChatRoom GroupChatRoom { get; set; } = null!;
+    public byte[] RowVersion { get; set; } = null!;
+
+    public virtual TblChatGroup ChatGroup { get; set; } = null!;
 
     public virtual TblUser Sender { get; set; } = null!;
 }

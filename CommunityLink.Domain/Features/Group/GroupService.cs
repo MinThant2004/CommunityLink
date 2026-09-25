@@ -202,7 +202,6 @@ public sealed class GroupService(AppDbContext dbContext, ICurrentUserContext cur
             BannerUrl = request.BannerUrl,
             Visibility = visibility,
             JoinPolicy = joinPolicy,
-            GroupType = "FREE",
             MemberCount = 1,
             PostCount = 0,
             CreatedAt = DateTime.UtcNow,

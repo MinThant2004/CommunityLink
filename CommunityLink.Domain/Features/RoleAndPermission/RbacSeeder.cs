@@ -33,7 +33,9 @@ public static class RbacSeeder
         {
             ("ADMIN", "Administrator", "Full system administrator", true),
             ("MODERATOR", "Community Moderator", "Manages community content & moderation", true),
-            ("MEMBER", "Community Member", "Standard user account", true)
+            ("MEMBER", "Community Member", "Standard user account", true),
+            ("DOMAIN_PROFESSIONAL", "Domain Professional", "Domain Professional premium creator account", true),
+            ("PUBLIC_FIGURE", "Public Figure", "Public Figure premium creator account", true)
         };
 
         foreach (var (code, name, desc, isSystem) in rolesToSeed)
@@ -74,7 +76,7 @@ public static class RbacSeeder
         }
         await db.SaveChangesAsync();
 
-        // 3. Seed Default Admin & Demo User
+        // 3. Seed Default Admin & Demo Users
         if (!await db.TblUsers.AnyAsync())
         {
             var adminRole = await db.TblRoles.FirstAsync(r => r.RoleCode == "ADMIN");
@@ -114,6 +116,51 @@ public static class RbacSeeder
 
             db.TblUserRoles.Add(new TblUserRole { UserId = demoMember.UserId, RoleId = memberRole.RoleId, CreatedAt = DateTime.UtcNow });
             await db.SaveChangesAsync();
+        }
+
+        // 4. Seed Premium Demo Users (DOMAIN_PROFESSIONAL & PUBLIC_FIGURE)
+        var premiumUsersToSeed = new (string Username, string DisplayName, string Email, string RoleCode)[]
+        {
+            ("pro_user", "Dr. Alex Pro", "pro_user@communitylink.local", "DOMAIN_PROFESSIONAL"),
+            ("figure_user", "Sarah Public Figure", "figure_user@communitylink.local", "PUBLIC_FIGURE")
+        };
+
+        foreach (var (username, displayName, email, roleCode) in premiumUsersToSeed)
+        {
+            var targetRole = await db.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == roleCode);
+            if (targetRole is null) continue;
+
+            var existingUser = await db.TblUsers.FirstOrDefaultAsync(u => u.NormalizedUserName == username.ToUpperInvariant());
+            if (existingUser is null)
+            {
+                var newUser = new TblUser
+                {
+                    UserName = username,
+                    NormalizedUserName = username.ToUpperInvariant(),
+                    DisplayName = displayName,
+                    Email = email,
+                    NormalizedEmail = email.ToUpperInvariant(),
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password@123", 12),
+                    IsActive = true,
+                    IsVerified = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                db.TblUsers.Add(newUser);
+                await db.SaveChangesAsync();
+
+                db.TblUserRoles.Add(new TblUserRole { UserId = newUser.UserId, RoleId = targetRole.RoleId, CreatedAt = DateTime.UtcNow });
+                
+                db.TblLinkDropWallets.Add(new TblLinkDropWallet
+                {
+                    UserId = newUser.UserId,
+                    Balance = 500,
+                    PurchasedBalance = 300,
+                    EarnedBalance = 200,
+                    UpdatedAt = DateTime.UtcNow
+                });
+
+                await db.SaveChangesAsync();
+            }
         }
     }
 }

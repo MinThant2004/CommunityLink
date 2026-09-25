@@ -58,7 +58,7 @@ builder.Services.AddScoped<GroupApiService>();
 builder.Services.AddScoped<PostApiService>();
 builder.Services.AddScoped<PollApiService>();
 builder.Services.AddScoped<ChatApiService>();
-builder.Services.AddScoped<GroupChatApiService>();
+builder.Services.AddScoped<ChatGroupApiService>();
 builder.Services.AddScoped<RoleAndPermissionApiService>();
 builder.Services.AddScoped<AdministrationApiService>();
 builder.Services.AddScoped<UserDashboardApiService>();

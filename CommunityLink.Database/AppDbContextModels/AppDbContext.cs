@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +17,14 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblAuditLog> TblAuditLogs { get; set; }
 
+    public virtual DbSet<TblChatGroup> TblChatGroups { get; set; }
+
+    public virtual DbSet<TblChatGroupMember> TblChatGroupMembers { get; set; }
+
+    public virtual DbSet<TblChatGroupMessage> TblChatGroupMessages { get; set; }
+
+    public virtual DbSet<TblChatGroupPaymentTransaction> TblChatGroupPaymentTransactions { get; set; }
+
     public virtual DbSet<TblChatMessage> TblChatMessages { get; set; }
 
     public virtual DbSet<TblComment> TblComments { get; set; }
@@ -32,10 +40,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<TblConversation> TblConversations { get; set; }
 
     public virtual DbSet<TblGroup> TblGroups { get; set; }
-
-    public virtual DbSet<TblGroupChatMessage> TblGroupChatMessages { get; set; }
-
-    public virtual DbSet<TblGroupChatRoom> TblGroupChatRooms { get; set; }
 
     public virtual DbSet<TblGroupJoinRequest> TblGroupJoinRequests { get; set; }
 
@@ -155,6 +159,91 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();
+        });
+
+        modelBuilder.Entity<TblChatGroup>(entity =>
+        {
+            entity.HasKey(e => e.ChatGroupId).HasName("PK__TblChatG__435956989E78C6F8");
+
+            entity.ToTable("TblChatGroup");
+
+            entity.HasIndex(e => e.ChatType, "IX_TblChatGroup_ChatType");
+
+            entity.HasIndex(e => e.CreatorId, "IX_TblChatGroup_CreatorId");
+
+            entity.Property(e => e.AvatarUrl).HasMaxLength(500);
+            entity.Property(e => e.BannerUrl).HasMaxLength(500);
+            entity.Property(e => e.ChatType)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("FREE", "DF_TblChatGroup_ChatType");
+            entity.Property(e => e.CommissionPercentageSnapshot).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroup_CreatedAt");
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.IsActive).HasDefaultValue(true, "DF_TblChatGroup_IsActive");
+            entity.Property(e => e.Name).HasMaxLength(200);
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasOne(d => d.Creator).WithMany(p => p.TblChatGroups)
+                .HasForeignKey(d => d.CreatorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroup_TblUser_Creator");
+        });
+
+        modelBuilder.Entity<TblChatGroupMember>(entity =>
+        {
+            entity.HasKey(e => e.ChatGroupMemberId).HasName("PK__TblChatG__E7AD15399B895E33");
+
+            entity.ToTable("TblChatGroupMember");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupMember_CreatedAt");
+            entity.Property(e => e.JoinedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupMember_JoinedAt");
+            entity.Property(e => e.Role)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("MEMBER", "DF_TblChatGroupMember_Role");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasOne(d => d.ChatGroup).WithMany(p => p.TblChatGroupMembers)
+                .HasForeignKey(d => d.ChatGroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupMember_TblChatGroup");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatGroupMembers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupMember_TblUser");
+        });
+
+        modelBuilder.Entity<TblChatGroupMessage>(entity =>
+        {
+            entity.HasKey(e => e.ChatGroupMessageId).HasName("PK__TblChatG__4403F2C8F35967F2");
+
+            entity.ToTable("TblChatGroupMessage");
+
+            entity.HasIndex(e => new { e.ChatGroupId, e.CreatedAt }, "IX_TblChatGroupMessage_Group_CreatedAt");
+
+            entity.HasIndex(e => e.SenderId, "IX_TblChatGroupMessage_SenderId");
+
+            entity.Property(e => e.Content).HasMaxLength(4000);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupMessage_CreatedAt");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasOne(d => d.ChatGroup).WithMany(p => p.TblChatGroupMessages)
+                .HasForeignKey(d => d.ChatGroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupMessage_TblChatGroup");
+
+            entity.HasOne(d => d.Sender).WithMany(p => p.TblChatGroupMessages)
+                .HasForeignKey(d => d.SenderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupMessage_TblUser_Sender");
         });
 
         modelBuilder.Entity<TblChatMessage>(entity =>
@@ -373,56 +462,6 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.SubCommunityId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblGroup_SubCommunity");
-        });
-
-        modelBuilder.Entity<TblGroupChatMessage>(entity =>
-        {
-            entity.HasKey(e => e.GroupChatMessageId).HasName("PK__TblGroup__945876A171BE2C4B");
-
-            entity.ToTable("TblGroupChatMessage");
-
-            entity.HasIndex(e => e.GroupChatRoomId, "IX_TblGroupChatMessage_GroupChatRoomId");
-
-            entity.HasIndex(e => e.SenderId, "IX_TblGroupChatMessage_SenderId");
-
-            entity.Property(e => e.Content).HasMaxLength(4000);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
-
-            entity.HasOne(d => d.GroupChatRoom).WithMany(p => p.TblGroupChatMessages)
-                .HasForeignKey(d => d.GroupChatRoomId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TblGroupChatMessage_TblGroupChatRoom");
-
-            entity.HasOne(d => d.Sender).WithMany(p => p.TblGroupChatMessages)
-                .HasForeignKey(d => d.SenderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TblGroupChatMessage_TblUser_Sender");
-        });
-
-        modelBuilder.Entity<TblGroupChatRoom>(entity =>
-        {
-            entity.HasKey(e => e.GroupChatRoomId).HasName("PK__TblGroup__D2E8AA678BBE355A");
-
-            entity.ToTable("TblGroupChatRoom");
-
-            entity.HasIndex(e => e.GroupId, "UQ_TblGroupChatRoom_GroupId").IsUnique();
-
-            entity.Property(e => e.ChatType)
-                .HasMaxLength(20)
-                .HasDefaultValue("FREE");
-            entity.Property(e => e.CommissionPercentageSnapshot).HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-            entity.HasOne(d => d.Creator).WithMany(p => p.TblGroupChatRooms)
-                .HasForeignKey(d => d.CreatorId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TblGroupChatRoom_TblUser_Creator");
-
-            entity.HasOne(d => d.Group).WithOne(p => p.TblGroupChatRoom)
-                .HasForeignKey<TblGroupChatRoom>(d => d.GroupId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TblGroupChatRoom_TblGroup");
         });
 
         modelBuilder.Entity<TblGroupJoinRequest>(entity =>

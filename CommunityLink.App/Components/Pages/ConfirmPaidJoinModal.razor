@@ -1,0 +1,146 @@
+@inject ChatGroupApiService ChatGroupApi
+@inject ToastService Toast
+
+<div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+            <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </span>
+                <h3 class="font-bold text-slate-900 text-base">Confirm Paid Group Join</h3>
+            </div>
+            <button type="button" @onclick="OnClose" disabled="@isSubmitting" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-200 transition cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 space-y-4">
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2 font-medium">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                    <span>@errorMessage</span>
+                </div>
+            }
+
+            <div class="space-y-1">
+                <div class="text-xs text-slate-500 font-medium">Chat Group</div>
+                <div class="text-base font-bold text-slate-900">@Group.Name</div>
+                <div class="text-xs text-slate-500">Created by <span class="text-slate-800 font-semibold">@Group.CreatorName</span></div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-600 font-medium">Join Fee:</span>
+                    <span class="font-bold text-amber-700">@Group.JoinFeeLinkDrops Link Drops</span>
+                </div>
+
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-600 font-medium">Platform Commission (@Group.CommissionPercentageSnapshot%):</span>
+                    <span class="font-semibold text-slate-700">@commissionAmount Link Drops</span>
+                </div>
+
+                <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
+                    <span class="text-slate-600 font-medium">Creator Net Earnings:</span>
+                    <span class="font-bold text-emerald-700">@creatorEarnings Link Drops</span>
+                </div>
+            </div>
+
+            @if (UserBalance.HasValue)
+            {
+                <div class="flex items-center justify-between text-xs px-1">
+                    <span class="text-slate-500 font-medium">Your Current Balance:</span>
+                    <span class="font-bold @(UserBalance.Value >= Group.JoinFeeLinkDrops ? "text-emerald-700" : "text-rose-600")">
+                        @UserBalance.Value Link Drops
+                    </span>
+                </div>
+            }
+
+            <p class="text-[11px] text-slate-500 leading-relaxed">
+                By confirming, @Group.JoinFeeLinkDrops Link Drops will be deducted from your wallet to join this Chat Group.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
+            <button type="button" @onclick="OnClose" disabled="@isSubmitting"
+                    class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 shadow-2xs transition cursor-pointer">
+                Cancel
+            </button>
+            <button type="button" @onclick="HandleConfirm" disabled="@isSubmitting"
+                    class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs transition inline-flex items-center gap-2 cursor-pointer disabled:opacity-50">
+                @if (isSubmitting)
+                {
+                    <span class="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></span>
+                    <span>Processing Payment...</span>
+                }
+                else
+                {
+                    <span>Confirm Payment</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public required ChatGroupModel Group { get; set; }
+    [Parameter] public long? UserBalance { get; set; }
+    [Parameter] public EventCallback OnSuccess { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private bool isSubmitting;
+    private string? errorMessage;
+
+    private long commissionAmount => (long)Math.Round(Group.JoinFeeLinkDrops * (Group.CommissionPercentageSnapshot / 100m), MidpointRounding.AwayFromZero);
+    private long creatorEarnings => Group.JoinFeeLinkDrops - commissionAmount;
+
+    private async Task HandleConfirm()
+    {
+        errorMessage = null;
+
+        if (UserBalance.HasValue && UserBalance.Value < Group.JoinFeeLinkDrops)
+        {
+            errorMessage = "Not enough Link Drops.";
+            Toast.Error("Not enough Link Drops.");
+            return;
+        }
+
+        isSubmitting = true;
+        var res = await ChatGroupApi.JoinPaidChatGroupAsync(Group.ChatGroupId);
+        isSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Successfully joined Paid Chat Group!");
+            await OnSuccess.InvokeAsync();
+            await OnClose.InvokeAsync();
+        }
+        else
+        {
+            var msg = res.Message ?? "Failed to process payment.";
+            if (msg.Contains("Insufficient", StringComparison.OrdinalIgnoreCase))
+            {
+                errorMessage = "Not enough Link Drops.";
+            }
+            else if (msg.Contains("Already joined", StringComparison.OrdinalIgnoreCase))
+            {
+                errorMessage = "Already joined this Chat Group.";
+            }
+            else
+            {
+                errorMessage = msg;
+            }
+            Toast.Error(errorMessage);
+        }
+    }
+}

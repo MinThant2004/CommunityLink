@@ -17,7 +17,7 @@ using CommunityLink.Domain.Services;
 using CommunityLink.Shared;
 
 using CommunityLink.Domain.Features.Group;
-using CommunityLink.Domain.Features.GroupChat;
+using CommunityLink.Domain.Features.ChatGroup;
 using CommunityLink.Domain.Features.LinkDrop;
 
 namespace CommunityLink.Domain;
@@ -67,7 +67,7 @@ public static class FeatureManager
         services.AddScoped<CommunityLink.Domain.Features.Notification.INotificationService, CommunityLink.Domain.Features.Notification.NotificationService>();
         services.AddScoped<ILinkDropPaymentService, LinkDropPaymentService>();
         services.AddScoped<CommunityLink.Domain.Features.Admin.IPlatformSettingService, CommunityLink.Domain.Features.Admin.PlatformSettingService>();
-        services.AddScoped<IGroupChatService, GroupChatService>();
+        services.AddScoped<IChatGroupService, ChatGroupService>();
 
         return services;
     }

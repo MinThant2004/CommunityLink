@@ -18,12 +18,47 @@ public partial class AppDbContext
             entity.ToTable("TblCommunityAuditLog");
         });
 
+        modelBuilder.Entity<TblChatGroupMember>(entity =>
+        {
+            entity.HasIndex(e => new { e.ChatGroupId, e.UserId })
+                .IsUnique()
+                .HasDatabaseName("UQ_TblChatGroupMember_Group_User");
+        });
+
+        modelBuilder.Entity<TblChatGroupPaymentTransaction>(entity =>
+        {
+            entity.HasKey(e => e.PaymentTransactionId);
+
+            entity.ToTable("TblChatGroupPaymentTransaction");
+
+            entity.Property(e => e.CommissionPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("COMPLETED");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasOne(d => d.ChatGroup).WithMany()
+                .HasForeignKey(d => d.ChatGroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupPaymentTransaction_TblChatGroup");
+
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupPaymentTransaction_TblUser");
+
+            entity.HasOne(d => d.CreatorUser).WithMany()
+                .HasForeignKey(d => d.CreatorUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupPaymentTransaction_TblUser_Creator");
+        });
+
         modelBuilder.Entity<TblLinkDropTransaction>(entity =>
         {
-            entity.Ignore(e => e.PurchasedBalanceBefore);
-            entity.Ignore(e => e.PurchasedBalanceAfter);
-            entity.Ignore(e => e.EarnedBalanceBefore);
-            entity.Ignore(e => e.EarnedBalanceAfter);
             entity.Ignore(e => e.PurchasedAmountDeducted);
             entity.Ignore(e => e.EarnedAmountDeducted);
             entity.Ignore(e => e.RelatedUserId);

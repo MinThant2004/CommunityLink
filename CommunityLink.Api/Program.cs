@@ -1,4 +1,5 @@
 using CommunityLink.Domain;
+using CommunityLink.Domain.Features.ChatGroup;
 using CommunityLink.Api.Controllers;
 using CommunityLink.Api.Middlewares;
 using CommunityLink.Database.AppDbContextModels;
@@ -19,6 +20,9 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add SignalR
+builder.Services.AddSignalR();
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "CommunityLinkSuperSecretSigningKey1234567890!_SecurityKey";
@@ -45,6 +49,19 @@ builder.Services.AddAuthentication(options =>
             ClockSkew = TimeSpan.FromSeconds(30),
             NameClaimType = "name",
             RoleClaimType = "role"
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/chat-groups"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -82,6 +99,7 @@ app.UseMiddleware<PasswordChangeRequirementMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatGroupHub>("/hubs/chat-groups");
 
 app.Run();
 

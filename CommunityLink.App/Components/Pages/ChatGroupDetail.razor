@@ -1,0 +1,793 @@
+@page "/chat-groups"
+@page "/chat-groups/{chatGroupId:int?}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@implements IAsyncDisposable
+@using System.Security.Claims
+@using Microsoft.AspNetCore.SignalR.Client
+@inject ChatGroupApiService ChatGroupApi
+@inject LinkDropApiService LinkDropApi
+@inject ToastService Toast
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavManager
+@inject IConfiguration Config
+
+<PageTitle>@(group?.Name ?? "Chat Groups") - CommunityLink</PageTitle>
+
+<div class="h-[calc(100vh-7.5rem)] max-w-7xl mx-auto flex gap-3 sm:gap-4 overflow-hidden">
+
+    <!-- ===== MOBILE SIDE RAIL (always visible) ===== -->
+    <aside class="md:hidden w-14 shrink-0 bg-white border border-slate-200 rounded-2xl flex flex-col overflow-hidden shadow-2xs">
+        <div class="p-2 border-b border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
+            <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center" title="Chat Groups">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                </svg>
+            </span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-2 space-y-2">
+            @if (isLoadingLeftList)
+            {
+                <div class="flex justify-center py-6">
+                    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
+                </div>
+            }
+            else if (displayedGroups == null || displayedGroups.Count == 0)
+            {
+                <p class="text-center text-[10px] text-slate-400 py-4">No groups</p>
+            }
+            else
+            {
+                @foreach (var g in displayedGroups)
+                {
+                    bool isSelected = chatGroupId.HasValue && chatGroupId.Value == g.ChatGroupId;
+                    <a href="/chat-groups/@g.ChatGroupId" title="@g.Name"
+                       class="block w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center font-bold text-xs transition cursor-pointer @(isSelected ? "bg-indigo-600 text-white ring-2 ring-indigo-300 shadow-xs" : "bg-slate-100 border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600")">
+                        @if (!string.IsNullOrWhiteSpace(g.AvatarUrl))
+                        {
+                            <img src="@g.AvatarUrl" alt="@g.Name" class="w-full h-full object-cover" />
+                        }
+                        else
+                        {
+                            <span>@(g.Name.Substring(0, 1).ToUpper())</span>
+                        }
+                    </a>
+                }
+            }
+        </div>
+
+        @if (isPremiumCreator)
+        {
+            <div class="p-2 border-t border-slate-200 shrink-0">
+                <button type="button" @onclick="() => showCreateModal = true" title="Create Chat Group"
+                        class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 flex items-center justify-center transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                </button>
+            </div>
+        }
+    </aside>
+
+    <!-- ===== DESKTOP SIDEBAR: CHAT GROUPS LIST (always visible) ===== -->
+    <aside class="hidden md:flex w-64 lg:w-72 xl:w-80 shrink-0 bg-white border border-slate-200 rounded-2xl flex-col overflow-hidden shadow-2xs">
+        <!-- Sidebar Header -->
+        <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-2 shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                    </svg>
+                </span>
+                <h2 class="font-bold text-slate-900 text-base">Chat Groups</h2>
+            </div>
+            @if (isPremiumCreator)
+            {
+                <button type="button" @onclick="() => showCreateModal = true" title="Create Chat Group"
+                        class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-2xs transition cursor-pointer flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    <span class="hidden sm:inline">New</span>
+                </button>
+            }
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="p-3 border-b border-slate-200 space-y-2 bg-white shrink-0">
+            <!-- Search Input -->
+            <div class="relative">
+                <input type="text" @bind="searchText" @bind:event="oninput" @onkeyup="HandleSearch" placeholder="Search chat groups..."
+                       class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white transition" />
+                <span class="absolute left-2.5 top-2 text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                </span>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+                <button type="button" @onclick="SelectAllTab"
+                        class="py-1.5 rounded-lg transition cursor-pointer text-center @(activeTab == "all" ? "bg-white text-indigo-600 font-bold shadow-2xs" : "text-slate-600 hover:text-slate-900")">
+                    All Groups
+                </button>
+                <button type="button" @onclick="SelectMyTab"
+                        class="py-1.5 rounded-lg transition cursor-pointer text-center @(activeTab == "my" ? "bg-white text-indigo-600 font-bold shadow-2xs" : "text-slate-600 hover:text-slate-900")">
+                    Joined
+                </button>
+            </div>
+        </div>
+
+        <!-- Scrollable Group Items List -->
+        <div class="flex-1 overflow-y-auto p-2 space-y-1.5">
+            @if (isLoadingLeftList)
+            {
+                <div class="py-12 text-center text-slate-400 space-y-2">
+                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 mx-auto"></div>
+                    <p class="text-xs font-medium">Loading groups...</p>
+                </div>
+            }
+            else if (displayedGroups == null || displayedGroups.Count == 0)
+            {
+                <div class="p-6 text-center text-slate-500 space-y-2">
+                    <svg class="w-8 h-8 mx-auto text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                    </svg>
+                    <p class="text-xs font-semibold text-slate-700">No Chat Groups found</p>
+                    <p class="text-[11px] text-slate-400">
+                        @(activeTab == "my" ? "You haven't joined any Chat Groups yet." : "No active groups match your search.")
+                    </p>
+                </div>
+            }
+            else
+            {
+                @foreach (var g in displayedGroups)
+                {
+                    bool isSelected = chatGroupId.HasValue && chatGroupId.Value == g.ChatGroupId;
+                    <a href="/chat-groups/@g.ChatGroupId"
+                       class="block p-3 rounded-xl border transition group @(isSelected ? "bg-indigo-50/80 border-indigo-200 shadow-2xs" : "bg-white border-transparent hover:bg-slate-50 hover:border-slate-200")">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 text-indigo-600 font-bold text-sm flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                                @if (!string.IsNullOrWhiteSpace(g.AvatarUrl))
+                                {
+                                    <img src="@g.AvatarUrl" alt="@g.Name" class="w-full h-full object-cover" />
+                                }
+                                else
+                                {
+                                    <span>@(g.Name.Substring(0, 1).ToUpper())</span>
+                                }
+                            </div>
+
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center justify-between gap-1">
+                                    <h4 class="font-bold text-xs truncate @(isSelected ? "text-indigo-900" : "text-slate-900 group-hover:text-indigo-600")">
+                                        @g.Name
+                                    </h4>
+                                    @if (g.ChatType == "PAID")
+                                    {
+                                        <span class="px-1.5 py-0.5 bg-amber-50 border border-amber-200 text-amber-700 font-bold text-[9px] rounded-md shrink-0 flex items-center gap-0.5">
+                                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                            Paid
+                                        </span>
+                                    }
+                                </div>
+
+                                <div class="flex items-center justify-between text-[11px] text-slate-500 mt-1">
+                                    <span class="truncate">By @g.CreatorName</span>
+                                    <span class="shrink-0 font-medium text-slate-400 flex items-center gap-0.5">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                        </svg>
+                                        @g.MemberCount
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                }
+            }
+        </div>
+    </aside>
+
+    <!-- ===== RIGHT PANEL: ACTIVE CHAT CONVERSATION OR PLACEHOLDER (always visible) ===== -->
+    <section class="flex-1 min-w-0 bg-white border border-slate-200 rounded-2xl flex flex-col overflow-hidden shadow-2xs relative">
+        @if (!chatGroupId.HasValue || chatGroupId.Value == 0)
+        {
+            <!-- EMPTY SELECTION STATE -->
+            <div class="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+                <div class="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                    </svg>
+                </div>
+                <div class="space-y-1.5">
+                    <h3 class="text-sm font-bold text-slate-800">Please select a chat to start messaging.</h3>
+                    <p class="text-xs text-slate-500 max-w-sm leading-relaxed">
+                        Choose a chat group from the sidebar to open the conversation.
+                    </p>
+                </div>
+            </div>
+        }
+        else if (isLoadingGroup)
+        {
+            <div class="flex-1 flex flex-col items-center justify-center text-slate-500 space-y-3">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <p class="text-xs font-medium">Loading Chat Group...</p>
+            </div>
+        }
+        else if (group == null)
+        {
+            <div class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
+                <svg class="w-12 h-12 text-rose-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                </svg>
+                <h3 class="text-base font-bold text-slate-900">Chat Group Not Found</h3>
+                <p class="text-xs text-slate-500 max-w-sm">The requested Chat Group does not exist or has been removed.</p>
+                <a href="/chat-groups" class="px-4 py-2 bg-indigo-600 text-white font-semibold text-xs rounded-xl shadow-xs">
+                    Return to Directory
+                </a>
+            </div>
+        }
+        else if (!group.IsJoined)
+        {
+            <!-- NON-MEMBER JOIN BANNER STATE -->
+            <div class="flex-1 flex items-center justify-center p-6 bg-slate-50 overflow-y-auto">
+                <div class="max-w-md w-full p-6 bg-white border border-slate-200 rounded-2xl shadow-sm text-center space-y-6">
+                    <div class="w-20 h-20 mx-auto rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 font-bold text-3xl flex items-center justify-center overflow-hidden shadow-xs">
+                        @if (!string.IsNullOrWhiteSpace(group.AvatarUrl))
+                        {
+                            <img src="@group.AvatarUrl" alt="@group.Name" class="w-full h-full object-cover" />
+                        }
+                        else
+                        {
+                            <span>@(group.Name.Substring(0, 1).ToUpper())</span>
+                        }
+                    </div>
+
+                    <div class="space-y-1">
+                        <h2 class="text-xl font-bold text-slate-900">@group.Name</h2>
+                        <p class="text-xs text-slate-500">
+                            Created by <span class="text-indigo-600 font-semibold">@group.CreatorName</span>
+                        </p>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(group.Description))
+                    {
+                        <p class="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 border border-slate-200 rounded-xl text-left">
+                            @group.Description
+                        </p>
+                    }
+
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-500">Group Type:</span>
+                            @if (group.ChatType == "PAID")
+                            {
+                                <span class="font-bold text-amber-700 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                    </svg>
+                                    Paid Group
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="font-bold text-emerald-700 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                    </svg>
+                                    Free Group
+                                </span>
+                            }
+                        </div>
+
+                        @if (group.ChatType == "PAID")
+                        {
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-slate-500">Join Fee:</span>
+                                <span class="font-bold text-amber-700">@group.JoinFeeLinkDrops Link Drops</span>
+                            </div>
+                            @if (userBalance.HasValue)
+                            {
+                                <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-200">
+                                    <span class="text-slate-500">Your Wallet Balance:</span>
+                                    <span class="font-semibold @(userBalance.Value >= group.JoinFeeLinkDrops ? "text-emerald-700" : "text-rose-600")">
+                                        @userBalance.Value Link Drops
+                                    </span>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        @if (group.ChatType == "FREE")
+                        {
+                            <button type="button" @onclick="HandleJoinFree" disabled="@isActionSubmitting"
+                                    class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">
+                                @if (isActionSubmitting)
+                                {
+                                    <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                                    <span>Joining...</span>
+                                }
+                                else
+                                {
+                                    <span>Join Chat Group</span>
+                                }
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" @onclick="() => showPaidJoinModal = true"
+                                    class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                                <span>Join Paid Group (@group.JoinFeeLinkDrops Link Drops)</span>
+                            </button>
+                        }
+
+                        <a href="/chat-groups" class="inline-block text-xs font-semibold text-slate-500 hover:text-slate-800 transition">
+                            Back to Directory
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- FULL MEMBER CHAT CONVERSATION VIEW -->
+            <div class="flex-1 flex flex-col min-h-0">
+                <!-- Header -->
+                <ChatGroupHeader Group="group" OnToggleInfo="ToggleInfoModal" SignalRStatus="@signalRStatus" />
+
+                <!-- Message List -->
+                <ChatMessageList Messages="messages"
+                                 IsLoading="isLoadingMessages"
+                                 HasError="hasMessageError"
+                                 OnRetry="LoadMessages"
+                                 OnDeleteMessage="HandleDeleteMessage" />
+
+                <!-- Composer -->
+                <ChatMessageComposer IsSubmitting="isSendingMessage" OnSend="HandleSendMessage" />
+            </div>
+        }
+    </section>
+</div>
+
+@if (showCreateModal)
+{
+    <CreateChatGroupModal OnSaved="HandleGroupCreated" OnClose="() => showCreateModal = false" />
+}
+
+@if (showPaidJoinModal && group != null)
+{
+    <ConfirmPaidJoinModal Group="group" UserBalance="userBalance" OnSuccess="HandlePaidJoinSuccess" OnClose="() => showPaidJoinModal = false" />
+}
+
+@if (showInfoModal && group != null)
+{
+    <ChatGroupInfoPanel Group="group"
+                        Members="members"
+                        IsSubmitting="isActionSubmitting"
+                        OnLeave="HandleLeave"
+                        OnClose="CloseInfoModal" />
+}
+
+@code {
+    [Parameter] public int? chatGroupId { get; set; }
+
+    private ChatGroupModel? group;
+    private IReadOnlyList<ChatGroupMemberModel>? members;
+    private IReadOnlyList<ChatGroupMessageModel>? messages;
+
+    private IReadOnlyList<ChatGroupModel>? allGroups;
+    private IReadOnlyList<ChatGroupModel>? myGroups;
+    private IReadOnlyList<ChatGroupModel>? displayedGroups;
+
+    private HubConnection? hubConnection;
+    private string signalRStatus = "Live";
+    private int? currentSubscribedGroupId;
+
+    private int? currentLoadedId;
+    private bool isLoadingLeftList = true;
+    private bool isLoadingGroup;
+    private bool isLoadingMessages;
+    private bool hasMessageError;
+    private bool isSendingMessage;
+    private bool isActionSubmitting;
+    private bool isPremiumCreator;
+    private bool showInfoModal;
+    private bool showCreateModal;
+    private bool showPaidJoinModal;
+    private long? userBalance;
+
+    private string activeTab = "all";
+    private string searchText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roleCode = user.FindFirst(ClaimTypes.Role)?.Value ?? user.FindFirst("role")?.Value;
+
+        isPremiumCreator = string.Equals(roleCode, "DOMAIN_PROFESSIONAL", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(roleCode, "PUBLIC_FIGURE", StringComparison.OrdinalIgnoreCase);
+
+        await LoadLeftGroupList();
+        await LoadUserWallet();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (chatGroupId.HasValue && chatGroupId.Value > 0)
+        {
+            if (currentLoadedId != chatGroupId.Value)
+            {
+                currentLoadedId = chatGroupId.Value;
+                await LoadGroupData();
+            }
+        }
+        else
+        {
+            group = null;
+            messages = null;
+            members = null;
+            currentLoadedId = null;
+        }
+
+        await SyncSignalRSubscription();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await EnsureSignalRConnected();
+            await SyncSignalRSubscription();
+        }
+    }
+
+    private async Task EnsureSignalRConnected()
+    {
+        if (hubConnection != null) return;
+
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var jwtToken = authState.User.FindFirst("access_token")?.Value;
+            var apiBaseUrl = Config["CommunityApi:BaseUrl"] ?? "http://localhost:5000";
+            var hubUrl = $"{apiBaseUrl.TrimEnd('/')}/hubs/chat-groups";
+
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(hubUrl, options =>
+                {
+                    if (!string.IsNullOrEmpty(jwtToken))
+                    {
+                        options.AccessTokenProvider = () => Task.FromResult<string?>(jwtToken);
+                    }
+                })
+                .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) })
+                .Build();
+
+            hubConnection.On<ChatGroupMessageModel>("ReceiveChatGroupMessage", (incomingMsg) =>
+            {
+                if (chatGroupId.HasValue && incomingMsg.ChatGroupId == chatGroupId.Value)
+                {
+                    if (messages != null && !messages.Any(m => m.ChatGroupMessageId == incomingMsg.ChatGroupMessageId))
+                    {
+                        var newList = new List<ChatGroupMessageModel>(messages) { incomingMsg };
+                        messages = newList;
+                        InvokeAsync(StateHasChanged);
+                    }
+                }
+            });
+
+            hubConnection.Reconnecting += (ex) =>
+            {
+                signalRStatus = "Reconnecting...";
+                InvokeAsync(StateHasChanged);
+                return Task.CompletedTask;
+            };
+
+            hubConnection.Reconnected += async (connId) =>
+            {
+                signalRStatus = "Live";
+                if (chatGroupId.HasValue && group != null && group.IsJoined)
+                {
+                    try { await hubConnection.InvokeAsync("JoinChatGroup", chatGroupId.Value); } catch {}
+                }
+                await InvokeAsync(StateHasChanged);
+            };
+
+            hubConnection.Closed += (ex) =>
+            {
+                signalRStatus = "Offline";
+                InvokeAsync(StateHasChanged);
+                return Task.CompletedTask;
+            };
+
+            await hubConnection.StartAsync();
+            signalRStatus = "Live";
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            signalRStatus = "Offline";
+        }
+    }
+
+    private async Task SyncSignalRSubscription()
+    {
+        if (hubConnection == null || hubConnection.State != HubConnectionState.Connected) return;
+
+        if (currentSubscribedGroupId.HasValue && currentSubscribedGroupId != chatGroupId)
+        {
+            try
+            {
+                await hubConnection.InvokeAsync("LeaveChatGroup", currentSubscribedGroupId.Value);
+            }
+            catch {}
+            currentSubscribedGroupId = null;
+        }
+
+        if (chatGroupId.HasValue && group != null && group.IsJoined && currentSubscribedGroupId != chatGroupId.Value)
+        {
+            try
+            {
+                await hubConnection.InvokeAsync("JoinChatGroup", chatGroupId.Value);
+                currentSubscribedGroupId = chatGroupId.Value;
+            }
+            catch
+            {
+                // Unjoined or unauthorized user exception handled gracefully
+            }
+        }
+    }
+
+    private async Task LoadLeftGroupList()
+    {
+        isLoadingLeftList = true;
+        var res = await ChatGroupApi.GetChatGroupsAsync();
+        if (res.IsSuccess)
+        {
+            allGroups = res.Data;
+        }
+
+        var myRes = await ChatGroupApi.GetMyChatGroupsAsync();
+        if (myRes.IsSuccess)
+        {
+            myGroups = myRes.Data;
+        }
+
+        ApplyFilter();
+        isLoadingLeftList = false;
+    }
+
+    private void SelectAllTab()
+    {
+        activeTab = "all";
+        ApplyFilter();
+    }
+
+    private void SelectMyTab()
+    {
+        activeTab = "my";
+        ApplyFilter();
+    }
+
+    private void HandleSearch()
+    {
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        var source = activeTab == "my" ? myGroups : allGroups;
+        if (source == null)
+        {
+            displayedGroups = Array.Empty<ChatGroupModel>();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            displayedGroups = source;
+        }
+        else
+        {
+            displayedGroups = source
+                .Where(g => g.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                         || (g.Description != null && g.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                         || (g.CreatorName != null && g.CreatorName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+        }
+    }
+
+    private async Task LoadGroupData()
+    {
+        if (!chatGroupId.HasValue || chatGroupId.Value <= 0) return;
+
+        isLoadingGroup = true;
+        var res = await ChatGroupApi.GetChatGroupByIdAsync(chatGroupId.Value);
+        if (res.IsSuccess && res.Data != null)
+        {
+            group = res.Data;
+
+            if (group.IsJoined)
+            {
+                await Task.WhenAll(LoadMembers(), LoadMessages());
+                await SyncSignalRSubscription();
+            }
+        }
+        else
+        {
+            group = null;
+        }
+        isLoadingGroup = false;
+    }
+
+    private async Task LoadUserWallet()
+    {
+        try
+        {
+            var walletRes = await LinkDropApi.GetUserWalletAsync();
+            if (walletRes.IsSuccess && walletRes.Data != null)
+            {
+                userBalance = walletRes.Data.Balance;
+            }
+        }
+        catch
+        {
+            // Ignore wallet load error gracefully
+        }
+    }
+
+    private async Task LoadMembers()
+    {
+        if (!chatGroupId.HasValue) return;
+        var res = await ChatGroupApi.GetMembersAsync(chatGroupId.Value);
+        if (res.IsSuccess)
+        {
+            members = res.Data;
+        }
+    }
+
+    private async Task LoadMessages()
+    {
+        if (!chatGroupId.HasValue) return;
+        isLoadingMessages = true;
+        hasMessageError = false;
+        var res = await ChatGroupApi.GetMessagesAsync(chatGroupId.Value);
+        if (res.IsSuccess && res.Data != null)
+        {
+            messages = res.Data;
+        }
+        else
+        {
+            hasMessageError = true;
+        }
+        isLoadingMessages = false;
+    }
+
+    private void ToggleInfoModal()
+    {
+        showInfoModal = !showInfoModal;
+    }
+
+    private void CloseInfoModal()
+    {
+        showInfoModal = false;
+    }
+
+    private async Task HandleSendMessage(string text)
+    {
+        if (!chatGroupId.HasValue || string.IsNullOrWhiteSpace(text) || isSendingMessage) return;
+
+        isSendingMessage = true;
+        var res = await ChatGroupApi.SendMessageAsync(chatGroupId.Value, new SendChatGroupMessageRequestModel(text));
+        isSendingMessage = false;
+
+        if (res.IsSuccess && res.Data != null)
+        {
+            // Add sent message immediately if not already added by SignalR broadcast
+            if (messages != null && !messages.Any(m => m.ChatGroupMessageId == res.Data.ChatGroupMessageId))
+            {
+                messages = new List<ChatGroupMessageModel>(messages) { res.Data };
+            }
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to send message.");
+        }
+    }
+
+    private async Task HandleDeleteMessage(int messageId)
+    {
+        if (!chatGroupId.HasValue) return;
+        var res = await ChatGroupApi.DeleteMessageAsync(chatGroupId.Value, messageId);
+        if (res.IsSuccess)
+        {
+            Toast.Success("Message deleted.");
+            await LoadMessages();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to delete message.");
+        }
+    }
+
+    private async Task HandleJoinFree()
+    {
+        if (!chatGroupId.HasValue) return;
+        isActionSubmitting = true;
+        var res = await ChatGroupApi.JoinChatGroupAsync(chatGroupId.Value);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Joined Chat Group successfully!");
+            await LoadGroupData();
+            await LoadLeftGroupList();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to join Chat Group.");
+        }
+    }
+
+    private async Task HandlePaidJoinSuccess()
+    {
+        await LoadGroupData();
+        await LoadLeftGroupList();
+        await LoadUserWallet();
+    }
+
+    private async Task HandleLeave()
+    {
+        if (!chatGroupId.HasValue) return;
+        isActionSubmitting = true;
+        var res = await ChatGroupApi.LeaveChatGroupAsync(chatGroupId.Value);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Left Chat Group.");
+            showInfoModal = false;
+
+            if (currentSubscribedGroupId.HasValue && hubConnection != null)
+            {
+                try { await hubConnection.InvokeAsync("LeaveChatGroup", currentSubscribedGroupId.Value); } catch {}
+                currentSubscribedGroupId = null;
+            }
+
+            await LoadGroupData();
+            await LoadLeftGroupList();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to leave Chat Group.");
+        }
+    }
+
+    private async Task HandleGroupCreated(ChatGroupModel newGroup)
+    {
+        await LoadLeftGroupList();
+        NavManager.NavigateTo($"/chat-groups/{newGroup.ChatGroupId}");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+        {
+            if (currentSubscribedGroupId.HasValue && hubConnection.State == HubConnectionState.Connected)
+            {
+                try { await hubConnection.InvokeAsync("LeaveChatGroup", currentSubscribedGroupId.Value); } catch {}
+            }
+            await hubConnection.DisposeAsync();
+        }
+    }
+}

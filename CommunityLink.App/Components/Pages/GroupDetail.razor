@@ -914,6 +914,12 @@
         await LoadGroupData();
     }
 
+    private bool isGroupManager =>
+        currentUserId.HasValue &&
+        group != null &&
+        (group.CreatorId == currentUserId.Value ||
+         members?.Any(m => m.UserId == currentUserId.Value && (string.Equals(m.Role, "Owner", StringComparison.OrdinalIgnoreCase) || string.Equals(m.Role, "Admin", StringComparison.OrdinalIgnoreCase))) == true);
+
     private async Task LoadGroupData()
     {
         isLoadingGroup = true;
@@ -921,6 +927,7 @@
         if (res.IsSuccess && res.Data != null)
         {
             group = res.Data;
+
             if (group.Visibility != "PRIVATE" || group.IsJoined)
             {
                 await Task.WhenAll(LoadGroupPosts(), LoadGroupPolls(), LoadGroupMembers());
