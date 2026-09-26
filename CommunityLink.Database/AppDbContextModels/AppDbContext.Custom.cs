@@ -9,9 +9,31 @@ namespace CommunityLink.Database.AppDbContextModels;
 public partial class AppDbContext
 {
     public virtual DbSet<TblCommunityAuditLog> TblCommunityAuditLogs { get; set; }
+    public virtual DbSet<TblCreatorPayoutRequest> TblCreatorPayoutRequests { get; set; }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TblCreatorPayoutRequest>(entity =>
+        {
+            entity.HasKey(e => e.CreatorPayoutRequestId);
+            entity.ToTable("TblCreatorPayoutRequest");
+
+            entity.Property(e => e.AmountMMK).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING");
+
+            entity.HasIndex(e => e.CreatorUserId, "IX_TblCreatorPayoutRequest_CreatorUserId");
+            entity.HasIndex(e => e.Status, "IX_TblCreatorPayoutRequest_Status");
+
+            entity.HasOne(d => d.CreatorUser).WithMany()
+                .HasForeignKey(d => d.CreatorUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblCreatorPayoutRequest_TblUser");
+        });
+
         modelBuilder.Entity<TblCommunityAuditLog>(entity =>
         {
             entity.HasKey(e => e.AuditId);
@@ -59,6 +81,13 @@ public partial class AppDbContext
 
         modelBuilder.Entity<TblLinkDropTransaction>(entity =>
         {
+            entity.ToTable("TblLinkDropTransaction", table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_TblLinkDropTransaction_TransactionType",
+                    "[TransactionType] IN ('SPEND_GROUP_JOIN', 'SPEND_CHAT', 'REFUND', 'BONUS', 'PURCHASE', 'CHAT_GROUP_JOIN', 'CHAT_GROUP_EARNING', 'CREATOR_PAYOUT')");
+            });
+
             entity.Ignore(e => e.PurchasedAmountDeducted);
             entity.Ignore(e => e.EarnedAmountDeducted);
             entity.Ignore(e => e.RelatedUserId);

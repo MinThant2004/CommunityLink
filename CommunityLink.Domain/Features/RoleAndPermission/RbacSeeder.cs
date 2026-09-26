@@ -10,6 +10,103 @@ public static class RbacSeeder
     {
         await db.Database.EnsureCreatedAsync();
 
+        if (db.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            await db.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TblChatGroupPaymentTransaction')
+                BEGIN
+                    CREATE TABLE [dbo].[TblChatGroupPaymentTransaction] (
+                        [PaymentTransactionId] BIGINT IDENTITY(1,1) NOT NULL,
+                        [ChatGroupId] INT NOT NULL,
+                        [UserId] INT NOT NULL,
+                        [CreatorUserId] INT NOT NULL,
+                        [GrossAmount] BIGINT NOT NULL,
+                        [CommissionPercentage] DECIMAL(5,2) NOT NULL,
+                        [CommissionAmount] BIGINT NOT NULL,
+                        [NetAmount] BIGINT NOT NULL,
+                        [PurchasedAmountDeducted] BIGINT NOT NULL,
+                        [EarnedAmountDeducted] BIGINT NOT NULL,
+                        [Status] VARCHAR(20) NOT NULL DEFAULT 'COMPLETED',
+                        [CreatedAt] DATETIME2 NOT NULL DEFAULT (GETUTCDATE()),
+                        [RowVersion] ROWVERSION NOT NULL,
+                        CONSTRAINT [PK_TblChatGroupPaymentTransaction] PRIMARY KEY CLUSTERED ([PaymentTransactionId] ASC),
+                        CONSTRAINT [FK_TblChatGroupPaymentTransaction_TblChatGroup] FOREIGN KEY ([ChatGroupId]) REFERENCES [dbo].[TblChatGroup] ([ChatGroupId]),
+                        CONSTRAINT [FK_TblChatGroupPaymentTransaction_TblUser] FOREIGN KEY ([UserId]) REFERENCES [dbo].[TblUser] ([UserId]),
+                        CONSTRAINT [FK_TblChatGroupPaymentTransaction_TblUser_Creator] FOREIGN KEY ([CreatorUserId]) REFERENCES [dbo].[TblUser] ([UserId])
+                    );
+                END
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TblCreatorPayoutRequest')
+                BEGIN
+                    CREATE TABLE [dbo].[TblCreatorPayoutRequest] (
+                        [CreatorPayoutRequestId] BIGINT IDENTITY(1,1) NOT NULL,
+                        [CreatorUserId] INT NOT NULL,
+                        [AmountLinkDrops] BIGINT NOT NULL,
+                        [AmountMMK] DECIMAL(18,2) NOT NULL,
+                        [PaymentMethod] NVARCHAR(50) NOT NULL,
+                        [PaymentAccountName] NVARCHAR(100) NOT NULL,
+                        [PaymentAccountNumber] NVARCHAR(100) NOT NULL,
+                        [Status] VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+                        [AdminNote] NVARCHAR(MAX) NULL,
+                        [CreatedAt] DATETIME2 NOT NULL DEFAULT (GETUTCDATE()),
+                        [ReviewedAt] DATETIME2 NULL,
+                        [ReviewedBy] INT NULL,
+                        [CreatedBy] INT NULL,
+                        [UpdatedAt] DATETIME2 NULL,
+                        [UpdatedBy] INT NULL,
+                        [IsDeleted] BIT NOT NULL DEFAULT 0,
+                        CONSTRAINT [PK_TblCreatorPayoutRequest] PRIMARY KEY CLUSTERED ([CreatorPayoutRequestId] ASC),
+                        CONSTRAINT [FK_TblCreatorPayoutRequest_TblUser] FOREIGN KEY ([CreatorUserId]) REFERENCES [dbo].[TblUser] ([UserId])
+                    );
+
+                    CREATE NONCLUSTERED INDEX [IX_TblCreatorPayoutRequest_CreatorUserId] ON [dbo].[TblCreatorPayoutRequest] ([CreatorUserId] ASC);
+                    CREATE NONCLUSTERED INDEX [IX_TblCreatorPayoutRequest_Status] ON [dbo].[TblCreatorPayoutRequest] ([Status] ASC);
+                END
+            ");
+
+            await db.Database.ExecuteSqlRawAsync(@"
+                IF OBJECT_ID(N'dbo.TblLinkDropTransaction', N'U') IS NOT NULL
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1
+                        FROM sys.check_constraints
+                        WHERE name = N'CK_TblLinkDropTransaction_TransactionType'
+                          AND parent_object_id = OBJECT_ID(N'dbo.TblLinkDropTransaction')
+                          AND (
+                              definition NOT LIKE '%CREATOR_PAYOUT%'
+                              OR definition NOT LIKE '%CHAT_GROUP_JOIN%'
+                              OR definition NOT LIKE '%CHAT_GROUP_EARNING%'
+                          )
+                    )
+                    BEGIN
+                        ALTER TABLE dbo.TblLinkDropTransaction
+                            DROP CONSTRAINT CK_TblLinkDropTransaction_TransactionType;
+                    END;
+
+                    IF NOT EXISTS (
+                        SELECT 1
+                        FROM sys.check_constraints
+                        WHERE name = N'CK_TblLinkDropTransaction_TransactionType'
+                          AND parent_object_id = OBJECT_ID(N'dbo.TblLinkDropTransaction')
+                    )
+                    BEGIN
+                        ALTER TABLE dbo.TblLinkDropTransaction
+                            ADD CONSTRAINT CK_TblLinkDropTransaction_TransactionType
+                            CHECK ([TransactionType] IN (
+                                'SPEND_GROUP_JOIN',
+                                'SPEND_CHAT',
+                                'REFUND',
+                                'BONUS',
+                                'PURCHASE',
+                                'CHAT_GROUP_JOIN',
+                                'CHAT_GROUP_EARNING',
+                                'CREATOR_PAYOUT'
+                            ));
+                    END;
+                END
+            ");
+        }
+
         // 1. Seed Permissions from Catalog
         foreach (var def in PermissionCatalog.All)
         {

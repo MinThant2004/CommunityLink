@@ -1,0 +1,373 @@
+@page "/creator/payouts"
+@using CommunityLink.App.Apis
+@using CommunityLink.Shared.Features.Payout
+@inject CreatorPayoutApiService PayoutApi
+@inject ToastService Toast
+
+<PageTitle>Creator Payouts - CommunityLink</PageTitle>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <!-- Header / Breadcrumbs -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                <span>Creator Center</span>
+                <span>&rarr;</span>
+                <span class="text-indigo-600">Withdrawals &amp; Payouts</span>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Creator Payouts</h1>
+            <p class="text-sm text-slate-600 mt-1">
+                Request withdrawals of your earned Link Drops and view withdrawal history.
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="creator/earnings" class="px-4 py-2 bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 transition flex items-center gap-2">
+                <span>📊</span> Earnings Dashboard
+            </a>
+            <button type="button" @onclick="OpenRequestModal" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-sm flex items-center gap-2">
+                <span>💸</span> Request Withdrawal
+            </button>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-indigo-600 mb-4"></div>
+            <p class="text-sm font-medium text-slate-600">Loading payout summary...</p>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="bg-rose-50 border border-rose-200 rounded-xl p-6 text-rose-800 shadow-sm flex items-start gap-4">
+            <div class="flex-1">
+                <h3 class="font-bold text-rose-900">Error loading payouts</h3>
+                <p class="text-sm text-rose-700 mt-1">@errorMessage</p>
+                <button type="button" @onclick="LoadData" class="mt-3 px-4 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition">
+                    Retry
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- SUMMARY CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <!-- Available Earned Balance -->
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
+                <div class="flex items-center justify-between text-slate-500">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Available Earnings</span>
+                    <span class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center text-sm font-bold">💧</span>
+                </div>
+                <div class="text-2xl font-extrabold text-slate-900">
+                    @(summary?.AvailableEarnedBalance ?? 0) <span class="text-sm font-normal text-slate-500">Link Drops</span>
+                </div>
+                <div class="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2.5 py-1 inline-block">
+                    ≈ @(((summary?.AvailableEarnedBalance ?? 0) * 100m).ToString("N0")) MMK
+                </div>
+            </div>
+
+            <!-- Pending Payout Amount -->
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
+                <div class="flex items-center justify-between text-slate-500">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Pending Payouts</span>
+                    <span class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center text-sm font-bold">⏳</span>
+                </div>
+                <div class="text-2xl font-extrabold text-slate-900">
+                    @(summary?.PendingPayoutAmount ?? 0) <span class="text-sm font-normal text-slate-500">Link Drops</span>
+                </div>
+                <p class="text-xs text-slate-500">Awaiting admin review &amp; transfer</p>
+            </div>
+
+            <!-- Completed Payout Amount -->
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
+                <div class="flex items-center justify-between text-slate-500">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Completed Payouts</span>
+                    <span class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center text-sm font-bold">✅</span>
+                </div>
+                <div class="text-2xl font-extrabold text-slate-900">
+                    @(summary?.CompletedPayoutAmount ?? 0) <span class="text-sm font-normal text-slate-500">Link Drops</span>
+                </div>
+                <p class="text-xs text-slate-500">Total successfully cashed out</p>
+            </div>
+        </div>
+
+        <!-- PAYOUT HISTORY TABLE -->
+        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Withdrawal History</h2>
+                    <p class="text-xs text-slate-500">All submitted creator payout requests</p>
+                </div>
+                <button type="button" @onclick="OpenRequestModal" class="px-3.5 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 transition">
+                    + New Request
+                </button>
+            </div>
+
+            @if (payoutList.Count == 0)
+            {
+                <div class="py-12 px-4 text-center bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                    <div class="w-12 h-12 bg-white border border-slate-200 text-slate-400 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+                        💸
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800">No withdrawal requests yet.</h3>
+                    <p class="text-xs text-slate-500 max-w-sm mx-auto">
+                        Submit a payout request when you wish to convert your earned Link Drops to local currency.
+                    </p>
+                    <div class="pt-2">
+                        <button type="button" @onclick="OpenRequestModal" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 transition">
+                            Request Withdrawal
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Desktop Table -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-700 border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500 tracking-wider">
+                                <th class="py-3 px-4">Date</th>
+                                <th class="py-3 px-4 text-right">Amount (LD)</th>
+                                <th class="py-3 px-4 text-right">Est. MMK</th>
+                                <th class="py-3 px-4">Payment Method</th>
+                                <th class="py-3 px-4">Account Details</th>
+                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach (var p in payoutList)
+                            {
+                                <tr class="hover:bg-slate-50/80 transition">
+                                    <td class="py-3.5 px-4 font-mono text-xs text-slate-600">
+                                        @p.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right font-bold text-slate-900">
+                                        @p.AmountLinkDrops LD
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right font-medium text-emerald-700">
+                                        @p.AmountMMK.ToString("N0") MMK
+                                    </td>
+                                    <td class="py-3.5 px-4 font-semibold text-slate-800">
+                                        @p.PaymentMethod
+                                    </td>
+                                    <td class="py-3.5 px-4 text-xs text-slate-600">
+                                        <div><span class="font-medium text-slate-800">@p.PaymentAccountName</span></div>
+                                        <div class="font-mono text-slate-500">@p.PaymentAccountNumber</div>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center">
+                                        @if (p.Status == "PENDING")
+                                        {
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-800">
+                                                Pending
+                                            </span>
+                                        }
+                                        else if (p.Status == "COMPLETED" || p.Status == "APPROVED")
+                                        {
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-200 text-emerald-800">
+                                                Completed
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 border border-rose-200 text-rose-800">
+                                                @p.Status
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="py-3.5 px-4 text-xs text-slate-500 max-w-xs truncate">
+                                        @(string.IsNullOrWhiteSpace(p.AdminNote) ? "-" : p.AdminNote)
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Cards -->
+                <div class="block md:hidden space-y-3">
+                    @foreach (var p in payoutList)
+                    {
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2 shadow-sm">
+                            <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
+                                <span class="font-mono text-slate-500">@p.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                                <span class="px-2 py-0.5 rounded text-[11px] font-semibold @(p.Status == "PENDING" ? "bg-amber-50 text-amber-800 border border-amber-200" : p.Status == "COMPLETED" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-rose-50 text-rose-800 border border-rose-200")">
+                                    @p.Status
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-baseline">
+                                <div class="text-base font-extrabold text-slate-900">@p.AmountLinkDrops LD</div>
+                                <div class="text-sm font-bold text-emerald-700">@p.AmountMMK.ToString("N0") MMK</div>
+                            </div>
+                            <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                                <div><span class="font-bold text-slate-800">Method:</span> @p.PaymentMethod</div>
+                                <div><span class="font-bold text-slate-800">Account:</span> @p.PaymentAccountName (@p.PaymentAccountNumber)</div>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(p.AdminNote))
+                            {
+                                <div class="text-xs text-slate-500 italic">Note: @p.AdminNote</div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- REQUEST WITHDRAWAL MODAL -->
+@if (showModal)
+{
+    <div class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-lg font-bold text-slate-900">Request Withdrawal</h3>
+                <button type="button" @onclick="CloseModal" class="text-slate-400 hover:text-slate-600 font-bold text-lg">
+                    &times;
+                </button>
+            </div>
+
+            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-xs text-emerald-800 flex justify-between items-center">
+                <span>Available Earned Balance:</span>
+                <span class="font-bold text-sm text-emerald-900">@(summary?.AvailableEarnedBalance ?? 0) LD</span>
+            </div>
+
+            <EditForm Model="requestModel" OnValidSubmit="SubmitRequest">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Amount (Link Drops)</label>
+                        <input type="number" min="1" max="@(summary?.AvailableEarnedBalance ?? 0)" @bind="requestModelAmount"
+                               class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-sm text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none" />
+                        <p class="text-[11px] text-slate-500 mt-1">Est. Value: <span class="font-semibold text-emerald-700">@((requestModelAmount * 100m).ToString("N0")) MMK</span></p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Payment Method</label>
+                        <select @bind="requestModelPaymentMethod"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-sm text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none">
+                            <option value="KBZPay">KBZPay</option>
+                            <option value="CBPay">CBPay</option>
+                            <option value="WavePay">WavePay</option>
+                            <option value="AYA Pay">AYA Pay</option>
+                            <option value="BankTransfer">Bank Transfer</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Account Name</label>
+                        <input type="text" placeholder="e.g. U Mg Mg" @bind="requestModelAccountName"
+                               class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-sm text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Account Number / Phone</label>
+                        <input type="text" placeholder="e.g. 09123456789" @bind="requestModelAccountNumber"
+                               class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-sm text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none" />
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                        <button type="button" @onclick="CloseModal" class="px-4 py-2 bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-200 transition">
+                            Cancel
+                        </button>
+                        <button type="submit" disabled="@isSubmitting" class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 transition disabled:opacity-50">
+                            @(isSubmitting ? "Submitting..." : "Submit Payout Request")
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private bool showModal = false;
+    private string? errorMessage;
+
+    private CreatorPayoutSummaryModel? summary;
+    private List<CreatorPayoutModel> payoutList = new();
+
+    private long requestModelAmount = 10;
+    private string requestModelPaymentMethod = "KBZPay";
+    private string requestModelAccountName = "";
+    private string requestModelAccountNumber = "";
+
+    private CreatePayoutRequestModel requestModel => new(requestModelAmount, requestModelPaymentMethod, requestModelAccountName, requestModelAccountNumber);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var summaryRes = await PayoutApi.GetMyPayoutSummaryAsync();
+            if (summaryRes.IsSuccess && summaryRes.Data != null)
+            {
+                summary = summaryRes.Data;
+            }
+
+            var listRes = await PayoutApi.GetMyPayoutsAsync();
+            if (listRes.IsSuccess && listRes.Data != null)
+            {
+                payoutList = listRes.Data.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+
+        isLoading = false;
+    }
+
+    private void OpenRequestModal()
+    {
+        requestModelAmount = Math.Min(10, summary?.AvailableEarnedBalance ?? 10);
+        if (requestModelAmount <= 0) requestModelAmount = 10;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task SubmitRequest()
+    {
+        if (requestModelAmount <= 0)
+        {
+            Toast.Error("Payout amount must be greater than zero.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(requestModelAccountName) || string.IsNullOrWhiteSpace(requestModelAccountNumber))
+        {
+            Toast.Error("Please fill in account name and account number.");
+            return;
+        }
+
+        isSubmitting = true;
+        var res = await PayoutApi.CreatePayoutRequestAsync(requestModel);
+        isSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success(res.Message ?? "Payout request submitted successfully!");
+            showModal = false;
+            await LoadData();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to submit payout request.");
+        }
+    }
+}

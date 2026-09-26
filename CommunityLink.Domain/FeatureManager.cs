@@ -69,6 +69,7 @@ public static class FeatureManager
         services.AddScoped<CommunityLink.Domain.Features.Admin.IPlatformSettingService, CommunityLink.Domain.Features.Admin.PlatformSettingService>();
         services.AddScoped<IChatGroupService, ChatGroupService>();
         services.AddScoped<CommunityLink.Domain.Features.Creator.ICreatorEarningsService, CommunityLink.Domain.Features.Creator.CreatorEarningsService>();
+        services.AddScoped<CommunityLink.Domain.Features.Payout.ICreatorPayoutService, CommunityLink.Domain.Features.Payout.CreatorPayoutService>();
 
         return services;
     }

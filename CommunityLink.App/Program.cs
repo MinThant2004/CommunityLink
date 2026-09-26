@@ -66,6 +66,7 @@ builder.Services.AddScoped<UserProfileApiService>();
 builder.Services.AddScoped<NotificationApiService>();
 builder.Services.AddScoped<LinkDropApiService>();
 builder.Services.AddScoped<CreatorEarningsApiService>();
+builder.Services.AddScoped<CreatorPayoutApiService>();
 
 var app = builder.Build();
 
