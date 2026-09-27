@@ -1,0 +1,85 @@
+@rendermode InteractiveServer
+@inject LinkDropApiService LinkDropApi
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="relative inline-flex items-center" data-testid="linkdrop-navbar-balance">
+    @if (isLoading)
+    {
+        <a href="linkdrops"
+           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200 transition hover:bg-sky-100"
+           title="Loading Link Drop Balance...">
+            <span class="text-sm">💧</span>
+            <span class="animate-pulse text-sky-500 font-mono">...</span>
+        </a>
+    }
+    else if (isError || wallet == null)
+    {
+        <a href="linkdrops"
+           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200 transition hover:bg-slate-200"
+           title="Link Drop Wallet Unavailable">
+            <span class="text-sm">💧</span>
+            <span class="font-mono">--</span>
+        </a>
+    }
+    else
+    {
+        <a href="linkdrops"
+           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-50 text-sky-800 border border-sky-200 hover:bg-sky-100 hover:border-sky-300 transition shadow-2xs group"
+           title="Total Link Drops: @wallet.Balance.ToString("N0") (Purchased: @wallet.PurchasedBalance.ToString("N0") | Earned: @wallet.EarnedBalance.ToString("N0"))">
+            <span class="text-sm group-hover:scale-110 transition-transform">💧</span>
+            <span class="font-mono tracking-tight" data-testid="linkdrop-total-balance">@wallet.Balance.ToString("N0")</span>
+        </a>
+    }
+</div>
+
+@code {
+    private LinkDropWalletDto? wallet;
+    private bool isLoading = true;
+    private bool isError;
+    private System.Threading.Timer? pollTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchWalletAsync();
+
+        pollTimer = new System.Threading.Timer(async _ =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await FetchWalletAsync();
+                StateHasChanged();
+            });
+        }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+    }
+
+    private async Task FetchWalletAsync()
+    {
+        try
+        {
+            var result = await LinkDropApi.GetUserWalletAsync();
+            if (result.IsSuccess && result.Data != null)
+            {
+                wallet = result.Data;
+                isError = false;
+            }
+            else
+            {
+                isError = true;
+            }
+        }
+        catch
+        {
+            isError = true;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        pollTimer?.Dispose();
+    }
+}

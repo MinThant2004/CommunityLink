@@ -5,6 +5,8 @@
 @inject UserProfileApiService ProfileApi
 @inject ToastService Toast
 @inject NavigationManager Navigation
+@inject ChatApiService ChatApi
+@inject LinkDropApiService LinkDropApi
 
 <PageTitle>@(profile != null ? $"{profile.DisplayName} (@{profile.UserName}) — CommunityLink" : "User Profile — CommunityLink")</PageTitle>
 
@@ -120,9 +122,16 @@
                                 }
                             </button>
 
-                            <a href="chat" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition shadow-lg shadow-sky-600/30 flex items-center gap-2">
-                                💬 Send Message
-                            </a>
+                            <button type="button" @onclick="HandleProfileMessageClick" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition shadow-lg shadow-sky-600/30 flex items-center gap-2 cursor-pointer">
+                                @if (isPaidChatEnabled && privateChatFeeLinkDrops > 0)
+                                {
+                                    <span>💬 Chat (💧 @privateChatFeeLinkDrops.ToString("N0") Drops)</span>
+                                }
+                                else
+                                {
+                                    <span>💬 Send Message</span>
+                                }
+                            </button>
 
                             <button @onclick="OpenRatingModal" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-amber-500/30 flex items-center gap-2">
                                 ⭐ @(profile.Relationship.HasRated ? "Update Rating" : "Rate User")
@@ -569,6 +578,77 @@
     </div>
 }
 
+<!-- PROFILE PRIVATE CHAT UNLOCK MODAL -->
+@if (showProfileUnlockModal && profile != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-sm w-full overflow-hidden p-6 text-center space-y-4">
+            <div class="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-2xl mx-auto text-sky-700 shadow-xs">
+                🔒
+            </div>
+
+            <div>
+                <h3 class="text-base font-bold text-slate-900">Private Chat Locked</h3>
+                <p class="text-xs text-slate-600 mt-1 leading-normal">
+                    @profile.DisplayName requires a one-time unlock fee for direct 1-on-1 messaging.
+                </p>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-500 font-medium">Creator Unlock Fee</span>
+                    <span class="font-bold text-sky-700 flex items-center gap-1">
+                        💧 @privateChatFeeLinkDrops.ToString("N0") Link Drops
+                    </span>
+                </div>
+                <div class="flex items-center justify-between border-t border-slate-200/60 pt-2">
+                    <span class="text-slate-500 font-medium">Your Available Balance</span>
+                    <span class="font-mono font-bold @(visitorWalletBalance >= privateChatFeeLinkDrops ? "text-slate-900" : "text-rose-600")">
+                        💧 @visitorWalletBalance.ToString("N0") Link Drops
+                    </span>
+                </div>
+            </div>
+
+            @if (visitorWalletBalance < privateChatFeeLinkDrops)
+            {
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 text-left flex items-start gap-2">
+                    <span class="text-sm">⚠️</span>
+                    <div>
+                        <span class="font-bold">Insufficient Link Drops.</span> You need @((privateChatFeeLinkDrops - visitorWalletBalance).ToString("N0")) more Link Drops to unlock.
+                        <a href="linkdrops" class="text-indigo-600 hover:underline font-bold block mt-0.5">Top Up Link Drops &rarr;</a>
+                    </div>
+                </div>
+            }
+
+            <div class="flex items-center gap-2 pt-2">
+                <button type="button" @onclick="() => showProfileUnlockModal = false" class="flex-1 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition cursor-pointer">
+                    Cancel
+                </button>
+                @if (visitorWalletBalance >= privateChatFeeLinkDrops)
+                {
+                    <button type="button" @onclick="ConfirmProfileUnlockAsync" disabled="@isUnlockingChat" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/30 transition cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1">
+                        @if (isUnlockingChat)
+                        {
+                            <span class="animate-spin text-xs">⌛</span>
+                            <span>Unlocking...</span>
+                        }
+                        else
+                        {
+                            <span>Pay &amp; Start Chat</span>
+                        }
+                    </button>
+                }
+                else
+                {
+                    <a href="linkdrops" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/30 transition text-center">
+                        Top Up Drops
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter] public string? UserNameOrId { get; set; }
 
@@ -576,6 +656,13 @@
     private string? errorMessage;
     private UserProfileDto? profile;
     private bool isOwner;
+
+    // Private Chat State
+    private bool isPaidChatEnabled;
+    private long privateChatFeeLinkDrops;
+    private long visitorWalletBalance;
+    private bool showProfileUnlockModal;
+    private bool isUnlockingChat;
 
     // Tabs
     private string activeTab = "posts";
@@ -631,6 +718,11 @@
                 profile = res.Data;
                 isOwner = profile.Relationship.IsSelf || string.IsNullOrWhiteSpace(UserNameOrId);
                 await SetTab("posts");
+
+                if (!isOwner)
+                {
+                    await LoadPrivateChatStatusAsync();
+                }
             }
             else
             {
@@ -843,6 +935,75 @@
         finally
         {
             isSubmittingRating = false;
+        }
+    }
+
+    private async Task LoadPrivateChatStatusAsync()
+    {
+        if (profile == null) return;
+        try
+        {
+            var settingRes = await ChatApi.GetCreatorChatSettingsAsync(profile.UserId, _cts.Token);
+            if (settingRes.IsSuccess && settingRes.Data != null)
+            {
+                isPaidChatEnabled = settingRes.Data.IsPrivateChatEnabled;
+                privateChatFeeLinkDrops = settingRes.Data.PrivateChatFeeLinkDrops;
+            }
+
+            var walletRes = await LinkDropApi.GetUserWalletAsync(_cts.Token);
+            if (walletRes.IsSuccess && walletRes.Data != null)
+            {
+                visitorWalletBalance = walletRes.Data.Balance;
+            }
+        }
+        catch { }
+    }
+
+    private async Task HandleProfileMessageClick()
+    {
+        if (profile == null) return;
+
+        if (isPaidChatEnabled && privateChatFeeLinkDrops > 0)
+        {
+            var walletRes = await LinkDropApi.GetUserWalletAsync();
+            if (walletRes.IsSuccess && walletRes.Data != null)
+            {
+                visitorWalletBalance = walletRes.Data.Balance;
+            }
+
+            showProfileUnlockModal = true;
+        }
+        else
+        {
+            Navigation.NavigateTo("/chat");
+        }
+    }
+
+    private async Task ConfirmProfileUnlockAsync()
+    {
+        if (profile == null) return;
+        try
+        {
+            isUnlockingChat = true;
+            var res = await ChatApi.UnlockPrivateChatAsync(profile.UserId);
+            if (res.IsSuccess)
+            {
+                Toast.Success("Private chat unlocked successfully!");
+                showProfileUnlockModal = false;
+                Navigation.NavigateTo("/chat");
+            }
+            else
+            {
+                Toast.Error(res.Message ?? "Failed to unlock private chat.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+        finally
+        {
+            isUnlockingChat = false;
         }
     }
 

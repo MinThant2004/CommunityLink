@@ -38,18 +38,33 @@ public sealed class CreatorEarningsService(
         long availableEarnings = creatorWallet?.EarnedBalance ?? 0;
         decimal estimatedValueMmk = availableEarnings * MmkConversionRatePerDrop;
 
-        // 2. Fetch all completed payment transactions for this creator
-        var allCreatorTransactions = await dbContext.TblChatGroupPaymentTransactions
+        // 2. Fetch Chat Group payment transactions for this creator
+        var groupTransactions = await dbContext.TblChatGroupPaymentTransactions
             .AsNoTracking()
             .Include(t => t.ChatGroup)
             .Include(t => t.User)
             .Where(t => t.CreatorUserId == creatorUserId && t.Status.ToUpper() == "COMPLETED")
             .ToListAsync(cancellationToken);
 
-        long grossEarnings = allCreatorTransactions.Sum(t => t.GrossAmount);
-        long platformCommission = allCreatorTransactions.Sum(t => t.CommissionAmount);
-        long netEarnings = allCreatorTransactions.Sum(t => t.NetAmount);
-        int totalTransactions = allCreatorTransactions.Count;
+        // 3. Fetch Private Chat payment transactions for this creator
+        var privateTransactions = await dbContext.TblPrivateChatPaymentTransactions
+            .AsNoTracking()
+            .Include(t => t.BuyerUser)
+            .Where(t => t.CreatorUserId == creatorUserId && t.Status.ToUpper() == "COMPLETED")
+            .ToListAsync(cancellationToken);
+
+        long groupGross = groupTransactions.Sum(t => t.GrossAmount);
+        long groupCommission = groupTransactions.Sum(t => t.CommissionAmount);
+        long groupNet = groupTransactions.Sum(t => t.NetAmount);
+
+        long privateGross = privateTransactions.Sum(t => t.GrossAmountLinkDrops);
+        long privateCommission = privateTransactions.Sum(t => t.CommissionAmount);
+        long privateNet = privateTransactions.Sum(t => t.CreatorAmount);
+
+        long grossEarnings = groupGross + privateGross;
+        long platformCommission = groupCommission + privateCommission;
+        long netEarnings = groupNet + privateNet;
+        int totalTransactions = groupTransactions.Count + privateTransactions.Count;
 
         var summary = new CreatorEarningsSummaryModel(
             AvailableEarnings: availableEarnings,
@@ -62,8 +77,7 @@ public sealed class CreatorEarningsService(
             NetEarnings: netEarnings
         );
 
-        // 3. Calculate Group Breakdown
-        // Also ensure all creator's Chat Groups are queried so groups with 0 earnings still show up cleanly
+        // 4. Calculate Group Breakdown
         var creatorGroups = await dbContext.TblChatGroups
             .AsNoTracking()
             .Where(cg => cg.CreatorId == creatorUserId && !cg.IsDeleted)
@@ -74,7 +88,7 @@ public sealed class CreatorEarningsService(
             g => new CreatorGroupEarningsModel(g.ChatGroupId, g.Name, 0, 0)
         );
 
-        foreach (var tx in allCreatorTransactions)
+        foreach (var tx in groupTransactions)
         {
             if (groupBreakdownDict.TryGetValue(tx.ChatGroupId, out var existing))
             {
@@ -102,22 +116,12 @@ public sealed class CreatorEarningsService(
             .ThenBy(g => g.ChatGroupName)
             .ToList();
 
-        // 4. Filter Transactions List for History Table
-        IEnumerable<TblChatGroupPaymentTransaction> filteredTxs = allCreatorTransactions;
+        // 5. Combine and Filter Transactions List for History Table
+        var combinedTxModels = new List<CreatorEarningsTransactionModel>();
 
-        if (chatGroupId.HasValue && chatGroupId.Value > 0)
+        foreach (var t in groupTransactions)
         {
-            filteredTxs = filteredTxs.Where(t => t.ChatGroupId == chatGroupId.Value);
-        }
-
-        if (string.Equals(filterType, "GROUP", StringComparison.OrdinalIgnoreCase))
-        {
-            filteredTxs = filteredTxs.Where(t => t.ChatGroupId > 0);
-        }
-
-        var transactionModels = filteredTxs
-            .OrderByDescending(t => t.CreatedAt)
-            .Select(t => new CreatorEarningsTransactionModel(
+            combinedTxModels.Add(new CreatorEarningsTransactionModel(
                 PaymentTransactionId: t.PaymentTransactionId,
                 Date: t.CreatedAt,
                 ChatGroupId: t.ChatGroupId,
@@ -128,7 +132,43 @@ public sealed class CreatorEarningsService(
                 CommissionAmount: t.CommissionAmount,
                 NetAmount: t.NetAmount,
                 Status: t.Status
-            ))
+            ));
+        }
+
+        foreach (var pt in privateTransactions)
+        {
+            combinedTxModels.Add(new CreatorEarningsTransactionModel(
+                PaymentTransactionId: pt.PrivateChatPaymentTransactionId,
+                Date: pt.CreatedAt,
+                ChatGroupId: 0,
+                ChatGroupName: "Private Chat Unlock",
+                BuyerUserId: pt.BuyerUserId,
+                BuyerName: pt.BuyerUser?.DisplayName ?? pt.BuyerUser?.UserName ?? "User",
+                GrossAmount: pt.GrossAmountLinkDrops,
+                CommissionAmount: pt.CommissionAmount,
+                NetAmount: pt.CreatorAmount,
+                Status: pt.Status
+            ));
+        }
+
+        IEnumerable<CreatorEarningsTransactionModel> filteredTxs = combinedTxModels;
+
+        if (chatGroupId.HasValue && chatGroupId.Value > 0)
+        {
+            filteredTxs = filteredTxs.Where(t => t.ChatGroupId == chatGroupId.Value);
+        }
+
+        if (string.Equals(filterType, "GROUP", StringComparison.OrdinalIgnoreCase))
+        {
+            filteredTxs = filteredTxs.Where(t => t.ChatGroupId > 0);
+        }
+        else if (string.Equals(filterType, "PRIVATE_CHAT", StringComparison.OrdinalIgnoreCase))
+        {
+            filteredTxs = filteredTxs.Where(t => t.ChatGroupId == 0);
+        }
+
+        var transactionModels = filteredTxs
+            .OrderByDescending(t => t.Date)
             .ToList();
 
         var dashboard = new CreatorEarningsDashboardModel(

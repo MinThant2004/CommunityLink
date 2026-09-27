@@ -40,8 +40,12 @@ public class UserProfileService : IUserProfileService
         if (string.IsNullOrWhiteSpace(userNameOrId))
             return Result<UserProfileDto>.Failure("Username or User ID is required.", ResultStatus.ValidationError);
 
+        var cleaned = userNameOrId.Trim().TrimStart('@').Trim();
+
         TblUser? user = null;
-        if (int.TryParse(userNameOrId, out var parsedId))
+
+        // 1. Check by User ID if numeric
+        if (int.TryParse(cleaned, out var parsedId))
         {
             user = await _dbContext.TblUsers
                 .Include(u => u.TblUserRoles)
@@ -49,17 +53,27 @@ public class UserProfileService : IUserProfileService
                 .FirstOrDefaultAsync(u => u.UserId == parsedId && !u.IsDeleted, cancellationToken);
         }
 
+        // 2. Check by Normalized Username
         if (user == null)
         {
-            var normalized = userNameOrId.Trim().ToUpperInvariant();
+            var normalized = cleaned.ToUpperInvariant();
             user = await _dbContext.TblUsers
                 .Include(u => u.TblUserRoles)
                     .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.NormalizedUserName == normalized && !u.IsDeleted, cancellationToken);
         }
 
+        // 3. Fallback: Check by DisplayName (exact or case-insensitive)
         if (user == null)
-            return Result<UserProfileDto>.Failure($"User '@{userNameOrId}' does not exist.", ResultStatus.NotFound);
+        {
+            user = await _dbContext.TblUsers
+                .Include(u => u.TblUserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => (u.DisplayName == cleaned || u.DisplayName.ToUpper() == cleaned.ToUpper()) && !u.IsDeleted, cancellationToken);
+        }
+
+        if (user == null)
+            return Result<UserProfileDto>.Failure($"User '@{cleaned}' does not exist.", ResultStatus.NotFound);
 
         bool isSelf = currentUserId.HasValue && currentUserId.Value == user.UserId;
         var profile = await BuildProfileDtoAsync(user, currentUserId, isOwnerView: isSelf, cancellationToken);

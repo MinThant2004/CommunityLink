@@ -278,4 +278,162 @@ public class CreatorPayoutTests : IClassFixture<CommunityApiFactory>
         var result = await resp.Content.ReadFromJsonAsync<Result<CreatorPayoutModel>>();
         Assert.False(result?.IsSuccess);
     }
+
+    [Fact]
+    public async Task CannotApprove_AlreadyCompletedOrRejectedPayout()
+    {
+        var (creatorToken, creatorId) = await GetTokenAndUserIdForRoleAsync("DOMAIN_PROFESSIONAL", "pay_creator7", "pay_creator7@test.com", "Password@123");
+        var (adminToken, _) = await GetTokenAndUserIdForRoleAsync("ADMIN", "admin_pay7", "admin_pay7@test.com", "Password@123");
+        await SetupWalletBalancesAsync(creatorId, purchasedBalance: 0, earnedBalance: 200);
+
+        var creatorClient = _factory.CreateClient();
+        creatorClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", creatorToken);
+
+        var createResp = await creatorClient.PostAsJsonAsync("/api/creator/payouts", new CreatePayoutRequestModel(50, "KBZPay", "U Mg Mg", "09123456789"));
+        var createResult = await createResp.Content.ReadFromJsonAsync<Result<CreatorPayoutModel>>();
+        long payoutId = createResult!.Data!.CreatorPayoutRequestId;
+
+        var adminClient = _factory.CreateClient();
+        adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+
+        // First approval succeeds
+        var approveResp1 = await adminClient.PostAsJsonAsync($"/api/admin/payouts/{payoutId}/approve", new ReviewPayoutRequestModel("First approval"));
+        Assert.Equal(HttpStatusCode.OK, approveResp1.StatusCode);
+        var approveResult1 = await approveResp1.Content.ReadFromJsonAsync<Result<AdminPayoutModel>>();
+        Assert.True(approveResult1?.IsSuccess);
+
+        // Second approval attempt MUST fail and NOT duplicate ledger entry
+        var approveResp2 = await adminClient.PostAsJsonAsync($"/api/admin/payouts/{payoutId}/approve", new ReviewPayoutRequestModel("Duplicate approval"));
+        var approveResult2 = await approveResp2.Content.ReadFromJsonAsync<Result<AdminPayoutModel>>();
+        Assert.False(approveResult2?.IsSuccess);
+
+        // Verify only 1 audit transaction was created in TblLinkDropTransaction
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        int txCount = await db.TblLinkDropTransactions.CountAsync(t => t.UserId == creatorId && t.TransactionType == "CREATOR_PAYOUT");
+        Assert.Equal(1, txCount);
+    }
+
+    [Fact]
+    public async Task MultiplePendingRequests_CumulativeValidation()
+    {
+        var (creatorToken, creatorId) = await GetTokenAndUserIdForRoleAsync("DOMAIN_PROFESSIONAL", "pay_creator8", "pay_creator8@test.com", "Password@123");
+        await SetupWalletBalancesAsync(creatorId, purchasedBalance: 0, earnedBalance: 100);
+
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", creatorToken);
+
+        // Request 1: 60 LD -> net available = 40 LD
+        var resp1 = await client.PostAsJsonAsync("/api/creator/payouts", new CreatePayoutRequestModel(60, "KBZPay", "U Mg Mg", "09123456789"));
+        var res1 = await resp1.Content.ReadFromJsonAsync<Result<CreatorPayoutModel>>();
+        Assert.True(res1?.IsSuccess);
+
+        // Request 2: 50 LD -> requires 50 LD, but net available is 40 LD -> MUST FAIL
+        var resp2 = await client.PostAsJsonAsync("/api/creator/payouts", new CreatePayoutRequestModel(50, "KBZPay", "U Mg Mg", "09123456789"));
+        var res2 = await resp2.Content.ReadFromJsonAsync<Result<CreatorPayoutModel>>();
+        Assert.False(res2?.IsSuccess);
+
+        // Request 3: 40 LD -> net available is 40 LD -> MUST SUCCEED
+        var resp3 = await client.PostAsJsonAsync("/api/creator/payouts", new CreatePayoutRequestModel(40, "KBZPay", "U Mg Mg", "09123456789"));
+        var res3 = await resp3.Content.ReadFromJsonAsync<Result<CreatorPayoutModel>>();
+        Assert.True(res3?.IsSuccess);
+    }
+
+    [Fact]
+    public async Task AdminPayoutEndpoints_AnonymousUser_Returns401()
+    {
+        var anonymousClient = _factory.CreateClient();
+
+        var getResp = await anonymousClient.GetAsync("/api/admin/payouts");
+        Assert.Equal(HttpStatusCode.Unauthorized, getResp.StatusCode);
+
+        var approveResp = await anonymousClient.PostAsJsonAsync("/api/admin/payouts/1/approve", new ReviewPayoutRequestModel("Unauthorized test"));
+        Assert.Equal(HttpStatusCode.Unauthorized, approveResp.StatusCode);
+
+        var rejectResp = await anonymousClient.PostAsJsonAsync("/api/admin/payouts/1/reject", new ReviewPayoutRequestModel("Unauthorized test"));
+        Assert.Equal(HttpStatusCode.Unauthorized, rejectResp.StatusCode);
+    }
+
+    [Fact]
+    public async Task AdminPayoutEndpoints_NormalMember_Returns403()
+    {
+        var (memberToken, _) = await GetTokenAndUserIdForRoleAsync("MEMBER", "normal_user1", "normal_user1@test.com", "Password@123");
+
+        var memberClient = _factory.CreateClient();
+        memberClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", memberToken);
+
+        var getResp = await memberClient.GetAsync("/api/admin/payouts");
+        Assert.Equal(HttpStatusCode.Forbidden, getResp.StatusCode);
+    }
+
+    [Fact]
+    public async Task AdminPayoutEndpoints_AuthorizedAdmin_ReturnsSuccess()
+    {
+        var (adminToken, _) = await GetTokenAndUserIdForRoleAsync("ADMIN", "admin_user_auth", "admin_user_auth@test.com", "Password@123");
+
+        var adminClient = _factory.CreateClient();
+        adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+
+        var getResp = await adminClient.GetAsync("/api/admin/payouts");
+        Assert.Equal(HttpStatusCode.OK, getResp.StatusCode);
+
+        var result = await getResp.Content.ReadFromJsonAsync<Result<IReadOnlyList<AdminPayoutModel>>>();
+        Assert.True(result?.IsSuccess);
+    }
+
+    [Fact]
+    public async Task NormalUser_CannotApprovePayout()
+    {
+        var (creatorToken, creatorId) = await GetTokenAndUserIdForRoleAsync("DOMAIN_PROFESSIONAL", "pay_creator9", "pay_creator9@test.com", "Password@123");
+        var (memberToken, _) = await GetTokenAndUserIdForRoleAsync("MEMBER", "normal_user2", "normal_user2@test.com", "Password@123");
+
+        await SetupWalletBalancesAsync(creatorId, purchasedBalance: 0, earnedBalance: 200);
+
+        var creatorClient = _factory.CreateClient();
+        creatorClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", creatorToken);
+        var createResp = await creatorClient.PostAsJsonAsync("/api/creator/payouts", new CreatePayoutRequestModel(50, "KBZPay", "U Mg Mg", "09123456789"));
+        var createResult = await createResp.Content.ReadFromJsonAsync<Result<CreatorPayoutModel>>();
+        long payoutId = createResult!.Data!.CreatorPayoutRequestId;
+
+        // Normal member attempts approval
+        var memberClient = _factory.CreateClient();
+        memberClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", memberToken);
+        var approveResp = await memberClient.PostAsJsonAsync($"/api/admin/payouts/{payoutId}/approve", new ReviewPayoutRequestModel("Illegal approval attempt"));
+
+        Assert.Equal(HttpStatusCode.Forbidden, approveResp.StatusCode);
+
+        // Verify status remains PENDING
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var payout = await db.TblCreatorPayoutRequests.FirstAsync(p => p.CreatorPayoutRequestId == payoutId);
+        Assert.Equal("PENDING", payout.Status);
+    }
+
+    [Fact]
+    public async Task NormalUser_CannotRejectPayout()
+    {
+        var (creatorToken, creatorId) = await GetTokenAndUserIdForRoleAsync("DOMAIN_PROFESSIONAL", "pay_creator10", "pay_creator10@test.com", "Password@123");
+        var (memberToken, _) = await GetTokenAndUserIdForRoleAsync("MEMBER", "normal_user3", "normal_user3@test.com", "Password@123");
+
+        await SetupWalletBalancesAsync(creatorId, purchasedBalance: 0, earnedBalance: 200);
+
+        var creatorClient = _factory.CreateClient();
+        creatorClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", creatorToken);
+        var createResp = await creatorClient.PostAsJsonAsync("/api/creator/payouts", new CreatePayoutRequestModel(50, "KBZPay", "U Mg Mg", "09123456789"));
+        var createResult = await createResp.Content.ReadFromJsonAsync<Result<CreatorPayoutModel>>();
+        long payoutId = createResult!.Data!.CreatorPayoutRequestId;
+
+        // Normal member attempts rejection
+        var memberClient = _factory.CreateClient();
+        memberClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", memberToken);
+        var rejectResp = await memberClient.PostAsJsonAsync($"/api/admin/payouts/{payoutId}/reject", new ReviewPayoutRequestModel("Illegal rejection attempt"));
+
+        Assert.Equal(HttpStatusCode.Forbidden, rejectResp.StatusCode);
+
+        // Verify status remains PENDING
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var payout = await db.TblCreatorPayoutRequests.FirstAsync(p => p.CreatorPayoutRequestId == payoutId);
+        Assert.Equal("PENDING", payout.Status);
+    }
 }

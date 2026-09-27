@@ -14,7 +14,10 @@ public interface IChatService
     Task<int> GetUnreadMessageCountAsync(CancellationToken cancellationToken = default);
 }
 
-public sealed class ChatService(AppDbContext dbContext, ICurrentUserContext currentUser) : IChatService
+public sealed class ChatService(
+    AppDbContext dbContext,
+    ICurrentUserContext currentUser,
+    IPrivateChatPaymentService privateChatPaymentService) : IChatService
 {
     public async Task<Result<IReadOnlyList<ConversationModel>>> GetConversationsAsync(CancellationToken cancellationToken = default)
     {
@@ -76,18 +79,39 @@ public sealed class ChatService(AppDbContext dbContext, ICurrentUserContext curr
             conversation = await dbContext.TblConversations
                 .FirstOrDefaultAsync(c => ((c.UserOneId == currentUserId && c.UserTwoId == targetId) ||
                                           (c.UserOneId == targetId && c.UserTwoId == currentUserId)) && !c.IsDeleted, cancellationToken);
+        }
 
-            if (conversation is null)
+        int recipientId = 0;
+        if (conversation != null)
+        {
+            recipientId = conversation.UserOneId == currentUserId ? conversation.UserTwoId : conversation.UserOneId;
+        }
+        else if (request.TargetUserId.HasValue)
+        {
+            recipientId = request.TargetUserId.Value;
+        }
+
+        // STEP 10D: Private Chat Authorization check
+        if (recipientId != 0 && recipientId != currentUserId)
+        {
+            var accessCheck = await ValidatePrivateChatAccessAsync(currentUserId, recipientId, conversation?.ConversationId, cancellationToken);
+            if (accessCheck != null && !accessCheck.IsSuccess)
             {
-                conversation = new TblConversation
-                {
-                    UserOneId = currentUserId,
-                    UserTwoId = targetId,
-                    CreatedAt = DateTime.UtcNow
-                };
-                dbContext.TblConversations.Add(conversation);
-                await dbContext.SaveChangesAsync(cancellationToken);
+                return Result<ChatMessageModel>.Failure(accessCheck.Message, accessCheck.Status);
             }
+        }
+
+        if (conversation is null && request.TargetUserId.HasValue)
+        {
+            var targetId = request.TargetUserId.Value;
+            conversation = new TblConversation
+            {
+                UserOneId = currentUserId,
+                UserTwoId = targetId,
+                CreatedAt = DateTime.UtcNow
+            };
+            dbContext.TblConversations.Add(conversation);
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
         if (conversation is null) return Result<ChatMessageModel>.Failure("Conversation not found.", ResultStatus.NotFound);
@@ -141,5 +165,31 @@ public sealed class ChatService(AppDbContext dbContext, ICurrentUserContext curr
                              m.SenderId != currentUserId &&
                              !m.IsRead &&
                              !m.IsDeleted, cancellationToken);
+    }
+
+    private async Task<Result?> ValidatePrivateChatAccessAsync(int senderId, int recipientId, int? conversationId, CancellationToken cancellationToken)
+    {
+        var setting = await dbContext.TblCreatorChatSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.CreatorUserId == recipientId, cancellationToken);
+
+        if (setting is null || !setting.IsPrivateChatEnabled)
+        {
+            // Free chat allowed
+            return null;
+        }
+
+        // Check if COMPLETED payment transaction exists
+        bool isUnlocked = await dbContext.TblPrivateChatPaymentTransactions
+            .AsNoTracking()
+            .AnyAsync(t => (t.BuyerUserId == senderId && t.CreatorUserId == recipientId && t.Status == "COMPLETED") ||
+                           (conversationId.HasValue && t.ConversationId == conversationId.Value && t.BuyerUserId == senderId && t.Status == "COMPLETED"), cancellationToken);
+
+        if (!isUnlocked)
+        {
+            return Result.Failure("PRIVATE_CHAT_PAYMENT_REQUIRED", ResultStatus.Forbidden);
+        }
+
+        return null;
     }
 }

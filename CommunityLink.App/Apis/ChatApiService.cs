@@ -15,4 +15,15 @@ public sealed class ChatApiService(IHttpClientFactory clientFactory, IHttpContex
 
     public Task<Result<ChatMessageModel>> SendMessageAsync(SendMessageRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync<ChatMessageModel, SendMessageRequestModel>("api/chat/messages", request, cancellationToken);
+
+    public Task<Result<int>> UnlockPrivateChatAsync(int creatorUserId, CancellationToken cancellationToken = default) =>
+        PostAsync<int, object>($"api/chat/unlock/{creatorUserId}", new { }, cancellationToken);
+
+    public Task<Result<CreatorChatSettingModel>> GetCreatorChatSettingsAsync(int? creatorUserId = null, CancellationToken cancellationToken = default) =>
+        creatorUserId.HasValue
+            ? GetAsync<CreatorChatSettingModel>($"api/creator/chat/settings/{creatorUserId.Value}", cancellationToken)
+            : GetAsync<CreatorChatSettingModel>("api/creator/chat/settings", cancellationToken);
+
+    public Task<Result<CreatorChatSettingModel>> SaveCreatorChatSettingsAsync(SaveCreatorChatSettingRequestModel request, CancellationToken cancellationToken = default) =>
+        PostAsync<CreatorChatSettingModel, SaveCreatorChatSettingRequestModel>("api/creator/chat/settings", request, cancellationToken);
 }

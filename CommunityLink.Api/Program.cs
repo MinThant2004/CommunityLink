@@ -1,4 +1,5 @@
 using CommunityLink.Domain;
+using CommunityLink.Domain.Features.Chat;
 using CommunityLink.Domain.Features.ChatGroup;
 using CommunityLink.Api.Controllers;
 using CommunityLink.Api.Middlewares;
@@ -78,6 +79,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await RbacSeeder.SeedAsync(db);
     await LinkDropSeeder.SeedAsync(db);
+    await PrivateChatDatabaseSeeder.SeedAsync(db);
 }
 
 // Middleware Pipeline
@@ -100,6 +102,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<ChatGroupHub>("/hubs/chat-groups");
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();
 

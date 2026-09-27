@@ -10,9 +10,62 @@ public partial class AppDbContext
 {
     public virtual DbSet<TblCommunityAuditLog> TblCommunityAuditLogs { get; set; }
     public virtual DbSet<TblCreatorPayoutRequest> TblCreatorPayoutRequests { get; set; }
+    public virtual DbSet<TblCreatorChatSetting> TblCreatorChatSettings { get; set; }
+    public virtual DbSet<TblPrivateChatPaymentTransaction> TblPrivateChatPaymentTransactions { get; set; }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TblCreatorChatSetting>(entity =>
+        {
+            entity.HasKey(e => e.CreatorChatSettingId);
+            entity.ToTable("TblCreatorChatSetting");
+
+            entity.HasIndex(e => e.CreatorUserId, "IX_TblCreatorChatSetting_CreatorUserId").IsUnique();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasOne(d => d.CreatorUser).WithMany()
+                .HasForeignKey(d => d.CreatorUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblCreatorChatSetting_TblUser_Creator");
+        });
+
+        modelBuilder.Entity<TblPrivateChatPaymentTransaction>(entity =>
+        {
+            entity.HasKey(e => e.PrivateChatPaymentTransactionId);
+            entity.ToTable("TblPrivateChatPaymentTransaction");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("COMPLETED");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasIndex(e => e.ConversationId, "IX_TblPrivateChatPaymentTransaction_ConversationId");
+            entity.HasIndex(e => e.BuyerUserId, "IX_TblPrivateChatPaymentTransaction_BuyerUserId");
+            entity.HasIndex(e => e.CreatorUserId, "IX_TblPrivateChatPaymentTransaction_CreatorUserId");
+
+            entity.HasOne(d => d.Conversation).WithMany()
+                .HasForeignKey(d => d.ConversationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblPrivateChatPaymentTransaction_TblConversation");
+
+            entity.HasOne(d => d.BuyerUser).WithMany()
+                .HasForeignKey(d => d.BuyerUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblPrivateChatPaymentTransaction_TblUser_Buyer");
+
+            entity.HasOne(d => d.CreatorUser).WithMany()
+                .HasForeignKey(d => d.CreatorUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblPrivateChatPaymentTransaction_TblUser_Creator");
+        });
+
         modelBuilder.Entity<TblCreatorPayoutRequest>(entity =>
         {
             entity.HasKey(e => e.CreatorPayoutRequestId);
@@ -85,7 +138,7 @@ public partial class AppDbContext
             {
                 table.HasCheckConstraint(
                     "CK_TblLinkDropTransaction_TransactionType",
-                    "[TransactionType] IN ('SPEND_GROUP_JOIN', 'SPEND_CHAT', 'REFUND', 'BONUS', 'PURCHASE', 'CHAT_GROUP_JOIN', 'CHAT_GROUP_EARNING', 'CREATOR_PAYOUT')");
+                    "[TransactionType] IN ('SPEND_GROUP_JOIN', 'SPEND_CHAT', 'REFUND', 'BONUS', 'PURCHASE', 'CHAT_GROUP_JOIN', 'CHAT_GROUP_EARNING', 'CREATOR_PAYOUT', 'PRIVATE_CHAT_UNLOCK', 'PRIVATE_CHAT_EARNING')");
             });
 
             entity.Ignore(e => e.PurchasedAmountDeducted);

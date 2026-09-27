@@ -61,6 +61,8 @@ public static class FeatureManager
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<IPollService, PollService>();
         services.AddScoped<IChatService, ChatService>();
+        services.AddScoped<ICreatorChatSettingService, CreatorChatSettingService>();
+        services.AddScoped<IPrivateChatPaymentService, PrivateChatPaymentService>();
         services.AddScoped<IAdministrationService, AdministrationService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IUserProfileService, UserProfileService>();
@@ -70,6 +72,7 @@ public static class FeatureManager
         services.AddScoped<IChatGroupService, ChatGroupService>();
         services.AddScoped<CommunityLink.Domain.Features.Creator.ICreatorEarningsService, CommunityLink.Domain.Features.Creator.CreatorEarningsService>();
         services.AddScoped<CommunityLink.Domain.Features.Payout.ICreatorPayoutService, CommunityLink.Domain.Features.Payout.CreatorPayoutService>();
+        services.AddScoped<CommunityLink.Domain.Features.Finance.IAdminFinanceService, CommunityLink.Domain.Features.Finance.AdminFinanceService>();
 
         return services;
     }

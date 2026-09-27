@@ -8,16 +8,18 @@
         {
             if (ShowHeader)
             {
-                <div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden mb-1 shadow-xs">
-                    @if (!string.IsNullOrWhiteSpace(Message.SenderAvatar))
-                    {
-                        <img src="@Message.SenderAvatar" alt="@Message.SenderDisplayName" class="w-full h-full object-cover" />
-                    }
-                    else
-                    {
-                        <span>@(Message.SenderDisplayName.Substring(0, 1).ToUpper())</span>
-                    }
-                </div>
+                <a href="u/@(Message.SenderId > 0 ? Message.SenderId.ToString() : Message.SenderDisplayName)" class="shrink-0 hover:opacity-80 transition">
+                    <div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden mb-1 shadow-xs">
+                        @if (!string.IsNullOrWhiteSpace(Message.SenderAvatar))
+                        {
+                            <img src="@Message.SenderAvatar" alt="@Message.SenderDisplayName" class="w-full h-full object-cover" />
+                        }
+                        else
+                        {
+                            <span>@(Message.SenderDisplayName.Substring(0, 1).ToUpper())</span>
+                        }
+                    </div>
+                </a>
             }
             else
             {
@@ -32,9 +34,9 @@
 
                 @if (!Message.IsMine && ShowHeader)
                 {
-                    <div class="text-xs font-bold text-indigo-600 mb-1 truncate">
+                    <a href="u/@(Message.SenderId > 0 ? Message.SenderId.ToString() : Message.SenderDisplayName)" class="text-xs font-bold text-indigo-600 mb-1 truncate block hover:underline">
                         @Message.SenderDisplayName
-                    </div>
+                    </a>
                 }
 
                 <div class="font-normal">@Message.Content</div>

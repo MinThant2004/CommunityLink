@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Chat;
 using CommunityLink.Shared.Security;
@@ -7,7 +8,10 @@ using CommunityLink.Shared.Security;
 namespace CommunityLink.Domain.Features.Chat;
 
 [Route("api/chat")]
-public sealed class ChatController(IChatService chatService) : BaseController
+public sealed class ChatController(
+    IChatService chatService,
+    IPrivateChatPaymentService paymentService,
+    ICurrentUserContext currentUser) : BaseController
 {
     [HttpGet("conversations")]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
@@ -23,4 +27,20 @@ public sealed class ChatController(IChatService chatService) : BaseController
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatSend)]
     public async Task<IActionResult> SendMessage([FromBody] SendMessageRequestModel request, CancellationToken cancellationToken) =>
         ToActionResult(await chatService.SendMessageAsync(request, cancellationToken));
+
+    [HttpPost("unlock/{creatorUserId:int}")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> UnlockPrivateChat(int creatorUserId, CancellationToken cancellationToken)
+    {
+        if (currentUser.UserId is null) return ToActionResult(Result.Failure("Forbidden", ResultStatus.Forbidden));
+        return ToActionResult(await paymentService.UnlockPrivateChatAsync(currentUser.UserId.Value, creatorUserId, cancellationToken));
+    }
+
+    [HttpGet("status/{creatorUserId:int}")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> GetChatStatus(int creatorUserId, CancellationToken cancellationToken)
+    {
+        bool isRequired = await paymentService.IsPrivateChatPaidRequiredAsync(creatorUserId, cancellationToken);
+        return Ok(Result<object>.Success(new { isPaidRequired = isRequired }));
+    }
 }

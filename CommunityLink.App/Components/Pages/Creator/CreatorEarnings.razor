@@ -1,8 +1,10 @@
 @page "/creator/earnings"
 @using CommunityLink.App.Apis
 @using CommunityLink.Shared.Features.Creator
+@using CommunityLink.Shared.Features.Chat
 @using System.Security.Claims
 @inject CreatorEarningsApiService EarningsApi
+@inject ChatApiService ChatApi
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -108,6 +110,82 @@
                     @dashboard.Summary.TotalTransactions
                 </div>
                 <p class="text-xs text-slate-500">Successful paid member joins</p>
+            </div>
+        </div>
+
+        <!-- PRIVATE CHAT MONETIZATION SETTINGS SECTION -->
+        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <span>💬</span> Private Chat Monetization Settings
+                    </h2>
+                    <p class="text-xs text-slate-500">
+                        Configure entry fee in Link Drops required for non-premium users to message you directly.
+                    </p>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(chatSettingsSuccessMessage))
+            {
+                <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-xs font-semibold text-emerald-800 flex items-center justify-between">
+                    <span>✓ @chatSettingsSuccessMessage</span>
+                    <button type="button" @onclick="() => chatSettingsSuccessMessage = null" class="text-emerald-600 hover:text-emerald-900">&times;</button>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(chatSettingsErrorMessage))
+            {
+                <div class="bg-rose-50 border border-rose-200 rounded-lg p-3 text-xs font-semibold text-rose-800 flex items-center justify-between">
+                    <span>⚠ @chatSettingsErrorMessage</span>
+                    <button type="button" @onclick="() => chatSettingsErrorMessage = null" class="text-rose-600 hover:text-rose-900">&times;</button>
+                </div>
+            }
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <!-- Toggle Enable -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-900">Paid Private Chat Status</label>
+                    <div class="flex items-center gap-3">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" @bind="isPrivateChatEnabled" class="sr-only peer" />
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                        <span class="text-sm font-medium @(isPrivateChatEnabled ? "text-indigo-600 font-bold" : "text-slate-500")">
+                            @(isPrivateChatEnabled ? "Enabled (Paid Chat Active)" : "Disabled (Free Direct Messages)")
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500">
+                        When enabled, users must pay your configured Link Drop fee to start a private chat with you.
+                    </p>
+                </div>
+
+                <!-- Fee Input -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-900">Private Chat Fee (Link Drops)</label>
+                    <div class="relative max-w-xs">
+                        <input type="number" min="0" step="1" @bind="privateChatFeeLinkDrops" disabled="@(!isPrivateChatEnabled)"
+                               class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-100 disabled:text-slate-400" />
+                        <span class="absolute left-3 top-2.5 text-sm">💧</span>
+                    </div>
+                    <p class="text-xs text-slate-500">
+                        Fee charged per new chat unlocked by a user.
+                    </p>
+                </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex justify-end">
+                <button type="button" @onclick="SaveChatSettingsAsync" disabled="@isSavingChatSettings"
+                        class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-sm disabled:opacity-50 flex items-center gap-2">
+                    @if (isSavingChatSettings)
+                    {
+                        <span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span>Save Chat Settings</span>
+                    }
+                </button>
             </div>
         </div>
 
@@ -310,9 +388,64 @@
     private string activeFilterType = "ALL";
     private int? selectedChatGroupId;
 
+    private bool isPrivateChatEnabled = false;
+    private long privateChatFeeLinkDrops = 0;
+    private bool isSavingChatSettings = false;
+    private string? chatSettingsSuccessMessage;
+    private string? chatSettingsErrorMessage;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadEarningsData();
+        await LoadChatSettingsAsync();
+    }
+
+    private async Task LoadChatSettingsAsync()
+    {
+        try
+        {
+            var res = await ChatApi.GetCreatorChatSettingsAsync();
+            if (res.IsSuccess && res.Data != null)
+            {
+                isPrivateChatEnabled = res.Data.IsPrivateChatEnabled;
+                privateChatFeeLinkDrops = res.Data.PrivateChatFeeLinkDrops;
+            }
+        }
+        catch
+        {
+            // Ignore error loading chat settings
+        }
+    }
+
+    private async Task SaveChatSettingsAsync()
+    {
+        isSavingChatSettings = true;
+        chatSettingsSuccessMessage = null;
+        chatSettingsErrorMessage = null;
+
+        try
+        {
+            var req = new SaveCreatorChatSettingRequestModel(isPrivateChatEnabled, privateChatFeeLinkDrops);
+            var res = await ChatApi.SaveCreatorChatSettingsAsync(req);
+            if (res.IsSuccess && res.Data != null)
+            {
+                isPrivateChatEnabled = res.Data.IsPrivateChatEnabled;
+                privateChatFeeLinkDrops = res.Data.PrivateChatFeeLinkDrops;
+                chatSettingsSuccessMessage = "Private chat monetization settings saved successfully!";
+            }
+            else
+            {
+                chatSettingsErrorMessage = res.Message ?? "Failed to save private chat settings.";
+            }
+        }
+        catch (Exception ex)
+        {
+            chatSettingsErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isSavingChatSettings = false;
+        }
     }
 
     private async Task LoadEarningsData()

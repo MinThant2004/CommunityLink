@@ -268,18 +268,22 @@
                                 <!-- Post Author Header -->
                                 <div class="p-4 sm:p-5 flex items-center justify-between border-b border-slate-50">
                                     <div class="flex items-center gap-3">
-                                        @if (!string.IsNullOrEmpty(post.AuthorAvatar))
-                                        {
-                                            <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-10 h-10 rounded-full object-cover border border-slate-200" />
-                                        }
-                                        else
-                                        {
-                                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                                                @(string.IsNullOrWhiteSpace(post.AuthorName) ? "U" : post.AuthorName.Substring(0, 1).ToUpper())
-                                            </div>
-                                        }
+                                        <a href="u/@(post.AuthorId > 0 ? post.AuthorId.ToString() : post.AuthorName)" class="shrink-0 hover:opacity-80 transition">
+                                            @if (!string.IsNullOrEmpty(post.AuthorAvatar))
+                                            {
+                                                <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-10 h-10 rounded-full object-cover border border-slate-200" />
+                                            }
+                                            else
+                                            {
+                                                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                                                    @(string.IsNullOrWhiteSpace(post.AuthorName) ? "U" : post.AuthorName.Substring(0, 1).ToUpper())
+                                                </div>
+                                            }
+                                        </a>
                                         <div>
-                                            <h4 class="text-sm font-bold text-slate-900 leading-tight">@post.AuthorName</h4>
+                                            <a href="u/@(post.AuthorId > 0 ? post.AuthorId.ToString() : post.AuthorName)" class="text-sm font-bold text-slate-900 hover:text-indigo-600 transition block leading-tight">
+                                                @post.AuthorName
+                                            </a>
                                             <span class="text-[11px] text-slate-400">@post.CreatedAt.ToLocalTime().ToString("g")</span>
                                         </div>
                                     </div>
@@ -378,7 +382,7 @@
                                                             </div>
                                                             <div class="flex-1 bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
                                                                 <div class="flex items-center justify-between gap-2 mb-1">
-                                                                    <span class="font-semibold text-slate-900">@comment.AuthorName</span>
+                                                                    <a href="u/@comment.AuthorName" class="font-semibold text-slate-900 hover:text-indigo-600 transition">@comment.AuthorName</a>
                                                                     <span class="text-[10px] text-slate-400">@comment.CreatedAt.ToLocalTime().ToString("g")</span>
                                                                 </div>
                                                                 <p class="text-slate-700 whitespace-pre-line">@comment.Content</p>
@@ -427,11 +431,15 @@
                                 <!-- Poll Author Info -->
                                 <div class="p-4 sm:p-5 flex items-center justify-between border-b border-slate-50">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                                            @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName.Substring(0, 1).ToUpper())
-                                        </div>
+                                        <a href="u/@poll.AuthorName" class="shrink-0 hover:opacity-80 transition">
+                                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                                                @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName.Substring(0, 1).ToUpper())
+                                            </div>
+                                        </a>
                                         <div>
-                                            <h4 class="text-sm font-bold text-slate-900 leading-tight">@poll.AuthorName</h4>
+                                            <a href="u/@poll.AuthorName" class="text-sm font-bold text-slate-900 hover:text-indigo-600 transition block leading-tight">
+                                                @poll.AuthorName
+                                            </a>
                                             <span class="text-[11px] text-slate-400">@poll.CreatedAt.ToLocalTime().ToString("g")</span>
                                         </div>
                                     </div>
@@ -616,11 +624,13 @@
                         {
                             <div class="p-3.5 flex items-center justify-between text-xs">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-                                        @(string.IsNullOrWhiteSpace(m.DisplayName) ? "U" : m.DisplayName.Substring(0, 1).ToUpper())
-                                    </div>
+                                    <a href="u/@m.UserName" class="shrink-0 hover:opacity-80 transition">
+                                        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                                            @(string.IsNullOrWhiteSpace(m.DisplayName) ? "U" : m.DisplayName.Substring(0, 1).ToUpper())
+                                        </div>
+                                    </a>
                                     <div>
-                                        <span class="font-semibold text-slate-900">@m.DisplayName</span>
+                                        <a href="u/@m.UserName" class="font-semibold text-slate-900 hover:text-indigo-600 transition block">@m.DisplayName</a>
                                         <span class="text-[10px] text-slate-400 block">@@@m.UserName</span>
                                     </div>
                                 </div>

@@ -20,3 +20,14 @@ public sealed record ChatMessageModel(
     DateTime SentAt);
 
 public sealed record SendMessageRequestModel(int? ConversationId, int? TargetUserId, string MessageText);
+
+public sealed record CreatorChatSettingModel(
+    int CreatorUserId,
+    bool IsPrivateChatEnabled,
+    long PrivateChatFeeLinkDrops,
+    DateTime CreatedAt,
+    DateTime? UpdatedAt);
+
+public sealed record SaveCreatorChatSettingRequestModel(
+    bool IsPrivateChatEnabled,
+    long PrivateChatFeeLinkDrops);

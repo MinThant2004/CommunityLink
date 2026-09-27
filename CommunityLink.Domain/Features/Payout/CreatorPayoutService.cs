@@ -165,6 +165,16 @@ public sealed class CreatorPayoutService(
         string? statusFilter = null,
         CancellationToken cancellationToken = default)
     {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result<IReadOnlyList<AdminPayoutModel>>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        if (!currentUser.IsAdmin)
+        {
+            return Result<IReadOnlyList<AdminPayoutModel>>.Failure("Administrator privileges required.", ResultStatus.Forbidden);
+        }
+
         var query = dbContext.TblCreatorPayoutRequests
             .AsNoTracking()
             .Include(p => p.CreatorUser)
@@ -202,7 +212,17 @@ public sealed class CreatorPayoutService(
         string? adminNote = null,
         CancellationToken cancellationToken = default)
     {
-        var adminUserId = currentUser.UserId ?? 0;
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result<AdminPayoutModel>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        if (!currentUser.IsAdmin)
+        {
+            return Result<AdminPayoutModel>.Failure("Administrator privileges required.", ResultStatus.Forbidden);
+        }
+
+        var adminUserId = currentUser.UserId.Value;
 
         Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? dbTx = null;
         if (dbContext.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
@@ -299,7 +319,17 @@ public sealed class CreatorPayoutService(
         string? adminNote = null,
         CancellationToken cancellationToken = default)
     {
-        var adminUserId = currentUser.UserId ?? 0;
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result<AdminPayoutModel>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        if (!currentUser.IsAdmin)
+        {
+            return Result<AdminPayoutModel>.Failure("Administrator privileges required.", ResultStatus.Forbidden);
+        }
+
+        var adminUserId = currentUser.UserId.Value;
 
         var payout = await dbContext.TblCreatorPayoutRequests
             .Include(p => p.CreatorUser)
