@@ -16,7 +16,7 @@ public partial class TblCreatorChatSetting
 
     public DateTime? UpdatedAt { get; set; }
 
-    public byte[] RowVersion { get; set; } = null!;
+    public byte[]? RowVersion { get; set; }
 
     public virtual TblUser CreatorUser { get; set; } = null!;
 }

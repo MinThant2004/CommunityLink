@@ -22,7 +22,7 @@ public partial class TblPrivateChatPaymentTransaction
 
     public DateTime CreatedAt { get; set; }
 
-    public byte[] RowVersion { get; set; } = null!;
+    public byte[]? RowVersion { get; set; }
 
     public virtual TblConversation Conversation { get; set; } = null!;
 

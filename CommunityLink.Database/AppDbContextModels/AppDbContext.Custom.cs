@@ -23,7 +23,6 @@ public partial class AppDbContext
             entity.HasIndex(e => e.CreatorUserId, "IX_TblCreatorChatSetting_CreatorUserId").IsUnique();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.RowVersion)
-                .IsRowVersion()
                 .IsConcurrencyToken();
 
             entity.HasOne(d => d.CreatorUser).WithMany()
@@ -43,7 +42,6 @@ public partial class AppDbContext
                 .IsUnicode(false)
                 .HasDefaultValue("COMPLETED");
             entity.Property(e => e.RowVersion)
-                .IsRowVersion()
                 .IsConcurrencyToken();
 
             entity.HasIndex(e => e.ConversationId, "IX_TblPrivateChatPaymentTransaction_ConversationId");
@@ -113,7 +111,6 @@ public partial class AppDbContext
                 .IsUnicode(false)
                 .HasDefaultValue("COMPLETED");
             entity.Property(e => e.RowVersion)
-                .IsRowVersion()
                 .IsConcurrencyToken();
 
             entity.HasOne(d => d.ChatGroup).WithMany()
@@ -138,7 +135,7 @@ public partial class AppDbContext
             {
                 table.HasCheckConstraint(
                     "CK_TblLinkDropTransaction_TransactionType",
-                    "[TransactionType] IN ('SPEND_GROUP_JOIN', 'SPEND_CHAT', 'REFUND', 'BONUS', 'PURCHASE', 'CHAT_GROUP_JOIN', 'CHAT_GROUP_EARNING', 'CREATOR_PAYOUT', 'PRIVATE_CHAT_UNLOCK', 'PRIVATE_CHAT_EARNING')");
+                    "[TransactionType] IN ('SPEND_GROUP_JOIN', 'SPEND_CHAT', 'REFUND', 'BONUS', 'PURCHASE', 'CHAT_GROUP_JOIN', 'CHAT_GROUP_EARNING', 'CREATOR_PAYOUT', 'PRIVATE_CHAT_UNLOCK', 'PRIVATE_CHAT_EARNING', 'TOP_UP')");
             });
 
             entity.Ignore(e => e.PurchasedAmountDeducted);

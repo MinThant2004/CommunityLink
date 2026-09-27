@@ -67,15 +67,25 @@ public static class RbacSeeder
             await db.Database.ExecuteSqlRawAsync(@"
                 IF OBJECT_ID(N'dbo.TblLinkDropTransaction', N'U') IS NOT NULL
                 BEGIN
+                    -- Every value listed in the CHECK constraint below must also appear here, otherwise a
+                    -- constraint created by an older build is left in place and rejects newer ledger types.
                     IF EXISTS (
                         SELECT 1
                         FROM sys.check_constraints
                         WHERE name = N'CK_TblLinkDropTransaction_TransactionType'
                           AND parent_object_id = OBJECT_ID(N'dbo.TblLinkDropTransaction')
                           AND (
-                              definition NOT LIKE '%CREATOR_PAYOUT%'
+                              definition NOT LIKE '%SPEND_GROUP_JOIN%'
+                              OR definition NOT LIKE '%SPEND_CHAT%'
+                              OR definition NOT LIKE '%REFUND%'
+                              OR definition NOT LIKE '%BONUS%'
+                              OR definition NOT LIKE '%PURCHASE%'
                               OR definition NOT LIKE '%CHAT_GROUP_JOIN%'
                               OR definition NOT LIKE '%CHAT_GROUP_EARNING%'
+                              OR definition NOT LIKE '%CREATOR_PAYOUT%'
+                              OR definition NOT LIKE '%PRIVATE_CHAT_UNLOCK%'
+                              OR definition NOT LIKE '%PRIVATE_CHAT_EARNING%'
+                              OR definition NOT LIKE '%TOP_UP%'
                           )
                     )
                     BEGIN
@@ -100,7 +110,10 @@ public static class RbacSeeder
                                 'PURCHASE',
                                 'CHAT_GROUP_JOIN',
                                 'CHAT_GROUP_EARNING',
-                                'CREATOR_PAYOUT'
+                                'CREATOR_PAYOUT',
+                                'PRIVATE_CHAT_UNLOCK',
+                                'PRIVATE_CHAT_EARNING',
+                                'TOP_UP'
                             ));
                     END;
                 END
@@ -259,5 +272,55 @@ public static class RbacSeeder
                 await db.SaveChangesAsync();
             }
         }
+
+        // 5. Seed companion TblAdmin rows for admins that live in TblUser.
+        await SeedAdminCompanionsAsync(db);
+    }
+
+    // TblUser.UserId and TblAdmin.AdminId are treated as a single shared id space by the
+    // auth pipeline (AuthenticationService resolves a token subject against both tables).
+    // Audit columns such as TblLinkDropPurchase.ReviewedByAdminId are FKs to TblAdmin, so an
+    // administrator that only exists in TblUser cannot be recorded as the reviewer.
+    //
+    // IsSuperAdmin stays 0 so the token keeps the plain ADMIN role code. LoginAsync derives
+    // the role claim from it, and CurrentUserContext.IsAdmin only recognises "ADMIN".
+    private static async Task SeedAdminCompanionsAsync(AppDbContext db)
+    {
+        if (db.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            return;
+        }
+
+        await db.Database.ExecuteSqlRawAsync(@"
+            SET IDENTITY_INSERT [dbo].[TblAdmin] ON;
+
+            INSERT INTO [dbo].[TblAdmin]
+                ([AdminId], [Email], [NormalizedEmail], [FullName], [PasswordHash],
+                 [IsSuperAdmin], [IsActive], [LastLoginAt], [CreatedAt],
+                 [CreatedBy], [UpdatedAt], [UpdatedBy], [IsDeleted], [DeletedAt], [DeletedBy])
+            SELECT u.[UserId], u.[Email], u.[NormalizedEmail], u.[DisplayName], u.[PasswordHash],
+                   CAST(0 AS BIT), u.[IsActive], u.[LastLoginAt], u.[CreatedAt],
+                   NULL, NULL, NULL, CAST(0 AS BIT), NULL, NULL
+            FROM [dbo].[TblUser] u
+            INNER JOIN [dbo].[TblUserRole] ur ON ur.[UserId] = u.[UserId]
+            INNER JOIN [dbo].[TblRole] r ON r.[RoleId] = ur.[RoleId]
+            WHERE r.[RoleCode] = 'ADMIN'
+              AND ur.[IsDeleted] = CAST(0 AS BIT)
+              AND u.[IsDeleted] = CAST(0 AS BIT)
+              AND NOT EXISTS (SELECT 1 FROM [dbo].[TblAdmin] a WHERE a.[AdminId] = u.[UserId])
+              AND NOT EXISTS (SELECT 1 FROM [dbo].[TblAdmin] a2 WHERE a2.[Email] = u.[Email]);
+
+            SET IDENTITY_INSERT [dbo].[TblAdmin] OFF;
+
+            INSERT INTO [dbo].[TblAdminRole] ([AdminId], [RoleId], [CreatedAt], [IsDeleted])
+            SELECT a.[AdminId], r.[RoleId], GETUTCDATE(), CAST(0 AS BIT)
+            FROM [dbo].[TblAdmin] a
+            INNER JOIN [dbo].[TblRole] r ON r.[RoleCode] = 'ADMIN'
+            WHERE NOT EXISTS (SELECT 1 FROM [dbo].[TblAdminRole] ar WHERE ar.[AdminId] = a.[AdminId]);
+        ");
+
+        // SQL Server does not advance the identity seed for explicit IDENTITY_INSERT values,
+        // so realign it or the next self-registered admin would collide with a seeded one.
+        await db.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('dbo.TblAdmin') WITH NO_INFOMSGS;");
     }
 }

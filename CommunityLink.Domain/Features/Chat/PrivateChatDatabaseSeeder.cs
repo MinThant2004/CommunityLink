@@ -19,7 +19,7 @@ BEGIN
         [PrivateChatFeeLinkDrops] BIGINT NOT NULL CONSTRAINT [DF_TblCreatorChatSetting_Fee] DEFAULT ((0)),
         [CreatedAt] DATETIME2 NOT NULL CONSTRAINT [DF_TblCreatorChatSetting_CreatedAt] DEFAULT (getutcdate()),
         [UpdatedAt] DATETIME2 NULL,
-        [RowVersion] VARBINARY(8) NULL,
+        [RowVersion] VARBINARY(8) NOT NULL CONSTRAINT [DF_TblCreatorChatSetting_RowVersion] DEFAULT (CONVERT(VARBINARY(8), NEWID())),
         CONSTRAINT [PK_TblCreatorChatSetting] PRIMARY KEY CLUSTERED ([CreatorChatSettingId] ASC),
         CONSTRAINT [UQ_TblCreatorChatSetting_CreatorUserId] UNIQUE ([CreatorUserId]),
         CONSTRAINT [FK_TblCreatorChatSetting_TblUser_Creator] FOREIGN KEY ([CreatorUserId]) REFERENCES [dbo].[TblUser] ([UserId])
@@ -38,7 +38,7 @@ BEGIN
         [CreatorAmount] BIGINT NOT NULL,
         [Status] VARCHAR(20) NOT NULL CONSTRAINT [DF_TblPrivateChatPaymentTransaction_Status] DEFAULT ('COMPLETED'),
         [CreatedAt] DATETIME2 NOT NULL CONSTRAINT [DF_TblPrivateChatPaymentTransaction_CreatedAt] DEFAULT (getutcdate()),
-        [RowVersion] VARBINARY(8) NULL,
+        [RowVersion] VARBINARY(8) NOT NULL CONSTRAINT [DF_TblPrivateChatPaymentTransaction_RowVersion] DEFAULT (CONVERT(VARBINARY(8), NEWID())),
         CONSTRAINT [PK_TblPrivateChatPaymentTransaction] PRIMARY KEY CLUSTERED ([PrivateChatPaymentTransactionId] ASC),
         CONSTRAINT [FK_TblPrivateChatPaymentTransaction_TblConversation] FOREIGN KEY ([ConversationId]) REFERENCES [dbo].[TblConversation] ([ConversationId]),
         CONSTRAINT [FK_TblPrivateChatPaymentTransaction_TblUser_Buyer] FOREIGN KEY ([BuyerUserId]) REFERENCES [dbo].[TblUser] ([UserId]),
@@ -53,6 +53,25 @@ BEGIN
 
     IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_TblPrivateChatPaymentTransaction_CreatorUserId')
         CREATE INDEX [IX_TblPrivateChatPaymentTransaction_CreatorUserId] ON [dbo].[TblPrivateChatPaymentTransaction] ([CreatorUserId]);
+END;
+
+-- Repair tables created by older versions, where [RowVersion] was nullable. A NULL
+-- [RowVersion] cannot be read back into a non-nullable byte[] property and throws
+-- System.Data.SqlTypes.SqlNullValueException on every query.
+IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblCreatorChatSetting') AND name = 'RowVersion' AND is_nullable = 1)
+BEGIN
+    UPDATE [dbo].[TblCreatorChatSetting] SET [RowVersion] = CONVERT(VARBINARY(8), NEWID()) WHERE [RowVersion] IS NULL;
+    IF NOT EXISTS (SELECT * FROM sys.default_constraints WHERE parent_object_id = OBJECT_ID('dbo.TblCreatorChatSetting') AND name = 'DF_TblCreatorChatSetting_RowVersion')
+        ALTER TABLE [dbo].[TblCreatorChatSetting] ADD CONSTRAINT [DF_TblCreatorChatSetting_RowVersion] DEFAULT (CONVERT(VARBINARY(8), NEWID())) FOR [RowVersion];
+    ALTER TABLE [dbo].[TblCreatorChatSetting] ALTER COLUMN [RowVersion] VARBINARY(8) NOT NULL;
+END;
+
+IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblPrivateChatPaymentTransaction') AND name = 'RowVersion' AND is_nullable = 1)
+BEGIN
+    UPDATE [dbo].[TblPrivateChatPaymentTransaction] SET [RowVersion] = CONVERT(VARBINARY(8), NEWID()) WHERE [RowVersion] IS NULL;
+    IF NOT EXISTS (SELECT * FROM sys.default_constraints WHERE parent_object_id = OBJECT_ID('dbo.TblPrivateChatPaymentTransaction') AND name = 'DF_TblPrivateChatPaymentTransaction_RowVersion')
+        ALTER TABLE [dbo].[TblPrivateChatPaymentTransaction] ADD CONSTRAINT [DF_TblPrivateChatPaymentTransaction_RowVersion] DEFAULT (CONVERT(VARBINARY(8), NEWID())) FOR [RowVersion];
+    ALTER TABLE [dbo].[TblPrivateChatPaymentTransaction] ALTER COLUMN [RowVersion] VARBINARY(8) NOT NULL;
 END;
 ";
             await db.Database.ExecuteSqlRawAsync(createTablesSql);
