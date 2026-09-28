@@ -16,6 +16,12 @@ public sealed class ChatApiService(IHttpClientFactory clientFactory, IHttpContex
     public Task<Result<ChatMessageModel>> SendMessageAsync(SendMessageRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync<ChatMessageModel, SendMessageRequestModel>("api/chat/messages", request, cancellationToken);
 
+    public Task<Result<int>> MarkConversationReadAsync(int conversationId, CancellationToken cancellationToken = default) =>
+        PostAsync<int, object>($"api/chat/conversations/{conversationId}/read", new { }, cancellationToken);
+
+    public Task<Result<PrivateChatStatusModel>> GetPrivateChatStatusAsync(int creatorUserId, CancellationToken cancellationToken = default) =>
+        GetAsync<PrivateChatStatusModel>($"api/chat/status/{creatorUserId}", cancellationToken);
+
     public Task<Result<int>> UnlockPrivateChatAsync(int creatorUserId, CancellationToken cancellationToken = default) =>
         PostAsync<int, object>($"api/chat/unlock/{creatorUserId}", new { }, cancellationToken);
 

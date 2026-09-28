@@ -6,6 +6,7 @@ using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Features.Admin;
 using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
+using CommunityLink.Shared.Features.Chat;
 
 namespace CommunityLink.Domain.Features.Chat;
 
@@ -14,6 +15,7 @@ public interface IPrivateChatPaymentService
     Task<Result<int>> UnlockPrivateChatAsync(int buyerUserId, int creatorUserId, CancellationToken cancellationToken = default);
     Task<bool> IsConversationUnlockedAsync(int conversationId, int userId, CancellationToken cancellationToken = default);
     Task<bool> IsPrivateChatPaidRequiredAsync(int creatorUserId, CancellationToken cancellationToken = default);
+    Task<PrivateChatStatusModel> GetPrivateChatStatusAsync(int creatorUserId, int viewerUserId, CancellationToken cancellationToken = default);
 }
 
 public sealed class PrivateChatPaymentService(
@@ -207,5 +209,30 @@ public sealed class PrivateChatPaymentService(
             .FirstOrDefaultAsync(s => s.CreatorUserId == creatorUserId, cancellationToken);
 
         return setting != null && setting.IsPrivateChatEnabled;
+    }
+
+    public async Task<PrivateChatStatusModel> GetPrivateChatStatusAsync(
+        int creatorUserId,
+        int viewerUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var setting = await dbContext.TblCreatorChatSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.CreatorUserId == creatorUserId, cancellationToken);
+
+        // No paid-chat setting, or the viewer is the creator: open conversation.
+        if (setting is null || !setting.IsPrivateChatEnabled || viewerUserId == creatorUserId)
+        {
+            return new PrivateChatStatusModel(creatorUserId, false, true, 0);
+        }
+
+        var unlocked = await dbContext.TblPrivateChatPaymentTransactions
+            .AsNoTracking()
+            .AnyAsync(t => t.BuyerUserId == viewerUserId &&
+                           t.CreatorUserId == creatorUserId &&
+                           t.Status == "COMPLETED",
+                cancellationToken);
+
+        return new PrivateChatStatusModel(creatorUserId, true, unlocked, setting.PrivateChatFeeLinkDrops);
     }
 }

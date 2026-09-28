@@ -3,6 +3,7 @@ using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Chat;
+using Microsoft.AspNetCore.SignalR;
 
 namespace CommunityLink.Domain.Features.Chat;
 
@@ -11,13 +12,15 @@ public interface IChatService
     Task<Result<IReadOnlyList<ConversationModel>>> GetConversationsAsync(CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<ChatMessageModel>>> GetMessagesAsync(int conversationId, CancellationToken cancellationToken = default);
     Task<Result<ChatMessageModel>> SendMessageAsync(SendMessageRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result<int>> MarkConversationReadAsync(int conversationId, CancellationToken cancellationToken = default);
     Task<int> GetUnreadMessageCountAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed class ChatService(
     AppDbContext dbContext,
     ICurrentUserContext currentUser,
-    IPrivateChatPaymentService privateChatPaymentService) : IChatService
+    IPrivateChatPaymentService privateChatPaymentService,
+    IHubContext<ChatHub> hubContext) : IChatService
 {
     public async Task<Result<IReadOnlyList<ConversationModel>>> GetConversationsAsync(CancellationToken cancellationToken = default)
     {
@@ -44,6 +47,24 @@ public sealed class ChatService(
 
     public async Task<Result<IReadOnlyList<ChatMessageModel>>> GetMessagesAsync(int conversationId, CancellationToken cancellationToken = default)
     {
+        if (currentUser.UserId is null)
+        {
+            return Result<IReadOnlyList<ChatMessageModel>>.Failure("Unauthorized", ResultStatus.Unauthorized);
+        }
+
+        // A conversation id is guessable, so confirm the caller is actually a participant.
+        var isParticipant = await dbContext.TblConversations
+            .AsNoTracking()
+            .AnyAsync(c => c.ConversationId == conversationId &&
+                            !c.IsDeleted &&
+                            (c.UserOneId == currentUser.UserId.Value || c.UserTwoId == currentUser.UserId.Value),
+                cancellationToken);
+
+        if (!isParticipant)
+        {
+            return Result<IReadOnlyList<ChatMessageModel>>.Failure("Conversation not found.", ResultStatus.NotFound);
+        }
+
         var messages = await dbContext.TblChatMessages
             .Include(m => m.Sender)
             .Where(m => m.ConversationId == conversationId && !m.IsDeleted)
@@ -144,7 +165,112 @@ public sealed class ChatService(
             message.IsRead,
             message.CreatedAt);
 
+        // Push to the recipient's private user scope. The client already has the row from the
+        // REST response and de-duplicates on message id.
+        if (recipientId != 0 && recipientId != currentUserId)
+        {
+            try
+            {
+                await hubContext.Clients.User(recipientId.ToString()).SendAsync(
+                    "ReceivePrivateMessage", model, cancellationToken);
+            }
+            catch
+            {
+                // A failed push must not lose the message; the client refreshes on next load.
+            }
+        }
+
         return Result<ChatMessageModel>.Success(model);
+    }
+
+    public async Task<Result<int>> MarkConversationReadAsync(int conversationId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null)
+        {
+            return Result<int>.Failure("Unauthorized", ResultStatus.Unauthorized);
+        }
+
+        var currentUserId = currentUser.UserId.Value;
+
+        var isParticipant = await dbContext.TblConversations
+            .AsNoTracking()
+            .AnyAsync(c => c.ConversationId == conversationId &&
+                            !c.IsDeleted &&
+                            (c.UserOneId == currentUserId || c.UserTwoId == currentUserId),
+                cancellationToken);
+
+        if (!isParticipant)
+        {
+            return Result<int>.Failure("Conversation not found.", ResultStatus.NotFound);
+        }
+
+        var readAt = DateTime.UtcNow;
+
+        // TblChatMessage carries a rowversion concurrency token, so marking read with tracked
+        // entities throws DbUpdateConcurrencyException whenever two clients mark the same
+        // conversation read at once (the REST endpoint and the hub both reach this method,
+        // and a user may have the thread open in two tabs).
+        //
+        // A read receipt is idempotent, so losing that race is not an error: it just means
+        // there is no unread state left to mark. Re-read and re-apply once, and treat an
+        // empty re-read as "nothing to report" instead of surfacing a 500.
+        var marked = 0;
+
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            var unread = await dbContext.TblChatMessages
+                .Where(m => m.ConversationId == conversationId &&
+                            m.SenderId != currentUserId &&
+                            !m.IsRead &&
+                            !m.IsDeleted)
+                .ToListAsync(cancellationToken);
+
+            if (unread.Count == 0)
+            {
+                break;
+            }
+
+            foreach (var message in unread)
+            {
+                message.IsRead = true;
+                message.ReadAt = readAt;
+                message.UpdatedAt = readAt;
+            }
+
+            try
+            {
+                await dbContext.SaveChangesAsync(cancellationToken);
+                marked = unread.Count;
+                break;
+            }
+            catch (DbUpdateConcurrencyException) when (attempt == 0)
+            {
+                // Drop the stale snapshots so the retry re-reads current rowversions.
+                dbContext.ChangeTracker.Clear();
+            }
+        }
+
+        if (marked == 0)
+        {
+            return Result<int>.Success(0);
+        }
+
+        var conversation = await dbContext.TblConversations
+            .AsNoTracking()
+            .FirstAsync(c => c.ConversationId == conversationId, cancellationToken);
+        var peerId = conversation.UserOneId == currentUserId ? conversation.UserTwoId : conversation.UserOneId;
+
+        try
+        {
+            await hubContext.Clients.User(peerId.ToString()).SendAsync(
+                "MessageRead", conversationId, currentUserId, cancellationToken);
+        }
+        catch
+        {
+            // Receipt delivery is best-effort.
+        }
+
+        return Result<int>.Success(marked);
     }
 
     public async Task<int> GetUnreadMessageCountAsync(CancellationToken cancellationToken = default)

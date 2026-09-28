@@ -39,6 +39,13 @@ public sealed record SendChatGroupMessageRequestModel(
     string Content
 );
 
+public sealed record ChatGroupPreviewModel(
+    int ChatGroupId,
+    string? LastMessagePreview,
+    DateTime? LastMessageAt,
+    string? LastSenderName
+);
+
 public sealed record ChatGroupMessageModel(
     int ChatGroupMessageId,
     int ChatGroupId,

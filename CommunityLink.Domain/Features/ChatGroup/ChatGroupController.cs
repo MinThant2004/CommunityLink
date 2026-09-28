@@ -27,6 +27,12 @@ public sealed class ChatGroupController(
     public async Task<IActionResult> GetMyChatGroups(CancellationToken cancellationToken) =>
         ToActionResult(await chatGroupService.GetMyChatGroupsAsync(cancellationToken));
 
+    // Declared before "{chatGroupId:int}" so the literal segment wins routing.
+    [HttpGet("preview")]
+    [Authorize]
+    public async Task<IActionResult> GetPreviews(CancellationToken cancellationToken) =>
+        ToActionResult(await chatGroupService.GetPreviewsAsync(cancellationToken));
+
     [HttpGet("{chatGroupId:int}")]
     [Authorize]
     public async Task<IActionResult> GetChatGroupById(int chatGroupId, CancellationToken cancellationToken) =>

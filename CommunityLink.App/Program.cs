@@ -51,6 +51,7 @@ builder.Services.AddHttpClient("CommunityApi", client =>
 // Register App Services & API Clients
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<AuthSessionService>();
+builder.Services.AddScoped<ChatRealtimeService>();
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthenticationApiService>();
 builder.Services.AddScoped<CommunityApiService>();

@@ -1,353 +1,1114 @@
 @page "/chat"
-@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
-@using Microsoft.AspNetCore.SignalR.Client
+@using CommunityLink.App.Components.Shared.Chat
 @inject ChatApiService ChatApi
+@inject ChatGroupApiService ChatGroupApi
+@inject LinkDropApiService LinkDropApi
+@inject ChatRealtimeService Realtime
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavManager
 @inject ToastService Toast
-@inject NavigationManager Nav
 @implements IAsyncDisposable
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
 
-<PageTitle>Messages - CommunityLink</PageTitle>
+@*
+    Unified Chat: one surface for 1-to-1 private conversations and one-to-many chat groups.
+    The two backend stacks stay separate; this page adapts both into ChatThreadViewModel
+    and routes reads, writes, payments and realtime events by ThreadType.
+*@
 
-<div class="h-[calc(100vh-6rem)] flex flex-col md:flex-row bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-    <!-- Left Sidebar: Conversations List -->
-    <div class="w-full md:w-80 border-r border-slate-200 flex flex-col bg-slate-50">
-        <div class="p-4 border-b border-slate-200 bg-white">
-            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                <span>💬</span> Direct Messages
-            </h2>
-        </div>
-
-        <div class="flex-1 overflow-y-auto divide-y divide-slate-100">
-            @if (conversations == null)
-            {
-                <div class="p-8 text-center text-slate-400">
-                    <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
-                    <p class="text-xs mt-2 font-medium">Loading conversations...</p>
-                </div>
-            }
-            else if (conversations.Count == 0)
-            {
-                <div class="p-8 text-center text-slate-400">
-                    <span class="text-3xl block mb-2">💬</span>
-                    <p class="text-xs font-semibold text-slate-600">No active conversations</p>
-                    <p class="text-[11px] text-slate-400 mt-1">Start chatting with members or creators across CommunityLink.</p>
-                </div>
-            }
-            else
-            {
-                @foreach (var c in conversations)
-                {
-                    <button type="button"
-                            @onclick="() => SelectConversation(c.ConversationId)"
-                            class="w-full p-3.5 flex items-start gap-3 transition text-left hover:bg-slate-100 cursor-pointer @(activeConversationId == c.ConversationId ? "bg-indigo-50/80 border-l-4 border-indigo-600" : "")">
-                        <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center shrink-0 border border-slate-200">
-                            @if (!string.IsNullOrWhiteSpace(c.OtherAvatarUrl))
-                            {
-                                <img src="@c.OtherAvatarUrl" alt="@c.OtherDisplayName" class="w-full h-full rounded-full object-cover" />
-                            }
-                            else
-                            {
-                                <span>@(string.IsNullOrWhiteSpace(c.OtherDisplayName) ? "U" : c.OtherDisplayName.Substring(0, 1).ToUpper())</span>
-                            }
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center justify-between gap-1">
-                                <h4 class="text-xs font-bold text-slate-900 truncate">@c.OtherDisplayName</h4>
-                                @if (c.LastMessageAt.HasValue)
-                                {
-                                    <span class="text-[10px] text-slate-400 shrink-0">@c.LastMessageAt.Value.ToLocalTime().ToString("t")</span>
-                                }
-                            </div>
-                            <p class="text-xs text-slate-500 truncate mt-0.5">@(c.LastMessagePreview ?? "Start chatting...")</p>
-                        </div>
-                    </button>
-                }
-            }
-        </div>
+<div class="app-shell -m-6 flex overflow-hidden border-t border-slate-200 bg-white">
+    <!-- Pane 1: thread list -->
+    <div class="@(mobileShowThread ? "hidden md:flex" : "flex") w-full md:w-auto">
+        <ChatThreadList VisibleThreads="VisibleThreads"
+                        ActiveThreadType="activeThread?.Type"
+                        ActiveThreadId="activeThread?.Id"
+                        ActiveSegment="activeSegment"
+                        searchText="searchText"
+                        IsLoading="isLoadingThreads"
+                        HasError="threadsFailed"
+                        IsPremiumCreator="isPremiumCreator"
+                        EmptyTitle="@EmptyTitle"
+                        EmptyDescription="@EmptyDescription"
+                        OnSelect="SelectThreadAsync"
+                        OnSegmentChanged="SetSegmentAsync"
+                        OnSearchChanged="SetSearch"
+                        OnDiscover="OpenDiscover"
+                        OnNewGroup="() => showCreateGroup = true"
+                        OnRetry="LoadThreadsAsync" />
     </div>
 
-    <!-- Right Panel: Message Thread -->
-    <div class="flex-1 flex flex-col min-w-0 bg-slate-50/40">
-        @if (activeConversationId.HasValue && activeConversation != null)
+    <!-- Pane 2: active thread -->
+    <div class="@(mobileShowThread ? "flex" : "hidden md:flex") min-w-0 flex-1 flex-col bg-slate-50">
+        @if (activeThread is null)
         {
-            <!-- Thread Header -->
-            <div class="p-4 bg-white border-b border-slate-200 flex items-center justify-between shadow-2xs">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                        @(string.IsNullOrWhiteSpace(activeConversation.OtherDisplayName) ? "U" : activeConversation.OtherDisplayName.Substring(0, 1).ToUpper())
-                    </div>
-                    <div>
-                        <h3 class="text-xs font-bold text-slate-900">@activeConversation.OtherDisplayName</h3>
-                        <span class="text-[10px] text-slate-400 font-medium">Direct Message Thread</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Messages Stream -->
-            <div class="flex-1 p-4 overflow-y-auto space-y-3">
-                @if (messages == null)
-                {
-                    <div class="p-8 text-center text-slate-400">
-                        <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
-                        <p class="text-xs mt-2 font-medium">Loading messages...</p>
-                    </div>
-                }
-                else if (messages.Count == 0)
-                {
-                    <div class="p-8 text-center text-slate-400">
-                        <span class="text-2xl block mb-1">👋</span>
-                        <p class="text-xs font-medium text-slate-600">No messages yet</p>
-                        <p class="text-[11px] text-slate-400">Send a message below to begin the conversation.</p>
-                    </div>
-                }
-                else
-                {
-                    @foreach (var m in messages)
-                    {
-                        <div class="flex flex-col @(m.SenderId != activeConversation.OtherUserId ? "items-end" : "items-start") my-1">
-                            <div class="max-w-[80%] rounded-xl px-4 py-2.5 text-xs shadow-2xs @(m.SenderId != activeConversation.OtherUserId ? "bg-indigo-600 text-white" : "bg-white text-slate-900 border border-slate-200")">
-                                <div class="font-normal break-words leading-relaxed">@m.MessageText</div>
-                                <div class="text-[10px] mt-1 text-right select-none font-medium opacity-80">
-                                    @m.SentAt.ToLocalTime().ToString("hh:mm tt")
-                                </div>
-                            </div>
-                        </div>
-                    }
-                }
-            </div>
-
-            <!-- Message Input Bar -->
-            <div class="p-3.5 bg-white border-t border-slate-200 flex items-center gap-2">
-                <input type="text"
-                       class="flex-1 px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600 transition bg-slate-50"
-                       @bind="newMessage"
-                       @bind:event="oninput"
-                       placeholder="Type a message..."
-                       @onkeyup="HandleKeyUp" />
-                <button type="button"
-                        class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-2xs transition cursor-pointer disabled:opacity-50"
-                        disabled="@(string.IsNullOrWhiteSpace(newMessage))"
-                        @onclick="SendMessage">
-                    Send
-                </button>
+            <div class="flex h-full flex-col items-center justify-center px-6 text-center">
+                <span class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+                    <svg class="h-7 w-7 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.189A8.721 8.721 0 0 1 3 12a8.721 8.721 0 0 1 3.04-6.06 8.721 8.721 0 0 1 6.96 0A8.721 8.721 0 0 1 21 12Z" />
+                    </svg>
+                </span>
+                <p class="mt-4 text-sm font-semibold text-slate-800">Select a conversation to start chatting</p>
+                <p class="mt-1 max-w-xs text-xs text-slate-500">Direct messages and chat groups are all here. Use Discover to find new groups.</p>
             </div>
         }
         else
         {
-            <div class="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
-                <div class="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-3xl mb-3 text-indigo-600">
-                    💬
+            <ChatThreadHeader Thread="activeThread"
+                              Status="Realtime.OverallStatus"
+                              ShowBackButton="true"
+                              OnToggleInfo="ToggleInfo"
+                              OnBack="CloseThreadOnMobile" />
+
+            @if (activeThread.IsGroup && !activeThread.IsJoined)
+            {
+                @* Non-member view: describe the group and gate entry behind the join payment. *@
+                <div class="min-h-0 flex-1 overflow-y-auto px-4 py-6">
+                    <div class="mx-auto max-w-md rounded-xl border border-slate-200 bg-white p-6 text-center">
+                        @if (!string.IsNullOrWhiteSpace(activeThread.AvatarUrl))
+                        {
+                            <img src="@activeThread.AvatarUrl" alt="" class="mx-auto h-16 w-16 rounded-full object-cover" />
+                        }
+                        else
+                        {
+                            <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-xl font-semibold text-slate-600">@activeThread.Initials</span>
+                        }
+
+                        <h2 class="mt-4 text-base font-semibold text-slate-900">@activeThread.Title</h2>
+                        <p class="mt-0.5 text-xs text-slate-500">@activeThread.Subtitle · by @activeThread.CreatorName</p>
+
+                        @if (!string.IsNullOrWhiteSpace(activeThread.Description))
+                        {
+                            <p class="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">@activeThread.Description</p>
+                        }
+
+                        @if (activeThread.RequiresPayment)
+                        {
+                            <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-left">
+                                <p class="flex items-center gap-1.5 text-sm font-semibold text-amber-900">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                                    </svg>
+                                    Paid group · @activeThread.FeeLinkDrops drops
+                                </p>
+                                <p class="mt-1 text-xs leading-relaxed text-amber-800">
+                                    One-time payment to join. The creator keeps @CreatorEarnings drops after the @CommissionAmount drops platform commission.
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-left">
+                                <p class="text-sm font-semibold text-emerald-800">Free to join</p>
+                                <p class="mt-1 text-xs text-emerald-700">Anyone can join this group at no cost.</p>
+                            </div>
+                        }
+
+                        <button type="button"
+                                @onclick="JoinGroupAsync"
+                                disabled="@isActionSubmitting"
+                                class="mt-5 w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            @(isActionSubmitting
+                                ? "Working…"
+                                : activeThread.RequiresPayment
+                                    ? $"Join for {activeThread.FeeLinkDrops} drops"
+                                    : "Join group")
+                        </button>
+                    </div>
                 </div>
-                <h3 class="text-sm font-bold text-slate-800">Select a Conversation</h3>
-                <p class="text-xs text-slate-400 mt-1 max-w-xs leading-normal">Choose a conversation from the sidebar or click on a creator to initiate a private chat.</p>
-            </div>
+            }
+            else if (activeThread.IsDirect && !activeThread.IsUnlocked)
+            {
+                @* Locked 1:1: the payment prompt appears before the first send, not after a 403. *@
+                <div class="flex min-h-0 flex-1 flex-col items-center justify-center px-6 text-center">
+                    <div class="max-w-md rounded-xl border border-slate-200 bg-white p-6">
+                        <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-50">
+                            <svg class="h-7 w-7 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                            </svg>
+                        </span>
+                        <h2 class="mt-4 text-base font-semibold text-slate-900">This is a paid conversation</h2>
+                        <p class="mt-1.5 text-sm leading-relaxed text-slate-600">
+                            @activeThread.Title requires a one-time payment of <span class="font-semibold text-slate-900">@activeThread.FeeLinkDrops LinkDrops</span> before you can send messages.
+                        </p>
+                        <button type="button"
+                                @onclick="OpenUnlockModal"
+                                disabled="@isActionSubmitting"
+                                class="mt-5 w-full rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+                            @(isActionSubmitting ? "Working…" : $"Unlock for {activeThread.FeeLinkDrops} drops")
+                        </button>
+                        <a href="/link-drops" class="mt-3 inline-block text-xs font-medium text-indigo-600 hover:text-indigo-700">Need more drops? Buy them here</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <ChatMessageList Messages="messages"
+                                  IsLoading="isLoadingMessages"
+                                  HasError="messagesFailed"
+                                  TypingSenderName="typingSenderName"
+                                  OnRetry="LoadMessagesAsync"
+                                  OnDeleteMessage="DeleteMessageAsync" />
+
+                <ChatMessageComposer IsSubmitting="isSending"
+                                      Placeholder="@ComposerPlaceholder"
+                                      OnSend="SendMessageAsync" />
+            }
         }
     </div>
 </div>
 
-<!-- Unlock Modal -->
-@if (showUnlockModal)
+@* ---------- Overlays ---------- *@
+
+<ChatThreadInfoPanel IsOpen="showInfo"
+                     Thread="@(activeThread ?? placeholderThread)"
+                     Members="groupMembers"
+                     IsLoadingMembers="isLoadingMembers"
+                     IsSubmitting="isActionSubmitting"
+                     Description="activeThread?.Description"
+                     CreatorName="activeThread?.CreatorName"
+                     OnClose="() => showInfo = false"
+                     OnLeave="LeaveGroupAsync" />
+
+@if (showDiscover)
 {
-    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center animate-in fade-in duration-150">
-            <div class="w-14 h-14 rounded-full bg-sky-50 border border-sky-200 flex items-center justify-center text-2xl mx-auto mb-3">
-                🔒
-            </div>
-            <h3 class="text-base font-bold text-slate-900">Private Chat Locked</h3>
-            <p class="text-xs text-slate-600 mt-1 leading-normal">
-                This creator requires a one-time unlock fee for direct 1-on-1 private messaging.
-            </p>
+    <DiscoverGroupsDrawer Groups="discoverGroups"
+                          IsLoading="isLoadingDiscover"
+                          IsPremiumCreator="isPremiumCreator"
+                          searchText="discoverSearch"
+                          OnSelect="SelectDiscoveredGroupAsync"
+                          OnCreateGroup="() => { showDiscover = false; showCreateGroup = true; }"
+                          SearchChanged="SetDiscoverSearch"
+                          OnClose="() => showDiscover = false" />
+}
 
-            <div class="my-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500">Creator Fee</span>
-                <span class="text-xs font-bold text-sky-700 flex items-center gap-1">
-                    💧 @unlockFeeLinkDrops Link Drops
-                </span>
-            </div>
+<UnlockChatModal IsOpen="showUnlockModal"
+                 IsGroupUnlock="@(activeThread?.IsGroup ?? false)"
+                 SubjectName="@(activeThread?.Title ?? string.Empty)"
+                 SubjectSubtitle="@(activeThread?.IsGroup == true ? $"{activeThread?.Subtitle} · by {activeThread?.CreatorName}" : activeThread?.Subtitle)"
+                 AvatarUrl="activeThread?.AvatarUrl"
+                 FeeLinkDrops="@(activeThread?.FeeLinkDrops ?? 0)"
+                 Balance="walletBalance"
+                 CommissionPercentage="@(activeThread?.CommissionPercentage ?? 10m)"
+                 IsSubmitting="isActionSubmitting"
+                 errorMessage="@unlockError"
+                 OnConfirm="ConfirmUnlockAsync"
+                 OnClose="CloseUnlockModal" />
 
-            <div class="flex items-center gap-2 mt-5">
-                <button type="button"
-                        @onclick="CloseUnlockModal"
-                        class="flex-1 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition cursor-pointer">
-                    Cancel
-                </button>
-                <button type="button"
-                        @onclick="ConfirmUnlock"
-                        disabled="@isUnlocking"
-                        class="flex-1 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-2xs transition cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1">
-                    @if (isUnlocking)
-                    {
-                        <span class="animate-spin text-xs">⏳</span>
-                        <span>Unlocking...</span>
-                    }
-                    else
-                    {
-                        <span>Unlock Chat</span>
-                    }
-                </button>
-            </div>
-        </div>
-    </div>
+@if (showCreateGroup)
+{
+    <CreateChatGroupModal OnSaved="OnGroupCreatedAsync" OnClose="() => showCreateGroup = false" />
 }
 
 @code {
-    private IReadOnlyList<ConversationModel>? conversations;
-    private IReadOnlyList<ChatMessageModel>? messages;
-    private int? activeConversationId;
-    private ConversationModel? activeConversation;
-    private string newMessage = "";
+    [SupplyParameterFromQuery(Name = "type")] public string? TypeQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "thread")] public int? ThreadQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "to")] public int? TargetUserId { get; set; }
+    [SupplyParameterFromQuery(Name = "create")] public string? CreateQuery { get; set; }
 
-    // SignalR
-    private HubConnection? hubConnection;
+    private readonly List<ChatThreadViewModel> allThreads = [];
+    private IReadOnlyList<ChatMessageViewModel> messages = Array.Empty<ChatMessageViewModel>();
+    private IReadOnlyList<ChatGroupModel> discoverGroups = Array.Empty<ChatGroupModel>();
+    private IReadOnlyList<ChatGroupMemberModel> groupMembers = Array.Empty<ChatGroupMemberModel>();
 
-    // Modal state
+    private ChatThreadViewModel? activeThread;
+    private ChatThreadViewModel placeholderThread = new() { Title = "Conversation" };
+
+    private string activeSegment = "all";
+    private string? searchText;
+    private string? discoverSearch;
+
+    private int currentUserId;
+    private bool isPremiumCreator;
+    private long walletBalance;
+    private int? typingSenderId;
+    private string? typingSenderName;
+
+    private bool isLoadingThreads = true;
+    private bool threadsFailed;
+    private bool isLoadingMessages;
+    private bool messagesFailed;
+    private bool isSending;
+    private bool isActionSubmitting;
+    private bool isLoadingMembers;
+    private bool isLoadingDiscover;
+
+    private bool mobileShowThread;
+    private bool showInfo;
+    private bool showDiscover;
+    private bool showCreateGroup;
     private bool showUnlockModal;
-    private int targetCreatorUserId;
-    private long unlockFeeLinkDrops;
-    private bool isUnlocking;
+    private string? unlockError;
+    private string? _handledRoute;
+    private bool _eventsWired;
+
+    private string? TypingSenderName => typingSenderName ?? (typingSenderId.HasValue ? "Someone" : null);
+
+    private string ComposerPlaceholder => activeThread?.IsGroup == true
+        ? $"Message {activeThread.Title}"
+        : "Write a message...";
+
+    private long CommissionAmount => (long)Math.Round(
+        (activeThread?.FeeLinkDrops ?? 0) * ((activeThread?.CommissionPercentage ?? 0m) / 100m),
+        MidpointRounding.AwayFromZero);
+
+    private long CreatorEarnings => (activeThread?.FeeLinkDrops ?? 0) - CommissionAmount;
+
+    private string EmptyTitle => activeSegment switch
+    {
+        "direct" => "No direct messages yet",
+        "group" => "You haven't joined any groups",
+        _ => allThreads.Count == 0 ? "No conversations yet" : "Nothing matches your filter"
+    };
+
+    private string EmptyDescription => activeSegment switch
+    {
+        "direct" => "Start a chat from any member's profile.",
+        "group" => "Browse Discover to find groups you can join.",
+        _ => "Start a chat from a member's profile, or discover a group."
+    };
+
+    private IReadOnlyList<ChatThreadViewModel> VisibleThreads
+    {
+        get
+        {
+            IEnumerable<ChatThreadViewModel> query = allThreads;
+
+            query = activeSegment switch
+            {
+                "direct" => query.Where(t => t.IsDirect),
+                "group" => query.Where(t => t.IsGroup),
+                _ => query
+            };
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                var term = searchText.Trim();
+                query = query.Where(t =>
+                    t.Title.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    (t.Subtitle?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (t.LastMessagePreview?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            return query.ToList();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadConversationsAsync();
-        await SetupSignalRAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var userId = user.FindFirst("sub")?.Value
+            ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userId, out var parsedId))
+        {
+            currentUserId = parsedId;
+        }
+
+        isPremiumCreator = HasPremiumRole(user);
+
+        Realtime.PrivateMessageReceived += OnPrivateMessageReceived;
+        Realtime.GroupMessageReceived += OnGroupMessageReceived;
+        Realtime.TypingChanged += OnTypingChanged;
+        Realtime.ConversationRead += OnConversationRead;
+        Realtime.StateChanged += OnRealtimeStateChanged;
+        _eventsWired = true;
+
+        await LoadWalletAsync();
+        await LoadThreadsAsync();
+        await Realtime.EnsureConnectedAsync();
+        await ApplyRouteAsync();
     }
 
-    private async Task SetupSignalRAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        try
-        {
-            hubConnection = new HubConnectionBuilder()
-                .WithUrl(Nav.ToAbsoluteUri("/hubs/chat"))
-                .WithAutomaticReconnect()
-                .Build();
-
-            hubConnection.On<ChatMessageModel>("ReceivePrivateMessage", async (msg) =>
-            {
-                if (activeConversationId.HasValue && msg.ConversationId == activeConversationId.Value)
-                {
-                    if (messages == null) messages = new List<ChatMessageModel>();
-                    messages = messages.Concat(new[] { msg }).ToList();
-                }
-                await LoadConversationsAsync();
-                await InvokeAsync(StateHasChanged);
-            });
-
-            await hubConnection.StartAsync();
-        }
-        catch
-        {
-            // Silently handle fallback
-        }
-    }
-
-    private async Task LoadConversationsAsync()
-    {
-        var res = await ChatApi.GetConversationsAsync();
-        if (res.IsSuccess)
-        {
-            conversations = res.Data;
-            if (activeConversationId.HasValue && conversations != null)
-            {
-                activeConversation = conversations.FirstOrDefault(c => c.ConversationId == activeConversationId.Value);
-            }
-        }
-    }
-
-    private async Task SelectConversation(int convId)
-    {
-        activeConversationId = convId;
-        if (conversations != null)
-        {
-            activeConversation = conversations.FirstOrDefault(c => c.ConversationId == convId);
-        }
-        var res = await ChatApi.GetMessagesAsync(convId);
-        if (res.IsSuccess)
-        {
-            messages = res.Data;
-        }
-    }
-
-    private async Task HandleKeyUp(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") await SendMessage();
-    }
-
-    private async Task SendMessage()
-    {
-        if (string.IsNullOrWhiteSpace(newMessage)) return;
-        var req = new SendMessageRequestModel(activeConversationId, null, newMessage);
-        var res = await ChatApi.SendMessageAsync(req);
-
-        if (res.IsSuccess)
-        {
-            newMessage = "";
-            if (activeConversationId.HasValue)
-            {
-                await SelectConversation(activeConversationId.Value);
-            }
-            else
-            {
-                await LoadConversationsAsync();
-            }
-        }
-        else if (string.Equals(res.Message, "PRIVATE_CHAT_PAYMENT_REQUIRED", StringComparison.OrdinalIgnoreCase))
-        {
-            if (activeConversation != null)
-            {
-                targetCreatorUserId = activeConversation.OtherUserId;
-                var settingRes = await ChatApi.GetCreatorChatSettingsAsync(targetCreatorUserId);
-                unlockFeeLinkDrops = settingRes.IsSuccess && settingRes.Data != null ? settingRes.Data.PrivateChatFeeLinkDrops : 0;
-                showUnlockModal = true;
-            }
-        }
-        else
-        {
-            Toast.Error(res.Message ?? "Failed to send message.");
-        }
-    }
-
-    public async Task OpenUnlockModalForCreator(int creatorUserId, long fee)
-    {
-        targetCreatorUserId = creatorUserId;
-        unlockFeeLinkDrops = fee;
-        showUnlockModal = true;
-        await Task.CompletedTask;
-    }
-
-    private void CloseUnlockModal()
-    {
-        showUnlockModal = false;
-    }
-
-    private async Task ConfirmUnlock()
-    {
-        try
-        {
-            isUnlocking = true;
-            var unlockRes = await ChatApi.UnlockPrivateChatAsync(targetCreatorUserId);
-            if (unlockRes.IsSuccess)
-            {
-                Toast.Success("Private chat unlocked successfully!");
-                showUnlockModal = false;
-                await LoadConversationsAsync();
-                await SelectConversation(unlockRes.Data);
-            }
-            else
-            {
-                Toast.Error(unlockRes.Message ?? "Failed to unlock private chat.");
-            }
-        }
-        finally
-        {
-            isUnlocking = false;
-        }
+        await ApplyRouteAsync();
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (hubConnection != null)
+        if (_eventsWired)
         {
-            await hubConnection.DisposeAsync();
+            Realtime.PrivateMessageReceived -= OnPrivateMessageReceived;
+            Realtime.GroupMessageReceived -= OnGroupMessageReceived;
+            Realtime.TypingChanged -= OnTypingChanged;
+            Realtime.ConversationRead -= OnConversationRead;
+            Realtime.StateChanged -= OnRealtimeStateChanged;
+        }
+
+        await Realtime.SetSubscribedGroupAsync(null);
+        GC.SuppressFinalize(this);
+    }
+
+    private static bool HasPremiumRole(System.Security.Claims.ClaimsPrincipal user) =>
+        user.IsInRole("DOMAIN_PROFESSIONAL") || user.IsInRole("PUBLIC_FIGURE");
+
+    // ---------- Loading ----------
+
+    private async Task LoadThreadsAsync()
+    {
+        isLoadingThreads = true;
+        threadsFailed = false;
+        StateHasChanged();
+
+        try
+        {
+            var conversationsTask = ChatApi.GetConversationsAsync();
+            var groupsTask = ChatGroupApi.GetMyMembershipsAsync();
+            var previewsTask = ChatGroupApi.GetPreviewsAsync();
+
+            await Task.WhenAll(conversationsTask, groupsTask, previewsTask);
+
+            var conversations = await conversationsTask;
+            var groups = await groupsTask;
+            var previews = await previewsTask;
+
+            var threads = new List<ChatThreadViewModel>();
+
+            if (conversations.IsSuccess && conversations.Data is not null)
+            {
+                threads.AddRange(conversations.Data.Select(c => c.ToThread(currentUserId)));
+            }
+
+            if (groups.IsSuccess && groups.Data is not null)
+            {
+                threads.AddRange(groups.Data.Select(g => g.ToThread()));
+            }
+
+            if (previews.IsSuccess && previews.Data is not null)
+            {
+                var byGroupId = previews.Data.ToDictionary(p => p.ChatGroupId);
+                foreach (var thread in threads.Where(t => t.IsGroup))
+                {
+                    if (byGroupId.TryGetValue(thread.Id, out var preview))
+                    {
+                        thread.WithPreview(preview);
+                    }
+                }
+            }
+
+            allThreads.Clear();
+            allThreads.AddRange(SortByActivity(threads));
+            threadsFailed = false;
+        }
+        catch
+        {
+            threadsFailed = true;
+        }
+        finally
+        {
+            isLoadingThreads = false;
+            StateHasChanged();
         }
     }
+
+    private static IEnumerable<ChatThreadViewModel> SortByActivity(IEnumerable<ChatThreadViewModel> threads) =>
+        threads.OrderByDescending(t => t.LastActivityAt ?? DateTime.MinValue).ThenBy(t => t.Title);
+
+    private async Task LoadWalletAsync()
+    {
+        var res = await LinkDropApi.GetUserWalletAsync();
+        if (res.IsSuccess && res.Data is not null)
+        {
+            walletBalance = res.Data.Balance;
+        }
+    }
+
+    // ---------- Routing ----------
+
+    private async Task ApplyRouteAsync()
+    {
+        var signature = $"{TypeQuery}|{ThreadQuery}|{TargetUserId}|{CreateQuery}";
+        if (signature == _handledRoute)
+        {
+            return;
+        }
+
+        _handledRoute = signature;
+
+        // Seed the list filter from ?type= only on entry links that do not open a thread,
+        // so opening a thread never pulls the user out of the "All" filter.
+        if (!ThreadQuery.HasValue && !TargetUserId.HasValue && CreateQuery != "1")
+        {
+            activeSegment = TypeQuery?.ToLowerInvariant() switch
+            {
+                "group" or "groups" => "groups",
+                "direct" => "direct",
+                _ => "all"
+            };
+        }
+
+        // Deep link from Creator Center: /chat?type=groups&create=1 opens the composer.
+        if (CreateQuery == "1")
+        {
+            showCreateGroup = true;
+            StateHasChanged();
+            return;
+        }
+
+        if (TargetUserId.HasValue && TargetUserId.Value != currentUserId)
+        {
+            await OpenDirectThreadAsync(TargetUserId.Value);
+            return;
+        }
+
+        if (!ThreadQuery.HasValue)
+        {
+            activeThread = null;
+            mobileShowThread = false;
+            await Realtime.SetSubscribedGroupAsync(null);
+            return;
+        }
+
+        var isGroup = string.Equals(TypeQuery, "group", StringComparison.OrdinalIgnoreCase);
+        var existing = allThreads.FirstOrDefault(t => t.Id == ThreadQuery.Value && t.IsGroup == isGroup);
+
+        if (existing is not null)
+        {
+            await ActivateThreadAsync(existing);
+            return;
+        }
+
+        // Deep link to a thread that is not in the loaded set (e.g. a group we have not joined).
+        if (isGroup)
+        {
+            var res = await ChatGroupApi.GetChatGroupByIdAsync(ThreadQuery.Value);
+            if (res.IsSuccess && res.Data is not null)
+            {
+                await ActivateThreadAsync(res.Data.ToThread());
+                return;
+            }
+
+            Toast.Error("That chat group could not be found.");
+        }
+        else
+        {
+            Toast.Error("That conversation could not be found.");
+        }
+
+        activeThread = null;
+        mobileShowThread = false;
+        await Realtime.SetSubscribedGroupAsync(null);
+        NavManager.NavigateTo("/chat", replace: true);
+    }
+
+    private async Task OpenDirectThreadAsync(int targetUserId)
+    {
+        var statusRes = await ChatApi.GetPrivateChatStatusAsync(targetUserId);
+        var isPaid = statusRes.IsSuccess && statusRes.Data is not null && statusRes.Data.IsPaidChat;
+        var isUnlocked = !isPaid || (statusRes.Data?.IsUnlocked ?? false);
+
+        var placeholder = new ChatThreadViewModel
+        {
+            Type = ChatThreadType.Private,
+            Id = 0,
+            DirectUserId = targetUserId,
+            Title = "New conversation",
+            Subtitle = $"User #{targetUserId}",
+            RequiresPayment = isPaid,
+            FeeLinkDrops = statusRes.Data?.FeeLinkDrops ?? 0,
+            IsUnlocked = isUnlocked,
+            Badge = isPaid ? "Paid" : null
+        };
+
+        var known = allThreads.FirstOrDefault(t => t.IsDirect && t.DirectUserId == targetUserId);
+        var thread = known ?? placeholder;
+
+        if (known is not null)
+        {
+            known.RequiresPayment = isPaid;
+            known.FeeLinkDrops = statusRes.Data?.FeeLinkDrops ?? 0;
+            known.IsUnlocked = isUnlocked;
+        }
+
+        await ActivateThreadAsync(thread);
+    }
+
+    private async Task SelectThreadAsync(ChatThreadViewModel thread) => await ActivateThreadAsync(thread);
+
+    private async Task ActivateThreadAsync(ChatThreadViewModel thread)
+    {
+        activeThread = thread;
+        placeholderThread = thread;
+        mobileShowThread = true;
+        showInfo = false;
+        typingSenderId = null;
+        typingSenderName = null;
+        StateHasChanged();
+
+        // Keep the URL in sync. Setting _handledRoute first stops OnParametersSetAsync from
+        // re-entering ApplyRouteAsync for the thread we are already activating.
+        _handledRoute = thread.RouteSignature;
+        NavManager.NavigateTo($"/chat{thread.RouteQuery}", replace: true);
+
+        await Realtime.SetSubscribedGroupAsync(thread.IsGroup ? thread.Id : null);
+
+        if (thread.IsGroup)
+        {
+            // Lets the realtime service compute delete permission for live group messages.
+            Realtime.SetSubscribedGroupRole(thread.UserRole);
+            if (thread.IsJoined)
+            {
+                await LoadGroupMembersAsync();
+                await LoadMessagesAsync();
+                return;
+            }
+
+            // Preview-only: membership is required before the history is readable.
+            messages = Array.Empty<ChatMessageViewModel>();
+            messagesFailed = false;
+            isLoadingMessages = false;
+            StateHasChanged();
+            return;
+        }
+
+        if (!thread.HasConversationId)
+        {
+            // Fresh 1:1 thread: status is already resolved, and there is no history to load.
+            messages = Array.Empty<ChatMessageViewModel>();
+            messagesFailed = false;
+            isLoadingMessages = false;
+            StateHasChanged();
+            return;
+        }
+
+        await LoadPrivateChatStatusAsync();
+        await LoadMessagesAsync();
+        await MarkThreadReadAsync();
+    }
+
+    private void CloseThreadOnMobile()
+    {
+        mobileShowThread = false;
+        NavManager.NavigateTo("/chat", replace: true);
+    }
+
+    // ---------- Messages ----------
+
+    private async Task LoadPrivateChatStatusAsync()
+    {
+        if (activeThread is null || !activeThread.IsDirect || activeThread.DirectUserId is null)
+        {
+            return;
+        }
+
+        var res = await ChatApi.GetPrivateChatStatusAsync(activeThread.DirectUserId.Value);
+        if (res.IsSuccess && res.Data is not null)
+        {
+            activeThread.RequiresPayment = res.Data.IsPaidChat;
+            activeThread.FeeLinkDrops = res.Data.FeeLinkDrops;
+            activeThread.IsUnlocked = !res.Data.IsPaidChat || res.Data.IsUnlocked;
+            activeThread.Badge = res.Data.IsPaidChat ? "Paid" : null;
+        }
+    }
+
+    private async Task LoadMessagesAsync()
+    {
+        if (activeThread is null)
+        {
+            return;
+        }
+
+        if (activeThread.IsGroup && !activeThread.IsJoined)
+        {
+            messages = Array.Empty<ChatMessageViewModel>();
+            return;
+        }
+
+        isLoadingMessages = true;
+        messagesFailed = false;
+        StateHasChanged();
+
+        try
+        {
+            if (activeThread.IsGroup)
+            {
+                var res = await ChatGroupApi.GetMessagesAsync(activeThread.Id);
+                if (res.IsSuccess && res.Data is not null)
+                {
+                    messages = res.Data
+                        .Select(m => m.ToMessage(activeThread.Id, currentUserId, activeThread.UserRole ?? "NONE"))
+                        .ToList();
+                }
+                else
+                {
+                    messagesFailed = true;
+                }
+            }
+            else
+            {
+                var res = await ChatApi.GetMessagesAsync(activeThread.Id);
+                if (res.IsSuccess && res.Data is not null)
+                {
+                    messages = res.Data
+                        .Select(m => m.ToMessage(ChatThreadType.Private, activeThread.Id, currentUserId))
+                        .ToList();
+                }
+                else
+                {
+                    messagesFailed = true;
+                }
+            }
+        }
+        catch
+        {
+            messagesFailed = true;
+        }
+        finally
+        {
+            isLoadingMessages = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SendMessageAsync(string text)
+    {
+        if (activeThread is null || isSending || string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        var thread = activeThread;
+        isSending = true;
+        StateHasChanged();
+
+        try
+        {
+            if (thread.IsGroup)
+            {
+                var res = await ChatGroupApi.SendMessageAsync(thread.Id, new SendChatGroupMessageRequestModel(text));
+                if (res.IsSuccess && res.Data is not null)
+                {
+                    AppendMessage(res.Data.ToMessage(thread.Id, currentUserId, thread.UserRole ?? "NONE"));
+                }
+                else
+                {
+                    Toast.Error(res.Message ?? "Message could not be sent.");
+                }
+            }
+            else
+            {
+                // A 1:1 thread that has no server-side conversation id yet must be
+                // addressed by recipient; the server creates the conversation.
+                var request = thread.Id > 0
+                    ? new SendMessageRequestModel(thread.Id, null, text)
+                    : new SendMessageRequestModel(null, thread.DirectUserId, text);
+
+                var res = await ChatApi.SendMessageAsync(request);
+                if (res.IsSuccess && res.Data is not null)
+                {
+                    AppendMessage(res.Data.ToMessage(ChatThreadType.Private, thread.Id, currentUserId));
+                }
+                else if (string.Equals(res.Message, "PRIVATE_CHAT_PAYMENT_REQUIRED", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Lock state changed server-side; show the unlock prompt instead of a raw error.
+                    await LoadPrivateChatStatusAsync();
+                    await LoadWalletAsync();
+                    StateHasChanged();
+                }
+                else
+                {
+                    Toast.Error(res.Message ?? "Message could not be sent.");
+                }
+            }
+
+            await RefreshThreadPreviewAsync(thread);
+        }
+        finally
+        {
+            isSending = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteMessageAsync(int messageId)
+    {
+        if (activeThread is null || !activeThread.IsGroup)
+        {
+            return;
+        }
+
+        var res = await ChatGroupApi.DeleteMessageAsync(activeThread.Id, messageId);
+        if (res.IsSuccess)
+        {
+            messages = messages.Where(m => m.Id != messageId).ToList();
+            Toast.Success("Message deleted.");
+            StateHasChanged();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Message could not be deleted.");
+        }
+    }
+
+    private void AppendMessage(ChatMessageViewModel message)
+    {
+        if (messages.Any(m => m.DedupeKey == message.DedupeKey))
+        {
+            return;
+        }
+
+        messages = messages.Append(message).OrderBy(m => m.SentAtLocal).ToList();
+    }
+
+    private async Task RefreshThreadPreviewAsync(ChatThreadViewModel thread)
+    {
+        await LoadThreadsAsync();
+
+        // LoadThreadsAsync rebuilds every view model, so re-point the active state at the
+        // refreshed instance. This matters for a first message in a new 1:1 thread, where
+        // the server assigns a conversation id we must adopt in both state and the URL.
+        var refreshed = thread.IsGroup
+            ? allThreads.FirstOrDefault(t => t.IsGroup && t.Id == thread.Id)
+            : allThreads.FirstOrDefault(t => t.IsDirect && t.Id == thread.Id)
+              ?? allThreads.FirstOrDefault(t => t.IsDirect && t.DirectUserId == thread.DirectUserId);
+
+        if (refreshed is not null)
+        {
+            activeThread = refreshed;
+            placeholderThread = refreshed;
+        }
+
+        var current = refreshed ?? thread;
+        _handledRoute = current.RouteSignature;
+        NavManager.NavigateTo($"/chat{current.RouteQuery}", replace: true);
+
+        if (thread.Id == 0 && current.Id > 0)
+        {
+            await LoadMessagesAsync();
+            await MarkThreadReadAsync();
+        }
+    }
+
+    private async Task MarkThreadReadAsync()
+    {
+        if (activeThread is null || activeThread.IsGroup)
+        {
+            return;
+        }
+
+        var res = await ChatApi.MarkConversationReadAsync(activeThread.Id);
+        if (res.IsSuccess)
+        {
+            messages = messages.Select(m => m.IsMine ? m : m.WithRead()).ToList();
+        }
+    }
+
+    // ---------- Members, join, leave ----------
+
+    private async Task LoadGroupMembersAsync()
+    {
+        if (activeThread is null || !activeThread.IsGroup)
+        {
+            return;
+        }
+
+        isLoadingMembers = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.GetMembersAsync(activeThread.Id);
+        groupMembers = res.IsSuccess && res.Data is not null ? res.Data : Array.Empty<ChatGroupMemberModel>();
+        isLoadingMembers = false;
+        StateHasChanged();
+    }
+
+    private async Task JoinGroupAsync()
+    {
+        if (activeThread is null || !activeThread.IsGroup)
+        {
+            return;
+        }
+
+        if (activeThread.RequiresPayment)
+        {
+            await LoadWalletAsync();
+            unlockError = null;
+            showUnlockModal = true;
+            StateHasChanged();
+            return;
+        }
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.JoinChatGroupAsync(activeThread.Id);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success($"You joined {activeThread.Title}.");
+            await LoadThreadsAsync();
+            var refreshed = allThreads.FirstOrDefault(t => t.IsGroup && t.Id == activeThread.Id);
+            if (refreshed is not null)
+            {
+                activeThread = refreshed;
+                placeholderThread = refreshed;
+            }
+
+            _handledRoute = activeThread.RouteSignature;
+            await Realtime.SetSubscribedGroupAsync(activeThread.Id);
+            await LoadGroupMembersAsync();
+            await LoadMessagesAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not join this group.");
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task LeaveGroupAsync()
+    {
+        if (activeThread is null || !activeThread.IsGroup)
+        {
+            return;
+        }
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.LeaveChatGroupAsync(activeThread.Id);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("You left the group.");
+            showInfo = false;
+            await LoadThreadsAsync();
+            activeThread = null;
+            mobileShowThread = false;
+            NavManager.NavigateTo("/chat", replace: true);
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not leave this group.");
+        }
+
+        StateHasChanged();
+    }
+
+    // ---------- Payments ----------
+
+    private async Task OpenUnlockModal()
+    {
+        await LoadWalletAsync();
+        unlockError = null;
+        showUnlockModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseUnlockModal()
+    {
+        if (!isActionSubmitting)
+        {
+            showUnlockModal = false;
+            unlockError = null;
+        }
+    }
+
+    private async Task ConfirmUnlockAsync()
+    {
+        if (activeThread is null)
+        {
+            return;
+        }
+
+        isActionSubmitting = true;
+        unlockError = null;
+        StateHasChanged();
+
+        var thread = activeThread;
+
+        if (thread.IsGroup)
+        {
+            var res = await ChatGroupApi.JoinPaidChatGroupAsync(thread.Id);
+            isActionSubmitting = false;
+
+            if (res.IsSuccess)
+            {
+                showUnlockModal = false;
+                Toast.Success($"You joined {thread.Title}.");
+                await LoadWalletAsync();
+                await LoadThreadsAsync();
+
+                var refreshed = allThreads.FirstOrDefault(t => t.IsGroup && t.Id == thread.Id);
+                if (refreshed is not null)
+                {
+                    activeThread = refreshed;
+                    placeholderThread = refreshed;
+                }
+
+                _handledRoute = activeThread.RouteSignature;
+                await Realtime.SetSubscribedGroupAsync(thread.Id);
+                await LoadGroupMembersAsync();
+                await LoadMessagesAsync();
+            }
+            else
+            {
+                unlockError = res.Message ?? "The payment could not be completed.";
+            }
+        }
+        else
+        {
+            var creatorUserId = thread.DirectUserId ?? 0;
+            if (creatorUserId == 0)
+            {
+                isActionSubmitting = false;
+                unlockError = "This conversation has no payment target.";
+                return;
+            }
+
+            var res = await ChatApi.UnlockPrivateChatAsync(creatorUserId);
+            isActionSubmitting = false;
+
+            if (res.IsSuccess)
+            {
+                showUnlockModal = false;
+                Toast.Success("Conversation unlocked. You can now send messages.");
+                await LoadWalletAsync();
+                await LoadThreadsAsync();
+
+                var refreshed = allThreads.FirstOrDefault(t => t.IsDirect && t.DirectUserId == creatorUserId);
+                if (refreshed is not null)
+                {
+                    refreshed.RequiresPayment = true;
+                    refreshed.IsUnlocked = true;
+                    activeThread = refreshed;
+                    placeholderThread = refreshed;
+                    _handledRoute = refreshed.RouteSignature;
+                    NavManager.NavigateTo($"/chat{refreshed.RouteQuery}", replace: true);
+                }
+                else
+                {
+                    activeThread.IsUnlocked = true;
+                }
+
+                await LoadMessagesAsync();
+            }
+            else
+            {
+                unlockError = res.Message ?? "The payment could not be completed.";
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    // ---------- Discover ----------
+
+    private async Task OpenDiscover()
+    {
+        showDiscover = true;
+        discoverSearch = null;
+        isLoadingDiscover = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.GetChatGroupsAsync();
+        discoverGroups = res.IsSuccess && res.Data is not null ? res.Data : Array.Empty<ChatGroupModel>();
+        isLoadingDiscover = false;
+        StateHasChanged();
+    }
+
+    private void SetDiscoverSearch(string? value) => discoverSearch = value;
+
+    private async Task SelectDiscoveredGroupAsync(ChatGroupModel group)
+    {
+        showDiscover = false;
+        _handledRoute = null;
+        await ActivateThreadAsync(group.ToThread());
+    }
+
+    private async Task OnGroupCreatedAsync(ChatGroupModel group)
+    {
+        showCreateGroup = false;
+        _handledRoute = null;
+        Toast.Success($"“{group.Name}” is live. Share it to start the conversation.");
+        await LoadThreadsAsync();
+        await ActivateThreadAsync(group.ToThread());
+    }
+
+    // ---------- Filters ----------
+
+    private async Task SetSegmentAsync(string segment)
+    {
+        activeSegment = segment;
+        await Task.CompletedTask;
+    }
+
+    private void SetSearch(string? value) => searchText = value;
+
+    private void ToggleInfo()
+    {
+        if (activeThread is null)
+        {
+            return;
+        }
+
+        showInfo = !showInfo;
+    }
+
+    // ---------- Realtime ----------
+
+    private Task OnPrivateMessageReceived(ChatMessageViewModel message)
+    {
+        if (activeThread is not null
+            && message.ThreadType == ChatThreadType.Private
+            && message.ThreadId == activeThread.Id)
+        {
+            AppendMessage(message);
+        }
+
+        TouchThreadPreview(ChatThreadType.Private, message);
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnGroupMessageReceived(ChatMessageViewModel message)
+    {
+        if (activeThread is not null
+            && message.ThreadType == ChatThreadType.Group
+            && message.ThreadId == activeThread.Id)
+        {
+            AppendMessage(message);
+        }
+
+        TouchThreadPreview(ChatThreadType.Group, message);
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private void TouchThreadPreview(ChatThreadType type, ChatMessageViewModel message)
+    {
+        var thread = allThreads.FirstOrDefault(t => t.Type == type && t.Id == message.ThreadId);
+        if (thread is null)
+        {
+            return;
+        }
+
+        thread.LastMessagePreview = message.Content;
+        thread.LastActivityAt = message.SentAtLocal;
+
+        var ordered = SortByActivity(allThreads).ToList();
+        allThreads.Clear();
+        allThreads.AddRange(ordered);
+    }
+
+    private Task OnTypingChanged(int senderId, bool isTyping)
+    {
+        if (!isTyping || activeThread is null || activeThread.DirectUserId != senderId)
+        {
+            typingSenderId = null;
+            typingSenderName = null;
+        }
+        else
+        {
+            typingSenderId = senderId;
+            typingSenderName = activeThread.Title;
+        }
+
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnConversationRead(int conversationId) => InvokeAsync(StateHasChanged);
+
+    private void OnRealtimeStateChanged() => InvokeAsync(StateHasChanged);
 }

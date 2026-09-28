@@ -714,4 +714,48 @@ public sealed class ChatGroupService(
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success("Message deleted.");
     }
+
+    /// <summary>
+    /// Newest message per group, in one grouped query. TblChatGroup has no denormalized
+    /// last-message columns, so the unified Chat list needs this to order and preview
+    /// group threads alongside 1:1 conversations.
+    /// </summary>
+    public async Task<Result<IReadOnlyList<ChatGroupPreviewModel>>> GetPreviewsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result<IReadOnlyList<ChatGroupPreviewModel>>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var userId = currentUser.UserId.Value;
+
+        var joinedGroupIds = await dbContext.TblChatGroupMembers
+            .AsNoTracking()
+            .Where(m => m.UserId == userId && !m.IsDeleted)
+            .Select(m => m.ChatGroupId)
+            .ToListAsync(cancellationToken);
+
+        if (joinedGroupIds.Count == 0)
+        {
+            return Result<IReadOnlyList<ChatGroupPreviewModel>>.Success(Array.Empty<ChatGroupPreviewModel>());
+        }
+
+        var previews = await dbContext.TblChatGroupMessages
+            .AsNoTracking()
+            .Where(m => joinedGroupIds.Contains(m.ChatGroupId) && !m.IsDeleted)
+            .GroupBy(m => m.ChatGroupId)
+            .Select(g => g
+                .OrderByDescending(m => m.CreatedAt)
+                .ThenByDescending(m => m.ChatGroupMessageId)
+                .Select(m => new ChatGroupPreviewModel(
+                    m.ChatGroupId,
+                    m.Content != null && m.Content.Length > 120 ? m.Content.Substring(0, 120) : m.Content,
+                    m.CreatedAt,
+                    m.Sender.DisplayName ?? m.Sender.UserName))
+                .First())
+            .ToListAsync(cancellationToken);
+
+        return Result<IReadOnlyList<ChatGroupPreviewModel>>.Success(previews);
+    }
 }

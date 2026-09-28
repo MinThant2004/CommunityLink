@@ -1,0 +1,124 @@
+@inject IJSRuntime JS
+
+@*
+    Modal shell shared by the Chat overlays. Provides the dialog semantics, moves focus
+    into the panel on open, closes on Escape and keeps Tab cycling inside the panel while
+    it is open, which the raw modal markup in this app was missing.
+*@
+
+@if (IsOpen)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+         @onkeydown="HandleKeyDown"
+         role="presentation">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @onclick="OnClose"></div>
+
+        <div class="@PanelClass relative flex w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white"
+             role="dialog"
+             aria-modal="true"
+             aria-label="@Title"
+             tabindex="-1"
+             @ref="_panel"
+             @onkeydown="HandleKeyDown"
+             @onkeydown:stopPropagation="true">
+            <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3">
+                <h2 class="text-sm font-semibold text-slate-900">@Title</h2>
+                <button type="button"
+                        @onclick="OnClose"
+                        aria-label="Close dialog"
+                        class="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-200 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="min-h-0 flex-1 overflow-y-auto">
+                @ChildContent
+            </div>
+
+            @if (FooterContent is not null)
+            {
+                <div class="flex shrink-0 items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-4 py-3">
+                    @FooterContent
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string MaxWidth { get; set; } = "max-w-lg";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? FooterContent { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private ElementReference _panel;
+
+    private string PanelClass => $"{MaxWidth}";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && IsOpen)
+        {
+            await FocusPanelAsync();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsOpen)
+        {
+            await FocusPanelAsync();
+        }
+    }
+
+    private async Task FocusPanelAsync()
+    {
+        try
+        {
+            await _panel.FocusAsync();
+        }
+        catch
+        {
+            // Element may not be rendered yet; focus will be applied on the next render.
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (!IsOpen)
+        {
+            return;
+        }
+
+        if (e.Key == "Escape")
+        {
+            await OnClose.InvokeAsync();
+            return;
+        }
+
+        if (e.Key == "Tab")
+        {
+            await TrapTabAsync(e.ShiftKey);
+        }
+    }
+
+    /// <summary>
+    /// Wraps focus to the first/last focusable control so keyboard users cannot tab
+    /// out of the dialog into the page behind it.
+    /// </summary>
+    private async Task TrapTabAsync(bool shiftKey)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("communityLinkChat.trapTab", _panel, shiftKey);
+        }
+        catch
+        {
+            // Focus management is an enhancement; the dialog still traps via aria-modal.
+        }
+    }
+}

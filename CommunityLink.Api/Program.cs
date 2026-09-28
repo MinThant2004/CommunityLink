@@ -57,7 +57,11 @@ builder.Services.AddAuthentication(options =>
             {
                 var accessToken = context.Request.Query["access_token"];
                 var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/chat-groups"))
+                // Browsers cannot set headers on the WebSocket handshake, so the JWT has to
+                // arrive as a query parameter. StartsWithSegments is segment-exact, so both
+                // hub paths must be listed: "/hubs/chat" does not cover "/hubs/chat-groups".
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/hubs/chat") || path.StartsWithSegments("/hubs/chat-groups")))
                 {
                     context.Token = accessToken;
                 }

@@ -39,6 +39,9 @@ public sealed class ChatGroupApiService(IHttpClientFactory clientFactory, IHttpC
     public Task<Result<IReadOnlyList<ChatGroupModel>>> GetMyMembershipsAsync(CancellationToken cancellationToken = default) =>
         GetAsync<IReadOnlyList<ChatGroupModel>>("api/chat-groups/my-memberships", cancellationToken);
 
+    public Task<Result<IReadOnlyList<ChatGroupPreviewModel>>> GetPreviewsAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<ChatGroupPreviewModel>>("api/chat-groups/preview", cancellationToken);
+
     public Task<Result<IReadOnlyList<ChatGroupMessageModel>>> GetMessagesAsync(int chatGroupId, CancellationToken cancellationToken = default) =>
         GetAsync<IReadOnlyList<ChatGroupMessageModel>>($"api/chat-groups/{chatGroupId}/messages", cancellationToken);
 

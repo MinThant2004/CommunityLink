@@ -31,3 +31,13 @@ public sealed record CreatorChatSettingModel(
 public sealed record SaveCreatorChatSettingRequestModel(
     bool IsPrivateChatEnabled,
     long PrivateChatFeeLinkDrops);
+
+/// <summary>
+/// Lock state for a 1:1 thread, so the client can show the unlock banner before the
+/// first send is rejected with PRIVATE_CHAT_PAYMENT_REQUIRED.
+/// </summary>
+public sealed record PrivateChatStatusModel(
+    int CreatorUserId,
+    bool IsPaidChat,
+    bool IsUnlocked,
+    long FeeLinkDrops);

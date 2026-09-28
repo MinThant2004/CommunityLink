@@ -66,3 +66,15 @@
     @apply animate-pulse bg-slate-200 dark:bg-slate-700 rounded;
   }
 }
+
+@layer components {
+  /*
+   * Full-bleed application shell used by the Chat page.
+   * --app-header-h is the height of MainLayout's <header>. It lives in one place so the
+   * viewport math below does not drift when the header padding changes.
+   */
+  .app-shell {
+    --app-header-h: 3.8125rem;
+    height: calc(100dvh - var(--app-header-h));
+  }
+}

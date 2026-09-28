@@ -17,4 +17,5 @@ public interface IChatGroupService
     Task<Result<IReadOnlyList<ChatGroupMessageModel>>> GetMessagesAsync(int chatGroupId, CancellationToken cancellationToken = default);
     Task<Result<ChatGroupMessageModel>> SendMessageAsync(int chatGroupId, SendChatGroupMessageRequestModel request, CancellationToken cancellationToken = default);
     Task<Result> DeleteMessageAsync(int chatGroupId, int messageId, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ChatGroupPreviewModel>>> GetPreviewsAsync(CancellationToken cancellationToken = default);
 }

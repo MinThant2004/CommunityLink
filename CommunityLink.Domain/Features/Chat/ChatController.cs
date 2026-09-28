@@ -28,6 +28,11 @@ public sealed class ChatController(
     public async Task<IActionResult> SendMessage([FromBody] SendMessageRequestModel request, CancellationToken cancellationToken) =>
         ToActionResult(await chatService.SendMessageAsync(request, cancellationToken));
 
+    [HttpPost("conversations/{conversationId:int}/read")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> MarkConversationRead(int conversationId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatService.MarkConversationReadAsync(conversationId, cancellationToken));
+
     [HttpPost("unlock/{creatorUserId:int}")]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
     public async Task<IActionResult> UnlockPrivateChat(int creatorUserId, CancellationToken cancellationToken)
@@ -40,7 +45,13 @@ public sealed class ChatController(
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
     public async Task<IActionResult> GetChatStatus(int creatorUserId, CancellationToken cancellationToken)
     {
-        bool isRequired = await paymentService.IsPrivateChatPaidRequiredAsync(creatorUserId, cancellationToken);
-        return Ok(Result<object>.Success(new { isPaidRequired = isRequired }));
+        if (currentUser.UserId is null) return ToActionResult(Result.Failure("Forbidden", ResultStatus.Forbidden));
+
+        var status = await paymentService.GetPrivateChatStatusAsync(
+            creatorUserId,
+            currentUser.UserId.Value,
+            cancellationToken);
+
+        return ToActionResult(Result<PrivateChatStatusModel>.Success(status));
     }
 }
