@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Security;
@@ -16,27 +17,25 @@ public interface ICommunityService
     Task<Result> JoinCommunityAsync(int communityId, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityModel>>> GetJoinedCommunitiesAsync(int userId, int take = 10, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityModel>>> GetRecommendedCommunitiesAsync(int userId, int take = 6, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<CommunityModel>>> GetCommunityDirectoryAsync(CancellationToken cancellationToken = default);
+    Task<Result<string>> UploadBannerAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default);
 }
 
 public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext currentUser) : ICommunityService
 {
     public async Task<Result<IReadOnlyList<CommunityModel>>> GetCommunitiesAsync(string? search, CancellationToken cancellationToken = default)
     {
-        var query = dbContext.TblCommunities
-            .Include(c => c.Owner)
-            .Include(c => c.ParentCommunity)
-            .Include(c => c.TblCommunityMembers)
-            .Include(c => c.TblPosts)
-            .Include(c => c.TblCommunityRatings)
+        var baseQuery = dbContext.TblCommunities
             .Where(c => !c.IsDeleted)
             .AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(c => c.Name.Contains(search) || c.Slug.Contains(search));
+            baseQuery = baseQuery.Where(c => c.Name.Contains(search) || c.Slug.Contains(search));
         }
 
-        var list = await query.Select(c => new CommunityModel(
+        var rawList = await baseQuery.Select(c => new
+        {
             c.CommunityId,
             c.Name,
             c.Slug,
@@ -45,49 +44,263 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
             c.BannerUrl,
             c.Visibility,
             c.JoinPolicy,
-            c.TblCommunityMembers.Count(m => !m.IsDeleted),
-            c.TblPosts.Count(p => !p.IsDeleted),
-            c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
+            MemberCount = c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted),
+            PostCount = c.PostCount > 0 ? c.PostCount : c.TblPosts.Count(p => !p.IsDeleted),
+            AverageRating = (double)(c.AverageRating ?? 5.0m),
             c.OwnerId,
-            c.Owner != null ? c.Owner.DisplayName : "Admin",
+            OwnerName = c.Owner != null ? c.Owner.DisplayName : "Admin",
             c.CreatedAt,
             c.ParentCommunityId,
-            c.ParentCommunity != null ? c.ParentCommunity.Name : null)).ToListAsync(cancellationToken);
+            ParentCommunityName = c.ParentCommunity != null ? c.ParentCommunity.Name : null,
+            SubCommunityCount = c.InverseParentCommunity.Count(sc => !sc.IsDeleted),
+            GroupCount = c.TblGroups.Count(g => !g.IsDeleted)
+        }).ToListAsync(cancellationToken);
+
+        if (!rawList.Any())
+        {
+            return Result<IReadOnlyList<CommunityModel>>.Success([]);
+        }
+
+        var communityIds = rawList.Select(c => c.CommunityId).ToList();
+
+        HashSet<int> joinedIds = [];
+        if (currentUser.UserId.HasValue)
+        {
+            joinedIds = await dbContext.TblCommunityMembers
+                .Where(m => m.UserId == currentUser.UserId.Value && communityIds.Contains(m.CommunityId) && !m.IsDeleted)
+                .Select(m => m.CommunityId)
+                .Distinct()
+                .ToHashSetAsync(cancellationToken);
+        }
+
+        var allGroups = await dbContext.TblGroups
+            .Where(g => !g.IsDeleted && communityIds.Contains(g.SubCommunityId))
+            .Select(g => new { g.GroupId, g.SubCommunityId, g.Name, g.Slug, g.MemberCount })
+            .ToListAsync(cancellationToken);
+
+        var topGroupsLookup = allGroups
+            .GroupBy(g => g.SubCommunityId)
+            .ToDictionary(
+                g => g.Key,
+                g => (IReadOnlyList<CommunityChildItemSummary>)g.OrderByDescending(x => x.MemberCount).Take(3).Select(x => new CommunityChildItemSummary(x.GroupId, x.Name, x.Slug, x.MemberCount, "Group")).ToList()
+            );
+
+        var subCommunitiesLookup = rawList
+            .Where(sc => sc.ParentCommunityId.HasValue)
+            .GroupBy(sc => sc.ParentCommunityId!.Value)
+            .ToDictionary(
+                g => g.Key,
+                g => (IReadOnlyList<CommunityChildItemSummary>)g.OrderByDescending(x => x.MemberCount).Take(3).Select(x => new CommunityChildItemSummary(x.CommunityId, x.Name, x.Slug, x.MemberCount, "Sub-Com")).ToList()
+            );
+
+        var memberAvatarsRaw = await dbContext.TblCommunityMembers
+            .Where(m => !m.IsDeleted && communityIds.Contains(m.CommunityId) && m.User != null && m.User.AvatarUrl != null && m.User.AvatarUrl != "")
+            .OrderByDescending(m => m.JoinedAt)
+            .Select(m => new { m.CommunityId, AvatarUrl = m.User!.AvatarUrl! })
+            .ToListAsync(cancellationToken);
+
+        var memberAvatarsLookup = memberAvatarsRaw
+            .GroupBy(m => m.CommunityId)
+            .ToDictionary(
+                g => g.Key,
+                g => (IReadOnlyList<string>)g.Select(x => x.AvatarUrl).Distinct().Take(3).ToList()
+            );
+
+        var roleRows = await dbContext.TblCommunityMembers
+            .Where(m => !m.IsDeleted && communityIds.Contains(m.CommunityId) && m.User != null && m.User.TblUserRoles.Any(ur => !ur.IsDeleted))
+            .Select(m => new
+            {
+                m.CommunityId,
+                IsDomainPro = m.User!.TblUserRoles.Any(ur => !ur.IsDeleted && ur.Role.RoleCode == "DOMAIN_PRO"),
+                IsPublicFigure = m.User!.TblUserRoles.Any(ur => !ur.IsDeleted && ur.Role.RoleCode == "PUBLIC_FIGURE")
+            })
+            .ToListAsync(cancellationToken);
+
+        var domainProLookup = roleRows
+            .Where(x => x.IsDomainPro)
+            .GroupBy(x => x.CommunityId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var publicFigureLookup = roleRows
+            .Where(x => x.IsPublicFigure)
+            .GroupBy(x => x.CommunityId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var list = rawList.Select(c =>
+        {
+            var isSub = c.ParentCommunityId.HasValue;
+            var topItems = isSub
+                ? (topGroupsLookup.TryGetValue(c.CommunityId, out var grps) ? grps : [])
+                : (subCommunitiesLookup.TryGetValue(c.CommunityId, out var subs) ? subs : []);
+
+            var categoryName = isSub 
+                ? (c.ParentCommunityName != null ? c.ParentCommunityName.ToUpperInvariant() : "SUB-COMMUNITY") 
+                : "CAPITAL & SYNDICATE";
+
+            var avatars = memberAvatarsLookup.TryGetValue(c.CommunityId, out var avs) ? avs : [];
+            var extraAvatars = Math.Max(0, c.MemberCount - avatars.Count);
+
+            var domainProCount = domainProLookup.TryGetValue(c.CommunityId, out var dp) ? dp : 0;
+            var publicFigureCount = publicFigureLookup.TryGetValue(c.CommunityId, out var pf) ? pf : 0;
+
+            return new CommunityModel(
+                c.CommunityId,
+                c.Name,
+                c.Slug,
+                c.Description,
+                c.AvatarUrl,
+                c.BannerUrl,
+                c.Visibility,
+                c.JoinPolicy,
+                c.MemberCount,
+                c.PostCount,
+                c.AverageRating,
+                c.OwnerId,
+                c.OwnerName,
+                c.CreatedAt,
+                c.ParentCommunityId,
+                c.ParentCommunityName,
+                joinedIds.Contains(c.CommunityId),
+                c.SubCommunityCount,
+                c.GroupCount,
+                domainProCount,
+                publicFigureCount,
+                avatars,
+                extraAvatars,
+                topItems,
+                categoryName);
+        }).ToList();
 
         return Result<IReadOnlyList<CommunityModel>>.Success(list);
     }
 
     public async Task<Result<CommunityModel>> GetCommunityByIdAsync(int communityId, CancellationToken cancellationToken = default)
     {
-        var c = await dbContext.TblCommunities
-            .Include(c => c.Owner)
-            .Include(c => c.ParentCommunity)
-            .Include(c => c.TblCommunityMembers)
-            .Include(c => c.TblPosts)
-            .Include(c => c.TblCommunityRatings)
-            .FirstOrDefaultAsync(c => c.CommunityId == communityId && !c.IsDeleted, cancellationToken);
+        var raw = await dbContext.TblCommunities
+            .Where(c => c.CommunityId == communityId && !c.IsDeleted)
+            .Select(c => new
+            {
+                c.CommunityId,
+                c.Name,
+                c.Slug,
+                c.Description,
+                c.AvatarUrl,
+                c.BannerUrl,
+                c.Visibility,
+                c.JoinPolicy,
+                MemberCount = c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                PostCount = c.PostCount > 0 ? c.PostCount : c.TblPosts.Count(p => !p.IsDeleted),
+                AverageRating = (double)(c.AverageRating ?? 5.0m),
+                c.OwnerId,
+                OwnerName = c.Owner != null ? c.Owner.DisplayName : "Admin",
+                c.CreatedAt,
+                c.ParentCommunityId,
+                ParentCommunityName = c.ParentCommunity != null ? c.ParentCommunity.Name : null,
+                SubCommunityCount = c.InverseParentCommunity.Count(sc => !sc.IsDeleted),
+                GroupCount = c.TblGroups.Count(g => !g.IsDeleted)
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (c is null) return Result<CommunityModel>.Failure("Community not found.", ResultStatus.NotFound);
+        if (raw is null) return Result<CommunityModel>.Failure("Community not found.", ResultStatus.NotFound);
+
+        var currentUserId = currentUser.UserId;
+        var isJoined = currentUserId.HasValue && await dbContext.TblCommunityMembers
+            .AnyAsync(m => m.CommunityId == communityId && m.UserId == currentUserId.Value && !m.IsDeleted, cancellationToken);
+
+        var isSub = raw.ParentCommunityId.HasValue;
+
+        IReadOnlyList<CommunityChildItemSummary> topItems;
+        if (isSub)
+        {
+            topItems = await dbContext.TblGroups
+                .Where(g => g.SubCommunityId == communityId && !g.IsDeleted)
+                .OrderByDescending(g => g.MemberCount)
+                .Take(3)
+                .Select(g => new CommunityChildItemSummary(g.GroupId, g.Name, g.Slug, g.MemberCount, "Group"))
+                .ToListAsync(cancellationToken);
+        }
+        else
+        {
+            topItems = await dbContext.TblCommunities
+                .Where(sc => sc.ParentCommunityId == communityId && !sc.IsDeleted)
+                .OrderByDescending(sc => sc.MemberCount)
+                .Take(3)
+                .Select(sc => new CommunityChildItemSummary(sc.CommunityId, sc.Name, sc.Slug, sc.MemberCount, "Sub-Com"))
+                .ToListAsync(cancellationToken);
+        }
+
+        var memberAvatars = await dbContext.TblCommunityMembers
+            .Where(m => m.CommunityId == communityId && !m.IsDeleted && m.User != null && m.User.AvatarUrl != null && m.User.AvatarUrl != "")
+            .OrderByDescending(m => m.JoinedAt)
+            .Select(m => m.User!.AvatarUrl!)
+            .Take(3)
+            .ToListAsync(cancellationToken);
+
+        var domainProCount = await dbContext.TblCommunityMembers
+            .CountAsync(m => m.CommunityId == communityId && !m.IsDeleted && m.User != null && m.User.TblUserRoles.Any(ur => !ur.IsDeleted && ur.Role.RoleCode == "DOMAIN_PRO"), cancellationToken);
+
+        var publicFigureCount = await dbContext.TblCommunityMembers
+            .CountAsync(m => m.CommunityId == communityId && !m.IsDeleted && m.User != null && m.User.TblUserRoles.Any(ur => !ur.IsDeleted && ur.Role.RoleCode == "PUBLIC_FIGURE"), cancellationToken);
+
+        var categoryName = isSub 
+            ? (raw.ParentCommunityName != null ? raw.ParentCommunityName.ToUpperInvariant() : "SUB-COMMUNITY") 
+            : "CAPITAL & SYNDICATE";
+
+        var extraAvatars = Math.Max(0, raw.MemberCount - memberAvatars.Count);
 
         var model = new CommunityModel(
-            c.CommunityId,
-            c.Name,
-            c.Slug,
-            c.Description,
-            c.AvatarUrl,
-            c.BannerUrl,
-            c.Visibility,
-            c.JoinPolicy,
-            c.TblCommunityMembers.Count(m => !m.IsDeleted),
-            c.TblPosts.Count(p => !p.IsDeleted),
-            c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
-            c.OwnerId,
-            c.Owner != null ? c.Owner.DisplayName : "Admin",
-            c.CreatedAt,
-            c.ParentCommunityId,
-            c.ParentCommunity != null ? c.ParentCommunity.Name : null);
+            raw.CommunityId,
+            raw.Name,
+            raw.Slug,
+            raw.Description,
+            raw.AvatarUrl,
+            raw.BannerUrl,
+            raw.Visibility,
+            raw.JoinPolicy,
+            raw.MemberCount,
+            raw.PostCount,
+            raw.AverageRating,
+            raw.OwnerId,
+            raw.OwnerName,
+            raw.CreatedAt,
+            raw.ParentCommunityId,
+            raw.ParentCommunityName,
+            isJoined,
+            raw.SubCommunityCount,
+            raw.GroupCount,
+            domainProCount,
+            publicFigureCount,
+            memberAvatars,
+            extraAvatars,
+            topItems,
+            categoryName);
 
         return Result<CommunityModel>.Success(model);
+    }
+
+    public async Task<Result<string>> UploadBannerAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
+    {
+        var ext = Path.GetExtension(fileName)?.ToLowerInvariant();
+        var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        if (string.IsNullOrEmpty(ext) || !allowedExts.Contains(ext))
+            return Result<string>.Failure("Only JPEG, PNG, and WebP images are allowed.", ResultStatus.ValidationError);
+
+        var wwwrootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "communities", "banners");
+        if (!Directory.Exists(wwwrootPath))
+        {
+            Directory.CreateDirectory(wwwrootPath);
+        }
+
+        var uniqueFileName = $"banner_{DateTime.UtcNow.Ticks}_{Guid.NewGuid():N}{ext}";
+        var fullPath = Path.Combine(wwwrootPath, uniqueFileName);
+
+        using (var destStream = new FileStream(fullPath, FileMode.Create))
+        {
+            await fileStream.CopyToAsync(destStream, cancellationToken);
+        }
+
+        var bannerUrl = $"/uploads/communities/banners/{uniqueFileName}";
+        return Result<string>.Success(bannerUrl, "Banner uploaded successfully.");
     }
 
     public async Task<Result<CommunityModel>> CreateCommunityAsync(CreateCommunityRequestModel request, CancellationToken cancellationToken = default)
@@ -332,7 +545,8 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
             community.Owner != null ? community.Owner.DisplayName : "Admin",
             community.CreatedAt,
             community.ParentCommunityId,
-            community.ParentCommunity != null ? community.ParentCommunity.Name : null);
+            community.ParentCommunity != null ? community.ParentCommunity.Name : null,
+            currentUser.UserId.HasValue && community.TblCommunityMembers.Any(m => m.UserId == currentUser.UserId.Value && !m.IsDeleted));
 
         return Result<CommunityModel>.Success(updatedModel, "Updated successfully.");
     }
@@ -368,11 +582,6 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
         if (!joinedCommunityIds.Any()) return Result<IReadOnlyList<CommunityModel>>.Success([]);
 
         var list = await dbContext.TblCommunities
-            .Include(c => c.Owner)
-            .Include(c => c.ParentCommunity)
-            .Include(c => c.TblCommunityMembers)
-            .Include(c => c.TblPosts)
-            .Include(c => c.TblCommunityRatings)
             .Where(c => joinedCommunityIds.Contains(c.CommunityId) && !c.IsDeleted)
             .Take(take)
             .Select(c => new CommunityModel(
@@ -391,7 +600,8 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
                 c.Owner != null ? c.Owner.DisplayName : "Admin",
                 c.CreatedAt,
                 c.ParentCommunityId,
-                c.ParentCommunity != null ? c.ParentCommunity.Name : null))
+                c.ParentCommunity != null ? c.ParentCommunity.Name : null,
+                true))
             .ToListAsync(cancellationToken);
 
         return Result<IReadOnlyList<CommunityModel>>.Success(list);
@@ -405,11 +615,6 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
             .ToListAsync(cancellationToken);
 
         var list = await dbContext.TblCommunities
-            .Include(c => c.Owner)
-            .Include(c => c.ParentCommunity)
-            .Include(c => c.TblCommunityMembers)
-            .Include(c => c.TblPosts)
-            .Include(c => c.TblCommunityRatings)
             .Where(c => !joinedCommunityIds.Contains(c.CommunityId) && c.Visibility == "PUBLIC" && !c.IsDeleted)
             .OrderByDescending(c => c.TblCommunityMembers.Count(m => !m.IsDeleted))
             .Take(take)
@@ -429,8 +634,74 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
                 c.Owner != null ? c.Owner.DisplayName : "Admin",
                 c.CreatedAt,
                 c.ParentCommunityId,
-                c.ParentCommunity != null ? c.ParentCommunity.Name : null))
+                c.ParentCommunity != null ? c.ParentCommunity.Name : null,
+                false))
             .ToListAsync(cancellationToken);
+
+        return Result<IReadOnlyList<CommunityModel>>.Success(list);
+    }
+
+    /// <summary>
+    /// Lightweight listing used by aggregate views (e.g. the user dashboard).
+    /// Skips the per-row correlated subqueries that <see cref="GetCommunitiesAsync"/> needs
+    /// for the card UI - top children, member avatars and luminary role counts - which keeps
+    /// this a single cheap scan instead of N subqueries per community.
+    /// </summary>
+    public async Task<Result<IReadOnlyList<CommunityModel>>> GetCommunityDirectoryAsync(CancellationToken cancellationToken = default)
+    {
+        var userId = currentUser.UserId;
+
+        var rawList = await dbContext.TblCommunities
+            .Where(c => !c.IsDeleted)
+            .AsNoTracking()
+            .Select(c => new
+            {
+                c.CommunityId,
+                c.Name,
+                c.Slug,
+                c.Description,
+                c.AvatarUrl,
+                c.BannerUrl,
+                c.Visibility,
+                c.JoinPolicy,
+                MemberCount = c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                PostCount = c.TblPosts.Count(p => !p.IsDeleted),
+                AverageRating = c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
+                c.OwnerId,
+                OwnerName = c.Owner != null ? c.Owner.DisplayName : "Admin",
+                c.CreatedAt,
+                c.ParentCommunityId,
+                ParentCommunityName = c.ParentCommunity != null ? c.ParentCommunity.Name : null,
+                SubCommunityCount = c.InverseParentCommunity.Count(sc => !sc.IsDeleted),
+                GroupCount = c.TblGroups.Count(g => !g.IsDeleted),
+                IsJoined = userId.HasValue && c.TblCommunityMembers.Any(m => !m.IsDeleted && m.UserId == userId.Value),
+            })
+            .ToListAsync(cancellationToken);
+
+        var list = rawList.Select(c => new CommunityModel(
+            c.CommunityId,
+            c.Name,
+            c.Slug,
+            c.Description,
+            c.AvatarUrl,
+            c.BannerUrl,
+            c.Visibility,
+            c.JoinPolicy,
+            c.MemberCount,
+            c.PostCount,
+            c.AverageRating,
+            c.OwnerId,
+            c.OwnerName,
+            c.CreatedAt,
+            c.ParentCommunityId,
+            c.ParentCommunityName,
+            c.IsJoined,
+            c.SubCommunityCount,
+            c.GroupCount,
+            CategoryName: c.ParentCommunityId.HasValue
+                ? (c.ParentCommunityName != null ? c.ParentCommunityName.ToUpperInvariant() : "SUB-COMMUNITY")
+                : "CAPITAL & SYNDICATE"))
+            .ToList();
 
         return Result<IReadOnlyList<CommunityModel>>.Success(list);
     }

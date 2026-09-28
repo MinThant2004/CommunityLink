@@ -101,8 +101,39 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblUserVerificationAudit> TblUserVerificationAudits { get; set; }
 
+    public virtual DbSet<TblSubscriptionPlan> TblSubscriptionPlans { get; set; }
+
+    public virtual DbSet<TblUserSubscription> TblUserSubscriptions { get; set; }
+
+    public virtual DbSet<TblIdentityVerification> TblIdentityVerifications { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TblSubscriptionPlan>(entity =>
+        {
+            entity.HasKey(e => e.PlanId);
+            entity.ToTable("TblSubscriptionPlan");
+            entity.Property(e => e.PriceAmount).HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<TblUserSubscription>(entity =>
+        {
+            entity.HasKey(e => e.SubscriptionId);
+            entity.ToTable("TblUserSubscription");
+            entity.HasOne(e => e.Plan).WithMany(p => p.TblUserSubscriptions).HasForeignKey(e => e.PlanId);
+            entity.HasOne(e => e.Role).WithMany().HasForeignKey(e => e.RoleId);
+            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId);
+        });
+
+        modelBuilder.Entity<TblIdentityVerification>(entity =>
+        {
+            entity.HasKey(e => e.VerificationId);
+            entity.ToTable("TblIdentityVerification");
+            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId);
+            entity.HasOne(e => e.Plan).WithMany().HasForeignKey(e => e.PlanId);
+            entity.HasOne(e => e.ReviewedByAdmin).WithMany().HasForeignKey(e => e.ReviewedByAdminId);
+        });
+
         modelBuilder.Entity<TblAdmin>(entity =>
         {
             entity.HasKey(e => e.AdminId).HasName("PK__TblAdmin__719FE4886930D3D8");

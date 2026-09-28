@@ -27,98 +27,149 @@ public sealed class PollService(
 {
     public async Task<Result<IReadOnlyList<PollModel>>> GetPollsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default)
     {
-        var currentUserId = currentUser.UserId;
-
-        if (groupId.HasValue && groupId.Value > 0)
+        try
         {
-            var grp = await dbContext.TblGroups
-                .Include(g => g.TblGroupMembers)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(g => g.GroupId == groupId.Value && !g.IsDeleted, cancellationToken);
+            var currentUserId = currentUser.UserId;
 
-            if (grp == null)
+            if (groupId.HasValue && groupId.Value > 0)
             {
-                return Result<IReadOnlyList<PollModel>>.Failure("Group not found.", ResultStatus.NotFound);
-            }
+                var grp = await dbContext.TblGroups
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(g => g.GroupId == groupId.Value && !g.IsDeleted, cancellationToken);
 
-            if (grp.Visibility == "PRIVATE")
-            {
-                var isMember = currentUserId.HasValue && grp.TblGroupMembers.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
-                if (!isMember)
+                if (grp == null)
                 {
-                    return Result<IReadOnlyList<PollModel>>.Success([]);
+                    return Result<IReadOnlyList<PollModel>>.Failure("Group not found.", ResultStatus.NotFound);
+                }
+
+                if (grp.Visibility == "PRIVATE")
+                {
+                    var isMember = currentUserId.HasValue && await dbContext.TblGroupMembers
+                        .AnyAsync(m => m.GroupId == grp.GroupId && m.UserId == currentUserId.Value && !m.IsDeleted, cancellationToken);
+                    if (!isMember)
+                    {
+                        return Result<IReadOnlyList<PollModel>>.Success([]);
+                    }
                 }
             }
-        }
 
-        var query = dbContext.TblPolls
-            .Include(p => p.Post).ThenInclude(post => post.Author)
-            .Include(p => p.Post).ThenInclude(post => post.Community)
-            .Include(p => p.Post).ThenInclude(post => post.Group)
-            .Include(p => p.Post).ThenInclude(post => post.TblPostLikes)
-            .Include(p => p.Post).ThenInclude(post => post.TblComments)
-            .Include(p => p.Post).ThenInclude(post => post.TblPostShares)
-            .Include(p => p.TblPollOptions).ThenInclude(o => o.TblPollVotes)
-            .Where(p => !p.IsDeleted)
-            .AsNoTracking();
+            var baseQuery = dbContext.TblPolls
+                .Where(p => !p.IsDeleted);
 
-        if (groupId.HasValue && groupId.Value > 0)
-        {
-            query = query.Where(p => p.Post.GroupId == groupId.Value);
-        }
-        else if (communityId.HasValue && communityId.Value > 0)
-        {
-            query = query.Where(p => p.Post.CommunityId == communityId.Value);
-        }
+            if (groupId.HasValue && groupId.Value > 0)
+            {
+                baseQuery = baseQuery.Where(p => p.Post.GroupId == groupId.Value);
+            }
+            else if (communityId.HasValue && communityId.Value > 0)
+            {
+                baseQuery = baseQuery.Where(p => p.Post.CommunityId == communityId.Value);
+            }
 
-        var polls = await query.OrderByDescending(p => p.CreatedAt).Take(30).ToListAsync(cancellationToken);
+            // 1. Fetch polls with post metadata and precomputed scalar counts
+            var rawPolls = await baseQuery
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(30)
+                .Select(p => new
+                {
+                    p.PollId,
+                    p.PostId,
+                    CommunityId = p.Post != null ? p.Post.CommunityId : null,
+                    CommunityName = p.Post != null && p.Post.Community != null ? p.Post.Community.Name : null,
+                    GroupId = p.Post != null ? p.Post.GroupId : null,
+                    GroupName = p.Post != null && p.Post.Group != null ? p.Post.Group.Name : null,
+                    AuthorId = p.Post != null ? p.Post.AuthorId : (p.CreatedBy ?? 0),
+                    AuthorDisplayName = p.Post != null && p.Post.Author != null ? p.Post.Author.DisplayName : null,
+                    AuthorUserName = p.Post != null && p.Post.Author != null ? p.Post.Author.UserName : null,
+                    AuthorAvatar = p.Post != null && p.Post.Author != null ? p.Post.Author.AvatarUrl : null,
+                    p.Question,
+                    Content = p.Post != null ? p.Post.Content : null,
+                    p.IsMultipleChoice,
+                    p.ExpiresAt,
+                    LikeCount = p.Post != null ? p.Post.TblPostLikes.Count(l => !l.IsDeleted) : 0,
+                    CommentCount = p.Post != null ? p.Post.TblComments.Count(c => !c.IsDeleted) : 0,
+                    ShareCount = p.Post != null ? p.Post.TblPostShares.Count(s => !s.IsDeleted) : 0,
+                    IsLiked = currentUserId.HasValue && p.Post != null && p.Post.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
+                    p.CreatedAt
+                })
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
 
-        var list = polls.Select(p =>
-        {
-            var totalVotes = p.TblPollOptions.Sum(o => o.TblPollVotes.Count);
-            var hasVoted = currentUserId.HasValue && p.TblPollOptions.Any(o => o.TblPollVotes.Any(v => v.UserId == currentUserId.Value));
-            var isExpired = p.ExpiresAt.HasValue && p.ExpiresAt.Value <= DateTime.UtcNow;
+            if (rawPolls.Count == 0)
+            {
+                return Result<IReadOnlyList<PollModel>>.Success([]);
+            }
 
-            var options = p.TblPollOptions
+            // 2. Fetch all options for these polls in a single, targeted batch query
+            var pollIds = rawPolls.Select(p => p.PollId).ToList();
+
+            var rawOptions = await dbContext.TblPollOptions
+                .Where(o => pollIds.Contains(o.PollId) && !o.IsDeleted)
                 .OrderBy(o => o.DisplayOrder)
-                .Select(o => new PollOptionModel(
+                .Select(o => new
+                {
+                    o.PollId,
                     o.PollOptionId,
                     o.OptionText,
-                    o.TblPollVotes.Count,
-                    totalVotes > 0 ? Math.Round((double)o.TblPollVotes.Count / totalVotes * 100, 1) : 0,
-                    currentUserId.HasValue && o.TblPollVotes.Any(v => v.UserId == currentUserId.Value))).ToList();
+                    VoteCount = o.TblPollVotes.Count(),
+                    IsVotedByCurrentUser = currentUserId.HasValue && o.TblPollVotes.Any(v => v.UserId == currentUserId.Value)
+                })
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
 
-            var likeCount = p.Post.TblPostLikes.Count;
-            var commentCount = p.Post.TblComments.Count(c => !c.IsDeleted);
-            var shareCount = p.Post.TblPostShares.Count;
-            var isLiked = currentUserId.HasValue && p.Post.TblPostLikes.Any(l => l.UserId == currentUserId.Value);
+            var optionsByPoll = rawOptions.ToLookup(o => o.PollId);
 
-            return new PollModel(
-                p.PollId,
-                p.PostId,
-                p.Post.CommunityId,
-                p.Post.Community?.Name,
-                p.Post.GroupId,
-                p.Post.Group?.Name,
-                p.Post.AuthorId,
-                p.Post.Author != null ? (string.IsNullOrWhiteSpace(p.Post.Author.DisplayName) ? p.Post.Author.UserName : p.Post.Author.DisplayName) : "Unknown",
-                p.Post.Author?.AvatarUrl,
-                p.Question,
-                p.Post.Content,
-                p.IsMultipleChoice,
-                p.ExpiresAt,
-                isExpired,
-                totalVotes,
-                hasVoted,
-                options,
-                likeCount,
-                commentCount,
-                shareCount,
-                isLiked,
-                p.CreatedAt);
-        }).ToList();
+            // 3. Assemble complete PollModel list in memory
+            var list = rawPolls.Select(p =>
+            {
+                var pollOptions = optionsByPoll[p.PollId].ToList();
+                var totalVotes = pollOptions.Sum(o => o.VoteCount);
+                var hasVoted = currentUserId.HasValue && pollOptions.Any(o => o.IsVotedByCurrentUser);
+                var isExpired = p.ExpiresAt.HasValue && p.ExpiresAt.Value <= DateTime.UtcNow;
 
-        return Result<IReadOnlyList<PollModel>>.Success(list);
+                var options = pollOptions.Select(o => new PollOptionModel(
+                    o.PollOptionId,
+                    o.OptionText,
+                    o.VoteCount,
+                    totalVotes > 0 ? Math.Round((double)o.VoteCount / totalVotes * 100, 1) : 0,
+                    o.IsVotedByCurrentUser
+                )).ToList();
+
+                var authorName = !string.IsNullOrWhiteSpace(p.AuthorDisplayName)
+                    ? p.AuthorDisplayName
+                    : (!string.IsNullOrWhiteSpace(p.AuthorUserName) ? p.AuthorUserName : "Unknown");
+
+                return new PollModel(
+                    p.PollId,
+                    p.PostId,
+                    p.CommunityId,
+                    p.CommunityName,
+                    p.GroupId,
+                    p.GroupName,
+                    p.AuthorId,
+                    authorName,
+                    p.AuthorAvatar,
+                    p.Question,
+                    p.Content,
+                    p.IsMultipleChoice,
+                    p.ExpiresAt,
+                    isExpired,
+                    totalVotes,
+                    hasVoted,
+                    options,
+                    p.LikeCount,
+                    p.CommentCount,
+                    p.ShareCount,
+                    p.IsLiked,
+                    p.CreatedAt
+                );
+            }).ToList();
+
+            return Result<IReadOnlyList<PollModel>>.Success(list);
+        }
+        catch (OperationCanceledException)
+        {
+            return Result<IReadOnlyList<PollModel>>.Success([]);
+        }
     }
 
     public async Task<Result<PollModel>> CreatePollAsync(CreatePollRequestModel request, CancellationToken cancellationToken = default)

@@ -1,0 +1,431 @@
+@page "/admin/plans"
+@layout AdminLayout
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+@inject SubscriptionPlanApiService PlanApi
+@inject ToastService Toast
+@rendermode InteractiveServer
+
+<PageTitle>Premium Subscription Plans — Admin Control Panel</PageTitle>
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">⭐ Premium Subscription Plans</h1>
+            <p class="text-sm text-[#557392]">Configure membership tier pricing, durations, LinkDrop points cost, and feature perks for Domain Professional and Public Figure upgrades.</p>
+        </div>
+        <button @onclick="OpenCreateModal" class="px-4 py-2.5 rounded-lg text-xs font-bold text-white bg-[#0A1B2E] hover:bg-[#112A46] shadow-sm transition flex items-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Create New Plan</span>
+        </button>
+    </div>
+
+    <!-- Tier Filter Tabs -->
+    <div class="flex items-center gap-2 border-b border-[#E2E8F0] pb-3 text-xs font-semibold">
+        <button @onclick='() => selectedTierFilter = "ALL"' class="px-3 py-1.5 rounded-lg transition @(selectedTierFilter == "ALL" ? "bg-[#0A1B2E] text-white shadow-sm" : "bg-white text-[#557392] hover:bg-[#F1F5F9]")">
+            All Tiers (@(allPlans?.Count ?? 0))
+        </button>
+        <button @onclick='() => selectedTierFilter = "DOMAIN_PRO"' class="px-3 py-1.5 rounded-lg transition @(selectedTierFilter == "DOMAIN_PRO" ? "bg-amber-600 text-white shadow-sm" : "bg-white text-[#557392] hover:bg-[#F1F5F9]")">
+            ⭐ Domain Professional (@(allPlans?.Count(p => p.TargetRoleCode == "DOMAIN_PRO") ?? 0))
+        </button>
+        <button @onclick='() => selectedTierFilter = "PUBLIC_FIGURE"' class="px-3 py-1.5 rounded-lg transition @(selectedTierFilter == "PUBLIC_FIGURE" ? "bg-purple-700 text-white shadow-sm" : "bg-white text-[#557392] hover:bg-[#F1F5F9]")">
+            🏛️ Public Figure VIP (@(allPlans?.Count(p => p.TargetRoleCode == "PUBLIC_FIGURE") ?? 0))
+        </button>
+    </div>
+
+    <!-- Plans Content -->
+    @if (isLoading)
+    {
+        <div class="p-12 text-center text-[#557392] bg-white rounded-xl border border-[#E2E8F0] shadow-sm">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] border-t-transparent"></div>
+            <p class="mt-3 text-xs font-medium">Loading subscription plans...</p>
+        </div>
+    }
+    else if (FilteredPlans.Count == 0)
+    {
+        <div class="p-12 text-center bg-white rounded-xl border border-dashed border-[#CBD5E1] text-[#7A8CA6] space-y-3">
+            <span class="text-3xl">📋</span>
+            <h4 class="font-bold text-sm text-[#0A1B2E]">No Subscription Plans Found</h4>
+            <p class="text-xs max-w-sm mx-auto">Get started by creating your first plan configuration for Domain Professional or Public Figure.</p>
+            <button @onclick="OpenCreateModal" class="px-4 py-2 rounded-lg text-xs font-bold text-white bg-[#0A1B2E] hover:bg-[#112A46] transition">
+                Create Plan Now
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            @foreach (var plan in FilteredPlans)
+            {
+                var isDomainPro = plan.TargetRoleCode == "DOMAIN_PRO";
+                <div class="bg-white rounded-2xl border @(plan.IsActive ? (isDomainPro ? "border-amber-200" : "border-purple-200") : "border-slate-200 opacity-75") shadow-sm flex flex-col justify-between overflow-hidden">
+                    <div class="p-6 space-y-4">
+                        <!-- Card Header -->
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider font-mono @(isDomainPro ? "bg-amber-50 text-amber-800 border border-amber-200" : "bg-purple-50 text-purple-800 border border-purple-200")">
+                                    <span>@(isDomainPro ? "⭐ DOMAIN PRO" : "🏛️ PUBLIC FIGURE")</span>
+                                </span>
+                                <h3 class="text-lg font-bold text-[#0A1B2E] mt-2">@plan.PlanName</h3>
+                                <p class="text-xs text-[#7A8CA6] font-mono">Interval: @plan.BillingInterval (@plan.DurationDays Days)</p>
+                            </div>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold @(plan.IsActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-slate-100 text-slate-500 border border-slate-300")">
+                                @(plan.IsActive ? "ACTIVE" : "INACTIVE")
+                            </span>
+                        </div>
+
+                        <!-- Price Section -->
+                        <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-2xl font-black text-[#0A1B2E] font-mono">$@plan.PriceAmount.ToString("F2")</span>
+                                <span class="text-xs text-[#7A8CA6]">/ @plan.BillingInterval.ToLower()</span>
+                            </div>
+                            @if (plan.LinkDropCost > 0)
+                            {
+                                <p class="text-xs text-blue-600 font-semibold flex items-center gap-1">
+                                    <span>💧</span>
+                                    <span>@plan.LinkDropCost.ToString("N0") LinkDrop Points</span>
+                                </p>
+                            }
+                        </div>
+
+                        <!-- Perks List -->
+                        <div class="space-y-2">
+                            <h5 class="text-[11px] font-bold uppercase text-[#7A8CA6] tracking-wider font-mono">Perks &amp; Entitlements</h5>
+                            @if (plan.Perks.Count > 0)
+                            {
+                                <ul class="space-y-1.5 text-xs text-[#334155]">
+                                    @foreach (var perk in plan.Perks)
+                                    {
+                                        <li class="flex items-start gap-2">
+                                            <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                                            <span>@perk</span>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-xs text-[#94A3B8] italic">No specific perks enumerated.</p>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Footer Actions -->
+                    <div class="p-4 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-between gap-2">
+                        <button @onclick="() => ToggleStatus(plan)" class="text-xs font-semibold px-3 py-1.5 rounded-lg border transition @(plan.IsActive ? "border-slate-300 text-slate-700 hover:bg-slate-100" : "border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100")">
+                            @(plan.IsActive ? "Deactivate" : "Activate")
+                        </button>
+                        <div class="flex items-center gap-1">
+                            <button @onclick="() => OpenEditModal(plan)" class="p-1.5 text-xs font-semibold text-[#0A1B2E] hover:bg-[#E2E8F0] rounded-lg transition" title="Edit Plan">
+                                ✏️ Edit
+                            </button>
+                            <button @onclick="() => DeletePlan(plan)" class="p-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Delete Plan">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- CREATE / EDIT MODAL -->
+@if (showModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl border border-[#CBD5E1] max-w-lg w-full p-6 space-y-5 text-[#0A1B2E] max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">@(isEditing ? "✏️" : "⭐")</span>
+                    <h3 class="font-bold text-base text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">
+                        @(isEditing ? "Edit Subscription Plan" : "Create New Subscription Plan")
+                    </h3>
+                </div>
+                <button @onclick="CloseModal" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(modalError))
+            {
+                <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg">
+                    @modalError
+                </div>
+            }
+
+            <div class="space-y-4 text-xs">
+                <!-- Target Tier Role -->
+                <div>
+                    <label class="block font-bold text-[#64748B] uppercase tracking-wider mb-1">Target Membership Tier *</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="p-3 rounded-xl border flex items-center gap-2.5 cursor-pointer transition @(formTargetRoleCode == "DOMAIN_PRO" ? "border-amber-500 bg-amber-50/50" : "border-[#E2E8F0]")">
+                            <input type="radio" name="targetRole" checked="@(formTargetRoleCode == "DOMAIN_PRO")" @onchange='() => formTargetRoleCode = "DOMAIN_PRO"' />
+                            <div>
+                                <p class="font-bold text-xs text-[#0A1B2E]">⭐ Domain Pro</p>
+                                <p class="text-[10px] text-[#7A8CA6]">Domain Professional role</p>
+                            </div>
+                        </label>
+                        <label class="p-3 rounded-xl border flex items-center gap-2.5 cursor-pointer transition @(formTargetRoleCode == "PUBLIC_FIGURE" ? "border-purple-600 bg-purple-50/50" : "border-[#E2E8F0]")">
+                            <input type="radio" name="targetRole" checked="@(formTargetRoleCode == "PUBLIC_FIGURE")" @onchange='() => formTargetRoleCode = "PUBLIC_FIGURE"' />
+                            <div>
+                                <p class="font-bold text-xs text-[#0A1B2E]">🏛️ Public Figure</p>
+                                <p class="text-[10px] text-[#7A8CA6]">Public Figure VIP role</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Plan Name -->
+                <div>
+                    <label class="block font-bold text-[#64748B] uppercase tracking-wider mb-1">Plan Name *</label>
+                    <input type="text" placeholder="e.g. Domain Professional (Quarterly)" @bind="formPlanName"
+                           class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] text-xs focus:border-[#0A1B2E] outline-none" />
+                </div>
+
+                <!-- Period & Duration -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-[#64748B] uppercase tracking-wider mb-1">Billing Interval *</label>
+                        <select @bind="formBillingInterval" class="w-full px-3 py-2 rounded-lg border border-[#CBD5E1] text-xs focus:border-[#0A1B2E] outline-none bg-white">
+                            <option value="Monthly">Monthly</option>
+                            <option value="Quarterly">Quarterly</option>
+                            <option value="Semi-Annual">Semi-Annual</option>
+                            <option value="Annual">Annual</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-[#64748B] uppercase tracking-wider mb-1">Duration (Days) *</label>
+                        <input type="number" min="1" max="3650" @bind="formDurationDays"
+                               class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] text-xs focus:border-[#0A1B2E] outline-none font-mono" />
+                    </div>
+                </div>
+
+                <!-- Pricing -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-[#64748B] uppercase tracking-wider mb-1">Fiat Amount ($ USD) *</label>
+                        <input type="number" step="0.01" min="0" @bind="formPriceAmount"
+                               class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] text-xs focus:border-[#0A1B2E] outline-none font-mono" />
+                    </div>
+                    <div>
+                        <label class="block font-bold text-[#64748B] uppercase tracking-wider mb-1">LinkDrop Points Cost</label>
+                        <input type="number" min="0" @bind="formLinkDropCost"
+                               class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] text-xs focus:border-[#0A1B2E] outline-none font-mono" />
+                        <p class="text-[10px] text-[#7A8CA6] mt-0.5">Points required for direct in-app upgrade.</p>
+                    </div>
+                </div>
+
+                <!-- Perks (One per line) -->
+                <div>
+                    <label class="block font-bold text-[#64748B] uppercase tracking-wider mb-1">Perks &amp; Highlights (One perk per line)</label>
+                    <textarea rows="4" placeholder="1-on-1 Paid Advisory Engine&#10;Public Peer Rating & Review Card&#10;Sub-Community Ownership"
+                              @bind="formPerksRaw"
+                              class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] text-xs focus:border-[#0A1B2E] outline-none resize-none font-sans"></textarea>
+                </div>
+
+                <!-- Active Status -->
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="planActiveCheckbox" @bind="formIsActive" class="w-4 h-4 rounded cursor-pointer accent-[#0A1B2E]" />
+                    <label for="planActiveCheckbox" class="text-xs font-semibold text-[#0A1B2E] cursor-pointer">
+                        Plan is currently active &amp; visible on the upgrade page
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0]">
+                <button @onclick="CloseModal" class="px-4 py-2 rounded-lg text-xs font-semibold border border-[#CBD5E1] text-slate-700 hover:bg-slate-100 transition">
+                    Cancel
+                </button>
+                <button @onclick="SavePlanAsync" disabled="@isSubmitting" class="px-5 py-2 rounded-lg text-xs font-bold bg-[#0A1B2E] text-white hover:bg-[#112A46] shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                    @if (isSubmitting)
+                    {
+                        <span class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span>@(isEditing ? "Save Changes" : "Create Plan")</span>
+                        <span>&rarr;</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<SubscriptionPlanDto>? allPlans;
+    private bool isLoading = true;
+    private string selectedTierFilter = "ALL";
+
+    // Modal state
+    private bool showModal = false;
+    private bool isEditing = false;
+    private int editingPlanId = 0;
+    private bool isSubmitting = false;
+    private string? modalError;
+
+    // Form fields
+    private string formTargetRoleCode = "DOMAIN_PRO";
+    private string formPlanName = "";
+    private string formBillingInterval = "Monthly";
+    private int formDurationDays = 30;
+    private decimal formPriceAmount = 39.00m;
+    private long formLinkDropCost = 390;
+    private string formPerksRaw = "";
+    private bool formIsActive = true;
+
+    private List<SubscriptionPlanDto> FilteredPlans => allPlans == null ? [] :
+        selectedTierFilter == "ALL" ? allPlans :
+        allPlans.Where(p => p.TargetRoleCode == selectedTierFilter).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPlansAsync();
+    }
+
+    private async Task LoadPlansAsync()
+    {
+        isLoading = true;
+        var res = await PlanApi.GetAllPlansAdminAsync();
+        if (res.IsSuccess && res.Data != null)
+        {
+            allPlans = res.Data.ToList();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to load plans.");
+        }
+        isLoading = false;
+    }
+
+    private void OpenCreateModal()
+    {
+        isEditing = false;
+        editingPlanId = 0;
+        formTargetRoleCode = "DOMAIN_PRO";
+        formPlanName = "";
+        formBillingInterval = "Monthly";
+        formDurationDays = 30;
+        formPriceAmount = 39.00m;
+        formLinkDropCost = 390;
+        formPerksRaw = "1-on-1 Paid Advisory Engine (set custom hourly rate)\nPublic Peer Rating & Review Card\nPriority Sub-Community Ownership\nDomain Competency Endorsement";
+        formIsActive = true;
+        modalError = null;
+        showModal = true;
+    }
+
+    private void OpenEditModal(SubscriptionPlanDto plan)
+    {
+        isEditing = true;
+        editingPlanId = plan.PlanId;
+        formTargetRoleCode = plan.TargetRoleCode;
+        formPlanName = plan.PlanName;
+        formBillingInterval = plan.BillingInterval;
+        formDurationDays = plan.DurationDays;
+        formPriceAmount = plan.PriceAmount;
+        formLinkDropCost = plan.LinkDropCost;
+        formPerksRaw = string.Join("\n", plan.Perks);
+        formIsActive = plan.IsActive;
+        modalError = null;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        modalError = null;
+    }
+
+    private async Task SavePlanAsync()
+    {
+        modalError = null;
+        if (string.IsNullOrWhiteSpace(formPlanName))
+        {
+            modalError = "Please enter a plan name.";
+            return;
+        }
+
+        if (formDurationDays <= 0)
+        {
+            modalError = "Duration must be at least 1 day.";
+            return;
+        }
+
+        var perksList = formPerksRaw.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+
+        isSubmitting = true;
+        if (isEditing)
+        {
+            var req = new UpdateSubscriptionPlanRequestDto
+            {
+                PlanId = editingPlanId,
+                TargetRoleCode = formTargetRoleCode,
+                PlanName = formPlanName,
+                BillingInterval = formBillingInterval,
+                DurationDays = formDurationDays,
+                PriceAmount = formPriceAmount,
+                LinkDropCost = formLinkDropCost,
+                Perks = perksList,
+                IsActive = formIsActive
+            };
+            var res = await PlanApi.UpdatePlanAsync(editingPlanId, req);
+            isSubmitting = false;
+
+            if (res.IsSuccess)
+            {
+                Toast.Success("Plan updated successfully!");
+                showModal = false;
+                await LoadPlansAsync();
+            }
+            else modalError = res.Message;
+        }
+        else
+        {
+            var req = new CreateSubscriptionPlanRequestDto
+            {
+                TargetRoleCode = formTargetRoleCode,
+                PlanName = formPlanName,
+                BillingInterval = formBillingInterval,
+                DurationDays = formDurationDays,
+                PriceAmount = formPriceAmount,
+                LinkDropCost = formLinkDropCost,
+                Perks = perksList,
+                IsActive = formIsActive
+            };
+            var res = await PlanApi.CreatePlanAsync(req);
+            isSubmitting = false;
+
+            if (res.IsSuccess)
+            {
+                Toast.Success("Plan created successfully!");
+                showModal = false;
+                await LoadPlansAsync();
+            }
+            else modalError = res.Message;
+        }
+    }
+
+    private async Task ToggleStatus(SubscriptionPlanDto plan)
+    {
+        var res = await PlanApi.TogglePlanStatusAsync(plan.PlanId);
+        if (res.IsSuccess)
+        {
+            Toast.Success(res.Message ?? "Plan status updated.");
+            await LoadPlansAsync();
+        }
+        else Toast.Error(res.Message ?? "Failed to toggle status.");
+    }
+
+    private async Task DeletePlan(SubscriptionPlanDto plan)
+    {
+        var res = await PlanApi.DeletePlanAsync(plan.PlanId);
+        if (res.IsSuccess)
+        {
+            Toast.Success("Plan removed or deactivated.");
+            await LoadPlansAsync();
+        }
+        else Toast.Error(res.Message ?? "Failed to delete plan.");
+    }
+}

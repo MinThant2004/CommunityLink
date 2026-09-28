@@ -1,0 +1,830 @@
+@page "/sub-communities"
+@page "/sub-communities/{ParentCommunityId:int}"
+@page "/community/{ParentCommunityId:int}/sub-communities"
+@page "/communities/{ParentCommunityId:int}/sub-communities"
+@rendermode InteractiveServer
+@inject CommunityApiService CommunityApi
+@inject ToastService Toast
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>@(selectedParent != null ? $"{selectedParent.Name} Sub-Communities" : "Sub-Communities") — CommunityLink</PageTitle>
+
+<div class="min-h-screen bg-background font-body-md text-body-md text-on-surface antialiased transition-colors duration-200">
+    <!-- Top Sub-Bar / Private Tier Directory Strip -->
+    <section class="bg-surface-container-lowest/80 backdrop-blur-md border-b border-surface-container-high/30">
+        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-space-sm flex items-center justify-between">
+            <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
+                <a href="communities" class="hover:text-on-surface transition-colors cursor-pointer flex items-center gap-1">
+                    <span>Platform</span>
+                    <span class="material-symbols-outlined text-xs">chevron_right</span>
+                </a>
+                <span class="text-on-surface font-semibold">Private Tier Directory</span>
+            </div>
+            <div class="flex items-center gap-space-sm">
+                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider hidden sm:inline">Node Frequency</span>
+                <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm border border-primary/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>Live Stream
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Container -->
+    <div class="flex flex-col w-full">
+        <!-- Subtle Ambient Glow Canvas -->
+        <div class="relative w-full overflow-hidden">
+            <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+            <div class="absolute top-40 right-10 w-80 h-80 bg-secondary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+            <!-- Main Community Header Section -->
+            <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pt-space-md pb-space-lg w-full">
+                <!-- Breadcrumb Navigation -->
+                <nav aria-label="Breadcrumbs" class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant mb-space-md">
+                    <a class="hover:text-primary transition-colors cursor-pointer" href="/">Platform</a>
+                    <span class="material-symbols-outlined text-xs">chevron_right</span>
+                    <a class="hover:text-primary transition-colors cursor-pointer" href="communities">Communities</a>
+                    <span class="material-symbols-outlined text-xs">chevron_right</span>
+                    <span class="text-on-surface font-semibold">@(selectedParent?.Name ?? "Executive Hub")</span>
+                </nav>
+
+                @if (isLoading)
+                {
+                    <div class="rounded-xl bg-surface-container-low p-space-lg border border-surface-container-high/30 flex flex-col items-center justify-center min-h-[220px]">
+                        <div class="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent"></div>
+                        <p class="text-on-surface-variant font-label-md text-label-md mt-3">Loading private tier network consensus...</p>
+                    </div>
+                }
+                else if (selectedParent == null)
+                {
+                    <div class="rounded-xl bg-surface-container-low p-space-xl border border-surface-container-high/30 text-center">
+                        <div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary mx-auto mb-3">
+                            <span class="material-symbols-outlined text-2xl">hub</span>
+                        </div>
+                        <h2 class="font-headline-lg text-headline-lg text-on-surface">No Executive Hub Selected</h2>
+                        <p class="text-on-surface-variant max-w-md mx-auto mt-2 text-body-md">
+                            Select an authorized parent community or browse the directory to explore high-signal sub-communities.
+                        </p>
+                        <a href="communities" class="mt-4 inline-flex items-center gap-2 px-space-md py-2 rounded-xl bg-primary text-on-primary font-label-lg font-bold">
+                            <span>Browse Communities</span>
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <!-- Main Community Hero Panel -->
+                    <div class="relative rounded-xl bg-surface-container-low p-space-md md:p-space-lg overflow-hidden border border-surface-container-high/30">
+                        <!-- Top Refractive Glass Line Effect -->
+                        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
+                            <!-- Left Column: Title & Charter -->
+                            <div class="lg:col-span-7 flex flex-col gap-space-sm">
+                                <div class="flex flex-wrap items-center gap-space-sm">
+                                    <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase tracking-wider border border-primary/20">
+                                        <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span> Tier 1 Protocol
+                                    </span>
+                                    <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm border border-secondary/20">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span> Node Consensus Validated
+                                    </span>
+
+                                    <!-- Parent Hub Switcher -->
+                                    @if (parentCommunities.Count > 1)
+                                    {
+                                        <div class="relative inline-block ml-auto sm:ml-0">
+                                            <select class="bg-surface-container-highest text-on-surface font-label-sm text-label-sm py-0.5 px-2 rounded-full border border-surface-container-high focus:outline-none focus:border-primary cursor-pointer"
+                                                    value="@selectedParent.CommunityId"
+                                                    @onchange="OnParentCommunityChanged">
+                                                @foreach (var parent in parentCommunities)
+                                                {
+                                                    <option value="@parent.CommunityId">@parent.Name</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    }
+                                </div>
+
+                                <h1 class="font-headline-lg text-headline-lg md:text-display-md text-on-surface tracking-tight mt-space-xs font-bold">
+                                    @selectedParent.Name
+                                </h1>
+
+                                <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl leading-relaxed">
+                                    @(string.IsNullOrWhiteSpace(selectedParent.Description) 
+                                        ? "An institutional sanctuary convening sovereign laboratory scientists, hyperscale infrastructure operators, and capitalized founders navigating algorithmic frontiers and synthetic intelligence deployments."
+                                        : selectedParent.Description)
+                                </p>
+
+                                <!-- Inline telemetry (no cards) -->
+                                <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 pt-space-sm mt-space-xs text-body-sm text-body-sm">
+                                    <span class="flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-xs text-primary">account_tree</span>
+                                        <span class="text-on-surface-variant">Sub-Communities</span>
+                                        <span class="font-mono font-bold text-on-surface">@subCommunities.Count</span>
+                                    </span>
+                                    <span class="flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-xs text-secondary">groups</span>
+                                        <span class="text-on-surface-variant">Workgroups</span>
+                                        <span class="font-mono font-bold text-on-surface">@totalGroupsCount</span>
+                                    </span>
+                                    <span class="flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-xs text-primary">groups_2</span>
+                                        <span class="text-on-surface-variant">Members</span>
+                                        <span class="font-mono font-bold text-on-surface">@FormatNumber(totalMemberCount)</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Cluster Telemetry Chart -->
+                            <div class="lg:col-span-5 flex flex-col bg-surface-container-lowest/60 p-space-md rounded-xl border border-surface-container-high/30 backdrop-blur-sm">
+                                <TelemetryChart Title="Cluster Liquidity &amp; Velocity" PrimaryLabel="Members" SecondaryLabel="Posts" Values="liquiditySeries" SecondaryValues="velocitySeries" Labels="chartLabels" Highlight="@clusterHighlight" />
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Navigation & Filter Strip -->
+            <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-md w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+                <div class="flex items-center gap-space-sm">
+                    <span class="font-title-lg text-title-lg text-on-surface font-bold">Sub-Communities</span>
+                    <span class="px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary font-label-md text-label-md border border-primary/20">
+                        @filteredSubCommunities.Count Authorized Hubs
+                    </span>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-space-sm w-full sm:w-auto">
+                    <!-- Search Input -->
+                    <div class="relative flex-1 sm:w-64">
+                        <span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-sm">filter_list</span>
+                        <input class="w-full bg-surface-container-low text-on-surface placeholder-on-surface-variant text-body-sm pl-9 pr-3 py-1.5 rounded-xl border border-surface-container-high/30 focus:outline-none focus:bg-surface-container-high focus:border-primary transition-colors"
+                               placeholder="Filter working groups..."
+                               type="text"
+                               @bind="searchTerm"
+                               @bind:event="oninput" />
+                    </div>
+
+                    <!-- Sort Button -->
+                    <button class="px-3 py-1.5 bg-surface-container text-on-surface hover:text-primary rounded-xl font-label-md text-label-md flex items-center gap-1 shrink-0 transition-colors border border-surface-container-high/40 cursor-pointer"
+                            @onclick="ToggleSort">
+                        <span class="material-symbols-outlined text-sm">tune</span>
+                        <span>Sort: @sortMode</span>
+                    </button>
+
+                    <!-- Propose Sub-Community Button -->
+                    <button class="px-3.5 py-1.5 bg-primary text-on-primary hover:bg-primary-fixed-dim rounded-xl font-label-md text-label-md font-bold flex items-center gap-1.5 shrink-0 transition-all shadow-sm cursor-pointer"
+                            @onclick="OpenCreateSubModal">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                        <span>Propose Sub-Hub</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sub-Communities Grid -->
+            <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-lg w-full">
+                @if (filteredSubCommunities.Count == 0)
+                {
+                    <div class="rounded-xl bg-surface-container-low p-space-xl border border-dashed border-surface-container-high/40 text-center py-16">
+                        <div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary mx-auto mb-3">
+                            <span class="material-symbols-outlined text-2xl">search_off</span>
+                        </div>
+                        <h3 class="font-headline-md text-on-surface font-semibold">No Sub-Communities Found</h3>
+                        <p class="text-on-surface-variant text-body-md max-w-md mx-auto mt-2">
+                            @(string.IsNullOrWhiteSpace(searchTerm) 
+                                ? "No sub-communities have been chartered under this hub yet. Be the first to establish a node." 
+                                : $"No sub-communities match '{searchTerm}'.")
+                        </p>
+                        <button type="button" @onclick="OpenCreateSubModal" class="mt-4 px-space-md py-2 rounded-xl bg-primary text-on-primary font-label-lg font-bold inline-flex items-center gap-2 cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">add</span>
+                            <span>Propose New Sub-Community</span>
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-space-lg">
+                        @for (var i = 0; i < filteredSubCommunities.Count; i++)
+                        {
+                            var sub = filteredSubCommunities[i];
+                            var cardIndex = i;
+                            var banner = GetBannerForSub(sub, cardIndex);
+                            var tierTitle = GetTierForIndex(cardIndex);
+                            var glowGradient = GetGlowGradientForIndex(cardIndex);
+                            var isJoined = sub.IsJoined || joinedCommunityIds.Contains(sub.CommunityId);
+
+                            <div class="group flex flex-col justify-between rounded-xl bg-surface-container-low hover:bg-surface-container transition-all duration-300 shadow-lg overflow-hidden relative border border-surface-container-highest/20 hover:border-primary/30">
+                                <!-- Ambient card top glow -->
+                                <div class="absolute inset-x-0 top-0 h-1 @glowGradient opacity-80"></div>
+
+                                <div class="p-space-md flex flex-col gap-space-sm">
+                                    <!-- Header Image / Badge Strip -->
+                                    <div class="relative h-32 rounded-lg overflow-hidden bg-surface-container-lowest">
+                                        <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                             src="@banner"
+                                             alt="@sub.Name" />
+                                        <div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/60 to-transparent"></div>
+
+                                        <!-- Category Pill Badge -->
+                                        <div class="absolute top-3 left-3 flex items-center gap-2">
+                                            <span class="px-2.5 py-1 rounded-md bg-surface-container-lowest/90 backdrop-blur-md text-primary font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1 border border-primary/20">
+                                                <span class="material-symbols-outlined text-xs">@GetCategoryIconForIndex(cardIndex)</span>
+                                                <span>@(sub.CategoryName ?? "Capital & Syndicate")</span>
+                                            </span>
+                                        </div>
+
+                                        <!-- Bottom-Left Title & Bottom-Right Avatar Pile -->
+                                        <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                                            <div>
+                                                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">@tierTitle</span>
+                                                <div class="font-title-lg text-title-lg text-on-surface font-semibold tracking-tight truncate">
+                                                    @sub.Name
+                                                </div>
+                                            </div>
+
+                                            <!-- Member Avatar Pile -->
+                                            <div class="flex -space-x-2 shrink-0 items-center">
+                                                @if (sub.MemberAvatarUrls != null && sub.MemberAvatarUrls.Any())
+                                                {
+                                                    @foreach (var avatar in sub.MemberAvatarUrls.Take(2))
+                                                    {
+                                                        <div class="w-7 h-7 rounded-full bg-surface-container-high overflow-hidden border-2 border-surface-container-lowest">
+                                                            <img class="w-full h-full object-cover" src="@avatar" alt="Member Avatar" />
+                                                        </div>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <div class="w-7 h-7 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm flex items-center justify-center font-bold border-2 border-surface-container-lowest">
+                                                        @InitialOf(sub.Name)
+                                                    </div>
+                                                }
+
+                                                @if (sub.ExtraMemberCount > 0)
+                                                {
+                                                    <div class="w-7 h-7 rounded-full bg-primary text-on-primary font-label-sm text-label-sm flex items-center justify-center font-bold border-2 border-surface-container-lowest">
+                                                        +@sub.ExtraMemberCount
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 leading-relaxed">
+                                        @(string.IsNullOrWhiteSpace(sub.Description)
+                                            ? "No charter description has been published for this node yet."
+                                            : sub.Description)
+                                    </p>
+
+                                    <!-- Metrics Pill Row -->
+                                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-body-sm py-space-xs px-space-sm rounded-lg bg-surface-container-lowest/50 border border-surface-container-high/20">
+                                        <span class="flex items-center gap-1 text-on-surface font-semibold">
+                                            <span class="material-symbols-outlined text-xs text-primary">groups</span>
+                                            @FormatNumber(sub.MemberCount) Members
+                                        </span>
+                                        <span class="text-on-surface-variant">•</span>
+                                        <span class="flex items-center gap-1 text-primary font-medium">
+                                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+                                            @(sub.DomainProCount + sub.PublicFigureCount) Luminaries
+                                        </span>
+                                        <span class="text-on-surface-variant">•</span>
+                                        <span class="flex items-center gap-1 text-secondary font-medium">
+                                            <span class="material-symbols-outlined text-xs">bolt</span>
+                                            @sub.GroupCount Workgroups
+                                        </span>
+                                    </div>
+
+                                    <!-- Related Groups Sub-Section -->
+                                    <div class="flex flex-col gap-space-xs pt-space-xs">
+                                        <span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant flex items-center gap-1 font-semibold">
+                                            <span class="material-symbols-outlined text-xs text-primary">hub</span>
+                                            Working Groups (@sub.GroupCount)
+                                        </span>
+
+                                        <div class="grid grid-cols-1 gap-1.5 mt-1">
+                                            @if (sub.TopChildItems != null && sub.TopChildItems.Any())
+                                            {
+                                                @for (var gIdx = 0; gIdx < sub.TopChildItems.Count; gIdx++)
+                                                {
+                                                    var groupItem = sub.TopChildItems[gIdx];
+                                                    var itemIcon = GetGroupIconForIndex(gIdx);
+                                                    var itemColor = gIdx % 2 == 0 ? "text-primary" : "text-secondary";
+
+                                                    <a href="groups?groupId=@groupItem.Id"
+                                                       class="flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-surface-container-lowest hover:bg-surface-container-high transition-colors cursor-pointer group/item border border-surface-container-high/10 no-underline">
+                                                        <div class="flex items-center gap-2 min-w-0 pr-2">
+                                                            <span class="material-symbols-outlined @itemColor text-sm shrink-0">@itemIcon</span>
+                                                            <span class="font-body-sm text-body-sm text-on-surface group-hover/item:text-primary transition-colors truncate">
+                                                                @groupItem.Name
+                                                            </span>
+                                                        </div>
+                                                        <div class="flex items-center gap-1.5 shrink-0">
+                                                            <span class="font-label-sm text-label-sm font-mono text-on-surface-variant">@groupItem.MemberCount.ToString("N0")</span>
+                                                            <span class="font-label-sm text-label-sm text-on-surface-variant uppercase px-1.5 py-0.5 rounded bg-surface-container-high font-mono">Group</span>
+                                                        </div>
+                                                    </a>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <div class="px-space-sm py-3 rounded-lg bg-surface-container-lowest/50 border border-dashed border-surface-container-high/30 text-center font-body-sm text-body-sm text-on-surface-variant">
+                                                    No working groups registered yet.
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card Dedicated Action Buttons Footer -->
+                                <div class="p-space-md pt-0 flex flex-col sm:flex-row items-stretch gap-space-sm">
+                                    <a class="flex-1 py-2 px-space-sm rounded-lg bg-surface-container-high text-primary hover:bg-surface-container-highest font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all no-underline cursor-pointer border border-primary/20"
+                                       href="groups?subCommunityId=@sub.CommunityId">
+                                        <span class="truncate">See Sub_Community</span>
+                                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                                    </a>
+
+                                    @if (isJoined)
+                                    {
+                                        <button class="flex-1 py-2 px-space-sm rounded-lg bg-surface-container-highest text-on-surface hover:bg-surface-container-high font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-surface-container-high"
+                                                type="button"
+                                                @onclick="() => ToggleJoin(sub)">
+                                            <span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                            <span class="font-bold">Joined</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="flex-1 py-2 px-space-sm rounded-lg bg-primary text-on-primary hover:bg-primary-fixed-dim font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all font-bold cursor-pointer"
+                                                type="button"
+                                                @onclick="() => ToggleJoin(sub)">
+                                            <span class="material-symbols-outlined text-sm">lock_open</span>
+                                            <span>Join</span>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Institutional Bottom Callout -->
+            <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-lg w-full">
+                <div class="p-space-md rounded-xl bg-surface-container-lowest flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md border border-surface-container-high/30">
+                    <div class="flex items-center gap-space-md">
+                        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary shrink-0 border border-primary/20">
+                            <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">verified</span>
+                        </div>
+                        <div>
+                            <div class="font-title-md text-title-md text-on-surface font-bold">Sub-Community Proposal &amp; Escrow Governance</div>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant">Qualified council members with &gt;500 staked reputation points may charter specialized sub-nodes.</p>
+                        </div>
+                    </div>
+                    <button class="px-space-md py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-label-lg text-label-lg flex items-center gap-1.5 shrink-0 transition-colors border border-surface-container-high/40 cursor-pointer"
+                            type="button"
+                            @onclick="OpenCreateSubModal">
+                        <span class="material-symbols-outlined text-sm text-primary">add_circle</span>
+                        <span>Propose New Working Hub</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Propose New Sub-Community Modal -->
+@if (isCreateModalOpen)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+        <div class="relative w-full max-w-lg rounded-xl bg-surface-container-low border border-surface-container-high/40 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 flex items-center justify-between border-b border-surface-container-high/30 bg-surface-container-lowest/60">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-xl">hub</span>
+                    <h3 class="font-title-lg text-title-lg font-bold text-on-surface">Propose Sub-Community Node</h3>
+                </div>
+                <button type="button" @onclick="CloseCreateSubModal" class="text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+            </div>
+
+            <!-- Modal Form -->
+            <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Parent Executive Hub</label>
+                    <div class="px-3 py-2 rounded-xl bg-surface-container-lowest text-on-surface text-body-sm border border-surface-container-high/30 font-semibold">
+                        @(selectedParent?.Name ?? "Select Parent Hub")
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Sub-Community Name *</label>
+                    <input type="text"
+                           class="w-full px-3 py-2 rounded-xl bg-surface-container text-on-surface text-body-sm border border-surface-container-high/30 focus:outline-none focus:border-primary transition"
+                           placeholder="e.g. AI Founders & Angels"
+                           @bind="newSubName" />
+                </div>
+
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Slug Identifier</label>
+                    <input type="text"
+                           class="w-full px-3 py-2 rounded-xl bg-surface-container text-on-surface text-body-sm border border-surface-container-high/30 focus:outline-none focus:border-primary font-mono text-xs transition"
+                           placeholder="e.g. ai-founders-angels"
+                           @bind="newSubSlug" />
+                </div>
+
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Charter Description *</label>
+                    <textarea rows="3"
+                              class="w-full px-3 py-2 rounded-xl bg-surface-container text-on-surface text-body-sm border border-surface-container-high/30 focus:outline-none focus:border-primary transition"
+                              placeholder="Detail the institutional focus, members, and working group objectives..."
+                              @bind="newSubDescription"></textarea>
+                </div>
+
+                <!-- Cover Image Presets / Custom URL -->
+                <div>
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-2">Cinematic Cover Preset</label>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        @for (var bIdx = 0; bIdx < presetBanners.Length; bIdx++)
+                        {
+                            var preset = presetBanners[bIdx];
+                            var isSelected = newSubBannerUrl == preset.Url;
+                            <div class="relative h-16 rounded-lg overflow-hidden border-2 cursor-pointer transition @(isSelected ? "border-primary ring-2 ring-primary/30" : "border-surface-container-high/40 hover:border-surface-container-highest")"
+                                 @onclick="() => newSubBannerUrl = preset.Url">
+                                <img src="@preset.Url" alt="@preset.Title" class="w-full h-full object-cover" />
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center p-1 text-center">
+                                    <span class="text-[10px] font-bold text-white uppercase tracking-tight">@preset.Title</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Or Custom Cover Image URL</label>
+                    <input type="text"
+                           class="w-full px-3 py-2 rounded-xl bg-surface-container text-on-surface text-body-sm border border-surface-container-high/30 focus:outline-none focus:border-primary text-xs transition"
+                           placeholder="https://..."
+                           @bind="newSubBannerUrl" />
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 border-t border-surface-container-high/30 bg-surface-container-lowest/60 flex items-center justify-end gap-space-sm">
+                <button type="button" @onclick="CloseCreateSubModal" class="px-4 py-2 rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-label-md transition cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" @onclick="SubmitCreateSubCommunity"
+                        disabled="@isSubmitting"
+                        class="px-5 py-2 rounded-xl bg-primary text-on-primary hover:bg-primary-fixed-dim font-label-md text-label-md font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer disabled:opacity-50">
+                    @if (isSubmitting)
+                    {
+                        <span class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-on-primary border-t-transparent"></span>
+                        <span>Chartering Node...</span>
+                    }
+                    else
+                    {
+                        <span class="material-symbols-outlined text-sm">verified</span>
+                        <span>Charter Sub-Community</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int? ParentCommunityId { get; set; }
+
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private bool isCreateModalOpen = false;
+    private string searchTerm = "";
+    private string sortMode = "Activity";
+
+    private IReadOnlyList<CommunityModel> allCommunities = [];
+    private List<CommunityModel> parentCommunities = [];
+    private List<CommunityModel> subCommunities = [];
+    private CommunityModel? selectedParent;
+
+    private readonly HashSet<int> joinedCommunityIds = [];
+
+    // Create Modal state
+    private string newSubName = "";
+    private string newSubSlug = "";
+    private string newSubDescription = "";
+    private string newSubBannerUrl = "";
+
+    private record PresetBanner(string Title, string Url);
+    private readonly PresetBanner[] presetBanners =
+    [
+        new("Capital & Syndicate", "https://lh3.googleusercontent.com/aida-public/AB6AXuD2pVnCyQMsLav2TZTyLCn3A7jSlo_JXD-iS2Gy9eHXpZ_T8CEB1Ri5o2Eo2nE4RQoAj3khqAHZrQl_MFiHzLPvp1GmX7yfYly2kNMpg8nIB_T3pdLAelH_TsHmJci01rWVRKlSLCkiUdrKQKh5p--s_BG8jWKFAbTv7f_ddFKxUhzO12QGwZ8sp1GM1OQii9AQJ-NlgUf5xHj85K8iRjU4pHMKzvJQqRS6S9_3fhJeZcvRsQcCuys"),
+        new("Compute & GPU Exchange", "https://lh3.googleusercontent.com/aida-public/AB6AXuAm7VO7vu182EoqesRhz9tpEaSXo-2aE87_uFGHLHw4ekeCwpY9E2iivsTCCWHtyT9or5evBw-bT8MsgfufwzU_SIvE_GxKy-CT7_y2IXL8hQqHBu9RbsyHe56jTzFy-ER0eO-vjTzOmDaP6aFpe2v0cIcxFfeUHsBWc9jIgpznmFIVXj3whK4Gq_2gGA6325pTz-ehrD74bESZb0Q1gpsob0ccVsOqSjz5swhXa7ix9UfBpo0S2HY"),
+        new("Enterprise LLM Systems", "https://lh3.googleusercontent.com/aida-public/AB6AXuAc3wjltgHwtQ_my86J8YBSiZYqd1eM1NNy0PMKOsWdB8N2k0LZKxCG2eU4owbPxrx1zzn6r0-BlkSLpHOnSaodBvly1GZzcdMMrs5eq-dy5H3CDjjLxaEw6C_hA_5qwct79c7GOkRyUFDNXVdERcbhjtKpEOUeyyOaHbYUD6AKwzqne5v2C1pAForkbaqNeGyq-IkuN-3ER4KjeqWiubz6x21Xt9jQAC3VHbINHdTYnHhMHJGrfBI"),
+        new("Frontier AI Research", "https://lh3.googleusercontent.com/aida-public/AB6AXuAJsbvrjuY3yMKV8Mt2CJstRAeLTtZ0ioifSOzUx2HgUNlz_tduDJS6fEmpJzAJR6L_GSo_ID9nRNlLiF08bAY9q-gJdgH8mUQpA7hJM-F_TSzevWkmLEg0NSnYUAtPp4PYwFQutMaVUXw9kckfnPh9GR6UnNdHO8tGL4B9lvs9Mn4BerC1D51JrRGHCWvXTXMuZuGg3qScPbMy3juqHkblsvJCSxoorOUg7jwMnuKk4jJKWnxqsYY")
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (allCommunities.Any())
+        {
+            ApplyParentSelection();
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        try
+        {
+            var res = await CommunityApi.GetCommunitiesAsync();
+            if (res.IsSuccess && res.Value != null)
+            {
+                allCommunities = res.Value;
+                parentCommunities = allCommunities
+                    .Where(c => !c.ParentCommunityId.HasValue)
+                    .OrderByDescending(c => c.MemberCount)
+                    .ToList();
+
+                ApplyParentSelection();
+            }
+            else
+            {
+                Toast.Error(res.Message ?? "Failed to load communities.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Error loading sub-communities: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ApplyParentSelection()
+    {
+        if (ParentCommunityId.HasValue && ParentCommunityId.Value > 0)
+        {
+            selectedParent = parentCommunities.FirstOrDefault(p => p.CommunityId == ParentCommunityId.Value)
+                ?? allCommunities.FirstOrDefault(c => c.CommunityId == ParentCommunityId.Value);
+        }
+
+        if (selectedParent == null && parentCommunities.Any())
+        {
+            // Default to AI & DeepTech or the highest membership parent
+            selectedParent = parentCommunities.FirstOrDefault(p => p.Name.Contains("Intelligence", StringComparison.OrdinalIgnoreCase) || p.Name.Contains("AI", StringComparison.OrdinalIgnoreCase))
+                ?? parentCommunities.First();
+        }
+
+        if (selectedParent != null)
+        {
+            subCommunities = allCommunities
+                .Where(c => c.ParentCommunityId == selectedParent.CommunityId)
+                .OrderByDescending(c => c.MemberCount)
+                .ToList();
+        }
+        else
+        {
+            subCommunities = [];
+        }
+    }
+
+    private void OnParentCommunityChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var newId))
+        {
+            Navigation.NavigateTo($"sub-communities/{newId}");
+        }
+    }
+
+    private List<CommunityModel> filteredSubCommunities
+    {
+        get
+        {
+            var list = subCommunities.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.Trim();
+                list = list.Where(s =>
+                    s.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    (s.Description != null && s.Description.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (s.CategoryName != null && s.CategoryName.Contains(term, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            return sortMode switch
+            {
+                "Name" => list.OrderBy(s => s.Name).ToList(),
+                "Members" => list.OrderByDescending(s => s.MemberCount).ToList(),
+                _ => list.OrderByDescending(s => s.MemberCount).ThenByDescending(s => s.PostCount).ToList()
+            };
+        }
+    }
+
+    private int totalGroupsCount => subCommunities.Sum(s => s.GroupCount);
+
+    private int totalMemberCount => subCommunities.Sum(s => s.MemberCount);
+
+    // Telemetry chart series: ranked member concentration and post velocity per sub-community.
+    private const int MaxChartPoints = 12;
+
+    private List<double> liquiditySeries => subCommunities
+        .Take(MaxChartPoints)
+        .Select(s => (double)s.MemberCount)
+        .ToList();
+
+    private List<double> velocitySeries => subCommunities
+        .Take(MaxChartPoints)
+        .Select(s => (double)s.PostCount)
+        .ToList();
+
+    private List<string> chartLabels => subCommunities
+        .Take(MaxChartPoints)
+        .Select(s => ShortenLabel(s.Name))
+        .ToList();
+
+    private string clusterHighlight
+    {
+        get
+        {
+            var total = totalMemberCount;
+            if (total <= 0 || subCommunities.Count == 0) return "NO SIGNAL";
+
+            var top = subCommunities.Take(3).Sum(s => s.MemberCount);
+            var share = (double)top / total * 100d;
+            return (share >= 0 && share < 100 ? "TOP3 " : "") + share.ToString("0") + "% CONCENTRATION";
+        }
+    }
+
+    private static string ShortenLabel(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "Node";
+        var cleaned = name.Trim();
+        var cut = cleaned.IndexOfAny(new[] { ' ', '&', '-', '/', ',' });
+        if (cut > 1) cleaned = cleaned[..cut];
+        return cleaned.Length <= 12 ? cleaned : cleaned[..12];
+    }
+
+    private static string InitialOf(string name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[..1].ToUpperInvariant();
+
+    private void ToggleSort()
+    {
+        sortMode = sortMode switch
+        {
+            "Activity" => "Members",
+            "Members" => "Name",
+            _ => "Activity"
+        };
+    }
+
+    private async Task ToggleJoin(CommunityModel sub)
+    {
+        try
+        {
+            var isCurrentlyJoined = sub.IsJoined || joinedCommunityIds.Contains(sub.CommunityId);
+            var res = await CommunityApi.JoinCommunityAsync(sub.CommunityId);
+            if (res.IsSuccess)
+            {
+                if (isCurrentlyJoined)
+                {
+                    joinedCommunityIds.Remove(sub.CommunityId);
+                    Toast.Success($"Departed from {sub.Name}.");
+                }
+                else
+                {
+                    joinedCommunityIds.Add(sub.CommunityId);
+                    Toast.Success($"Joined {sub.Name} consensus.");
+                }
+                await LoadDataAsync();
+            }
+            else
+            {
+                Toast.Error(res.Message ?? "Action failed.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to update membership: {ex.Message}");
+        }
+    }
+
+    private void OpenCreateSubModal()
+    {
+        newSubName = "";
+        newSubSlug = "";
+        newSubDescription = "";
+        newSubBannerUrl = presetBanners[0].Url;
+        isCreateModalOpen = true;
+    }
+
+    private void CloseCreateSubModal()
+    {
+        isCreateModalOpen = false;
+    }
+
+    private async Task SubmitCreateSubCommunity()
+    {
+        if (string.IsNullOrWhiteSpace(newSubName))
+        {
+            Toast.Error("Please provide a name for the sub-community.");
+            return;
+        }
+
+        if (selectedParent == null)
+        {
+            Toast.Error("No parent community context available.");
+            return;
+        }
+
+        isSubmitting = true;
+        try
+        {
+            var slug = string.IsNullOrWhiteSpace(newSubSlug)
+                ? newSubName.ToLowerInvariant().Replace(" ", "-").Replace("&", "and")
+                : newSubSlug.Trim();
+
+            var req = new CreateCommunityRequestModel(
+                Name: newSubName.Trim(),
+                Slug: slug,
+                Description: newSubDescription.Trim(),
+                AvatarUrl: newSubBannerUrl,
+                BannerUrl: newSubBannerUrl,
+                Visibility: "PUBLIC",
+                JoinPolicy: "OPEN",
+                ParentCommunityId: selectedParent.CommunityId
+            );
+
+            var res = await CommunityApi.CreateCommunityAsync(req);
+            if (res.IsSuccess && res.Value != null)
+            {
+                Toast.Success($"Sub-Community '{res.Value.Name}' chartered successfully!");
+                CloseCreateSubModal();
+                await LoadDataAsync();
+            }
+            else
+            {
+                Toast.Error(res.Message ?? "Failed to create sub-community.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Error chartering sub-community: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private string GetBannerForSub(CommunityModel sub, int index)
+    {
+        if (!string.IsNullOrWhiteSpace(sub.BannerUrl)) return sub.BannerUrl;
+        if (!string.IsNullOrWhiteSpace(sub.AvatarUrl)) return sub.AvatarUrl;
+        return presetBanners[index % presetBanners.Length].Url;
+    }
+
+    private string GetTierForIndex(int index) => index switch
+    {
+        0 => "Largest Cluster",
+        1 => "Second-Largest Cluster",
+        2 => "Third-Largest Cluster",
+        _ => "Rank " + (index + 1).ToString()
+    };
+
+    private string GetGlowGradientForIndex(int index) => (index % 4) switch
+    {
+        0 => "bg-gradient-to-r from-primary via-primary-fixed to-transparent",
+        1 => "bg-gradient-to-r from-secondary via-secondary-container to-transparent",
+        2 => "bg-gradient-to-r from-primary via-surface-tint to-transparent",
+        _ => "bg-gradient-to-r from-tertiary via-secondary to-transparent"
+    };
+
+    private string GetCategoryIconForIndex(int index) => (index % 4) switch
+    {
+        0 => "monetization_on",
+        1 => "memory",
+        2 => "precision_manufacturing",
+        _ => "science"
+    };
+
+    private string GetGroupIconForIndex(int index) => (index % 3) switch
+    {
+        0 => "description",
+        1 => "swap_horiz",
+        _ => "verified_user"
+    };
+
+    private string FormatNumber(int num)
+    {
+        if (num >= 1_000_000) return (num / 1_000_000D).ToString("0.#") + "M";
+        if (num >= 1_000) return (num / 1_000D).ToString("0.#") + "k";
+        return num.ToString("N0");
+    }
+}

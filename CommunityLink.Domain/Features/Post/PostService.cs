@@ -57,16 +57,7 @@ public sealed class PostService(
             }
 
             var query = dbContext.TblPosts
-                .Include(p => p.Author)
-                .Include(p => p.Community)
-                .Include(p => p.Group)
-                .Include(p => p.TblPostImages)
-                .Include(p => p.TblPostLikes)
-                .Include(p => p.TblComments)
-                .Include(p => p.TblPostShares)
-                .Include(p => p.TblSavedPosts)
                 .Where(p => !p.IsDeleted && !p.HasPoll)
-                .AsSplitQuery()
                 .AsNoTracking();
 
             if (groupId.HasValue && groupId.Value > 0)
@@ -78,26 +69,65 @@ public sealed class PostService(
                 query = query.Where(p => p.CommunityId == communityId.Value);
             }
 
-            var posts = await query.OrderByDescending(p => p.CreatedAt).Take(50).ToListAsync(cancellationToken);
+            var rawPosts = await query
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(50)
+                .Select(p => new
+                {
+                    p.PostId,
+                    p.CommunityId,
+                    CommunityName = p.Community != null ? p.Community.Name : null,
+                    p.GroupId,
+                    GroupName = p.Group != null ? p.Group.Name : null,
+                    p.AuthorId,
+                    AuthorDisplayName = p.Author != null ? p.Author.DisplayName : null,
+                    AuthorUserName = p.Author != null ? p.Author.UserName : null,
+                    AuthorAvatar = p.Author != null ? p.Author.AvatarUrl : null,
+                    AuthorIsVerified = p.Author != null && p.Author.IsVerified,
+                    AuthorRoleCode = p.Author != null
+                        ? p.Author.TblUserRoles.Where(ur => !ur.IsDeleted).Select(ur => ur.Role.RoleCode).FirstOrDefault()
+                        : null,
+                    p.Content,
+                    p.HasPoll,
+                    Images = p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
+                    LikeCount = p.TblPostLikes.Count(l => !l.IsDeleted),
+                    CommentCount = p.TblComments.Count(c => !c.IsDeleted),
+                    ShareCount = p.TblPostShares.Count(s => !s.IsDeleted),
+                    IsLiked = currentUserId.HasValue && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
+                    IsSaved = currentUserId.HasValue && p.TblSavedPosts.Any(s => s.UserId == currentUserId.Value && !s.IsDeleted),
+                    p.CreatedAt
+                })
+                .ToListAsync(cancellationToken);
 
-            var list = posts.Select(p => new PostModel(
-                p.PostId,
-                p.CommunityId,
-                p.Community?.Name,
-                p.GroupId,
-                p.Group?.Name,
-                p.AuthorId,
-                p.Author != null ? (string.IsNullOrWhiteSpace(p.Author.DisplayName) ? p.Author.UserName : p.Author.DisplayName) : "Unknown",
-                p.Author?.AvatarUrl,
-                p.Content,
-                p.HasPoll,
-                p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
-                p.TblPostLikes.Count(l => !l.IsDeleted),
-                p.TblComments.Count(c => !c.IsDeleted),
-                p.TblPostShares.Count(s => !s.IsDeleted),
-                currentUserId.HasValue && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
-                currentUserId.HasValue && p.TblSavedPosts.Any(s => s.UserId == currentUserId.Value && !s.IsDeleted),
-                p.CreatedAt)).ToList();
+            var list = rawPosts.Select(p =>
+            {
+                var roleCode = p.AuthorRoleCode;
+                var isVerified = p.AuthorIsVerified || (roleCode == "DOMAIN_PRO" || roleCode == "PUBLIC_FIGURE");
+                var authorName = !string.IsNullOrWhiteSpace(p.AuthorDisplayName)
+                    ? p.AuthorDisplayName
+                    : (!string.IsNullOrWhiteSpace(p.AuthorUserName) ? p.AuthorUserName : "Unknown");
+
+                return new PostModel(
+                    p.PostId,
+                    p.CommunityId,
+                    p.CommunityName,
+                    p.GroupId,
+                    p.GroupName,
+                    p.AuthorId,
+                    authorName,
+                    p.AuthorAvatar,
+                    p.Content,
+                    p.HasPoll,
+                    p.Images,
+                    p.LikeCount,
+                    p.CommentCount,
+                    p.ShareCount,
+                    p.IsLiked,
+                    p.IsSaved,
+                    p.CreatedAt,
+                    roleCode,
+                    isVerified);
+            }).ToList();
 
             return Result<IReadOnlyList<PostModel>>.Success(list);
         }

@@ -1,5 +1,14 @@
 namespace CommunityLink.Shared.Features.Community;
 
+public sealed record CommunityChildItemSummary(
+    int Id,
+    string Name,
+    string Slug,
+    int MemberCount,
+    string ItemType, // "Sub-Com" or "Group"
+    string? IconType = null
+);
+
 public sealed record CommunityModel(
     int CommunityId,
     string Name,
@@ -16,7 +25,16 @@ public sealed record CommunityModel(
     string OwnerName,
     DateTime CreatedAt,
     int? ParentCommunityId = null,
-    string? ParentCommunityName = null);
+    string? ParentCommunityName = null,
+    bool IsJoined = false,
+    int SubCommunityCount = 0,
+    int GroupCount = 0,
+    int DomainProCount = 0,
+    int PublicFigureCount = 0,
+    IReadOnlyList<string>? MemberAvatarUrls = null,
+    int ExtraMemberCount = 0,
+    IReadOnlyList<CommunityChildItemSummary>? TopChildItems = null,
+    string? CategoryName = null);
 
 public sealed record CreateCommunityRequestModel(
     string Name,

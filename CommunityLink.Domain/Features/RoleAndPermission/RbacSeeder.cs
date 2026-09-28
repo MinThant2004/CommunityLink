@@ -88,6 +88,72 @@ public static class RbacSeeder
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblAdminInvite') AND name = 'IsSuperAdmin')
             BEGIN
                 ALTER TABLE dbo.TblAdminInvite ADD IsSuperAdmin BIT NOT NULL CONSTRAINT DF_TblAdminInvite_IsSuperAdmin DEFAULT (0);
+            END;
+
+            -- Auto-create TblSubscriptionPlan table if it doesn't exist
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TblSubscriptionPlan' AND schema_id = SCHEMA_ID('dbo'))
+            BEGIN
+                CREATE TABLE dbo.TblSubscriptionPlan (
+                    PlanId          INT IDENTITY(1,1) NOT NULL,
+                    TargetRoleCode  NVARCHAR(50) NOT NULL,
+                    PlanName        NVARCHAR(150) NOT NULL,
+                    BillingInterval NVARCHAR(20) NOT NULL CONSTRAINT DF_TblSubPlan_BillingInterval DEFAULT ('Monthly'),
+                    DurationDays    INT NOT NULL CONSTRAINT DF_TblSubPlan_DurationDays DEFAULT (30),
+                    PriceAmount     DECIMAL(18,2) NOT NULL CONSTRAINT DF_TblSubPlan_PriceAmount DEFAULT (0),
+                    LinkDropCost    BIGINT NOT NULL CONSTRAINT DF_TblSubPlan_LinkDropCost DEFAULT (0),
+                    PerksJson       NVARCHAR(MAX) NULL,
+                    IsActive        BIT NOT NULL CONSTRAINT DF_TblSubPlan_IsActive DEFAULT (1),
+                    CreatedAt       DATETIME2(7) NOT NULL CONSTRAINT DF_TblSubPlan_CreatedAt DEFAULT (SYSUTCDATETIME()),
+                    UpdatedAt       DATETIME2(7) NULL,
+                    CONSTRAINT PK_TblSubscriptionPlan PRIMARY KEY CLUSTERED (PlanId ASC)
+                );
+            END;
+
+            -- Auto-create TblUserSubscription table if it doesn't exist
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TblUserSubscription' AND schema_id = SCHEMA_ID('dbo'))
+            BEGIN
+                CREATE TABLE dbo.TblUserSubscription (
+                    SubscriptionId INT IDENTITY(1,1) NOT NULL,
+                    UserId         INT NOT NULL,
+                    PlanId         INT NOT NULL,
+                    RoleId         INT NOT NULL,
+                    Status         NVARCHAR(30) NOT NULL CONSTRAINT DF_TblUserSub_Status DEFAULT ('Active'),
+                    PaymentMethod  NVARCHAR(50) NOT NULL CONSTRAINT DF_TblUserSub_PaymentMethod DEFAULT ('LinkDropPoints'),
+                    StartDateUtc   DATETIME2(7) NOT NULL CONSTRAINT DF_TblUserSub_StartDateUtc DEFAULT (SYSUTCDATETIME()),
+                    ExpiresAtUtc   DATETIME2(7) NOT NULL,
+                    CreatedAtUtc   DATETIME2(7) NOT NULL CONSTRAINT DF_TblUserSub_CreatedAtUtc DEFAULT (SYSUTCDATETIME()),
+                    CONSTRAINT PK_TblUserSubscription PRIMARY KEY CLUSTERED (SubscriptionId ASC),
+                    CONSTRAINT FK_TblUserSubscription_User FOREIGN KEY (UserId) REFERENCES dbo.TblUser (UserId),
+                    CONSTRAINT FK_TblUserSubscription_Plan FOREIGN KEY (PlanId) REFERENCES dbo.TblSubscriptionPlan (PlanId),
+                    CONSTRAINT FK_TblUserSubscription_Role FOREIGN KEY (RoleId) REFERENCES dbo.TblRole (RoleId)
+                );
+            END;
+
+            -- Auto-create TblIdentityVerification table if it doesn't exist
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TblIdentityVerification' AND schema_id = SCHEMA_ID('dbo'))
+            BEGIN
+                CREATE TABLE dbo.TblIdentityVerification (
+                    VerificationId          INT IDENTITY(1,1) NOT NULL,
+                    UserId                  INT NOT NULL,
+                    PlanId                  INT NOT NULL,
+                    TargetRoleCode          NVARCHAR(50) NOT NULL,
+                    FullLegalName           NVARCHAR(200) NOT NULL,
+                    WorkEmail               NVARCHAR(256) NULL,
+                    ProfessionalUrl         NVARCHAR(500) NULL,
+                    IdCardFrontUrl          NVARCHAR(1000) NOT NULL,
+                    IdCardBackUrl           NVARCHAR(1000) NULL,
+                    PaymentMethod           NVARCHAR(50) NOT NULL CONSTRAINT DF_TblIdVerif_PaymentMethod DEFAULT ('LinkDropPoints'),
+                    LinkDropPointsDeducted  BIGINT NOT NULL CONSTRAINT DF_TblIdVerif_PointsDeducted DEFAULT (0),
+                    Status                  NVARCHAR(30) NOT NULL CONSTRAINT DF_TblIdVerif_Status DEFAULT ('PendingReview'),
+                    ReviewNotes             NVARCHAR(1000) NULL,
+                    ReviewedByAdminId       INT NULL,
+                    ReviewedAtUtc           DATETIME2(7) NULL,
+                    CreatedAtUtc            DATETIME2(7) NOT NULL CONSTRAINT DF_TblIdVerif_CreatedAtUtc DEFAULT (SYSUTCDATETIME()),
+                    CONSTRAINT PK_TblIdentityVerification PRIMARY KEY CLUSTERED (VerificationId ASC),
+                    CONSTRAINT FK_TblIdentityVerification_User FOREIGN KEY (UserId) REFERENCES dbo.TblUser (UserId),
+                    CONSTRAINT FK_TblIdentityVerification_Plan FOREIGN KEY (PlanId) REFERENCES dbo.TblSubscriptionPlan (PlanId),
+                    CONSTRAINT FK_TblIdentityVerification_Admin FOREIGN KEY (ReviewedByAdminId) REFERENCES dbo.TblAdmin (AdminId)
+                );
             END;");
         }
 
@@ -270,6 +336,62 @@ public static class RbacSeeder
                     await db.SaveChangesAsync();
                 }
             }
+        }
+
+        // 5. Seed Initial Subscription Plans if empty
+        if (!await db.TblSubscriptionPlans.AnyAsync())
+        {
+            db.TblSubscriptionPlans.AddRange(
+                new TblSubscriptionPlan
+                {
+                    TargetRoleCode = "DOMAIN_PRO",
+                    PlanName = "Domain Professional (Monthly)",
+                    BillingInterval = "Monthly",
+                    DurationDays = 30,
+                    PriceAmount = 39.00m,
+                    LinkDropCost = 390,
+                    PerksJson = "[\"1-on-1 Paid Advisory Engine (set custom hourly rate)\",\"Public Peer Rating & Review Card\",\"Priority Sub-Community Ownership (up to 5)\",\"Domain Competency Endorsement\",\"Credential Verification Badging\"]",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new TblSubscriptionPlan
+                {
+                    TargetRoleCode = "DOMAIN_PRO",
+                    PlanName = "Domain Professional (Annual)",
+                    BillingInterval = "Annual",
+                    DurationDays = 365,
+                    PriceAmount = 390.00m,
+                    LinkDropCost = 3900,
+                    PerksJson = "[\"All Monthly Perks included\",\"2 Months Free Discount\",\"Expedited 24h Verification Audit\",\"Featured in Domain Pro Directory Shelf\"]",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new TblSubscriptionPlan
+                {
+                    TargetRoleCode = "PUBLIC_FIGURE",
+                    PlanName = "Public Figure VIP (Monthly)",
+                    BillingInterval = "Monthly",
+                    DurationDays = 30,
+                    PriceAmount = 119.00m,
+                    LinkDropCost = 1190,
+                    PerksJson = "[\"Discovery shelf Priority Guaranteed top placement\",\"Unlimited Sovereign Communities\",\"0% Platform Fees on Advisory (first $10,000/yr)\",\"Dedicated Admin Concierge Direct Slack/Signal channel\",\"Government ID & Identity Card Verified\"]",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new TblSubscriptionPlan
+                {
+                    TargetRoleCode = "PUBLIC_FIGURE",
+                    PlanName = "Public Figure VIP (Annual)",
+                    BillingInterval = "Annual",
+                    DurationDays = 365,
+                    PriceAmount = 1190.00m,
+                    LinkDropCost = 11900,
+                    PerksJson = "[\"All Public Figure VIP Monthly Perks\",\"Save $238 (2 Months Free)\",\"Priority Expedited SecOps Review\",\"VIP Platinum Profile Crest\"]",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                }
+            );
+            await db.SaveChangesAsync();
         }
     }
 }

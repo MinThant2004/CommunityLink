@@ -11,6 +11,10 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
         {
             await next(context);
         }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            logger.LogDebug("Request {Path} was aborted by the client before completion.", context.Request.Path);
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unhandled server error occurred while processing route: {Path}", context.Request.Path);

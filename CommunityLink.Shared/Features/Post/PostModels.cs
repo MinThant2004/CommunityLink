@@ -17,7 +17,9 @@ public sealed record PostModel(
     int ShareCount,
     bool IsLikedByCurrentUser,
     bool IsSavedByCurrentUser,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string? AuthorRoleCode = null,
+    bool IsAuthorVerified = false);
 
 public sealed record CreatePostRequestModel(
     int? CommunityId,
@@ -32,7 +34,9 @@ public sealed record CommentModel(
     string AuthorName,
     string? AuthorAvatar,
     string Content,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string? AuthorRoleCode = null,
+    bool IsAuthorVerified = false);
 
 public sealed record CreateCommentRequestModel(int PostId, string Content);
 public sealed record LikePostRequestModel(int PostId);

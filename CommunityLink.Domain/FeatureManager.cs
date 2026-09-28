@@ -68,6 +68,8 @@ public static class FeatureManager
         services.AddScoped<ILinkDropPaymentService, LinkDropPaymentService>();
         services.AddScoped<CommunityLink.Domain.Features.Admin.IPlatformSettingService, CommunityLink.Domain.Features.Admin.PlatformSettingService>();
         services.AddScoped<IGroupChatService, GroupChatService>();
+        services.AddScoped<CommunityLink.Domain.Features.Premium.ISubscriptionPlanService, CommunityLink.Domain.Features.Premium.SubscriptionPlanService>();
+        services.AddScoped<CommunityLink.Domain.Features.Premium.IIdentityVerificationService, CommunityLink.Domain.Features.Premium.IdentityVerificationService>();
 
         return services;
     }

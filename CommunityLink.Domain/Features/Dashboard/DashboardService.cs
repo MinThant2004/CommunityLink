@@ -40,19 +40,22 @@ public sealed class DashboardService(
         if (!profileRes.IsSuccess || profileRes.Data is null)
             return Result<UserDashboardModel>.Failure(profileRes.Message, profileRes.Status);
 
+        // NOTE: these must stay sequential. AppDbContext and every domain service below are
+        // AddScoped (FeatureManager.cs:43), so they share one DbContext instance and EF Core
+        // forbids overlapping operations on it. Reducing query cost is the lever here,
+        // not concurrency - see GetCommunityDirectoryAsync.
         var joinedRes = await communityService.GetJoinedCommunitiesAsync(userId, 10, cancellationToken);
         var recommendedRes = await communityService.GetRecommendedCommunitiesAsync(userId, 6, cancellationToken);
-        var allCommunitiesRes = await communityService.GetCommunitiesAsync(null, cancellationToken);
+        var directoryRes = await communityService.GetCommunityDirectoryAsync(cancellationToken);
         var feedRes = await postService.GetFeedPostsAsync(null, null, cancellationToken);
         var pollsRes = await pollService.GetPollsAsync(null, null, cancellationToken);
         var unreadCount = await chatService.GetUnreadMessageCountAsync(cancellationToken);
 
-        var allCommunities = allCommunitiesRes.Data ?? [];
+        var allCommunities = directoryRes.Data ?? [];
         var rootCommunities = allCommunities.Where(c => c.ParentCommunityId == null).ToList();
         var subCommunities = allCommunities.Where(c => c.ParentCommunityId != null).ToList();
 
         var people = await dbContext.TblUsers
-            .Include(u => u.TblUserRoles).ThenInclude(ur => ur.Role)
             .AsNoTracking()
             .Where(u => u.IsActive && !u.IsDeleted && u.UserId != userId)
             .OrderByDescending(u => u.AverageRating ?? 0)
@@ -63,7 +66,7 @@ public sealed class DashboardService(
                 u.DisplayName,
                 u.AvatarUrl,
                 u.Bio,
-                u.TblUserRoles.Select(r => r.Role.RoleCode).FirstOrDefault() ?? "MEMBER",
+                u.TblUserRoles.Where(r => !r.IsDeleted).Select(r => r.Role.RoleCode).FirstOrDefault() ?? "MEMBER",
                 u.IsVerified,
                 u.TblCommunityMembers.Count(m => !m.IsDeleted),
                 u.TblPosts.Count(p => !p.IsDeleted),

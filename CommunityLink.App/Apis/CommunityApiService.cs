@@ -24,4 +24,29 @@ public sealed class CommunityApiService(IHttpClientFactory clientFactory, IHttpC
 
     public Task<Result> JoinCommunityAsync(int communityId, CancellationToken cancellationToken = default) =>
         PostAsync($"api/communities/{communityId}/join", new { }, cancellationToken);
+
+    public async Task<Result<string>> UploadBannerAsync(Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = CreateClient();
+            using var content = new MultipartFormDataContent();
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+            content.Add(streamContent, "banner", fileName);
+
+            var response = await client.PostAsync("api/communities/upload-banner", content, cancellationToken);
+            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (string.IsNullOrWhiteSpace(responseString))
+                return Result<string>.Failure("Empty response from API server.", ResultStatus.SystemError);
+
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var result = System.Text.Json.JsonSerializer.Deserialize<Result<string>>(responseString, options);
+            return result ?? Result<string>.Failure("Failed to deserialize API response.", ResultStatus.SystemError);
+        }
+        catch (Exception ex)
+        {
+            return Result<string>.Failure($"Banner upload failed: {ex.Message}", ResultStatus.SystemError);
+        }
+    }
 }

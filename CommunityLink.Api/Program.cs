@@ -53,6 +53,9 @@ builder.Services.AddAuthorization();
 // Domain Services & DbContext
 builder.Services.AddDomainServices(builder.Configuration);
 
+// Background Workers
+builder.Services.AddHostedService<CommunityLink.Api.BackgroundServices.SubscriptionExpirationWorker>();
+
 var app = builder.Build();
 
 // Seed RBAC on Startup

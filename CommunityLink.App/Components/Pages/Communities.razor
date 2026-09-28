@@ -3,494 +3,518 @@
 @rendermode InteractiveServer
 @inject CommunityApiService CommunityApi
 @inject ToastService Toast
+@inject NavigationManager Navigation
 
-<PageTitle>Communities &amp; Sub-communities - CommunityLink</PageTitle>
+<PageTitle>Communities — CommunityLink</PageTitle>
 
-<div class="min-h-screen bg-[#F8FAFC] dark:bg-[#0A1B2E] py-6 px-4 sm:px-6 lg:px-8 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
-    <div class="max-w-7xl mx-auto space-y-6">
-        
-        <!-- Header & Action Bar -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
-                    Communities &amp; Sub-communities
-                </h1>
-                <p class="text-sm text-[#557392] dark:text-[#C4D2E1] mt-1" style="font-family:'Inter',sans-serif">
-                    Explore hubs, collaborate, or establish a new community or sub-community.
-                </p>
+<div class="min-h-screen bg-background font-body-md text-body-md text-on-surface antialiased transition-colors duration-200">
+    <!-- Top Directory Strip -->
+    <section class="bg-surface-container-lowest/80 backdrop-blur-md border-b border-surface-container-high/30">
+        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-space-sm flex items-center justify-between gap-3">
+            <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
+                <a href="/" class="hover:text-on-surface transition-colors flex items-center gap-1">Platform</a>
+                <span class="material-symbols-outlined text-xs">chevron_right</span>
+                <span class="text-on-surface font-semibold">Community Directory</span>
+            </div>
+            <div class="flex items-center gap-space-sm">
+                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider hidden sm:inline">Directory Sync</span>
+                <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm border border-primary/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>Live Index
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <div class="relative w-full overflow-hidden">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+        <div class="absolute top-40 right-10 w-80 h-80 bg-secondary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pt-space-md pb-space-lg w-full">
+            <nav aria-label="Breadcrumbs" class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant mb-space-md">
+                <a class="hover:text-primary transition-colors" href="/">Platform</a>
+                <span class="material-symbols-outlined text-xs">chevron_right</span>
+                <span class="text-on-surface font-semibold">Communities</span>
+                @if (filterParentId.HasValue)
+                {
+                    <span class="material-symbols-outlined text-xs">chevron_right</span>
+                    <span class="text-on-surface font-semibold truncate">@filterParentName</span>
+                }
+            </nav>
+
+            <!-- Hero Panel -->
+            <div class="relative rounded-xl bg-surface-container-low p-space-md md:p-space-lg overflow-hidden border border-surface-container-high/30">
+                <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
+                    <div class="lg:col-span-7 flex flex-col gap-space-sm">
+                        <div class="flex flex-wrap items-center gap-space-sm">
+                            <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase tracking-wider border border-primary/20">
+                                <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>Directory Index
+                            </span>
+                            <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm border border-secondary/20">
+                                <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>@totalHubCount Hubs Indexed
+                            </span>
+                            @if (filterParentId.HasValue)
+                            {
+                                <button type="button" @onclick="ClearParentFilter"
+                                        class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-error/10 text-error font-label-sm text-label-sm border border-error/30 hover:bg-error/20 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-xs">close</span>
+                                    <span class="truncate max-w-[10rem]">@filterParentName</span>
+                                </button>
+                            }
+                        </div>
+
+                        <h1 class="font-headline-lg text-headline-lg md:text-display-md text-on-surface tracking-tight mt-space-xs font-bold">
+                            @(filterParentId.HasValue ? filterParentName : "Communities")
+                        </h1>
+
+                        <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl leading-relaxed">
+                            Explore executive hubs you have joined, or browse specialized sub-communities and working groups across the platform.
+                        </p>
+
+                        <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 pt-space-sm mt-space-xs text-body-sm text-body-sm">
+                            <span class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-xs text-primary">account_tree</span>
+                                <span class="text-on-surface-variant">Parent Hubs</span>
+                                <span class="font-mono font-bold text-on-surface">@rootHubCount</span>
+                            </span>
+                            <span class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-xs text-secondary">account_tree</span>
+                                <span class="text-on-surface-variant">Sub-Communities</span>
+                                <span class="font-mono font-bold text-on-surface">@subHubCount</span>
+                            </span>
+                            <span class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-xs text-primary">groups</span>
+                                <span class="text-on-surface-variant">Members</span>
+                                <span class="font-mono font-bold text-on-surface">@FormatCompact(totalMemberCount)</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-5 flex flex-col bg-surface-container-lowest/60 p-space-md rounded-xl border border-surface-container-high/30 backdrop-blur-sm">
+                        <TelemetryChart Title="Network Liquidity &amp; Velocity" PrimaryLabel="Members" SecondaryLabel="Posts" Values="liquiditySeries" SecondaryValues="velocitySeries" Labels="chartLabels" Highlight="@networkHighlight" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Strip -->
+        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-md w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+            <div class="flex items-center gap-space-sm">
+                <span class="font-title-lg text-title-lg text-on-surface font-bold">@(filterParentId.HasValue ? filterParentName : "All Communities")</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary font-label-md text-label-md border border-primary/20">
+                    @ActiveCommunities.Count Shown
+                </span>
             </div>
 
-            <!-- Header Action Controls -->
-            <div class="flex flex-wrap items-center gap-3">
-                <!-- Search Input with Icon -->
-                <div class="relative min-w-[240px] sm:min-w-[280px]">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#7A8CA6]">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
+            <div class="flex flex-wrap items-center gap-space-sm w-full sm:w-auto">
+                <!-- Joined / Browse Tabs -->
+                <div class="inline-flex items-center gap-0.5 p-1 rounded-lg bg-surface-container border border-surface-container-high/30">
+                    <button type="button" @onclick='() => SetTab("joined")'
+                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md font-label-md text-label-md transition-colors cursor-pointer @(activeTab == "joined" ? "bg-primary text-on-primary font-bold" : "text-on-surface-variant hover:text-on-surface")">
+                        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                        <span>Joined</span>
+                        <span class="px-1.5 py-0.5 rounded font-mono text-label-sm @(activeTab == "joined" ? "bg-on-primary/20" : "bg-surface-container-high text-on-surface-variant")">@joinedCount</span>
+                    </button>
+                    <button type="button" @onclick='() => SetTab("browse")'
+                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md font-label-md text-label-md transition-colors cursor-pointer @(activeTab == "browse" ? "bg-primary text-on-primary font-bold" : "text-on-surface-variant hover:text-on-surface")">
+                        <span class="material-symbols-outlined text-sm">travel_explore</span>
+                        <span>Browse</span>
+                        <span class="px-1.5 py-0.5 rounded font-mono text-label-sm @(activeTab == "browse" ? "bg-on-primary/20" : "bg-surface-container-high text-on-surface-variant")">@browseCount</span>
+                    </button>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative flex-1 sm:w-56">
+                    <span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-sm pointer-events-none">search</span>
                     <input type="text"
-                           class="w-full pl-9 pr-8 py-2 bg-white dark:bg-[#112A46] text-sm text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-full border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] transition shadow-sm"
+                           class="w-full bg-surface-container-low text-on-surface placeholder-on-surface-variant text-body-sm pl-9 pr-8 py-1.5 rounded-lg border border-surface-container-high/30 focus:outline-none focus:bg-surface-container-high focus:border-primary transition-colors"
                            placeholder="Search communities..."
                            @bind="searchTerm"
-                           @bind:after="LoadCommunities" />
+                           @bind:event="oninput"
+                           @bind:after="LoadCommunitiesAsync" />
                     @if (!string.IsNullOrEmpty(searchTerm))
                     {
-                        <button type="button" @onclick="ClearSearch" class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
+                        <button type="button" @onclick="ClearSearch"
+                                class="absolute right-2 top-2 flex items-center text-on-surface-variant hover:text-on-surface transition-colors">
+                            <span class="material-symbols-outlined text-sm">close</span>
                         </button>
                     }
                 </div>
 
                 <!-- Create Community Button -->
-                <button type="button"
-                        @onclick="OpenCreateCommunity"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white active:scale-95 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0A1B2E] focus:ring-offset-2">
-                    <span class="text-base leading-none font-bold">+</span>
-                    <span>Create Community</span>
-                </button>
-
-                <!-- Create Sub-community Button -->
-                <button type="button"
-                        @onclick="OpenCreateSubCommunity"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-[#0A1B2E] dark:text-[#E1E8F0] bg-white dark:bg-[#112A46] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0A1B2E] focus:ring-offset-2">
-                    <span class="text-base leading-none font-bold text-[#557392] dark:text-[#C4D2E1]">+</span>
-                    <span>Create Sub-community</span>
+                <button type="button" @onclick="OpenCreateModal"
+                        class="px-3.5 py-1.5 bg-primary text-on-primary hover:bg-primary-fixed-dim rounded-lg font-label-md text-label-md font-bold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">add</span>
+                    <span>Create Hub</span>
                 </button>
             </div>
         </div>
 
-        <!-- Main Content Area: Grid on Left + Right Form Drawer (if open) -->
-        <div class="grid grid-cols-1 @(isSidePanelOpen ? "lg:grid-cols-3" : "grid-cols-1") gap-6 items-start">
-            
-            <!-- Left Column: Community Cards Grid -->
-            <div class="@(isSidePanelOpen ? "lg:col-span-2" : "col-span-1") space-y-6">
-                @if (isLoading)
-                {
-                    <div class="flex flex-col items-center justify-center py-20 bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-sm">
-                        <div class="animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
-                        <p class="text-sm text-[#557392] dark:text-[#C4D2E1] mt-3 font-medium">Loading communities...</p>
+        <!-- Community Cards Grid -->
+        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-lg w-full">
+            @if (isLoading)
+            {
+                <div class="rounded-xl bg-surface-container-low border border-surface-container-high/30 flex flex-col items-center justify-center py-16">
+                    <div class="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent"></div>
+                    <p class="font-label-md text-label-md text-on-surface-variant mt-3">Loading community directory...</p>
+                </div>
+            }
+            else if (ActiveCommunities.Count == 0)
+            {
+                <div class="rounded-xl bg-surface-container-low border border-dashed border-surface-container-high/40 text-center py-14 px-4">
+                    <div class="w-11 h-11 rounded-xl bg-surface-container text-on-surface-variant flex items-center justify-center mx-auto mb-3">
+                        <span class="material-symbols-outlined text-2xl">account_tree</span>
                     </div>
-                }
-                else if (communities == null || communities.Count == 0)
-                {
-                    <div class="text-center py-16 bg-white dark:bg-[#112A46] rounded-2xl border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] p-8">
-                        <div class="w-12 h-12 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="text-base font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">No communities found</h3>
-                        <p class="text-sm text-[#557392] dark:text-[#C4D2E1] mt-1 max-w-sm mx-auto">Get started by creating the very first community or refine your search query.</p>
-                        <div class="mt-4">
-                            <button type="button" @onclick="OpenCreateCommunity" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white shadow-sm transition-all">
-                                + Create Community
-                            </button>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    var topLevelCommunities = communities.Where(c => c.ParentCommunityId == null).ToList();
+                    @if (activeTab == "joined")
+                    {
+                        <h3 class="font-headline-md text-headline-md text-on-surface font-semibold">You have not joined any hubs yet</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-1.5 max-w-md mx-auto">Browse the open executive ecosystems below and join your first syndicate.</p>
+                        <button type="button" @onclick='() => SetTab("browse")'
+                                class="mt-4 px-space-md py-2 rounded-lg bg-primary text-on-primary font-label-lg text-label-lg font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors hover:bg-primary-fixed-dim">
+                            <span class="material-symbols-outlined text-sm">travel_explore</span>
+                            <span>Browse Communities</span>
+                        </button>
+                    }
+                    else
+                    {
+                        <h3 class="font-headline-md text-headline-md text-on-surface font-semibold">No communities match your criteria</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-1.5 max-w-md mx-auto">
+                            @(string.IsNullOrEmpty(searchTerm)
+                                ? "All available hubs are already in your Joined directory."
+                                : $"Nothing matches '{searchTerm}'.")
+                        </p>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-space-lg">
+                    @for (var cIdx = 0; cIdx < ActiveCommunities.Count; cIdx++)
+                    {
+                        var community = ActiveCommunities[cIdx];
+                        var isSub = community.ParentCommunityId.HasValue;
+                        var cardIndex = cIdx;
+                        var bannerUrl = GetBannerUrl(community);
 
-                    <div class="grid grid-cols-1 @(isSidePanelOpen ? "md:grid-cols-1 xl:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-3") gap-5">
-                        @foreach (var c in topLevelCommunities)
-                        {
-                            var subs = communities.Where(s => s.ParentCommunityId == c.CommunityId).ToList();
+                        <div class="group flex flex-col justify-between rounded-xl bg-surface-container-low hover:bg-surface-container transition-all duration-300 overflow-hidden relative border border-surface-container-highest/20 hover:border-primary/30">
+                            <div class="absolute inset-x-0 top-0 h-1 opacity-80 @GetGlowGradientForIndex(cardIndex)"></div>
 
-                            <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] hover:border-[#0A1B2E]/30 dark:hover:border-[rgba(196,210,225,0.35)] p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between">
-                                <!-- Card Header -->
-                                <div>
-                                    <div class="flex items-start justify-between gap-2">
-                                        <div class="min-w-0 flex-1">
-                                            <h3 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] leading-snug truncate" style="font-family:'Manrope',sans-serif">@c.Name</h3>
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 mt-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0]"></span>
-                                                Community
-                                            </span>
+                            <div class="p-space-md flex flex-col gap-space-sm">
+                                <!-- Banner -->
+                                <div class="relative h-32 rounded-lg overflow-hidden bg-surface-container-lowest">
+                                    <img src="@bannerUrl" alt="@community.Name"
+                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                    <div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/60 to-transparent"></div>
+
+                                    <div class="absolute top-3 left-3 flex items-center gap-2">
+                                        <span class="px-2 py-1 rounded-md bg-surface-container-lowest/90 backdrop-blur-md text-primary font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1 border border-primary/20 truncate max-w-[70%]">
+                                            <span class="material-symbols-outlined text-xs shrink-0">@GetCategoryIcon(isSub, cardIndex)</span>
+                                            <span class="truncate">@(community.CategoryName ?? (isSub ? "Sub-Community" : "Parent Hub"))</span>
+                                        </span>
+                                    </div>
+
+                                    <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <span class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">@GetTierLabel(isSub)</span>
+                                            <div class="font-title-lg text-title-lg text-on-surface font-semibold tracking-tight truncate">@community.Name</div>
                                         </div>
-                                        <button type="button"
-                                                @onclick="() => OpenEditModal(c)"
-                                                title="Edit Community & History"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#557392] dark:text-[#C4D2E1] bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition-colors">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                            </svg>
-                                            <span>Edit</span>
-                                        </button>
-                                    </div>
 
-                                    <!-- Description -->
-                                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-2 line-clamp-2 leading-relaxed">
-                                        @(string.IsNullOrWhiteSpace(c.Description) ? "No description provided." : c.Description)
-                                    </p>
-
-                                    <!-- Sub-communities Badge -->
-                                    <div class="mt-3 flex items-center gap-1.5 text-xs text-[#7A8CA6] font-medium">
-                                        <svg class="w-3.5 h-3.5 text-[#7A8CA6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                                        </svg>
-                                        <span>Sub-communities (@subs.Count)</span>
-                                    </div>
-
-                                    <!-- Nested Sub-community items box -->
-                                    @if (subs.Count > 0)
-                                    {
-                                        <div class="mt-2 space-y-2">
-                                            @foreach (var sub in subs)
+                                        <div class="flex -space-x-2 shrink-0 items-center">
+                                            @if (community.MemberAvatarUrls != null && community.MemberAvatarUrls.Any())
                                             {
-                                                <div class="bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-xl p-3">
-                                                    <div class="flex items-center justify-between gap-2 mb-1.5">
-                                                        <div class="flex items-center gap-1.5 min-w-0">
-                                                            <span class="text-[#557392] dark:text-[#C4D2E1] text-xs font-bold">#</span>
-                                                            <span class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] truncate">@sub.Name</span>
-                                                        </div>
-                                                        <div class="flex items-center gap-1.5">
-                                                            <button type="button"
-                                                                    @onclick="() => OpenEditModal(sub)"
-                                                                    title="Edit Sub-community"
-                                                                    class="px-2 py-0.5 text-[11px] font-medium rounded-md border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#E2E8F0] dark:hover:bg-[#1B3B5A] transition-colors">
-                                                                Edit
-                                                            </button>
-                                                            <button type="button" @onclick="() => JoinCommunity(sub.CommunityId)" class="px-2.5 py-0.5 text-[11px] font-medium rounded-md border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] transition-colors">
-                                                                Join
-                                                            </button>
-                                                        </div>
+                                                @foreach (var avatar in community.MemberAvatarUrls.Take(2))
+                                                {
+                                                    <div class="w-7 h-7 rounded-full bg-surface-container-high overflow-hidden border-2 border-surface-container-lowest">
+                                                        <img class="w-full h-full object-cover" src="@avatar" alt="Member Avatar" />
                                                     </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <div class="w-7 h-7 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm flex items-center justify-center font-bold border-2 border-surface-container-lowest">
+                                                    @InitialOf(community.Name)
+                                                </div>
+                                            }
 
-                                                    @if (!string.IsNullOrWhiteSpace(sub.Description))
-                                                    {
-                                                        <p class="text-[11px] text-[#557392] dark:text-[#C4D2E1] mb-1.5 line-clamp-1">@sub.Description</p>
-                                                    }
-
-                                                    <!-- Member Stats -->
-                                                    <div class="flex items-center justify-between text-[11px] text-[#7A8CA6] pt-1 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                                                        <div class="flex items-center gap-1">
-                                                            <div class="flex -space-x-1.5 overflow-hidden">
-                                                                <span class="inline-block h-4 w-4 rounded-full ring-1 ring-white dark:ring-[#112A46] bg-[#CBD5E1] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] text-[8px] font-bold text-center leading-4">A</span>
-                                                                <span class="inline-block h-4 w-4 rounded-full ring-1 ring-white dark:ring-[#112A46] bg-[#557392] text-white text-[8px] font-bold text-center leading-4">U</span>
-                                                            </div>
-                                                            <span class="ml-1 font-mono">@sub.MemberCount members</span>
-                                                        </div>
-                                                        <div class="flex items-center gap-2 font-mono">
-                                                            <span>@sub.PostCount posts</span>
-                                                            <span class="flex items-center gap-0.5 text-amber-500 font-medium">★ @sub.AverageRating.ToString("F1")</span>
-                                                        </div>
-                                                    </div>
+                                            @if (community.ExtraMemberCount > 0)
+                                            {
+                                                <div class="w-7 h-7 rounded-full bg-primary text-on-primary font-label-sm text-label-sm flex items-center justify-center font-bold border-2 border-surface-container-lowest">
+                                                    +@community.ExtraMemberCount
                                                 </div>
                                             }
                                         </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="mt-2 text-[11px] text-[#7A8CA6] italic bg-[#F8FAFC] dark:bg-[#0A1B2E] p-2 rounded-lg border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)]">
-                                            No sub-communities yet.
-                                        </div>
-                                    }
+                                    </div>
                                 </div>
 
-                                <!-- Card Footer: Quick Actions -->
-                                <div class="mt-4 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between gap-2">
-                                    <button type="button"
-                                            @onclick="() => OpenSubCommunityForParent(c.CommunityId)"
-                                            class="text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition-colors flex items-center gap-1">
-                                        <span>+ Add Sub-community</span>
-                                    </button>
+                                <!-- Description -->
+                                <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 leading-relaxed">
+                                    @(string.IsNullOrWhiteSpace(community.Description)
+                                        ? "No charter description has been published for this hub yet."
+                                        : community.Description)
+                                </p>
 
-                                    <button type="button"
-                                            @onclick="() => JoinCommunity(c.CommunityId)"
-                                            class="px-3 py-1 text-xs font-medium rounded-lg text-[#0A1B2E] dark:text-[#E1E8F0] bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition-colors">
-                                        Join
-                                    </button>
+                                <!-- Metrics -->
+                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-body-sm py-space-xs px-space-sm rounded-lg bg-surface-container-lowest/50 border border-surface-container-high/20">
+                                    <span class="flex items-center gap-1 text-on-surface font-semibold">
+                                        <span class="material-symbols-outlined text-xs text-primary">groups</span>
+                                        @FormatCompact(community.MemberCount) Members
+                                    </span>
+                                    <span class="text-on-surface-variant">•</span>
+                                    <span class="flex items-center gap-1 text-primary font-medium">
+                                        <span class="material-symbols-outlined text-xs">account_tree</span>
+                                        @(isSub ? community.GroupCount.ToString() : community.SubCommunityCount.ToString()) @(isSub ? "Groups" : "Sub-Hubs")
+                                    </span>
+                                    <span class="text-on-surface-variant">•</span>
+                                    <span class="flex items-center gap-1 text-secondary font-medium">
+                                        <span class="material-symbols-outlined text-xs">article</span>
+                                        @FormatCompact(community.PostCount) Posts
+                                    </span>
+                                </div>
+
+                                <!-- Child entities -->
+                                <div class="flex flex-col gap-space-xs pt-space-xs">
+                                    <span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant flex items-center gap-1 font-semibold">
+                                        <span class="material-symbols-outlined text-xs text-primary">hub</span>
+                                        @(isSub ? "Working Groups" : "Sub-Communities") (@(isSub ? community.GroupCount : community.SubCommunityCount))
+                                    </span>
+
+                                    <div class="grid grid-cols-1 gap-1.5 mt-1">
+                                        @if (community.TopChildItems != null && community.TopChildItems.Any())
+                                        {
+                                            @for (var i = 0; i < Math.Min(3, community.TopChildItems.Count); i++)
+                                            {
+                                                var child = community.TopChildItems[i];
+                                                <div class="flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-surface-container-lowest hover:bg-surface-container-high transition-colors border border-surface-container-high/10">
+                                                    <div class="flex items-center gap-2 min-w-0 pr-2">
+                                                        <span class="material-symbols-outlined text-sm shrink-0 @(i % 2 == 0 ? "text-primary" : "text-secondary")">@GetChildIcon(i)</span>
+                                                        <span class="font-body-sm text-body-sm text-on-surface truncate">@child.Name</span>
+                                                    </div>
+                                                    <div class="flex items-center gap-1.5 shrink-0">
+                                                        <span class="font-label-sm text-label-sm font-mono text-on-surface-variant">@child.MemberCount.ToString("N0")</span>
+                                                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase px-1.5 py-0.5 rounded bg-surface-container-high font-mono">@child.ItemType</span>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="px-space-sm py-3 rounded-lg bg-surface-container-lowest/50 border border-dashed border-surface-container-high/30 text-center font-body-sm text-body-sm text-on-surface-variant">
+                                                No @(isSub ? "groups" : "sub-communities") registered yet.
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
                             </div>
-                        }
-                    </div>
-                }
-            </div>
 
-            <!-- Right Column: Create Community or Sub-community Form Panel -->
-            @if (isSidePanelOpen)
-            {
-                <div class="col-span-1 bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] p-5 shadow-sm sticky top-6">
-                    <div class="flex items-center justify-between pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] mb-4">
-                        <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">
-                            @(isCreatingSub ? "Create Sub-community" : "Create Community")
-                        </h2>
-                        <button type="button" @onclick="CloseSidePanel" class="text-[#7A8CA6] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white p-1 rounded-lg">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
+                            <!-- Actions -->
+                            <div class="p-space-md pt-0 flex items-stretch gap-space-sm">
+                                <a class="flex-1 py-2 px-space-sm rounded-lg bg-surface-container-high text-primary hover:bg-surface-container-highest font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all no-underline cursor-pointer border border-primary/20"
+                                   href="@(isSub ? $"groups?subCommunityId={community.CommunityId}" : $"/sub-communities/{community.CommunityId}")">
+                                    <span class="truncate">@(isSub ? "See Groups" : "See Sub_Community")</span>
+                                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                                </a>
 
-                    @if (!string.IsNullOrEmpty(panelErrorMessage))
-                    {
-                        <div class="mb-4 p-3 rounded-xl bg-red-50 dark:bg-rose-950/40 border border-red-200 dark:border-rose-900/50 text-red-700 dark:text-rose-300 text-xs flex items-start gap-2">
-                            <span class="text-red-500 font-bold">⚠</span>
-                            <span class="flex-1">@panelErrorMessage</span>
-                        </div>
-                    }
-
-                    <div class="space-y-4">
-                        @if (isCreatingSub)
-                        {
-                            <!-- Parent Community Select -->
-                            <div>
-                                <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">
-                                    Parent Community <span class="text-red-500">*</span>
-                                </label>
-                                @if (ParentCommunityOptions.Count == 0)
+                                @if (community.IsJoined)
                                 {
-                                    <div class="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-300 text-xs">
-                                        No parent community exists. Please create a community first!
-                                    </div>
+                                    <button type="button" @onclick="() => JoinCommunity(community.CommunityId)"
+                                            class="flex-1 py-2 px-space-sm rounded-lg bg-surface-container-highest text-on-surface hover:bg-surface-container-high font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-surface-container-high font-bold">
+                                        <span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                        <span>Joined</span>
+                                    </button>
                                 }
                                 else
                                 {
-                                    <select class="w-full px-3 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
-                                            @bind="selectedParentCommunityId">
-                                        <option value="0">-- Select a Community --</option>
-                                        @foreach (var parent in ParentCommunityOptions)
-                                        {
-                                            <option value="@parent.CommunityId">@parent.Name</option>
-                                        }
-                                    </select>
+                                    <button type="button" @onclick="() => JoinCommunity(community.CommunityId)"
+                                            class="flex-1 py-2 px-space-sm rounded-lg bg-primary text-on-primary hover:bg-primary-fixed-dim font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all font-bold cursor-pointer">
+                                        <span class="material-symbols-outlined text-sm">lock_open</span>
+                                        <span>Join</span>
+                                    </button>
                                 }
                             </div>
-
-                            <!-- Sub-community Name Input -->
-                            <div>
-                                <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">
-                                    Sub-community Name <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text"
-                                       class="w-full px-3 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
-                                       placeholder="Sub-community Name"
-                                       @bind="subCommunityName" />
-                            </div>
-
-                            <!-- Sub-community Description Input -->
-                            <div>
-                                <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Description</label>
-                                <textarea rows="3"
-                                          class="w-full px-3 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
-                                          placeholder="Focus tech or description"
-                                          @bind="subCommunityDesc"></textarea>
-                            </div>
-                        }
-                        else
-                        {
-                            <!-- Community Name Input -->
-                            <div>
-                                <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">
-                                    Community Name <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text"
-                                       class="w-full px-3 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
-                                       placeholder="e.g. Technology"
-                                       @bind="communityName" />
-                            </div>
-
-                            <!-- Community Description Input -->
-                            <div>
-                                <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Description</label>
-                                <textarea rows="3"
-                                          class="w-full px-3 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
-                                          placeholder="Describe the purpose of this community..."
-                                          @bind="communityDesc"></textarea>
-                            </div>
-                        }
-
-                        <!-- Action Buttons -->
-                        <div class="flex items-center justify-end gap-2 pt-2">
-                            <button type="button"
-                                    @onclick="CloseSidePanel"
-                                    disabled="@isSubmitting"
-                                    class="px-3.5 py-1.5 text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white bg-white dark:bg-[#112A46] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition-colors">
-                                Cancel
-                            </button>
-                            <button type="button"
-                                    @onclick="SubmitForm"
-                                    disabled="@isSubmitting"
-                                    class="px-4 py-1.5 text-xs font-medium text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white active:scale-95 rounded-lg transition-colors shadow-sm disabled:opacity-50">
-                                @(isSubmitting ? "Saving..." : (isCreatingSub ? "Create Sub-community" : "Create Community"))
-                            </button>
                         </div>
-                    </div>
+                    }
                 </div>
             }
+        </div>
+
+        <!-- Institutional Bottom Callout -->
+        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-lg w-full">
+            <div class="p-space-md rounded-xl bg-surface-container-lowest flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md border border-surface-container-high/30">
+                <div class="flex items-center gap-space-md">
+                    <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary shrink-0 border border-primary/20">
+                        <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">add_business</span>
+                    </div>
+                    <div>
+                        <div class="font-title-md text-title-md text-on-surface font-bold">Charter a New Executive Hub</div>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Founders can register a parent community and nest specialised sub-communities with their own working groups.</p>
+                    </div>
+                </div>
+                <button type="button" @onclick="OpenCreateModal"
+                        class="px-space-md py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-label-lg text-label-lg flex items-center gap-1.5 shrink-0 transition-colors border border-surface-container-high/40 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm text-primary">add_circle</span>
+                    <span>Create Community</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Edit Modal -->
-@if (isEditModalOpen && editingCommunity != null)
+<!-- Create Hub Modal (Supports Photo Upload & Sub-Community Linking) -->
+@if (showCreateModal)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#0A1B2E]/50 dark:bg-black/70 backdrop-blur-sm p-4">
-        <div class="relative bg-white dark:bg-[#112A46] rounded-2xl shadow-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] w-full max-w-2xl overflow-hidden">
+    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#0A1B2E]/60 dark:bg-black/75 backdrop-blur-sm p-4">
+        <div class="relative bg-white dark:bg-[#112A46] rounded-xl shadow-2xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] w-full max-w-lg overflow-hidden">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E]">
-                <div>
-                    <h3 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
-                        <span>Edit @(editingCommunity.ParentCommunityId.HasValue ? "Sub-community" : "Community")</span>
-                        <span class="text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]">
-                            @editingCommunity.Name
-                        </span>
-                    </h3>
-                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-0.5">Manage details and view change audit history</p>
-                </div>
-                <button type="button" @onclick="CloseEditModal" class="text-[#7A8CA6] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white p-1.5 rounded-lg hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+            <div class="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
+                    <svg class="w-4 h-4 text-[#D4AF37]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg>
+                    <span>Create Ecosystem Hub</span>
+                </h3>
+                <button type="button" @onclick="CloseCreateModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white p-1 rounded transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            <!-- Tab Switcher -->
-            <div class="flex border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46] px-6">
-                <button type="button"
-                        @onclick="() => activeTab = 0"
-                        class="py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 @(activeTab == 0 ? "border-[#0A1B2E] dark:border-[#E1E8F0] text-[#0A1B2E] dark:text-[#E1E8F0]" : "border-transparent text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white")">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                    <span>Edit Details</span>
-                </button>
-                <button type="button"
-                        @onclick="() => SwitchToAuditTab()"
-                        class="py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 @(activeTab == 1 ? "border-[#0A1B2E] dark:border-[#E1E8F0] text-[#0A1B2E] dark:text-[#E1E8F0]" : "border-transparent text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white")">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span>Audit History</span>
-                    @if (auditLogs != null && auditLogs.Count > 0)
-                    {
-                        <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] font-bold border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]">@auditLogs.Count</span>
-                    }
-                </button>
-            </div>
-
-            <!-- Tab Content -->
-            <div class="p-6">
-                @if (activeTab == 0)
+            <!-- Modal Body -->
+            <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+                @if (!string.IsNullOrEmpty(modalError))
                 {
-                    <!-- Edit Tab -->
-                    @if (!string.IsNullOrEmpty(editErrorMessage))
-                    {
-                        <div class="mb-4 p-3 rounded-xl bg-red-50 dark:bg-rose-950/40 border border-red-200 dark:border-rose-900/50 text-red-700 dark:text-rose-300 text-xs flex items-start gap-2">
-                            <span class="text-red-500 font-bold">⚠</span>
-                            <span class="flex-1">@editErrorMessage</span>
-                        </div>
-                    }
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">
-                                Name <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text"
-                                   class="w-full px-3.5 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
-                                   placeholder="Enter name"
-                                   @bind="editFormName" />
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Description</label>
-                            <textarea rows="4"
-                                      class="w-full px-3.5 py-2 bg-white dark:bg-[#0A1B2E] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]"
-                                      placeholder="Enter description"
-                                      @bind="editFormDesc"></textarea>
-                        </div>
-
-                        <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                            <button type="button"
-                                    @onclick="CloseEditModal"
-                                    disabled="@isSavingEdit"
-                                    class="px-4 py-2 text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white bg-white dark:bg-[#112A46] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition-colors">
-                                Cancel
-                            </button>
-                            <button type="button"
-                                    @onclick="SubmitEditForm"
-                                    disabled="@isSavingEdit"
-                                    class="px-5 py-2 text-xs font-medium text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white active:scale-95 rounded-lg transition-colors shadow-sm disabled:opacity-50">
-                                @(isSavingEdit ? "Saving Changes..." : "Save Changes")
-                            </button>
-                        </div>
+                    <div class="p-2.5 rounded bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2">
+                        <svg class="w-3.5 h-3.5 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <span class="flex-1">@modalError</span>
                     </div>
                 }
-                else
+
+                <!-- Hierarchy Type Selector -->
+                <div>
+                    <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1.5">Hub Structure</label>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button type="button" 
+                                @onclick="() => isSubCommunityCreation = false"
+                                class="px-3 py-2 rounded-lg border text-left transition @(!isSubCommunityCreation ? "border-[#0A1B2E] dark:border-[#D4AF37] bg-[#F1F5F9] dark:bg-[#1B3B5A] font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" : "border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[#557392] dark:text-[#C4D2E1]")">
+                            <div>🏛️ Parent Community</div>
+                            <div class="text-[10px] font-normal text-[#7A8CA6] mt-0.5">Top-level umbrella ecosystem</div>
+                        </button>
+
+                        <button type="button" 
+                                @onclick="() => isSubCommunityCreation = true"
+                                class="px-3 py-2 rounded-lg border text-left transition @(isSubCommunityCreation ? "border-[#0A1B2E] dark:border-[#D4AF37] bg-[#F1F5F9] dark:bg-[#1B3B5A] font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" : "border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[#557392] dark:text-[#C4D2E1]")">
+                            <div>🏢 Sub-Community</div>
+                            <div class="text-[10px] font-normal text-[#7A8CA6] mt-0.5">Nested syndicate with working groups</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Parent Community Selector (if Sub-Community) -->
+                @if (isSubCommunityCreation)
                 {
-                    <!-- Audit History Tab -->
-                    @if (isLoadingAudits)
+                    <div>
+                        <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">
+                            Select Parent Community <span class="text-rose-500">*</span>
+                        </label>
+                        <select class="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                @bind="selectedParentCommunityId">
+                            <option value="">-- Choose Parent Community --</option>
+                            @if (communities != null)
+                            {
+                                @foreach (var p in communities.Where(c => !c.ParentCommunityId.HasValue))
+                                {
+                                    <option value="@p.CommunityId">@p.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                }
+
+                <!-- Name Input -->
+                <div>
+                    <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">
+                        @(isSubCommunityCreation ? "Sub-Community" : "Community") Name <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text"
+                           class="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                           placeholder="e.g. AI Founders & Angels"
+                           @bind="communityName"
+                           @bind:event="oninput" />
+                </div>
+
+                <!-- Description Input -->
+                <div>
+                    <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1">Description</label>
+                    <textarea rows="3"
+                              class="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 leading-relaxed"
+                              placeholder="Describe the mandate, focus areas, and eligibility..."
+                              @bind="communityDesc"
+                              @bind:event="oninput"></textarea>
+                </div>
+
+                <!-- Photo Upload Section -->
+                <div>
+                    <label class="block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] mb-1.5">
+                        Cover / Banner Image
+                    </label>
+
+                    @if (!string.IsNullOrWhiteSpace(uploadedBannerUrl))
                     {
-                        <div class="py-12 flex flex-col items-center justify-center text-[#557392] dark:text-[#C4D2E1]">
-                            <div class="animate-spin rounded-full h-7 w-7 border-b-2 border-[#0A1B2E] dark:border-[#E1E8F0]"></div>
-                            <span class="text-xs mt-3">Loading audit history...</span>
-                        </div>
-                    }
-                    else if (auditLogs == null || auditLogs.Count == 0)
-                    {
-                        <div class="text-center py-12 text-[#7A8CA6] dark:text-[#C4D2E1]">
-                            <svg class="w-8 h-8 mx-auto mb-2 text-[#CBD5E1] dark:text-[#7A8CA6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            <p class="text-xs font-medium text-[#557392] dark:text-[#C4D2E1]">No audit log entries found for this @(editingCommunity.ParentCommunityId.HasValue ? "sub-community" : "community").</p>
-                            <p class="text-[11px] text-[#7A8CA6] mt-0.5">Edits made to the name or description will appear here.</p>
+                        <div class="relative h-32 rounded-lg overflow-hidden border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] group">
+                            <img src="@uploadedBannerUrl" class="w-full h-full object-cover" alt="Banner Preview" />
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                <button type="button" @onclick="RemoveUploadedBanner" class="px-2.5 py-1 rounded bg-rose-600 text-white text-xs font-semibold shadow hover:bg-rose-700 transition inline-flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    <span>Remove Photo</span>
+                                </button>
+                            </div>
                         </div>
                     }
                     else
                     {
-                        <div class="overflow-x-auto border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-xl max-h-80 overflow-y-auto">
-                            <table class="w-full text-left text-xs text-[#0A1B2E] dark:text-[#E1E8F0] border-collapse">
-                                <thead class="bg-[#F1F5F9] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] sticky top-0 text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
-                                    <tr>
-                                        <th class="px-3 py-2.5">No.</th>
-                                        <th class="px-3 py-2.5">Type</th>
-                                        <th class="px-3 py-2.5">Old-Value</th>
-                                        <th class="px-3 py-2.5">New-value</th>
-                                        <th class="px-3 py-2.5">Editor</th>
-                                        <th class="px-3 py-2.5">Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)]">
-                                    @for (int i = 0; i < auditLogs.Count; i++)
-                                    {
-                                        var log = auditLogs[i];
-                                        <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/40 transition-colors">
-                                            <td class="px-3 py-2.5 text-[#7A8CA6] font-mono text-[11px]">@(i + 1)</td>
-                                            <td class="px-3 py-2.5">
-                                                <div class="flex items-center gap-1">
-                                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]">
-                                                        @log.FieldChanged
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td class="px-3 py-2.5 text-[#557392] dark:text-[#C4D2E1] max-w-[120px] truncate" title="@log.OldValue">
-                                                @(string.IsNullOrWhiteSpace(log.OldValue) ? "-" : log.OldValue)
-                                            </td>
-                                            <td class="px-3 py-2.5 text-[#0A1B2E] dark:text-[#E1E8F0] font-medium max-w-[120px] truncate" title="@log.NewValue">
-                                                @(string.IsNullOrWhiteSpace(log.NewValue) ? "-" : log.NewValue)
-                                            </td>
-                                            <td class="px-3 py-2.5 text-[#0A1B2E] dark:text-[#E1E8F0] font-medium">@log.EditorName</td>
-                                            <td class="px-3 py-2.5 text-[#7A8CA6] text-[11px] whitespace-nowrap font-mono">
-                                                @log.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                        <div class="border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] rounded-xl p-4 text-center hover:border-indigo-500 transition">
+                            <InputFile OnChange="HandleBannerUpload" accept=".jpg,.jpeg,.png,.webp" class="hidden" id="bannerFileInput" />
+                            <label for="bannerFileInput" class="cursor-pointer flex flex-col items-center">
+                                <svg class="w-7 h-7 text-[#7A8CA6] mb-1" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+                                <span class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">Upload custom banner image</span>
+                                <span class="text-[10px] text-[#7A8CA6] mt-0.5">JPEG, PNG, WebP (Max 5MB)</span>
+                            </label>
                         </div>
                     }
 
-                    <div class="flex justify-end pt-4 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] mt-4">
-                        <button type="button" @onclick="CloseEditModal" class="px-4 py-1.5 text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white bg-white dark:bg-[#112A46] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition-colors">
-                            Close
-                        </button>
+                    @if (isUploadingBanner)
+                    {
+                        <div class="mt-2 flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400">
+                            <div class="w-3.5 h-3.5 border-2 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+                            <span>Uploading and optimizing banner image...</span>
+                        </div>
+                    }
+
+                    <!-- Quick Preset Selectors -->
+                    <div class="mt-2">
+                        <span class="text-[10px] font-mono text-[#7A8CA6] uppercase tracking-wider block mb-1">Or choose an executive preset:</span>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            @for (var i = 0; i < fallbackBanners.Length; i++)
+                            {
+                                var presetUrl = fallbackBanners[i];
+                                var isSelected = uploadedBannerUrl == presetUrl;
+                                <button type="button" @onclick="() => SelectPresetBanner(presetUrl)"
+                                        class="relative h-12 rounded overflow-hidden border-2 transition @(isSelected ? "border-[#D4AF37] scale-102 ring-2 ring-[#D4AF37]/30" : "border-transparent opacity-70 hover:opacity-100")">
+                                    <img src="@presetUrl" class="w-full h-full object-cover" alt="Preset" />
+                                </button>
+                            }
+                        </div>
                     </div>
-                }
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-4 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-end gap-2.5">
+                <button type="button" @onclick="CloseCreateModal" disabled="@isSubmitting"
+                        class="px-3.5 py-1.5 text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white bg-white dark:bg-[#112A46] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] transition">
+                    Cancel
+                </button>
+                <button type="button" @onclick="SubmitCreateAsync" disabled="@(isSubmitting || isUploadingBanner)"
+                        class="px-4 py-1.5 text-xs font-semibold rounded-lg text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white transition shadow-sm disabled:opacity-50">
+                    @(isSubmitting ? "Creating..." : (isSubCommunityCreation ? "Create Sub-Community" : "Create Community"))
+                </button>
             </div>
         </div>
     </div>
@@ -500,49 +524,151 @@
     private IReadOnlyList<CommunityModel>? communities;
     private string? searchTerm;
     private bool isLoading = true;
+    private string activeTab = "joined";
+
+    // Parent Filter
+    private int? filterParentId;
+    private string? filterParentName;
+
+    // Create modal state
+    private bool showCreateModal;
     private bool isSubmitting;
-
-    // Side panel state
-    private bool isSidePanelOpen = true;
-    private bool isCreatingSub = true;
-    private string? panelErrorMessage;
-
-    // Community Form State
+    private bool isSubCommunityCreation;
+    private int? selectedParentCommunityId;
     private string communityName = "";
     private string communityDesc = "";
+    private string? uploadedBannerUrl;
+    private bool isUploadingBanner;
+    private string? modalError;
 
-    // Sub-Community Form State
-    private int selectedParentCommunityId;
-    private string subCommunityName = "";
-    private string subCommunityDesc = "";
+    private readonly string[] fallbackBanners = [
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80"
+    ];
 
-    private List<CommunityModel> ParentCommunityOptions =>
-        communities?.Where(c => c.ParentCommunityId == null).OrderBy(c => c.Name).ToList() ?? new();
-
-    protected override async Task OnInitializedAsync()
+    private IReadOnlyList<CommunityModel> ActiveCommunities
     {
-        await LoadCommunities();
-        
-        // Auto-select first parent community if available
-        var parents = ParentCommunityOptions;
-        if (selectedParentCommunityId == 0 && parents.Count > 0)
+        get
         {
-            selectedParentCommunityId = parents[0].CommunityId;
+            var list = activeTab == "joined"
+                ? (communities?.Where(c => c.IsJoined) ?? Enumerable.Empty<CommunityModel>())
+                : (communities?.Where(c => !c.IsJoined) ?? Enumerable.Empty<CommunityModel>());
+
+            if (filterParentId.HasValue)
+            {
+                list = list.Where(c => c.ParentCommunityId == filterParentId.Value);
+            }
+
+            return list.ToList();
         }
     }
 
-    private async Task LoadCommunities()
+    private int joinedCount => communities?.Count(c => c.IsJoined && (!filterParentId.HasValue || c.ParentCommunityId == filterParentId.Value)) ?? 0;
+    private int browseCount => communities?.Count(c => !c.IsJoined && (!filterParentId.HasValue || c.ParentCommunityId == filterParentId.Value)) ?? 0;
+
+    private int totalHubCount => communities?.Count ?? 0;
+    private int rootHubCount => communities?.Count(c => !c.ParentCommunityId.HasValue) ?? 0;
+    private int subHubCount => communities?.Count(c => c.ParentCommunityId.HasValue) ?? 0;
+    private int totalMemberCount => communities?.Sum(c => c.MemberCount) ?? 0;
+
+    // Telemetry chart series: ranked member concentration and post velocity across the directory.
+    private const int MaxChartPoints = 12;
+
+    private List<CommunityModel> chartSource => (communities ?? (IReadOnlyList<CommunityModel>)Array.Empty<CommunityModel>())
+        .Where(c => c.MemberCount > 0 || c.PostCount > 0)
+        .OrderByDescending(c => c.MemberCount)
+        .ThenByDescending(c => c.PostCount)
+        .Take(MaxChartPoints)
+        .ToList();
+
+    private List<double> liquiditySeries => chartSource.Select(c => (double)c.MemberCount).ToList();
+    private List<double> velocitySeries => chartSource.Select(c => (double)c.PostCount).ToList();
+    private List<string> chartLabels => chartSource.Select(c => ShortenLabel(c.Name)).ToList();
+
+    private string networkHighlight
+    {
+        get
+        {
+            var ranked = chartSource;
+            if (ranked.Count == 0) return "NO SIGNAL";
+            var total = ranked.Sum(c => c.MemberCount);
+            if (total <= 0) return "NO SIGNAL";
+            var top = ranked.Take(3).Sum(c => c.MemberCount);
+            return (top / (double)total * 100d).ToString("0") + "% CONCENTRATION";
+        }
+    }
+
+    private static string ShortenLabel(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "Hub";
+        var cleaned = name.Trim();
+        var cut = cleaned.IndexOfAny(new[] { ' ', '&', '-', '/', ',' });
+        if (cut > 1) cleaned = cleaned[..cut];
+        return cleaned.Length <= 12 ? cleaned : cleaned[..12];
+    }
+
+    private static string InitialOf(string name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[..1].ToUpperInvariant();
+
+    private static string FormatCompact(int value)
+    {
+        if (value >= 1_000_000) return (value / 1_000_000D).ToString("0.#") + "M";
+        if (value >= 1_000) return (value / 1_000D).ToString("0.#") + "k";
+        return value.ToString("N0");
+    }
+
+    private static string GetTierLabel(bool isSub) => isSub ? "Sub-Community" : "Parent Community";
+
+    private static string GetCategoryIcon(bool isSub, int index) => (isSub, index % 4) switch
+    {
+        (true, 0) => "hub",
+        (true, 1) => "memory",
+        (true, 2) => "precision_manufacturing",
+        (true, _) => "science",
+        (false, 0) => "monetization_on",
+        (false, 1) => "apartment",
+        (false, 2) => "domain",
+        _ => "corporate_fare"
+    };
+
+    private static string GetGlowGradientForIndex(int index) => (index % 4) switch
+    {
+        0 => "bg-gradient-to-r from-primary via-primary-fixed to-transparent",
+        1 => "bg-gradient-to-r from-secondary via-secondary-container to-transparent",
+        2 => "bg-gradient-to-r from-primary via-surface-tint to-transparent",
+        _ => "bg-gradient-to-r from-tertiary via-secondary to-transparent"
+    };
+
+    private static string GetChildIcon(int index) => (index % 3) switch
+    {
+        0 => "description",
+        1 => "swap_horiz",
+        _ => "verified_user"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCommunitiesAsync();
+    }
+
+    private void SetTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private async Task LoadCommunitiesAsync()
     {
         isLoading = true;
         var result = await CommunityApi.GetCommunitiesAsync(searchTerm);
         if (result.IsSuccess)
         {
             communities = result.Data;
-            var parents = ParentCommunityOptions;
-            if (selectedParentCommunityId == 0 && parents.Count > 0)
-            {
-                selectedParentCommunityId = parents[0].CommunityId;
-            }
+        }
+        else
+        {
+            Toast.Error(result.Message ?? "Failed to load communities.");
         }
         isLoading = false;
     }
@@ -550,68 +676,111 @@
     private async Task ClearSearch()
     {
         searchTerm = "";
-        await LoadCommunities();
+        await LoadCommunitiesAsync();
     }
 
-    private void OpenCreateCommunity()
+    private string GetBannerUrl(CommunityModel community)
     {
-        isCreatingSub = false;
-        isSidePanelOpen = true;
-        panelErrorMessage = null;
+        if (!string.IsNullOrWhiteSpace(community.BannerUrl))
+            return community.BannerUrl;
+
+        var idx = Math.Abs(community.CommunityId) % fallbackBanners.Length;
+        return fallbackBanners[idx];
+    }
+
+    private void FilterByParent(int parentId, string parentName)
+    {
+        filterParentId = parentId;
+        filterParentName = parentName;
+    }
+
+    private void ClearParentFilter()
+    {
+        filterParentId = null;
+        filterParentName = null;
+    }
+
+    private void NavigateToGroups(int communityId)
+    {
+        Navigation.NavigateTo($"/groups?subCommunityId={communityId}");
+    }
+
+    private void OpenCreateModal()
+    {
         communityName = "";
         communityDesc = "";
+        uploadedBannerUrl = null;
+        isSubCommunityCreation = filterParentId.HasValue;
+        selectedParentCommunityId = filterParentId;
+        modalError = null;
+        showCreateModal = true;
     }
 
-    private void OpenCreateSubCommunity()
+    private void CloseCreateModal()
     {
-        isCreatingSub = true;
-        isSidePanelOpen = true;
-        panelErrorMessage = null;
-        subCommunityName = "";
-        subCommunityDesc = "";
-        var parents = ParentCommunityOptions;
-        if (selectedParentCommunityId == 0 && parents.Count > 0)
+        showCreateModal = false;
+        modalError = null;
+    }
+
+    private void SelectPresetBanner(string url)
+    {
+        uploadedBannerUrl = url;
+    }
+
+    private void RemoveUploadedBanner()
+    {
+        uploadedBannerUrl = null;
+    }
+
+    private async Task HandleBannerUpload(InputFileChangeEventArgs e)
+    {
+        modalError = null;
+        var file = e.File;
+        if (file == null) return;
+
+        if (file.Size > 5 * 1024 * 1024)
         {
-            selectedParentCommunityId = parents[0].CommunityId;
+            modalError = "Banner image cannot exceed 5 MB.";
+            return;
+        }
+
+        try
+        {
+            isUploadingBanner = true;
+            using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+            var result = await CommunityApi.UploadBannerAsync(stream, file.Name, file.ContentType);
+            if (result.IsSuccess && !string.IsNullOrWhiteSpace(result.Data))
+            {
+                uploadedBannerUrl = result.Data;
+                Toast.Success("Banner photo uploaded successfully!");
+            }
+            else
+            {
+                modalError = result.Message ?? "Failed to upload banner photo.";
+            }
+        }
+        catch (Exception ex)
+        {
+            modalError = $"Error uploading banner: {ex.Message}";
+        }
+        finally
+        {
+            isUploadingBanner = false;
         }
     }
 
-    private void OpenSubCommunityForParent(int parentId)
+    private async Task SubmitCreateAsync()
     {
-        selectedParentCommunityId = parentId;
-        isCreatingSub = true;
-        isSidePanelOpen = true;
-        panelErrorMessage = null;
-        subCommunityName = "";
-        subCommunityDesc = "";
-    }
-
-    private void CloseSidePanel()
-    {
-        isSidePanelOpen = false;
-        panelErrorMessage = null;
-    }
-
-    private async Task SubmitForm()
-    {
-        if (isCreatingSub)
-        {
-            await HandleCreateSubCommunity();
-        }
-        else
-        {
-            await HandleCreateCommunity();
-        }
-    }
-
-    private async Task HandleCreateCommunity()
-    {
-        panelErrorMessage = null;
-
+        modalError = null;
         if (string.IsNullOrWhiteSpace(communityName))
         {
-            panelErrorMessage = "Please enter a community name.";
-            Toast.Warning(panelErrorMessage);
+            modalError = "Please enter a name.";
+            return;
+        }
+
+        if (isSubCommunityCreation && !selectedParentCommunityId.HasValue)
+        {
+            modalError = "Please select a parent community for this sub-community.";
             return;
         }
 
@@ -621,181 +790,38 @@
             Slug: null,
             Description: string.IsNullOrWhiteSpace(communityDesc) ? null : communityDesc.Trim(),
             AvatarUrl: null,
-            BannerUrl: null,
+            BannerUrl: uploadedBannerUrl,
             Visibility: "PUBLIC",
             JoinPolicy: "INSTANT",
-            ParentCommunityId: null);
+            ParentCommunityId: isSubCommunityCreation ? selectedParentCommunityId : null);
 
         var res = await CommunityApi.CreateCommunityAsync(req);
         isSubmitting = false;
 
         if (res.IsSuccess)
         {
-            var createdName = communityName;
-            communityName = "";
-            communityDesc = "";
-            isSidePanelOpen = false;
-            await LoadCommunities();
-            Toast.Success($"Successfully Create a community: {createdName}");
+            Toast.Success($"Hub created: {communityName.Trim()}");
+            CloseCreateModal();
+            SetTab("joined");
+            await LoadCommunitiesAsync();
         }
         else
         {
-            panelErrorMessage = res.Message ?? "Failed to create community.";
-            Toast.Warning(panelErrorMessage);
+            modalError = res.Message ?? "Failed to create hub.";
         }
     }
 
-    private async Task HandleCreateSubCommunity()
+    private async Task JoinCommunity(int communityId)
     {
-        panelErrorMessage = null;
-
-        if (selectedParentCommunityId <= 0)
-        {
-            panelErrorMessage = "Please select a parent community.";
-            Toast.Warning(panelErrorMessage);
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(subCommunityName))
-        {
-            panelErrorMessage = "Please enter a sub-community name.";
-            Toast.Warning(panelErrorMessage);
-            return;
-        }
-
-        isSubmitting = true;
-        var req = new CreateCommunityRequestModel(
-            Name: subCommunityName.Trim(),
-            Slug: null,
-            Description: string.IsNullOrWhiteSpace(subCommunityDesc) ? null : subCommunityDesc.Trim(),
-            AvatarUrl: null,
-            BannerUrl: null,
-            Visibility: "PUBLIC",
-            JoinPolicy: "INSTANT",
-            ParentCommunityId: selectedParentCommunityId);
-
-        var res = await CommunityApi.CreateCommunityAsync(req);
-        isSubmitting = false;
-
+        var res = await CommunityApi.JoinCommunityAsync(communityId);
         if (res.IsSuccess)
         {
-            var createdName = subCommunityName;
-            subCommunityName = "";
-            subCommunityDesc = "";
-            isSidePanelOpen = false;
-            await LoadCommunities();
-            Toast.Success($"Successfully Create a sub-community: {createdName}");
+            Toast.Success(res.Message ?? "Joined successfully!");
+            await LoadCommunitiesAsync();
         }
         else
         {
-            panelErrorMessage = res.Message ?? "Failed to create sub-community.";
-            Toast.Warning(panelErrorMessage);
-        }
-    }
-
-    // Option A Edit & Audit Modal State
-    private CommunityModel? editingCommunity;
-    private bool isEditModalOpen;
-    private int activeTab = 0; // 0 = Edit, 1 = Audit History
-    private string editFormName = "";
-    private string editFormDesc = "";
-    private string? editErrorMessage;
-    private bool isSavingEdit;
-    private bool isLoadingAudits;
-    private IReadOnlyList<CommunityAuditModel>? auditLogs;
-
-    private void OpenEditModal(CommunityModel community)
-    {
-        editingCommunity = community;
-        editFormName = community.Name;
-        editFormDesc = community.Description ?? "";
-        editErrorMessage = null;
-        activeTab = 0;
-        auditLogs = null;
-        isEditModalOpen = true;
-    }
-
-    private void CloseEditModal()
-    {
-        isEditModalOpen = false;
-        editingCommunity = null;
-        editErrorMessage = null;
-        auditLogs = null;
-    }
-
-    private async Task SwitchToAuditTab()
-    {
-        activeTab = 1;
-        if (editingCommunity != null && auditLogs == null)
-        {
-            isLoadingAudits = true;
-            var res = await CommunityApi.GetCommunityAuditsAsync(editingCommunity.CommunityId);
-            if (res.IsSuccess)
-            {
-                auditLogs = res.Data;
-            }
-            else
-            {
-                Toast.Warning(res.Message ?? "Failed to load audit history.");
-            }
-            isLoadingAudits = false;
-        }
-    }
-
-    private async Task SubmitEditForm()
-    {
-        if (editingCommunity == null) return;
-        editErrorMessage = null;
-
-        if (string.IsNullOrWhiteSpace(editFormName))
-        {
-            editErrorMessage = "Name cannot be empty.";
-            Toast.Warning(editErrorMessage);
-            return;
-        }
-
-        isSavingEdit = true;
-        var req = new EditCommunityRequestModel(
-            Name: editFormName.Trim(),
-            Description: string.IsNullOrWhiteSpace(editFormDesc) ? null : editFormDesc.Trim()
-        );
-
-        var res = await CommunityApi.UpdateCommunityAsync(editingCommunity.CommunityId, req);
-        isSavingEdit = false;
-
-        if (res.IsSuccess)
-        {
-            Toast.Success("Updated successfully!");
-            // Refresh audit logs if loaded previously
-            if (auditLogs != null)
-            {
-                var auditRes = await CommunityApi.GetCommunityAuditsAsync(editingCommunity.CommunityId);
-                if (auditRes.IsSuccess)
-                {
-                    auditLogs = auditRes.Data;
-                }
-            }
-            await LoadCommunities();
-            CloseEditModal();
-        }
-        else
-        {
-            editErrorMessage = res.Message ?? "Failed to update.";
-            Toast.Warning(editErrorMessage);
-        }
-    }
-
-    private async Task JoinCommunity(int id)
-    {
-        var res = await CommunityApi.JoinCommunityAsync(id);
-        if (res.IsSuccess)
-        {
-            Toast.Success("Joined successfully!");
-            await LoadCommunities();
-        }
-        else
-        {
-            Toast.Warning(res.Message ?? "Could not join.");
+            Toast.Error(res.Message ?? "Could not join hub.");
         }
     }
 }

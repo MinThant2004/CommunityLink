@@ -282,11 +282,28 @@
                                         @(string.IsNullOrWhiteSpace(profile.DisplayName) ? profile.UserName : profile.DisplayName)
                                     </h1>
 
-                                    <!-- Domain Professional Badge -->
-                                    <span class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-[0.25rem] bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 inline-flex items-center gap-1 uppercase tracking-wider">
-                                        <span>★</span>
-                                        <span>DOMAIN PROFESSIONAL</span>
-                                    </span>
+                                    <!-- Verified Tier Badge -->
+                                    @if (profile.Role?.RoleCode == "PUBLIC_FIGURE")
+                                    {
+                                        <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded-[0.25rem] bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-700 inline-flex items-center gap-1 uppercase tracking-wider shadow-sm">
+                                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
+                                            <span>PUBLIC FIGURE VIP</span>
+                                        </span>
+                                    }
+                                    else if (profile.Role?.RoleCode == "DOMAIN_PRO" || profile.IsVerified)
+                                    {
+                                        <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded-[0.25rem] bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 inline-flex items-center gap-1 uppercase tracking-wider shadow-sm">
+                                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                            <span>DOMAIN PROFESSIONAL</span>
+                                        </span>
+                                    }
+                                    else if (profile.Role?.RoleCode == "ADMIN" || profile.Role?.RoleCode == "SUPER_ADMIN")
+                                    {
+                                        <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded-[0.25rem] bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 inline-flex items-center gap-1 uppercase tracking-wider">
+                                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                            <span>GOVERNOR</span>
+                                        </span>
+                                    }
 
                                     <!-- Pronouns -->
                                     @if (!string.IsNullOrWhiteSpace(profile.Pronouns))
@@ -311,13 +328,17 @@
                                     @if (!string.IsNullOrWhiteSpace(profile.Location))
                                     {
                                         <span>•</span>
-                                        <span class="inline-flex items-center gap-1">📍 @profile.Location</span>
+                                        <span class="inline-flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                            <span>@profile.Location</span>
+                                        </span>
                                     }
                                     @if (profile.IsVerified)
                                     {
                                         <span>•</span>
                                         <span class="font-mono text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
-                                            🛡️ CREDENTIAL AUDITED
+                                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                            <span>CREDENTIAL AUDITED</span>
                                         </span>
                                     }
                                 </div>
@@ -349,7 +370,7 @@
                                     </button>
 
                                     <button @onclick="OpenRatingModal" class="btn-exec-secondary text-amber-600 dark:text-amber-400">
-                                        <span>★</span>
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                                         <span>Rate</span>
                                     </button>
                                 }
@@ -419,7 +440,12 @@
                                 <span class="font-display text-3xl font-extrabold text-[#D97706] dark:text-[#FBBF24] leading-none">
                                     @(profile.Metrics.AverageRating.HasValue ? profile.Metrics.AverageRating.Value.ToString("0.0") : "4.9")
                                 </span>
-                                <div class="text-amber-500 text-xs tracking-wider mt-1">★★★★★</div>
+                                <div class="text-amber-500 text-xs flex items-center gap-0.5 mt-1">
+                                    @for (int i = 0; i < 5; i++)
+                                    {
+                                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                    }
+                                </div>
                                 <span class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mt-0.5">
                                     @(profile.Metrics.RatingCount > 0 ? $"{profile.Metrics.RatingCount} ratings" : "184 RATINGS")
                                 </span>
@@ -428,28 +454,28 @@
                             <!-- 5-Star Distribution Bar Graph -->
                             <div class="flex flex-col space-y-1 w-44 sm:w-56 font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
                                 <div class="flex items-center gap-2">
-                                    <span class="w-6 text-right">5★</span>
+                                    <span class="w-6 text-right inline-flex items-center justify-end gap-0.5">5 <svg class="w-2.5 h-2.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
                                     <div class="flex-1 h-1.5 bg-[#E2E8F0] dark:bg-[#1B3B5A] rounded-full overflow-hidden">
                                         <div class="h-full bg-amber-500 rounded-full" style="width: @(profile.RatingDistribution?.Star5Percentage ?? 92)%;"></div>
                                     </div>
                                     <span class="w-7 text-right text-[#0A1B2E] dark:text-white font-semibold">@(profile.RatingDistribution?.Star5Percentage ?? 92)%</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="w-6 text-right">4★</span>
+                                    <span class="w-6 text-right inline-flex items-center justify-end gap-0.5">4 <svg class="w-2.5 h-2.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
                                     <div class="flex-1 h-1.5 bg-[#E2E8F0] dark:bg-[#1B3B5A] rounded-full overflow-hidden">
                                         <div class="h-full bg-amber-500/80 rounded-full" style="width: @(profile.RatingDistribution?.Star4Percentage ?? 7)%;"></div>
                                     </div>
                                     <span class="w-7 text-right text-[#0A1B2E] dark:text-white font-semibold">@(profile.RatingDistribution?.Star4Percentage ?? 7)%</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="w-6 text-right">3★</span>
+                                    <span class="w-6 text-right inline-flex items-center justify-end gap-0.5">3 <svg class="w-2.5 h-2.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
                                     <div class="flex-1 h-1.5 bg-[#E2E8F0] dark:bg-[#1B3B5A] rounded-full overflow-hidden">
                                         <div class="h-full bg-amber-500/50 rounded-full" style="width: @(profile.RatingDistribution?.Star3Percentage ?? 1)%;"></div>
                                     </div>
                                     <span class="w-7 text-right">@(profile.RatingDistribution?.Star3Percentage ?? 1)%</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="w-6 text-right">2★</span>
+                                    <span class="w-6 text-right inline-flex items-center justify-end gap-0.5">2 <svg class="w-2.5 h-2.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
                                     <div class="flex-1 h-1.5 bg-[#E2E8F0] dark:bg-[#1B3B5A] rounded-full overflow-hidden">
                                         <div class="h-full bg-amber-500/30 rounded-full" style="width: @(profile.RatingDistribution?.Star2Percentage ?? 0)%;"></div>
                                     </div>
@@ -461,7 +487,9 @@
                         <!-- Right: SLA Metric Chips -->
                         <div class="flex flex-wrap items-center gap-2.5 flex-1 lg:justify-end">
                             <div class="px-3 py-2 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center gap-2.5">
-                                <span class="w-7 h-7 rounded-[0.25rem] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs shrink-0">🛡️</span>
+                                <span class="w-7 h-7 rounded-[0.25rem] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs shrink-0">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                </span>
                                 <div>
                                     <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">100% Verified</div>
                                     <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">Authentic peer reviews</div>
@@ -469,7 +497,9 @@
                             </div>
 
                             <div class="px-3 py-2 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center gap-2.5">
-                                <span class="w-7 h-7 rounded-[0.25rem] bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs shrink-0">⏱️</span>
+                                <span class="w-7 h-7 rounded-[0.25rem] bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs shrink-0">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                </span>
                                 <div>
                                     <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(string.IsNullOrWhiteSpace(profile.ResponseSlaText) ? "< 2 hrs Response" : profile.ResponseSlaText)</div>
                                     <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">Direct dispatch SLA</div>
@@ -477,7 +507,9 @@
                             </div>
 
                             <div class="px-3 py-2 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center gap-2.5">
-                                <span class="w-7 h-7 rounded-[0.25rem] bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs shrink-0">🏆</span>
+                                <span class="w-7 h-7 rounded-[0.25rem] bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs shrink-0">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                                </span>
                                 <div>
                                     <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(string.IsNullOrWhiteSpace(profile.PercentileBadgeText) ? "Top 1% Percentile" : profile.PercentileBadgeText)</div>
                                     <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">Peer-recognized rank</div>
@@ -492,30 +524,30 @@
                 <div class="card-executive p-2 flex items-center justify-between overflow-x-auto">
                     <div class="flex items-center gap-1.5 shrink-0">
                         <button @onclick='() => SetTab("posts")' class="@(activeTab == "posts" ? "chip-active" : "chip-standard")">
-                            <span>📝</span>
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
                             <span>POSTS &amp; POLLS</span>
                         </button>
 
                         <button @onclick='() => SetTab("reviews")' class="@(activeTab == "reviews" ? "chip-active" : "chip-standard")">
-                            <span>⭐</span>
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                             <span>REVIEWS (@(profile.Metrics.RatingCount))</span>
                         </button>
 
                         <button @onclick='() => SetTab("communities")' class="@(activeTab == "communities" ? "chip-active" : "chip-standard")">
-                            <span>🏛️</span>
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
                             <span>COMMUNITIES (@(profile.Metrics.JoinedCommunitiesCount))</span>
                         </button>
 
                         @if (isOwner)
                         {
                             <button @onclick='() => SetTab("saved-posts")' class="@(activeTab == "saved-posts" ? "chip-active" : "chip-standard")">
-                                <span>🔖</span>
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
                                 <span>SAVED (@savedPostsList.Count)</span>
                             </button>
                         }
 
                         <button @onclick='() => SetTab("followers")' class="@(activeTab == "followers" ? "chip-active" : "chip-standard")">
-                            <span>👥</span>
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                             <span>FOLLOWERS</span>
                         </button>
                     </div>
@@ -544,7 +576,7 @@
                             @if (!postsList.Any())
                             {
                                 <div class="card-executive py-12 text-center">
-                                    <span class="text-3xl">📝</span>
+                                    <svg class="w-8 h-8 text-slate-400 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
                                     <p class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white mt-2">No publications found</p>
                                     <p class="text-[11px] text-[#64748B] dark:text-[#7A8CA6] mt-0.5">Technical guides, memos, and active polls will appear here.</p>
                                 </div>
@@ -660,8 +692,14 @@
                                         <!-- Footer Engagement -->
                                         <div class="flex items-center justify-between pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] font-mono text-[11px] text-[#64748B] dark:text-[#7A8CA6]">
                                             <div class="flex items-center gap-4">
-                                                <span>❤️ @post.LikeCount LIKES</span>
-                                                <span>💬 @post.CommentCount COMMENTS</span>
+                                                <span class="inline-flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                                    @post.LikeCount LIKES
+                                                </span>
+                                                <span class="inline-flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                                    @post.CommentCount COMMENTS
+                                                </span>
                                             </div>
                                         </div>
                                     </article>
@@ -673,8 +711,8 @@
                             @if (!reviewsList.Any())
                             {
                                 <div class="card-executive py-12 text-center text-xs text-[#64748B] dark:text-[#7A8CA6]">
-                                    <span class="text-3xl">⭐</span>
-                                    <p class="font-display font-bold mt-2">No peer reviews recorded yet</p>
+                                    <svg class="w-8 h-8 text-slate-400 mx-auto" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                    <p class="font-display font-bold mt-2 text-[#0A1B2E] dark:text-white">No peer reviews recorded yet</p>
                                 </div>
                             }
                             else
@@ -699,8 +737,11 @@
                                                     <p class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">@@@review.RaterUserName</p>
                                                 </div>
                                             </div>
-                                            <div class="text-amber-500 font-bold text-xs">
-                                                @string.Concat(Enumerable.Repeat("★", review.Score))
+                                            <div class="text-amber-500 font-bold text-xs flex items-center gap-0.5">
+                                                @for (int i = 0; i < review.Score; i++)
+                                                {
+                                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                                }
                                             </div>
                                         </div>
                                         @if (!string.IsNullOrWhiteSpace(review.ReviewText))
@@ -719,8 +760,8 @@
                             @if (!communitiesList.Any())
                             {
                                 <div class="card-executive py-12 text-center text-xs text-[#64748B] dark:text-[#7A8CA6]">
-                                    <span class="text-3xl">🏛️</span>
-                                    <p class="font-display font-bold mt-2">No affiliated hubs joined yet</p>
+                                    <svg class="w-8 h-8 text-slate-400 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
+                                    <p class="font-display font-bold mt-2 text-[#0A1B2E] dark:text-white">No affiliated hubs joined yet</p>
                                 </div>
                             }
                             else
@@ -733,7 +774,10 @@
                                                 <h4 class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white">@comm.Name</h4>
                                                 <p class="text-[11px] text-[#64748B] dark:text-[#7A8CA6] line-clamp-2 mt-0.5">@comm.Description</p>
                                                 <div class="flex items-center gap-2 font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] mt-2">
-                                                    <span>👥 @comm.MemberCount</span>
+                                                    <span class="inline-flex items-center gap-1">
+                                                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                        @comm.MemberCount
+                                                    </span>
                                                     <span>•</span>
                                                     <span class="text-blue-600 dark:text-blue-400 font-semibold">@comm.RoleName</span>
                                                 </div>
@@ -871,7 +915,10 @@
                                     {
                                         <button type="button" @onclick="() => EndorseSkillAsync(skill.SkillId)" class="chip-standard @(skill.IsEndorsedByMe ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300" : "")" title="Click to endorse skill">
                                             <span>@skill.SkillName</span>
-                                            <span class="text-amber-500 font-bold">★ @skill.EndorsementCount</span>
+                                            <span class="text-amber-500 font-bold inline-flex items-center gap-1">
+                                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                                @skill.EndorsementCount
+                                            </span>
                                         </button>
                                     }
                                 }
@@ -889,7 +936,7 @@
                         {
                             <div class="card-executive p-4 space-y-2.5">
                                 <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                                    <span class="text-sm">🛡️</span>
+                                    <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                     <span class="font-mono text-[10px] font-bold uppercase tracking-wider">IDENTITY VERIFICATION AUDIT</span>
                                 </div>
                                 <p class="font-body text-xs text-[#475569] dark:text-[#C4D2E1] leading-relaxed">
@@ -940,8 +987,8 @@
                 @for (int star = 1; star <= 5; star++)
                 {
                     var s = star;
-                    <button type="button" @onclick="() => ratingModel.Score = s" class="p-1 text-2xl transition hover:scale-110 @(s <= ratingModel.Score ? "text-amber-500" : "text-slate-300 dark:text-slate-700")">
-                        ★
+                    <button type="button" @onclick="() => ratingModel.Score = s" class="p-1 transition hover:scale-110 @(s <= ratingModel.Score ? "text-amber-500" : "text-slate-300 dark:text-slate-700")">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                     </button>
                 }
             </div>

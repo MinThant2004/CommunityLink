@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Community;
@@ -9,6 +10,20 @@ namespace CommunityLink.Domain.Features.Community;
 [Route("api/communities")]
 public sealed class CommunityController(ICommunityService communityService) : BaseController
 {
+    [HttpPost("upload-banner")]
+    [AllowAnonymous]
+    public async Task<IActionResult> UploadBanner([FromForm] IFormFile? banner, CancellationToken cancellationToken)
+    {
+        if (banner == null || banner.Length == 0)
+            return BadRequest(Result.Failure("Banner image file is required.", ResultStatus.ValidationError));
+
+        if (banner.Length > 5 * 1024 * 1024)
+            return StatusCode(StatusCodes.Status413PayloadTooLarge, Result.Failure("Banner image cannot exceed 5 MB.", ResultStatus.ValidationError));
+
+        using var stream = banner.OpenReadStream();
+        var result = await communityService.UploadBannerAsync(stream, banner.FileName, banner.ContentType, cancellationToken);
+        return ToActionResult(result);
+    }
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetCommunities([FromQuery] string? search, CancellationToken cancellationToken) =>
