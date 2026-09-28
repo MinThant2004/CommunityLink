@@ -1,35 +1,35 @@
 @page "/admin/payouts"
-@layout AdminLayout
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
 @using CommunityLink.App.Apis
 @using CommunityLink.Shared.Features.Payout
+@using CommunityLink.Shared.Security
 @inject CreatorPayoutApiService PayoutApi
 @inject ToastService Toast
 
-<PageTitle>Admin - Creator Payout Management</PageTitle>
+<PageTitle>Creator Payout Management — Admin Control Panel</PageTitle>
 
-<div class="space-y-6">
+<div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-6 shadow-sm">
         <div>
-            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Admin Control Panel</div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Creator Payout Management</h1>
-            <p class="text-sm text-slate-600 mt-1">Review, approve, and process creator cash-out and withdrawal requests.</p>
+            <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">💸 Creator Payout Management</h1>
+            <p class="text-sm text-[#557392] dark:text-[#C4D2E1] mt-1">Review, approve, and process creator cash-out and withdrawal requests.</p>
         </div>
         <div class="flex items-center gap-2">
             <button type="button" @onclick='() => SetStatusFilter("")'
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50")">
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] border-transparent" : "bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
                 All Requests
             </button>
             <button type="button" @onclick='() => SetStatusFilter("PENDING")'
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "PENDING" ? "bg-amber-600 text-white border-amber-600" : "bg-white text-amber-800 border-amber-200 hover:bg-amber-50")">
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "PENDING" ? "bg-amber-600 text-white border-amber-600" : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/50 hover:bg-amber-100")">
                 Pending
             </button>
             <button type="button" @onclick='() => SetStatusFilter("COMPLETED")'
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "COMPLETED" ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-50")">
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "COMPLETED" ? "bg-emerald-600 text-white border-emerald-600" : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100")">
                 Completed
             </button>
             <button type="button" @onclick='() => SetStatusFilter("REJECTED")'
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "REJECTED" ? "bg-rose-600 text-white border-rose-600" : "bg-white text-rose-800 border-rose-200 hover:bg-rose-50")">
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "REJECTED" ? "bg-rose-600 text-white border-rose-600" : "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/50 hover:bg-rose-100")">
                 Rejected
             </button>
         </div>
@@ -37,17 +37,17 @@
 
     @if (isLoading)
     {
-        <div class="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-indigo-600 mb-4"></div>
-            <p class="text-sm font-medium text-slate-600">Loading payout requests...</p>
+        <div class="bg-white dark:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-12 text-center shadow-sm">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent mb-4"></div>
+            <p class="text-sm font-medium text-[#557392] dark:text-[#C4D2E1]">Loading payout requests...</p>
         </div>
     }
     else if (!string.IsNullOrEmpty(errorMessage))
     {
-        <div class="bg-rose-50 border border-rose-200 rounded-xl p-6 text-rose-800 shadow-sm flex items-start gap-4">
+        <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-2xl p-6 text-rose-800 dark:text-rose-200 shadow-sm flex items-start gap-4">
             <div class="flex-1">
-                <h3 class="font-bold text-rose-900">Error loading payouts</h3>
-                <p class="text-sm text-rose-700 mt-1">@errorMessage</p>
+                <h3 class="font-bold text-rose-900 dark:text-rose-100">Error loading payouts</h3>
+                <p class="text-sm text-rose-700 dark:text-rose-300 mt-1">@errorMessage</p>
                 <button type="button" @onclick="LoadPayouts" class="mt-3 px-4 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition">
                     Retry
                 </button>
@@ -56,27 +56,27 @@
     }
     else
     {
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                <h2 class="text-lg font-bold text-slate-900">Payout Requests (@payouts.Count)</h2>
-                <button type="button" @onclick="LoadPayouts" class="px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-200 transition">
+        <div class="bg-white dark:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-4">
+                <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">Payout Requests (@payouts.Count)</h2>
+                <button type="button" @onclick="LoadPayouts" class="px-3.5 py-1.5 bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#557392] dark:text-[#C4D2E1] rounded-lg text-xs font-semibold hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition">
                     Refresh
                 </button>
             </div>
 
             @if (payouts.Count == 0)
             {
-                <div class="py-12 px-4 text-center bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                    <p class="text-sm font-bold text-slate-700">No payout requests found.</p>
-                    <p class="text-xs text-slate-500">No creator withdrawal requests match the selected status filter.</p>
+                <div class="py-12 px-4 text-center bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-xl space-y-2">
+                    <p class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">No payout requests found.</p>
+                    <p class="text-xs text-[#7A8CA6] dark:text-[#C4D2E1]">No creator withdrawal requests match the selected status filter.</p>
                 </div>
             }
             else
             {
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-700 border-collapse">
+                    <table class="w-full text-left text-xs border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500 tracking-wider">
+                            <tr class="bg-[#F1F5F9] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[10px] uppercase font-bold text-[#7A8CA6] tracking-wider" style="font-family:'JetBrains Mono',monospace">
                                 <th class="py-3 px-4">Creator</th>
                                 <th class="py-3 px-4 text-right">Amount (LD)</th>
                                 <th class="py-3 px-4 text-right">Est. MMK</th>
@@ -87,46 +87,46 @@
                                 <th class="py-3 px-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)]">
                             @foreach (var p in payouts)
                             {
-                                <tr class="hover:bg-slate-50/80 transition">
+                                <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#0A1B2E]/60 transition">
                                     <td class="py-3.5 px-4">
-                                        <div class="font-bold text-slate-900">@p.CreatorName</div>
-                                        <div class="text-xs text-slate-500">@p.CreatorEmail</div>
+                                        <div class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@p.CreatorName</div>
+                                        <div class="text-xs text-[#7A8CA6] dark:text-[#C4D2E1]">@p.CreatorEmail</div>
                                     </td>
-                                    <td class="py-3.5 px-4 text-right font-extrabold text-slate-900">
+                                    <td class="py-3.5 px-4 text-right font-extrabold text-[#0A1B2E] dark:text-[#E1E8F0]">
                                         @p.AmountLinkDrops LD
                                     </td>
-                                    <td class="py-3.5 px-4 text-right font-bold text-emerald-700">
+                                    <td class="py-3.5 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
                                         @p.AmountMMK.ToString("N0") MMK
                                     </td>
-                                    <td class="py-3.5 px-4 font-semibold text-slate-800">
+                                    <td class="py-3.5 px-4 font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">
                                         @p.PaymentMethod
                                     </td>
-                                    <td class="py-3.5 px-4 text-xs text-slate-600">
-                                        <div><span class="font-medium text-slate-800">@p.PaymentAccountName</span></div>
-                                        <div class="font-mono text-slate-500">@p.PaymentAccountNumber</div>
+                                    <td class="py-3.5 px-4 text-xs text-[#557392] dark:text-[#C4D2E1]">
+                                        <div><span class="font-medium text-[#0A1B2E] dark:text-[#E1E8F0]">@p.PaymentAccountName</span></div>
+                                        <div class="font-mono text-[#7A8CA6]">@p.PaymentAccountNumber</div>
                                     </td>
-                                    <td class="py-3.5 px-4 font-mono text-xs text-slate-600">
+                                    <td class="py-3.5 px-4 font-mono text-xs text-[#7A8CA6] dark:text-[#C4D2E1]">
                                         @p.CreatedAt.ToString("MMM dd, yyyy HH:mm")
                                     </td>
                                     <td class="py-3.5 px-4 text-center">
                                         @if (p.Status == "PENDING")
                                         {
-                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-800">
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-300">
                                                 Pending Review
                                             </span>
                                         }
                                         else if (p.Status == "COMPLETED" || p.Status == "APPROVED")
                                         {
-                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-200 text-emerald-800">
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300">
                                                 Completed
                                             </span>
                                         }
                                         else
                                         {
-                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 border border-rose-200 text-rose-800">
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300">
                                                 @p.Status
                                             </span>
                                         }
@@ -147,7 +147,7 @@
                                         }
                                         else
                                         {
-                                            <span class="text-xs text-slate-400 italic">Reviewed</span>
+                                            <span class="text-xs text-[#7A8CA6] italic">Reviewed</span>
                                         }
                                     </td>
                                 </tr>
@@ -163,57 +163,57 @@
 <!-- CONFIRMATION MODAL FOR APPROVAL / REJECTION -->
 @if (selectedPayout != null)
 {
-    <div class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="text-lg font-bold text-slate-900">
+    <div class="fixed inset-0 z-50 bg-[#0A1B2E]/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 text-[#0A1B2E] dark:text-[#E1E8F0]">
+            <div class="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-3">
+                <h3 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">
                     @(isApprovingAction ? "Approve Payout Request" : "Reject Payout Request")
                 </h3>
-                <button type="button" @onclick="CloseModal" class="text-slate-400 hover:text-slate-600 font-bold text-lg">
+                <button type="button" @onclick="CloseModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white font-bold text-lg">
                     &times;
                 </button>
             </div>
 
-            <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-2 text-xs text-slate-700">
+            <div class="bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-xl p-4 space-y-2 text-xs">
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Creator:</span>
-                    <span class="font-bold text-slate-900">@selectedPayout.CreatorName (@selectedPayout.CreatorEmail)</span>
+                    <span class="text-[#7A8CA6]">Creator:</span>
+                    <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@selectedPayout.CreatorName (@selectedPayout.CreatorEmail)</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Amount:</span>
-                    <span class="font-extrabold text-slate-900 text-sm">@selectedPayout.AmountLinkDrops LD</span>
+                    <span class="text-[#7A8CA6]">Amount:</span>
+                    <span class="font-extrabold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">@selectedPayout.AmountLinkDrops LD</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">MMK Value:</span>
-                    <span class="font-bold text-emerald-700 text-sm">@selectedPayout.AmountMMK.ToString("N0") MMK</span>
+                    <span class="text-[#7A8CA6]">MMK Value:</span>
+                    <span class="font-bold text-emerald-600 dark:text-emerald-400 text-sm">@selectedPayout.AmountMMK.ToString("N0") MMK</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Payment Account:</span>
-                    <span class="font-semibold text-slate-800">@selectedPayout.PaymentMethod - @selectedPayout.PaymentAccountName (@selectedPayout.PaymentAccountNumber)</span>
+                    <span class="text-[#7A8CA6]">Payment Account:</span>
+                    <span class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@selectedPayout.PaymentMethod - @selectedPayout.PaymentAccountName (@selectedPayout.PaymentAccountNumber)</span>
                 </div>
             </div>
 
             @if (isApprovingAction)
             {
-                <p class="text-xs text-slate-600 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-emerald-800 font-medium">
+                <p class="text-xs bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 text-emerald-800 dark:text-emerald-200 font-medium">
                     Approving this request will immediately deduct <strong>@selectedPayout.AmountLinkDrops Link Drops</strong> from the creator's EarnedBalance and record a CREATOR_PAYOUT audit ledger transaction.
                 </p>
             }
             else
             {
-                <p class="text-xs text-slate-600 bg-rose-50 border border-rose-200 rounded-lg p-3 text-rose-800 font-medium">
+                <p class="text-xs bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-lg p-3 text-rose-800 dark:text-rose-200 font-medium">
                     Rejecting this request will NOT deduct any Link Drops from the creator's wallet.
                 </p>
             }
 
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Admin Note (Optional)</label>
+                <label class="block text-xs font-bold text-[#7A8CA6] dark:text-[#C4D2E1] uppercase tracking-wider mb-1">Admin Note (Optional)</label>
                 <textarea rows="3" placeholder="e.g. Transaction ID / Reference code / Rejection reason" @bind="adminNoteInput"
-                          class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-xs text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none"></textarea>
+                          class="w-full bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] rounded-lg p-3 text-xs text-[#0A1B2E] dark:text-[#E1E8F0] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:outline-none"></textarea>
             </div>
 
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
-                <button type="button" @onclick="CloseModal" class="px-4 py-2 bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-200 transition">
+            <div class="pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-end gap-3">
+                <button type="button" @onclick="CloseModal" class="px-4 py-2 bg-white dark:bg-[#0A1B2E] text-[#557392] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] rounded-lg text-xs font-semibold hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition">
                     Cancel
                 </button>
                 <button type="button" @onclick="ProcessAction" disabled="@isProcessing"

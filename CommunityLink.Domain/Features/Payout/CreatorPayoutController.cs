@@ -4,11 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Payout;
+using CommunityLink.Shared.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/creator/payouts")]
-[Authorize]
+[Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorPayouts)]
 public sealed class CreatorPayoutController(ICreatorPayoutService creatorPayoutService) : BaseController
 {
     [HttpPost]

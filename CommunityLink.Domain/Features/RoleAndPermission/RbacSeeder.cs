@@ -12,6 +12,33 @@ public static class RbacSeeder
 
         if (db.Database.IsRelational())
         {
+            // Auto-create TblUserActivity table if it doesn't exist yet
+            await db.Database.ExecuteSqlRawAsync(@"
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TblUserActivity' AND schema_id = SCHEMA_ID('dbo'))
+            BEGIN
+                CREATE TABLE dbo.TblUserActivity (
+                    ActivityId       BIGINT IDENTITY(1,1) NOT NULL,
+                    UserId           INT NOT NULL,
+                    ActivityType     NVARCHAR(50) NOT NULL,
+                    Description      NVARCHAR(500) NOT NULL,
+                    TargetEntityType NVARCHAR(50) NULL,
+                    TargetEntityId   INT NULL,
+                    CreatedAt        DATETIME2(7) NOT NULL CONSTRAINT DF_TblUserActivity_CreatedAt DEFAULT (SYSUTCDATETIME()),
+                    IsDeleted        BIT NOT NULL CONSTRAINT DF_TblUserActivity_IsDeleted DEFAULT (0),
+                    DeletedAt        DATETIME2(7) NULL,
+                    CONSTRAINT PK_TblUserActivity PRIMARY KEY CLUSTERED (ActivityId ASC),
+                    CONSTRAINT FK_TblUserActivity_TblUser FOREIGN KEY (UserId) REFERENCES dbo.TblUser (UserId)
+                );
+                IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_TblUserActivity_UserId' AND object_id = OBJECT_ID('dbo.TblUserActivity'))
+                BEGIN
+                    CREATE NONCLUSTERED INDEX IX_TblUserActivity_UserId ON dbo.TblUserActivity (UserId ASC);
+                END;
+                IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_TblUserActivity_User_Status' AND object_id = OBJECT_ID('dbo.TblUserActivity'))
+                BEGIN
+                    CREATE NONCLUSTERED INDEX IX_TblUserActivity_User_Status ON dbo.TblUserActivity (UserId ASC, IsDeleted ASC, CreatedAt DESC);
+                END;
+            END;");
+
             // Auto-create TblUserFollow table if it doesn't exist yet (for database first setups)
             await db.Database.ExecuteSqlRawAsync(@"
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TblUserFollow' AND schema_id = SCHEMA_ID('dbo'))
@@ -339,7 +366,7 @@ public static class RbacSeeder
                         CreatedAt = DateTime.UtcNow
                     });
                 }
-                else if (code == "ADMIN" && mapping.IsDeleted)
+                else if (mapping.IsDeleted && (code == "ADMIN" || defaultCodes.Contains(perm.PermissionCode)))
                 {
                     mapping.IsDeleted = false;
                     mapping.UpdatedAt = DateTime.UtcNow;

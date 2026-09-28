@@ -2,7 +2,9 @@
 @using CommunityLink.App.Apis
 @using CommunityLink.Shared.Features.Creator
 @using CommunityLink.Shared.Features.Chat
+@using CommunityLink.Shared.Security
 @using System.Security.Claims
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorEarnings)]
 @inject CreatorEarningsApiService EarningsApi
 @inject ChatApiService ChatApi
 @inject NavigationManager Navigation

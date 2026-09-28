@@ -76,6 +76,7 @@ public static class FeatureManager
         services.AddScoped<CommunityLink.Domain.Features.Creator.ICreatorEarningsService, CommunityLink.Domain.Features.Creator.CreatorEarningsService>();
         services.AddScoped<CommunityLink.Domain.Features.Payout.ICreatorPayoutService, CommunityLink.Domain.Features.Payout.CreatorPayoutService>();
         services.AddScoped<CommunityLink.Domain.Features.Finance.IAdminFinanceService, CommunityLink.Domain.Features.Finance.AdminFinanceService>();
+        services.AddScoped<CommunityLink.Domain.Features.Activity.IUserActivityService, CommunityLink.Domain.Features.Activity.UserActivityService>();
 
         return services;
     }

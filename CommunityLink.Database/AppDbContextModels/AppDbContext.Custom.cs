@@ -12,9 +12,28 @@ public partial class AppDbContext
     public virtual DbSet<TblCreatorPayoutRequest> TblCreatorPayoutRequests { get; set; }
     public virtual DbSet<TblCreatorChatSetting> TblCreatorChatSettings { get; set; }
     public virtual DbSet<TblPrivateChatPaymentTransaction> TblPrivateChatPaymentTransactions { get; set; }
+    public virtual DbSet<TblUserActivity> TblUserActivities { get; set; }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TblUserActivity>(entity =>
+        {
+            entity.HasKey(e => e.ActivityId);
+            entity.ToTable("TblUserActivity");
+
+            entity.Property(e => e.ActivityType).HasMaxLength(50);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.TargetEntityType).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasIndex(e => e.UserId, "IX_TblUserActivity_UserId");
+            entity.HasIndex(e => new { e.UserId, e.IsDeleted, e.CreatedAt }, "IX_TblUserActivity_User_Status");
+
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblUserActivity_TblUser");
+        });
         modelBuilder.Entity<TblCreatorChatSetting>(entity =>
         {
             entity.HasKey(e => e.CreatorChatSettingId);

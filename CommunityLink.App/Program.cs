@@ -72,6 +72,7 @@ builder.Services.AddScoped<ReportApiService>();
 builder.Services.AddScoped<CreatorEarningsApiService>();
 builder.Services.AddScoped<CreatorPayoutApiService>();
 builder.Services.AddScoped<AdminFinanceApiService>();
+builder.Services.AddScoped<UserActivityApiService>();
 
 
 var app = builder.Build();

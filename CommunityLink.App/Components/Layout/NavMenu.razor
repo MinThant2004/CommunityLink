@@ -75,21 +75,46 @@
                     </div>
 
                     <!-- Creator Center Section -->
-                    <div class="px-1 py-2 mt-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
-                        <div class="px-3 pb-1 font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
-                            Creator Center
-                        </div>
-                        <div class="space-y-1">
-                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/earnings">
-                                <span class="text-sm">💰</span>
-                                <span>Earnings</span>
-                            </NavLink>
-                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/payouts">
-                                <span class="text-sm">💸</span>
-                                <span>Payouts</span>
-                            </NavLink>
-                        </div>
-                    </div>
+                    <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorEarnings)" Context="creatorEarningsContext">
+                        <Authorized>
+                            <div class="px-1 py-2 mt-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
+                                <div class="px-3 pb-1 font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
+                                    Creator Center
+                                </div>
+                                <div class="space-y-1">
+                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/earnings">
+                                        <span class="text-sm">💰</span>
+                                        <span>Earnings</span>
+                                    </NavLink>
+                                    <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorPayouts)" Context="creatorPayoutsContext">
+                                        <Authorized Context="payoutInner">
+                                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/payouts">
+                                                <span class="text-sm">💸</span>
+                                                <span>Payouts</span>
+                                            </NavLink>
+                                        </Authorized>
+                                    </AuthorizeView>
+                                </div>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized>
+                            <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorPayouts)" Context="creatorPayoutsOnlyContext">
+                                <Authorized Context="payoutOnly">
+                                    <div class="px-1 py-2 mt-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
+                                        <div class="px-3 pb-1 font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
+                                            Creator Center
+                                        </div>
+                                        <div class="space-y-1">
+                                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/payouts">
+                                                <span class="text-sm">💸</span>
+                                                <span>Payouts</span>
+                                            </NavLink>
+                                        </div>
+                                    </div>
+                                </Authorized>
+                            </AuthorizeView>
+                        </NotAuthorized>
+                    </AuthorizeView>
 
                     <!-- Reports Section / Dropdown -->
                     <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.ReportView)" Context="reportCtx">

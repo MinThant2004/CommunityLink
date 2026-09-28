@@ -4,11 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Creator;
+using CommunityLink.Shared.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/creator/earnings")]
-[Authorize]
+[Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorEarnings)]
 public sealed class CreatorEarningsController(ICreatorEarningsService creatorEarningsService) : BaseController
 {
     [HttpGet]

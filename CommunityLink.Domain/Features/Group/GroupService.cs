@@ -6,6 +6,7 @@ using CommunityLink.Shared.Features.Group;
 
 using CommunityLink.Domain.Features.Notification;
 using CommunityLink.Domain.Features.RoleAndPermission;
+using CommunityLink.Domain.Features.Activity;
 using CommunityLink.Shared.Security;
 
 namespace CommunityLink.Domain.Features.Group;
@@ -29,7 +30,8 @@ public sealed class GroupService(
     AppDbContext dbContext,
     ICurrentUserContext currentUser,
     INotificationService notificationService,
-    IPermissionEvaluator permissionEvaluator) : IGroupService
+    IPermissionEvaluator permissionEvaluator,
+    IUserActivityService userActivityService) : IGroupService
 {
     public async Task<Result<IReadOnlyList<GroupModel>>> GetGroupsAsync(int? subCommunityId, string? search, CancellationToken cancellationToken = default)
     {
@@ -254,6 +256,15 @@ public sealed class GroupService(
         });
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Record User Activity
+        await userActivityService.RecordActivityAsync(
+            creatorId,
+            "GROUP_CREATE",
+            $"You created the group '{group.Name}'",
+            "GROUP",
+            group.GroupId,
+            cancellationToken);
 
         return await GetGroupByIdAsync(group.GroupId, cancellationToken);
     }
@@ -536,6 +547,21 @@ public sealed class GroupService(
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Record User Activity for reviewer
+        var actionText = approve ? "accepted" : "rejected";
+        var memberUser = await dbContext.TblUsers.FindAsync([request.UserId], cancellationToken);
+        var memberName = memberUser?.DisplayName ?? memberUser?.UserName ?? "someone";
+        var groupName = request.Group?.Name ?? "group";
+
+        await userActivityService.RecordActivityAsync(
+            reviewerId,
+            "GROUP_JOIN_REVIEW",
+            $"You {actionText} {memberName}'s join request for '{groupName}'",
+            "GROUP",
+            request.GroupId,
+            cancellationToken);
+
         return Result.Success(approve ? "Join request approved!" : "Join request rejected.");
     }
 

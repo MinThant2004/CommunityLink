@@ -170,10 +170,9 @@
         var res = await RoleApi.GetRolesAsync();
         if (res.IsSuccess && res.Data != null)
         {
-            // Per requirements: Remove default 'User' role (and 'Member') so admins only assign Domain Professional, Public Figure, etc.
+            // Allow default 'USER' role switch (exclude only 'MEMBER' legacy role if applicable)
             availableRoles = res.Data
-                .Where(r => !r.Code.Equals("USER", StringComparison.OrdinalIgnoreCase)
-                         && !r.Code.Equals("MEMBER", StringComparison.OrdinalIgnoreCase))
+                .Where(r => !r.Code.Equals("MEMBER", StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
     }

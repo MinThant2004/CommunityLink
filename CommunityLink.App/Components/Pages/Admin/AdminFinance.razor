@@ -1,20 +1,20 @@
 @page "/admin/finance"
-@layout AdminLayout
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
 @using CommunityLink.App.Apis
 @using CommunityLink.Shared.Features.Finance
+@using CommunityLink.Shared.Security
 @inject AdminFinanceApiService FinanceApi
 @inject ToastService Toast
 @inject IJSRuntime JS
 
-<PageTitle>Admin Finance - CommunityLink</PageTitle>
+<PageTitle>Platform Finance &amp; Revenue — Admin Control Panel</PageTitle>
 
-<div class="space-y-6">
+<div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-6 shadow-sm">
         <div>
-            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Admin Control Panel</div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Platform Finance &amp; Revenue</h1>
-            <p class="text-sm text-slate-600 mt-1">Platform-wide financial revenue, commission aggregation, and payout summary.</p>
+            <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">💰 Platform Finance &amp; Revenue</h1>
+            <p class="text-sm text-[#557392] dark:text-[#C4D2E1] mt-1">Platform-wide financial revenue, commission aggregation, and payout summary.</p>
         </div>
         <div class="flex items-center gap-3">
             <button type="button" @onclick="ExportCsv" disabled="@isExporting"
@@ -30,7 +30,7 @@
                     <span>Export CSV</span>
                 }
             </button>
-            <button type="button" @onclick="LoadAllData" class="px-4 py-2 bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-200 transition flex items-center gap-2">
+            <button type="button" @onclick="LoadAllData" class="px-4 py-2 bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#557392] dark:text-[#C4D2E1] rounded-lg text-xs font-semibold hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition flex items-center gap-2">
                 <span>🔄</span> Refresh Data
             </button>
         </div>

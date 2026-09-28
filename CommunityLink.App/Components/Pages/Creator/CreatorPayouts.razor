@@ -1,6 +1,8 @@
 @page "/creator/payouts"
 @using CommunityLink.App.Apis
 @using CommunityLink.Shared.Features.Payout
+@using CommunityLink.Shared.Security
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorPayouts)]
 @inject CreatorPayoutApiService PayoutApi
 @inject ToastService Toast
 

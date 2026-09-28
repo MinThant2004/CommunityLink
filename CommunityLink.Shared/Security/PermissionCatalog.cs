@@ -43,6 +43,10 @@ public static class PermissionCatalog
     // Reports
     public const string ReportView = "REPORT.VIEW";
 
+    // Creator Center
+    public const string CreatorEarnings = "CREATOR.EARNINGS";
+    public const string CreatorPayouts = "CREATOR.PAYOUTS";
+
     public static readonly IReadOnlyList<PermissionDefinition> All =
     [
         new(CommunityView, "View Communities", "Community", "/communities", true, true),
@@ -67,7 +71,9 @@ public static class PermissionCatalog
         new(AdminUserManage, "Manage Admin Users", "Administration", "/admin/users", true, false),
         new(AdminRbacManage, "Manage RBAC Matrix", "Administration", "/admin/rbac", true, false),
         new(SystemAuditView, "View System Audit Logs", "Administration", "/admin/audits", true, false),
-        new(ReportView, "View Reports", "Reports", "/reports", true, true)
+        new(ReportView, "View Reports", "Reports", "/reports", true, true),
+        new(CreatorEarnings, "View Creator Earnings", "Creator", "/creator/earnings", true, false),
+        new(CreatorPayouts, "Manage Creator Payouts", "Creator", "/creator/payouts", true, false)
     ];
 
     public static IReadOnlyList<string> DefaultForRole(string roleCode) => roleCode.ToUpperInvariant() switch
@@ -75,7 +81,7 @@ public static class PermissionCatalog
         "ADMIN" => All.Select(x => x.Code).ToArray(),
         "MODERATOR" => All.Where(x => x.AdminDefault || x.MemberDefault).Select(x => x.Code).ToArray(),
         "MEMBER" => All.Where(x => x.MemberDefault).Select(x => x.Code).ToArray(),
-        "DOMAIN_PROFESSIONAL" or "PUBLIC_FIGURE" => All.Where(x => x.MemberDefault || x.Code == GroupChatCreate).Select(x => x.Code).ToArray(),
+        "DOMAIN_PROFESSIONAL" or "PUBLIC_FIGURE" => All.Where(x => x.MemberDefault || x.Code == GroupChatCreate || x.Code == CreatorEarnings || x.Code == CreatorPayouts).Select(x => x.Code).ToArray(),
         _ => []
     };
 }

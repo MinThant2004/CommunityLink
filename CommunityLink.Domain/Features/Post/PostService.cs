@@ -5,6 +5,7 @@ using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Post;
 using CommunityLink.Domain.Features.Notification;
 using CommunityLink.Domain.Features.RoleAndPermission;
+using CommunityLink.Domain.Features.Activity;
 using CommunityLink.Shared.Security;
 
 namespace CommunityLink.Domain.Features.Post;
@@ -26,7 +27,8 @@ public sealed class PostService(
     AppDbContext dbContext,
     ICurrentUserContext currentUser,
     INotificationService notificationService,
-    IPermissionEvaluator permissionEvaluator) : IPostService
+    IPermissionEvaluator permissionEvaluator,
+    IUserActivityService userActivityService) : IPostService
 {
     public async Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default)
     {
@@ -397,12 +399,24 @@ public sealed class PostService(
         // Notify post author
         var actorUser = await dbContext.TblUsers.FindAsync([currentUser.UserId.Value], cancellationToken);
         var actorName = actorUser?.DisplayName ?? actorUser?.UserName ?? "Someone";
+        var authorUser = await dbContext.TblUsers.FindAsync([post.AuthorId], cancellationToken);
+        var authorName = authorUser?.DisplayName ?? authorUser?.UserName ?? "someone";
+
         await notificationService.CreateNotificationAsync(
             post.AuthorId,
             currentUser.UserId.Value,
             "LIKE",
             "New Like",
             $"{actorName} gave a Like to your post",
+            "POST",
+            post.PostId,
+            cancellationToken);
+
+        // Record User Activity
+        await userActivityService.RecordActivityAsync(
+            currentUser.UserId.Value,
+            "LIKE",
+            $"You gave like to {authorName} post",
             "POST",
             post.PostId,
             cancellationToken);
@@ -435,12 +449,24 @@ public sealed class PostService(
         // Notify post author
         var actorUser = await dbContext.TblUsers.FindAsync([currentUser.UserId.Value], cancellationToken);
         var actorName = actorUser?.DisplayName ?? actorUser?.UserName ?? "Someone";
+        var authorUser = await dbContext.TblUsers.FindAsync([post.AuthorId], cancellationToken);
+        var authorName = authorUser?.DisplayName ?? authorUser?.UserName ?? "someone";
+
         await notificationService.CreateNotificationAsync(
             post.AuthorId,
             currentUser.UserId.Value,
             "SHARE",
             "Post Shared",
             $"{actorName} just shared your post",
+            "POST",
+            post.PostId,
+            cancellationToken);
+
+        // Record User Activity
+        await userActivityService.RecordActivityAsync(
+            currentUser.UserId.Value,
+            "SHARE",
+            $"You shared {authorName} post",
             "POST",
             post.PostId,
             cancellationToken);
@@ -470,6 +496,8 @@ public sealed class PostService(
 
         var user = await dbContext.TblUsers.FindAsync([currentUser.UserId.Value], cancellationToken);
         var actorName = user?.DisplayName ?? user?.UserName ?? "Someone";
+        var authorUser = await dbContext.TblUsers.FindAsync([post.AuthorId], cancellationToken);
+        var authorName = authorUser?.DisplayName ?? authorUser?.UserName ?? "someone";
 
         // Notify post author
         await notificationService.CreateNotificationAsync(
@@ -478,6 +506,15 @@ public sealed class PostService(
             "COMMENT",
             "New Comment",
             $"{actorName} gave you a comment to your post",
+            "POST",
+            post.PostId,
+            cancellationToken);
+
+        // Record User Activity
+        await userActivityService.RecordActivityAsync(
+            currentUser.UserId.Value,
+            "COMMENT",
+            $"You gave a comment to {authorName} post",
             "POST",
             post.PostId,
             cancellationToken);
