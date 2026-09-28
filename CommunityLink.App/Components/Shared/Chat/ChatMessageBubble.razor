@@ -1,13 +1,15 @@
 @using CommunityLink.App.Components.Shared.Chat
+@using CommunityLink.Shared.Features.Chat
 @inject IJSRuntime JS
 @inject ToastService Toast
 
 @*
-    Bubble for both 1:1 and group messages. Flat: no shadows, a single indigo accent for
-    the viewer's own messages, and a hairline border for everyone else's.
+    Telegram-style Chat Message Bubble. Renders quoted replies, reaction badges,
+    and interactive Telegram-style context popup with quick emoji bar, reply, copy,
+    and dual delete actions (delete for me / delete for everyone).
 *@
 
-<div class="flex flex-col @(Message.IsMine ? "items-end" : "items-start")">
+<div class="flex flex-col @(Message.IsMine ? "items-end" : "items-start") group/message relative">
     @if (ShowHeader)
     {
         <div class="mb-1 flex items-center gap-1.5 px-1 @(Message.IsMine ? "flex-row-reverse" : "flex-row")">
@@ -22,54 +24,158 @@
                     <span class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-600">@Initial</span>
                 }
             }
-            <span class="text-xs font-medium text-slate-600">@(Message.IsMine ? "You" : Message.SenderName)</span>
+            <a href="u/@(Message.SenderName)" class="text-xs font-medium text-slate-600 hover:text-indigo-600 hover:underline">
+                @(Message.IsMine ? "You" : Message.SenderName)
+            </a>
         </div>
     }
 
     <div class="group/bubble relative flex max-w-[85%] items-end gap-1 sm:max-w-[70%]">
-        <div class="rounded-2xl px-3.5 py-2 text-sm leading-relaxed
+        <!-- Message Bubble Body -->
+        <div @onclick="ToggleContextMenu"
+             class="cursor-pointer rounded-2xl px-3.5 py-2 text-sm leading-relaxed transition-shadow hover:shadow-sm
                     @(Message.IsMine
                         ? "rounded-br-md bg-indigo-600 text-white"
                         : "rounded-bl-md border border-slate-200 bg-white text-slate-800")">
+
+            <!-- Quoted Reply Preview Strip -->
+            @if (Message.ReplyToMessageId.HasValue)
+            {
+                <div class="mb-1.5 rounded-lg border-l-3 px-2.5 py-1 text-xs select-none
+                            @(Message.IsMine ? "border-indigo-200 bg-indigo-700/60 text-indigo-50" : "border-indigo-500 bg-slate-100 text-slate-700")">
+                    @if (Message.ReplyToIsDeleted)
+                    {
+                        <span class="italic text-slate-400">Original message was deleted</span>
+                    }
+                    else
+                    {
+                        <div class="font-semibold @(Message.IsMine ? "text-white" : "text-indigo-600")">@Message.ReplyToSenderName</div>
+                        <div class="truncate opacity-90">@Message.ReplyToPreview</div>
+                    }
+                </div>
+            }
+
+            <!-- Main Message Text -->
             <div class="whitespace-pre-wrap break-words">@Message.Content</div>
+
+            <!-- Reaction Badges Bar -->
+            @if (GroupedReactions.Any())
+            {
+                <div class="mt-1.5 flex flex-wrap gap-1">
+                    @foreach (var r in GroupedReactions)
+                    {
+                        <button type="button"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => ToggleReaction(r.Emoji)"
+                                title="@r.UserList"
+                                class="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition
+                                       @(r.HasUserReacted
+                                           ? (Message.IsMine ? "bg-white/20 text-white" : "bg-indigo-100 text-indigo-700 border border-indigo-200")
+                                           : (Message.IsMine ? "bg-black/10 text-indigo-100 hover:bg-black/20" : "bg-slate-100 text-slate-600 hover:bg-slate-200"))">
+                            <span>@r.Emoji</span>
+                            <span>@r.Count</span>
+                        </button>
+                    }
+                </div>
+            }
+
+            <!-- Time and Read Status -->
             <div class="mt-0.5 select-none text-right text-xs @(Message.IsMine ? "text-indigo-100" : "text-slate-400")">
                 @Message.SentTime
                 @if (Message.IsMine && Message.ThreadType == ChatThreadType.Private)
                 {
                     <span class="ml-1" title="@(Message.IsRead ? "Read" : "Delivered")">
-                        @(Message.IsRead
-                            ? "✓✓"
-                            : "✓")
+                        @(Message.IsRead ? "✓✓" : "✓")
                     </span>
                 }
             </div>
         </div>
 
+        <!-- Quick Action Dots Trigger -->
         @if (ShowActions)
         {
-            <div class="invisible flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 opacity-0 transition group-hover/bubble:visible group-hover/bubble:opacity-100 focus-within:visible focus-within:opacity-100">
+            <div class="invisible flex items-center rounded-lg border border-slate-200 bg-white p-0.5 opacity-0 transition group-hover/bubble:visible group-hover/bubble:opacity-100">
                 <button type="button"
-                        @onclick="CopyText"
-                        title="Copy message"
-                        aria-label="Copy message"
-                        class="rounded p-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m0 0h1.5a5.25 5.25 0 0 1 5.25 5.25v1.5" />
+                        @onclick="ToggleContextMenu"
+                        title="More options"
+                        aria-label="More options"
+                        class="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-800">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Zm0 6a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Zm0 6a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
                     </svg>
                 </button>
+            </div>
+        }
 
-                @if (Message.CanDelete)
-                {
+        <!-- Telegram-Style Context Menu Box -->
+        @if (showMenu)
+        {
+            <div class="fixed inset-0 z-40" @onclick="CloseMenu"></div>
+            <div class="absolute bottom-full mb-2 z-50 min-w-[220px] max-w-[280px] rounded-xl border border-slate-200 bg-white p-2 shadow-xl animate-in fade-in zoom-in-95 duration-100
+                        @(Message.IsMine ? "right-0" : "left-0")">
+                
+                <!-- Quick Reaction Strip -->
+                <div class="mb-2 flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1.5 border border-slate-100">
+                    @foreach (var emoji in TelegramEmojis)
+                    {
+                        <button type="button"
+                                @onclick="() => SelectEmojiAndClose(emoji)"
+                                class="transform rounded-md p-1 text-lg transition hover:scale-125 hover:bg-white focus:outline-none">
+                            @emoji
+                        </button>
+                    }
+                </div>
+
+                <!-- Action Items List -->
+                <div class="space-y-0.5 text-xs font-medium text-slate-700">
+                    <!-- Reply -->
                     <button type="button"
-                            @onclick="OnDeleteClicked"
-                            title="Delete message"
-                            aria-label="Delete message"
-                            class="rounded p-1 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-400">
-                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                            @onclick="ReplyClicked"
+                            class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition hover:bg-slate-100 hover:text-indigo-600">
+                        <svg class="h-4 w-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
                         </svg>
+                        <span>Reply</span>
                     </button>
-                }
+
+                    <!-- Copy -->
+                    <button type="button"
+                            @onclick="CopyText"
+                            class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition hover:bg-slate-100 hover:text-indigo-600">
+                        <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m0 0h1.5a5.25 5.25 0 0 1 5.25 5.25v1.5" />
+                        </svg>
+                        <span>Copy Message</span>
+                    </button>
+
+                    <div class="my-1 border-t border-slate-100"></div>
+
+                    <!-- Delete for Me -->
+                    @if (Message.CanDeleteForSelf)
+                    {
+                        <button type="button"
+                                @onclick="DeleteForSelfClicked"
+                                class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition hover:bg-rose-50 hover:text-rose-600">
+                            <svg class="h-4 w-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                            </svg>
+                            <span>Delete for Me</span>
+                        </button>
+                    }
+
+                    <!-- Delete for Everyone -->
+                    @if (Message.CanDeleteForEveryone || Message.IsMine || Message.CanDelete)
+                    {
+                        <button type="button"
+                                @onclick="DeleteForEveryoneClicked"
+                                class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 font-semibold text-rose-600 transition hover:bg-rose-100">
+                            <svg class="h-4 w-4 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                            </svg>
+                            <span>Delete for Everyone</span>
+                        </button>
+                    }
+                </div>
             </div>
         }
     </div>
@@ -79,24 +185,84 @@
     [Parameter, EditorRequired] public ChatMessageViewModel Message { get; set; } = default!;
     [Parameter] public bool ShowHeader { get; set; } = true;
     [Parameter] public bool ShowActions { get; set; } = true;
-    [Parameter] public EventCallback<int> OnDelete { get; set; }
+    [Parameter] public EventCallback<ChatMessageViewModel> OnReply { get; set; }
+    [Parameter] public EventCallback<ChatMessageViewModel> OnDeleteForSelf { get; set; }
+    [Parameter] public EventCallback<ChatMessageViewModel> OnDeleteForEveryone { get; set; }
+    [Parameter] public EventCallback<(ChatMessageViewModel Message, string Emoji)> OnToggleReaction { get; set; }
+
+    private bool showMenu;
+
+    private static readonly string[] TelegramEmojis = ["👍", "❤️", "🔥", "😂", "😮", "😢", "🙏", "👏"];
 
     private string Initial => string.IsNullOrWhiteSpace(Message.SenderName)
         ? "?"
         : Message.SenderName.Trim()[..1].ToUpperInvariant();
 
-    private async Task CopyText()
+    private IEnumerable<GroupedReaction> GroupedReactions
     {
-        try
+        get
         {
-            await JS.InvokeVoidAsync("navigator.clipboard.writeText", Message.Content);
-            Toast.Success("Message copied.");
-        }
-        catch
-        {
-            Toast.Error("Could not copy to clipboard.");
+            if (Message.Reactions == null || Message.Reactions.Count == 0)
+            {
+                return Enumerable.Empty<GroupedReaction>();
+            }
+
+            return Message.Reactions
+                .GroupBy(r => r.Emoji)
+                .Select(g => new GroupedReaction(
+                    g.Key,
+                    g.Count(),
+                    g.Any(x => x.UserName == Message.SenderName || x.UserId == Message.SenderId),
+                    string.Join(", ", g.Select(x => x.UserName))
+                ));
         }
     }
 
-    private async Task OnDeleteClicked() => await OnDelete.InvokeAsync(Message.Id);
+    private void ToggleContextMenu() => showMenu = !showMenu;
+    private void CloseMenu() => showMenu = false;
+
+    private async Task SelectEmojiAndClose(string emoji)
+    {
+        showMenu = false;
+        await ToggleReaction(emoji);
+    }
+
+    private async Task ToggleReaction(string emoji)
+    {
+        await OnToggleReaction.InvokeAsync((Message, emoji));
+    }
+
+    private async Task ReplyClicked()
+    {
+        showMenu = false;
+        await OnReply.InvokeAsync(Message);
+    }
+
+    private async Task CopyText()
+    {
+        showMenu = false;
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", Message.Content);
+            Toast.Success("Message copied to clipboard.");
+        }
+        catch
+        {
+            Toast.Error("Could not copy message.");
+        }
+    }
+
+    private async Task DeleteForSelfClicked()
+    {
+        showMenu = false;
+        await OnDeleteForSelf.InvokeAsync(Message);
+    }
+
+    private async Task DeleteForEveryoneClicked()
+    {
+        showMenu = false;
+        await OnDeleteForEveryone.InvokeAsync(Message);
+    }
+
+    private record GroupedReaction(string Emoji, int Count, bool HasUserReacted, string UserList);
 }

@@ -5,6 +5,7 @@ using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Features.Admin;
 using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
+using CommunityLink.Shared.Features.Chat;
 using CommunityLink.Shared.Features.ChatGroup;
 
 public sealed class ChatGroupService(
@@ -591,9 +592,18 @@ public sealed class ChatGroupService(
             return Result<IReadOnlyList<ChatGroupMessageModel>>.Failure("You are not a member of this Chat Group.", ResultStatus.Forbidden);
         }
 
+        // Resolved once here so the client is never offered a moderation action the service
+        // would reject.
+        var canModerate = await IsModeratorAsync(chatGroupId, userId, cancellationToken);
+
+        // Messages hidden for this member are filtered out, which is what makes
+        // "Delete for myself" a per-viewer view rather than a client-side trick.
         var rawMessages = await dbContext.TblChatGroupMessages
             .AsNoTracking()
-            .Where(m => m.ChatGroupId == chatGroupId && !m.IsDeleted)
+            .Where(m => m.ChatGroupId == chatGroupId &&
+                        !m.IsDeleted &&
+                        !dbContext.TblChatGroupMessageUserStates.Any(s =>
+                            s.ChatGroupMessageId == m.ChatGroupMessageId && s.UserId == userId && s.IsHidden))
             .OrderBy(m => m.CreatedAt)
             .Select(m => new
             {
@@ -604,23 +614,140 @@ public sealed class ChatGroupService(
                 SenderDisplayName = m.Sender.DisplayName ?? m.Sender.UserName,
                 SenderAvatar = m.Sender.AvatarUrl,
                 m.Content,
-                m.CreatedAt
+                m.CreatedAt,
+                m.ReplyToChatGroupMessageId
             })
             .ToListAsync(cancellationToken);
 
-        var result = rawMessages.Select(m => new ChatGroupMessageModel(
-            m.ChatGroupMessageId,
-            m.ChatGroupId,
-            m.SenderId,
-            m.SenderName,
-            m.SenderDisplayName,
-            m.SenderAvatar,
-            m.Content,
-            m.CreatedAt,
-            IsMine: m.SenderId == userId
-        )).ToList();
+        var replies = await GetReplyStubsAsync(
+            rawMessages.Where(m => m.ReplyToChatGroupMessageId.HasValue)
+                .Select(m => m.ReplyToChatGroupMessageId!.Value)
+                .Distinct()
+                .ToList(),
+            cancellationToken);
+
+        var reactions = await GetReactionsAsync(
+            rawMessages.Select(m => m.ChatGroupMessageId).ToList(),
+            cancellationToken);
+
+        var result = rawMessages.Select(m =>
+        {
+            var hasReply = replies.TryGetValue(m.ReplyToChatGroupMessageId ?? -1, out var reply);
+
+            return new ChatGroupMessageModel(
+                m.ChatGroupMessageId,
+                m.ChatGroupId,
+                m.SenderId,
+                m.SenderName,
+                m.SenderDisplayName,
+                m.SenderAvatar,
+                m.Content,
+                m.CreatedAt,
+                IsMine: m.SenderId == userId,
+                m.ReplyToChatGroupMessageId,
+                hasReply ? reply.SenderName : null,
+                hasReply ? reply.Preview : null,
+                hasReply && reply.IsDeleted,
+                reactions.TryGetValue(m.ChatGroupMessageId, out var list) ? list : Array.Empty<MessageReactionModel>(),
+                m.SenderId == userId || canModerate
+            );
+        }).ToList();
 
         return Result<IReadOnlyList<ChatGroupMessageModel>>.Success(result);
+    }
+
+    /// <summary>OWNER and ADMIN may moderate other members' messages.</summary>
+    private async Task<bool> IsModeratorAsync(int chatGroupId, int userId, CancellationToken cancellationToken)
+    {
+        var role = await dbContext.TblChatGroupMembers
+            .AsNoTracking()
+            .Where(m => m.ChatGroupId == chatGroupId && m.UserId == userId && !m.IsDeleted)
+            .Select(m => m.Role)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return string.Equals(role, "OWNER", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(role, "ADMIN", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Resolves the quoted sender and a truncated preview for replied-to group message ids.
+    /// Soft-deleted originals come back as stubs so the client can render the tombstone.
+    /// </summary>
+    private async Task<Dictionary<int, (string SenderName, string Preview, bool IsDeleted)>> GetReplyStubsAsync(
+        List<int> messageIds,
+        CancellationToken cancellationToken)
+    {
+        var stubs = new Dictionary<int, (string, string, bool)>();
+
+        if (messageIds.Count == 0)
+        {
+            return stubs;
+        }
+
+        var rows = await dbContext.TblChatGroupMessages
+            .AsNoTracking()
+            .Where(m => messageIds.Contains(m.ChatGroupMessageId))
+            .Select(m => new
+            {
+                m.ChatGroupMessageId,
+                SenderName = m.Sender.DisplayName ?? m.Sender.UserName,
+                m.Content,
+                m.IsDeleted
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var row in rows)
+        {
+            stubs[row.ChatGroupMessageId] = (row.SenderName, TruncatePreview(row.Content), row.IsDeleted);
+        }
+
+        return stubs;
+    }
+
+    /// <summary>Loads the flat reaction rows for a page of group messages, keyed by message id.</summary>
+    private async Task<Dictionary<int, IReadOnlyList<MessageReactionModel>>> GetReactionsAsync(
+        List<int> messageIds,
+        CancellationToken cancellationToken)
+    {
+        var result = new Dictionary<int, IReadOnlyList<MessageReactionModel>>();
+
+        if (messageIds.Count == 0)
+        {
+            return result;
+        }
+
+        var rows = await dbContext.TblChatGroupMessageReactions
+            .AsNoTracking()
+            .Where(r => messageIds.Contains(r.ChatGroupMessageId))
+            .OrderBy(r => r.CreatedAt)
+            .Select(r => new
+            {
+                r.ChatGroupMessageId,
+                r.UserId,
+                UserName = r.User.DisplayName,
+                r.Emoji
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var group in rows.GroupBy(r => r.ChatGroupMessageId))
+        {
+            result[group.Key] = group
+                .Select(r => new MessageReactionModel(r.UserId, r.UserName, r.Emoji))
+                .ToList();
+        }
+
+        return result;
+    }
+
+    private static string TruncatePreview(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var single = text.ReplaceLineEndings(" ").Trim();
+        return single.Length <= 120 ? single : single[..120] + "…";
     }
 
     public async Task<Result<ChatGroupMessageModel>> SendMessageAsync(int chatGroupId, SendChatGroupMessageRequestModel request, CancellationToken cancellationToken = default)
@@ -646,13 +773,32 @@ public sealed class ChatGroupService(
             return Result<ChatGroupMessageModel>.Failure("You must join this Chat Group to send messages.", ResultStatus.Forbidden);
         }
 
+        // A reply must point at a live message in the same group, so a member cannot quote a
+        // message from a group they never joined.
+        var replyToId = request?.ReplyToChatGroupMessageId;
+        if (replyToId.HasValue)
+        {
+            var isValidReply = await dbContext.TblChatGroupMessages
+                .AsNoTracking()
+                .AnyAsync(m => m.ChatGroupMessageId == replyToId.Value &&
+                               m.ChatGroupId == chatGroupId &&
+                               !m.IsDeleted,
+                    cancellationToken);
+
+            if (!isValidReply)
+            {
+                return Result<ChatGroupMessageModel>.Failure("The message you replied to is no longer available.");
+            }
+        }
+
         var msg = new TblChatGroupMessage
         {
             ChatGroupId = chatGroupId,
             SenderId = userId,
             Content = text,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = userId
+            CreatedBy = userId,
+            ReplyToChatGroupMessageId = replyToId
         };
 
         dbContext.TblChatGroupMessages.Add(msg);
@@ -661,6 +807,11 @@ public sealed class ChatGroupService(
         var sender = await dbContext.TblUsers
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+
+        var replies = await GetReplyStubsAsync(
+            replyToId.HasValue ? [replyToId.Value] : [],
+            cancellationToken);
+        var hasReply = replies.TryGetValue(replyToId ?? -1, out var replyStub);
 
         var model = new ChatGroupMessageModel(
             msg.ChatGroupMessageId,
@@ -671,10 +822,152 @@ public sealed class ChatGroupService(
             sender?.AvatarUrl,
             msg.Content,
             msg.CreatedAt,
-            IsMine: true
+            IsMine: true,
+            msg.ReplyToChatGroupMessageId,
+            hasReply ? replyStub.SenderName : null,
+            hasReply ? replyStub.Preview : null,
+            hasReply && replyStub.IsDeleted,
+            Array.Empty<MessageReactionModel>(),
+            CanDeleteForEveryone: true
         );
 
         return Result<ChatGroupMessageModel>.Success(model);
+    }
+
+    public async Task<Result> DeleteMessageForSelfAsync(int chatGroupId, int messageId, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var userId = currentUser.UserId.Value;
+
+        var message = await FindVisibleMessageAsync(chatGroupId, messageId, userId, cancellationToken);
+        if (message is null)
+        {
+            return Result.Failure("Message not found.", ResultStatus.NotFound);
+        }
+
+        var state = await dbContext.TblChatGroupMessageUserStates
+            .FirstOrDefaultAsync(s => s.ChatGroupMessageId == messageId && s.UserId == userId, cancellationToken);
+
+        if (state is null)
+        {
+            dbContext.TblChatGroupMessageUserStates.Add(new TblChatGroupMessageUserState
+            {
+                ChatGroupMessageId = messageId,
+                UserId = userId,
+                IsHidden = true,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        else if (state.IsHidden)
+        {
+            return Result.Success("Message deleted for you.");
+        }
+        else
+        {
+            state.IsHidden = true;
+            state.UpdatedAt = DateTime.UtcNow;
+        }
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // A second "delete for me" from another tab can win the race to insert the unique
+            // (message, user) row. The end state is the one we wanted, so this is not an error.
+            dbContext.ChangeTracker.Clear();
+        }
+
+        // No broadcast: hiding is per-viewer and the rest of the group must still see it.
+        return Result.Success("Message deleted for you.");
+    }
+
+    public async Task<Result<IReadOnlyList<MessageReactionModel>>> SetReactionAsync(
+        int chatGroupId, int messageId, string? emoji, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result<IReadOnlyList<MessageReactionModel>>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var userId = currentUser.UserId.Value;
+
+        var isMember = await dbContext.TblChatGroupMembers
+            .AnyAsync(m => m.ChatGroupId == chatGroupId && m.UserId == userId && !m.IsDeleted, cancellationToken);
+
+        if (!isMember)
+        {
+            return Result<IReadOnlyList<MessageReactionModel>>.Failure(
+                "You must join this Chat Group to react.", ResultStatus.Forbidden);
+        }
+
+        var message = await FindVisibleMessageAsync(chatGroupId, messageId, userId, cancellationToken);
+        if (message is null)
+        {
+            return Result<IReadOnlyList<MessageReactionModel>>.Failure("Message not found.", ResultStatus.NotFound);
+        }
+
+        var canonical = MessageEmoji.Normalize(emoji);
+        if (canonical is null)
+        {
+            return Result<IReadOnlyList<MessageReactionModel>>.Failure("That reaction is not supported.");
+        }
+
+        var existing = await dbContext.TblChatGroupMessageReactions
+            .FirstOrDefaultAsync(r => r.ChatGroupMessageId == messageId && r.UserId == userId, cancellationToken);
+
+        if (existing is null)
+        {
+            dbContext.TblChatGroupMessageReactions.Add(new TblChatGroupMessageReaction
+            {
+                ChatGroupMessageId = messageId,
+                UserId = userId,
+                Emoji = canonical,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        else if (string.Equals(existing.Emoji, canonical, StringComparison.Ordinal))
+        {
+            // Same emoji again clears the reaction, matching the Telegram toggle.
+            dbContext.TblChatGroupMessageReactions.Remove(existing);
+        }
+        else
+        {
+            // One reaction per person per message: swap in place instead of adding a row.
+            existing.Emoji = canonical;
+            existing.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        dbContext.ChangeTracker.Clear();
+        var reactions = (await GetReactionsAsync([messageId], cancellationToken))
+            .TryGetValue(messageId, out var list)
+            ? list
+            : Array.Empty<MessageReactionModel>();
+
+        return Result<IReadOnlyList<MessageReactionModel>>.Success(reactions);
+    }
+
+    /// <summary>
+    /// Loads a message the caller may act on: in their group, not deleted for everyone, and not
+    /// hidden for themselves.
+    /// </summary>
+    private async Task<TblChatGroupMessage?> FindVisibleMessageAsync(
+        int chatGroupId, int messageId, int userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.TblChatGroupMessages
+            .FirstOrDefaultAsync(m => m.ChatGroupMessageId == messageId &&
+                                       m.ChatGroupId == chatGroupId &&
+                                       !m.IsDeleted &&
+                                       !dbContext.TblChatGroupMessageUserStates.Any(s =>
+                                           s.ChatGroupMessageId == messageId && s.UserId == userId && s.IsHidden),
+                cancellationToken);
     }
 
     public async Task<Result> DeleteMessageAsync(int chatGroupId, int messageId, CancellationToken cancellationToken = default)
@@ -686,6 +979,14 @@ public sealed class ChatGroupService(
 
         var userId = currentUser.UserId.Value;
 
+        var isMember = await dbContext.TblChatGroupMembers
+            .AnyAsync(m => m.ChatGroupId == chatGroupId && m.UserId == userId && !m.IsDeleted, cancellationToken);
+
+        if (!isMember)
+        {
+            return Result.Failure("You are not a member of this Chat Group.", ResultStatus.Forbidden);
+        }
+
         var msg = await dbContext.TblChatGroupMessages
             .FirstOrDefaultAsync(m => m.ChatGroupMessageId == messageId && m.ChatGroupId == chatGroupId && !m.IsDeleted, cancellationToken);
 
@@ -694,25 +995,46 @@ public sealed class ChatGroupService(
             return Result.Failure("Message not found.", ResultStatus.NotFound);
         }
 
-        if (msg.SenderId != userId)
+        // The author may always retract; OWNER/ADMIN may moderate anyone.
+        if (msg.SenderId != userId && !await IsModeratorAsync(chatGroupId, userId, cancellationToken))
         {
-            var userRole = await dbContext.TblChatGroupMembers
-                .Where(m => m.ChatGroupId == chatGroupId && m.UserId == userId && !m.IsDeleted)
-                .Select(m => m.Role)
-                .FirstOrDefaultAsync(cancellationToken);
+            return Result.Failure("You can only delete your own messages.", ResultStatus.Forbidden);
+        }
 
-            if (userRole != "OWNER" && userRole != "ADMIN")
+        var deleted = false;
+
+        // TblChatGroupMessage is rowversion-stamped, so a delete racing another writer throws.
+        // The end state is identical either way, so re-read and retry once.
+        for (var attempt = 0; attempt < 2 && !deleted; attempt++)
+        {
+            var row = await dbContext.TblChatGroupMessages
+                .FirstOrDefaultAsync(m => m.ChatGroupMessageId == messageId && m.ChatGroupId == chatGroupId && !m.IsDeleted, cancellationToken);
+
+            if (row == null)
             {
-                return Result.Failure("You can only delete your own messages.", ResultStatus.Forbidden);
+                deleted = true;
+                break;
+            }
+
+            row.IsDeleted = true;
+            row.DeletedAt = DateTime.UtcNow;
+            row.DeletedBy = userId;
+            row.UpdatedAt = DateTime.UtcNow;
+
+            try
+            {
+                await dbContext.SaveChangesAsync(cancellationToken);
+                deleted = true;
+            }
+            catch (DbUpdateConcurrencyException) when (attempt == 0)
+            {
+                dbContext.ChangeTracker.Clear();
             }
         }
 
-        msg.IsDeleted = true;
-        msg.DeletedAt = DateTime.UtcNow;
-        msg.DeletedBy = userId;
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return Result.Success("Message deleted.");
+        return deleted
+            ? Result.Success("Message deleted.")
+            : Result.Failure("Message could not be deleted.", ResultStatus.SystemError);
     }
 
     /// <summary>

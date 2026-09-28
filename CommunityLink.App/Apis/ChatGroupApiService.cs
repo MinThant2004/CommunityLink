@@ -1,4 +1,5 @@
 using CommunityLink.Shared;
+using CommunityLink.Shared.Features.Chat;
 using CommunityLink.Shared.Features.ChatGroup;
 using Microsoft.AspNetCore.Http;
 
@@ -50,4 +51,13 @@ public sealed class ChatGroupApiService(IHttpClientFactory clientFactory, IHttpC
 
     public Task<Result> DeleteMessageAsync(int chatGroupId, int messageId, CancellationToken cancellationToken = default) =>
         DeleteAsync($"api/chat-groups/{chatGroupId}/messages/{messageId}", cancellationToken);
+
+    public Task<Result> HideMessageForSelfAsync(int chatGroupId, int messageId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/chat-groups/{chatGroupId}/messages/{messageId}/hide", new { }, cancellationToken);
+
+    public Task<Result<IReadOnlyList<MessageReactionModel>>> SetMessageReactionAsync(int chatGroupId, int messageId, string? emoji, CancellationToken cancellationToken = default) =>
+        PostAsync<IReadOnlyList<MessageReactionModel>, SetMessageReactionRequestModel>(
+            $"api/chat-groups/{chatGroupId}/messages/{messageId}/reaction",
+            new SetMessageReactionRequestModel(emoji),
+            cancellationToken);
 }

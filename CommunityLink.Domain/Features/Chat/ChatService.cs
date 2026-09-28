@@ -14,6 +14,20 @@ public interface IChatService
     Task<Result<ChatMessageModel>> SendMessageAsync(SendMessageRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<int>> MarkConversationReadAsync(int conversationId, CancellationToken cancellationToken = default);
     Task<int> GetUnreadMessageCountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Hides the message for the caller only; the other participant still sees it.</summary>
+    Task<Result> DeleteMessageForSelfAsync(int conversationId, int messageId, CancellationToken cancellationToken = default);
+
+    /// <summary>Soft-deletes the message for both participants. Sender only.</summary>
+    Task<Result> DeleteMessageForEveryoneAsync(int conversationId, int messageId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sets or clears the caller's single reaction. Sending the emoji already on the message
+    /// clears it; sending a different one replaces it. Returns the full reaction list for the
+    /// message afterwards so the caller can render authoritative counts.
+    /// </summary>
+    Task<Result<IReadOnlyList<MessageReactionModel>>> SetReactionAsync(
+        int conversationId, int messageId, string? emoji, CancellationToken cancellationToken = default);
 }
 
 public sealed class ChatService(
@@ -64,22 +78,145 @@ public sealed class ChatService(
             return Result<IReadOnlyList<ChatMessageModel>>.Failure("Conversation not found.", ResultStatus.NotFound);
         }
 
-        var messages = await dbContext.TblChatMessages
-            .Include(m => m.Sender)
-            .Where(m => m.ConversationId == conversationId && !m.IsDeleted)
+        var currentUserId = currentUser.UserId.Value;
+
+        // Messages the caller hid for themselves are filtered out here, which is what makes
+        // "Delete for myself" a per-viewer view rather than a client-side trick.
+        var rows = await dbContext.TblChatMessages
+            .AsNoTracking()
+            .Where(m => m.ConversationId == conversationId &&
+                        !m.IsDeleted &&
+                        !dbContext.TblChatMessageUserStates.Any(s =>
+                            s.ChatMessageId == m.ChatMessageId && s.UserId == currentUserId && s.IsHidden))
             .OrderBy(m => m.CreatedAt)
-            .Select(m => new ChatMessageModel(
+            .Select(m => new
+            {
                 m.ChatMessageId,
                 m.ConversationId,
                 m.SenderId,
-                m.Sender.DisplayName,
-                m.Sender.AvatarUrl,
+                SenderName = m.Sender.DisplayName,
+                SenderAvatar = m.Sender.AvatarUrl,
                 m.MessageText,
                 m.IsRead,
-                m.CreatedAt))
+                m.CreatedAt,
+                m.ReplyToMessageId
+            })
             .ToListAsync(cancellationToken);
 
+        var replies = await GetReplyStubsAsync(
+            rows.Where(r => r.ReplyToMessageId.HasValue)
+                .Select(r => r.ReplyToMessageId!.Value)
+                .Distinct()
+                .ToList(),
+            cancellationToken);
+
+        var reactions = await GetReactionsAsync(
+            rows.Select(r => r.ChatMessageId).ToList(),
+            cancellationToken);
+
+        var messages = rows.Select(m =>
+        {
+            var hasReply = replies.TryGetValue(m.ReplyToMessageId ?? -1, out var reply);
+
+            return new ChatMessageModel(
+                m.ChatMessageId,
+                m.ConversationId,
+                m.SenderId,
+                m.SenderName,
+                m.SenderAvatar,
+                m.MessageText,
+                m.IsRead,
+                m.CreatedAt,
+                m.ReplyToMessageId,
+                hasReply ? reply.SenderName : null,
+                hasReply ? reply.Preview : null,
+                hasReply && reply.IsDeleted,
+                reactions.TryGetValue(m.ChatMessageId, out var list) ? list : Array.Empty<MessageReactionModel>(),
+                m.SenderId == currentUserId);
+        }).ToList();
+
         return Result<IReadOnlyList<ChatMessageModel>>.Success(messages);
+    }
+
+    /// <summary>
+    /// Resolves the quoted sender and a truncated preview for a set of replied-to message ids.
+    /// Soft-deleted originals are returned as stubs so the client can render the tombstone.
+    /// </summary>
+    private async Task<Dictionary<int, (string SenderName, string Preview, bool IsDeleted)>> GetReplyStubsAsync(
+        List<int> messageIds,
+        CancellationToken cancellationToken)
+    {
+        var stubs = new Dictionary<int, (string, string, bool)>();
+
+        if (messageIds.Count == 0)
+        {
+            return stubs;
+        }
+
+        var rows = await dbContext.TblChatMessages
+            .AsNoTracking()
+            .Where(m => messageIds.Contains(m.ChatMessageId))
+            .Select(m => new
+            {
+                m.ChatMessageId,
+                SenderName = m.Sender.DisplayName,
+                m.MessageText,
+                m.IsDeleted
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var row in rows)
+        {
+            stubs[row.ChatMessageId] = (row.SenderName, TruncatePreview(row.MessageText), row.IsDeleted);
+        }
+
+        return stubs;
+    }
+
+    /// <summary>Loads the flat reaction rows for a page of messages, keyed by message id.</summary>
+    private async Task<Dictionary<int, IReadOnlyList<MessageReactionModel>>> GetReactionsAsync(
+        List<int> messageIds,
+        CancellationToken cancellationToken)
+    {
+        var result = new Dictionary<int, IReadOnlyList<MessageReactionModel>>();
+
+        if (messageIds.Count == 0)
+        {
+            return result;
+        }
+
+        var rows = await dbContext.TblChatMessageReactions
+            .AsNoTracking()
+            .Where(r => messageIds.Contains(r.ChatMessageId))
+            .OrderBy(r => r.CreatedAt)
+            .Select(r => new
+            {
+                r.ChatMessageId,
+                r.UserId,
+                UserName = r.User.DisplayName,
+                r.Emoji
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var group in rows.GroupBy(r => r.ChatMessageId))
+        {
+            result[group.Key] = group
+                .Select(r => new MessageReactionModel(r.UserId, r.UserName, r.Emoji))
+                .ToList();
+        }
+
+        return result;
+    }
+
+    private static string TruncatePreview(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var single = text.ReplaceLineEndings(" ").Trim();
+        return single.Length <= 120 ? single : single[..120] + "…";
     }
 
     public async Task<Result<ChatMessageModel>> SendMessageAsync(SendMessageRequestModel request, CancellationToken cancellationToken = default)
@@ -136,13 +273,32 @@ public sealed class ChatService(
 
         if (conversation is null) return Result<ChatMessageModel>.Failure("Conversation not found.", ResultStatus.NotFound);
 
+        // A reply must point at a live message in the same conversation. Validating here stops
+        // a caller from quoting a message from a different thread they merely know the id of.
+        if (request.ReplyToMessageId.HasValue)
+        {
+            var replyId = request.ReplyToMessageId.Value;
+            var isValidReply = await dbContext.TblChatMessages
+                .AsNoTracking()
+                .AnyAsync(m => m.ChatMessageId == replyId &&
+                               m.ConversationId == conversation.ConversationId &&
+                               !m.IsDeleted,
+                    cancellationToken);
+
+            if (!isValidReply)
+            {
+                return Result<ChatMessageModel>.Failure("The message you replied to is no longer available.");
+            }
+        }
+
         var message = new TblChatMessage
         {
             ConversationId = conversation.ConversationId,
             SenderId = currentUserId,
             MessageText = request.MessageText.Trim(),
             IsRead = false,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ReplyToMessageId = request.ReplyToMessageId
         };
 
         dbContext.TblChatMessages.Add(message);
@@ -154,6 +310,11 @@ public sealed class ChatService(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var user = await dbContext.TblUsers.FindAsync([currentUserId], cancellationToken);
+        var replies = await GetReplyStubsAsync(
+            request.ReplyToMessageId.HasValue ? [request.ReplyToMessageId.Value] : [],
+            cancellationToken);
+        var hasReply = replies.TryGetValue(request.ReplyToMessageId ?? -1, out var replyStub);
+
         var model = new ChatMessageModel(
             message.ChatMessageId,
             message.ConversationId,
@@ -162,7 +323,13 @@ public sealed class ChatService(
             user?.AvatarUrl,
             message.MessageText,
             message.IsRead,
-            message.CreatedAt);
+            message.CreatedAt,
+            message.ReplyToMessageId,
+            hasReply ? replyStub.SenderName : null,
+            hasReply ? replyStub.Preview : null,
+            hasReply && replyStub.IsDeleted,
+            Array.Empty<MessageReactionModel>(),
+            true);
 
         // Push to the recipient's private user scope. The client already has the row from the
         // REST response and de-duplicates on message id.
@@ -270,6 +437,291 @@ public sealed class ChatService(
         }
 
         return Result<int>.Success(marked);
+    }
+
+    public async Task<Result> DeleteMessageForSelfAsync(int conversationId, int messageId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null)
+        {
+            return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
+        }
+
+        var currentUserId = currentUser.UserId.Value;
+
+        var message = await FindVisibleMessageAsync(conversationId, messageId, currentUserId, cancellationToken);
+        if (message == null)
+        {
+            return Result.Failure("Message not found.", ResultStatus.NotFound);
+        }
+
+        var state = await dbContext.TblChatMessageUserStates
+            .FirstOrDefaultAsync(s => s.ChatMessageId == messageId && s.UserId == currentUserId, cancellationToken);
+
+        if (state is null)
+        {
+            state = new TblChatMessageUserState
+            {
+                ChatMessageId = messageId,
+                UserId = currentUserId,
+                IsHidden = true,
+                CreatedAt = DateTime.UtcNow
+            };
+            dbContext.TblChatMessageUserStates.Add(state);
+        }
+        else if (state.IsHidden)
+        {
+            return Result.Success("Message deleted for you.");
+        }
+        else
+        {
+            state.IsHidden = true;
+            state.UpdatedAt = DateTime.UtcNow;
+        }
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // A second "delete for me" from another tab can win the race to insert the unique
+            // (message, user) row. The end state is the one we wanted, so this is not an error.
+            dbContext.ChangeTracker.Clear();
+        }
+
+        // No broadcast: hiding a message is a per-viewer concern and the other participant
+        // must keep seeing it.
+        return Result.Success("Message deleted for you.");
+    }
+
+    public async Task<Result> DeleteMessageForEveryoneAsync(int conversationId, int messageId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null)
+        {
+            return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
+        }
+
+        var currentUserId = currentUser.UserId.Value;
+
+        var peerId = await GetPeerIdAsync(conversationId, currentUserId, cancellationToken);
+        if (peerId is null)
+        {
+            return Result.Failure("Conversation not found.", ResultStatus.NotFound);
+        }
+
+        var message = await FindVisibleMessageAsync(conversationId, messageId, currentUserId, cancellationToken);
+        if (message == null)
+        {
+            return Result.Failure("Message not found.", ResultStatus.NotFound);
+        }
+
+        // 1:1 has no moderator, so only the author can retract a message for both sides.
+        if (message.SenderId != currentUserId)
+        {
+            return Result.Failure("You can only delete your own messages.", ResultStatus.Forbidden);
+        }
+
+        var deletedAt = DateTime.UtcNow;
+        var deleted = false;
+
+        // TblChatMessage is rowversion-stamped, so a delete racing another writer on the same
+        // rows throws. The outcome is the same either way, so re-read and retry once rather
+        // than surfacing a 500.
+        for (var attempt = 0; attempt < 2 && !deleted; attempt++)
+        {
+            var row = await FindVisibleMessageAsync(conversationId, messageId, currentUserId, cancellationToken);
+            if (row is null)
+            {
+                // Someone else already retracted it, which is the state we wanted.
+                deleted = true;
+                break;
+            }
+
+            row.IsDeleted = true;
+            row.DeletedAt = deletedAt;
+            row.DeletedBy = currentUserId;
+            row.UpdatedAt = deletedAt;
+
+            try
+            {
+                await dbContext.SaveChangesAsync(cancellationToken);
+                deleted = true;
+            }
+            catch (DbUpdateConcurrencyException) when (attempt == 0)
+            {
+                dbContext.ChangeTracker.Clear();
+            }
+        }
+
+        if (!deleted)
+        {
+            return Result.Failure("Message could not be deleted.", ResultStatus.SystemError);
+        }
+
+        // The denormalized preview would otherwise keep advertising deleted content in the
+        // thread list until the next message arrives.
+        await RefreshConversationPreviewAsync(conversationId, cancellationToken);
+
+        try
+        {
+            await hubContext.Clients.User(peerId.Value.ToString()).SendAsync(
+                "MessageDeleted", conversationId, messageId, cancellationToken);
+        }
+        catch
+        {
+            // Peer notification is best-effort; they refresh on next load.
+        }
+
+        return Result.Success("Message deleted for everyone.");
+    }
+
+    public async Task<Result<IReadOnlyList<MessageReactionModel>>> SetReactionAsync(
+        int conversationId, int messageId, string? emoji, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null)
+        {
+            return Result<IReadOnlyList<MessageReactionModel>>.Failure("Unauthorized", ResultStatus.Unauthorized);
+        }
+
+        var currentUserId = currentUser.UserId.Value;
+
+        var peerId = await GetPeerIdAsync(conversationId, currentUserId, cancellationToken);
+        if (peerId is null)
+        {
+            return Result<IReadOnlyList<MessageReactionModel>>.Failure("Conversation not found.", ResultStatus.NotFound);
+        }
+
+        var message = await FindVisibleMessageAsync(conversationId, messageId, currentUserId, cancellationToken);
+        if (message == null)
+        {
+            return Result<IReadOnlyList<MessageReactionModel>>.Failure("Message not found.", ResultStatus.NotFound);
+        }
+
+        var canonical = MessageEmoji.Normalize(emoji);
+        if (canonical is null)
+        {
+            return Result<IReadOnlyList<MessageReactionModel>>.Failure("That reaction is not supported.");
+        }
+
+        var existing = await dbContext.TblChatMessageReactions
+            .FirstOrDefaultAsync(r => r.ChatMessageId == messageId && r.UserId == currentUserId, cancellationToken);
+
+        if (existing is null)
+        {
+            dbContext.TblChatMessageReactions.Add(new TblChatMessageReaction
+            {
+                ChatMessageId = messageId,
+                UserId = currentUserId,
+                Emoji = canonical,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        else if (string.Equals(existing.Emoji, canonical, StringComparison.Ordinal))
+        {
+            // Same emoji again clears the reaction, matching the Telegram toggle.
+            dbContext.TblChatMessageReactions.Remove(existing);
+        }
+        else
+        {
+            // One reaction per person per message: swap in place instead of adding a row.
+            existing.Emoji = canonical;
+            existing.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        dbContext.ChangeTracker.Clear();
+        var reactions = (await GetReactionsAsync([messageId], cancellationToken))
+            .TryGetValue(messageId, out var list)
+            ? list
+            : Array.Empty<MessageReactionModel>();
+
+        // Send the resulting state rather than the toggle, so both sides converge on the same
+        // counts without refetching the thread.
+        try
+        {
+            await hubContext.Clients.User(peerId.Value.ToString()).SendAsync(
+                "MessageReactionUpdated", conversationId, messageId, reactions, cancellationToken);
+        }
+        catch
+        {
+            // Best-effort; the next thread load shows the same state.
+        }
+
+        return Result<IReadOnlyList<MessageReactionModel>>.Success(reactions);
+    }
+
+    /// <summary>Returns the other participant, or null when the caller is not a participant.</summary>
+    private async Task<int?> GetPeerIdAsync(int conversationId, int userId, CancellationToken cancellationToken)
+    {
+        var conversation = await dbContext.TblConversations
+            .AsNoTracking()
+            .Where(c => c.ConversationId == conversationId && !c.IsDeleted)
+            .Select(c => new { c.UserOneId, c.UserTwoId })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (conversation is null)
+        {
+            return null;
+        }
+
+        if (conversation.UserOneId == userId)
+        {
+            return conversation.UserTwoId;
+        }
+
+        return conversation.UserTwoId == userId ? conversation.UserOneId : null;
+    }
+
+    /// <summary>
+    /// Loads a message the caller is allowed to act on: in their conversation, not deleted for
+    /// everyone, and not hidden for themselves.
+    /// </summary>
+    private async Task<TblChatMessage?> FindVisibleMessageAsync(
+        int conversationId, int messageId, int userId, CancellationToken cancellationToken)
+    {
+        var peerId = await GetPeerIdAsync(conversationId, userId, cancellationToken);
+        if (peerId is null)
+        {
+            return null;
+        }
+
+        return await dbContext.TblChatMessages
+            .FirstOrDefaultAsync(m => m.ChatMessageId == messageId &&
+                                       m.ConversationId == conversationId &&
+                                       !m.IsDeleted &&
+                                       !dbContext.TblChatMessageUserStates.Any(s =>
+                                           s.ChatMessageId == messageId && s.UserId == userId && s.IsHidden),
+                cancellationToken);
+    }
+
+    /// <summary>
+    /// Recomputes the thread-list preview from the newest surviving message, so a retracted
+    /// last message stops showing its text in the conversation list.
+    /// </summary>
+    private async Task RefreshConversationPreviewAsync(int conversationId, CancellationToken cancellationToken)
+    {
+        var conversation = await dbContext.TblConversations
+            .FirstOrDefaultAsync(c => c.ConversationId == conversationId, cancellationToken);
+
+        if (conversation is null)
+        {
+            return;
+        }
+
+        var newest = await dbContext.TblChatMessages
+            .AsNoTracking()
+            .Where(m => m.ConversationId == conversationId && !m.IsDeleted)
+            .OrderByDescending(m => m.CreatedAt)
+            .ThenByDescending(m => m.ChatMessageId)
+            .Select(m => new { m.MessageText, m.CreatedAt })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        conversation.LastMessagePreview = newest?.MessageText;
+        conversation.LastMessageAt = newest?.CreatedAt;
+        conversation.UpdatedAt = DateTime.UtcNow;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<int> GetUnreadMessageCountAsync(CancellationToken cancellationToken = default)

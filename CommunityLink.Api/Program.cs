@@ -87,6 +87,7 @@ using (var scope = app.Services.CreateScope())
     await RbacSeeder.SeedAsync(db);
     await LinkDropSeeder.SeedAsync(db);
     await PrivateChatDatabaseSeeder.SeedAsync(db);
+    await ChatMessageFeaturesDatabaseSeeder.SeedAsync(db);
 }
 
 // Middleware Pipeline

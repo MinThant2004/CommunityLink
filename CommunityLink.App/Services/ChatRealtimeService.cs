@@ -67,6 +67,8 @@ public sealed class ChatRealtimeService
 
     public event Func<int, bool, Task>? TypingChanged;
 
+    public event Func<int, int, bool, Task>? GroupTypingChanged;
+
     public event Func<int, Task>? ConversationRead;
 
     public event Action? StateChanged;
@@ -249,6 +251,16 @@ public sealed class ChatRealtimeService
                 _subscribedGroupRole ?? "MEMBER"));
         });
 
+        connection.On<int, int, bool>("GroupTyping", (chatGroupId, senderId, isTyping) =>
+        {
+            if (GroupTypingChanged is not null)
+            {
+                return GroupTypingChanged.Invoke(chatGroupId, senderId, isTyping);
+            }
+
+            return Task.CompletedTask;
+        });
+
         connection.Reconnecting += _ =>
         {
             GroupStatus = "Reconnecting…";
@@ -323,6 +335,23 @@ public sealed class ChatRealtimeService
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "Typing indicator could not be sent.");
+        }
+    }
+
+    public async Task SendGroupTypingAsync(int chatGroupId, bool isTyping)
+    {
+        if (_groupConnection is null || _groupConnection.State != HubConnectionState.Connected)
+        {
+            return;
+        }
+
+        try
+        {
+            await _groupConnection.InvokeAsync("SendGroupTyping", chatGroupId, isTyping);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Group typing indicator could not be sent.");
         }
     }
 

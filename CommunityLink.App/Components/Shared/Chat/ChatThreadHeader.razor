@@ -47,7 +47,14 @@
                     }
                 </span>
                 <span class="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
-                    @if (Thread.IsGroup)
+                    @if (!string.IsNullOrWhiteSpace(TypingText))
+                    {
+                        <span class="flex items-center gap-1 font-medium text-indigo-600 animate-pulse">
+                            <span class="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-bounce"></span>
+                            @TypingText
+                        </span>
+                    }
+                    else if (Thread.IsGroup)
                     {
                         <span>@Thread.Subtitle</span>
                         @if (Thread.UserRole is not null && Thread.UserRole != "NONE")
@@ -86,6 +93,7 @@
 @code {
     [Parameter, EditorRequired] public ChatThreadViewModel Thread { get; set; } = default!;
     [Parameter] public string Status { get; set; } = "Live";
+    [Parameter] public string? TypingText { get; set; }
     [Parameter] public bool ShowBackButton { get; set; }
 
     [Parameter] public EventCallback OnToggleInfo { get; set; }

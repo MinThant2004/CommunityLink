@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using CommunityLink.Shared;
+using CommunityLink.Shared.Features.Chat;
 using CommunityLink.Shared.Features.ChatGroup;
 
 [Route("api/chat-groups")]
@@ -75,25 +76,79 @@ public sealed class ChatGroupController(
         var result = await chatGroupService.SendMessageAsync(chatGroupId, request, cancellationToken);
         if (result.IsSuccess && result.Data != null)
         {
-            try
-            {
-                var hubContext = serviceProvider.GetService<IHubContext<ChatGroupHub>>();
-                if (hubContext != null)
-                {
-                    string groupName = ChatGroupHub.GetGroupName(chatGroupId);
-                    await hubContext.Clients.Group(groupName).SendAsync("ReceiveChatGroupMessage", result.Data, cancellationToken);
-                }
-            }
-            catch
-            {
-                // SignalR broadcast failure should not break REST response
-            }
+            await BroadcastAsync(chatGroupId, "ReceiveChatGroupMessage", cancellationToken, result.Data);
         }
+
         return ToActionResult(result);
     }
 
+    /// <summary>Soft-deletes for the whole group. Sender, or an OWNER/ADMIN as moderator.</summary>
     [HttpDelete("{chatGroupId:int}/messages/{messageId:int}")]
     [Authorize]
-    public async Task<IActionResult> DeleteMessage(int chatGroupId, int messageId, CancellationToken cancellationToken) =>
-        ToActionResult(await chatGroupService.DeleteMessageAsync(chatGroupId, messageId, cancellationToken));
+    public async Task<IActionResult> DeleteMessage(int chatGroupId, int messageId, CancellationToken cancellationToken)
+    {
+        var result = await chatGroupService.DeleteMessageAsync(chatGroupId, messageId, cancellationToken);
+        if (result.IsSuccess)
+        {
+            await BroadcastAsync(chatGroupId, "ChatGroupMessageDeleted", cancellationToken, chatGroupId, messageId);
+        }
+
+        return ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Hides a message for the caller alone. The rest of the group is unaffected, so this is
+    /// deliberately not broadcast.
+    /// </summary>
+    [HttpPost("{chatGroupId:int}/messages/{messageId:int}/hide")]
+    [Authorize]
+    public async Task<IActionResult> HideMessage(int chatGroupId, int messageId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatGroupService.DeleteMessageForSelfAsync(chatGroupId, messageId, cancellationToken));
+
+    /// <summary>Sets the caller's reaction, or clears it when the same emoji is sent again.</summary>
+    [HttpPost("{chatGroupId:int}/messages/{messageId:int}/reaction")]
+    [Authorize]
+    public async Task<IActionResult> SetReaction(
+        int chatGroupId,
+        int messageId,
+        [FromBody] SetMessageReactionRequestModel request,
+        CancellationToken cancellationToken)
+    {
+        var result = await chatGroupService.SetReactionAsync(chatGroupId, messageId, request?.Emoji, cancellationToken);
+        if (result.IsSuccess && result.Data is not null)
+        {
+            // The resulting state is broadcast, not the toggle, so every member's client
+            // converges on the same counts without refetching the thread.
+            await BroadcastAsync(
+                chatGroupId,
+                "ChatGroupReactionUpdated",
+                cancellationToken,
+                chatGroupId,
+                messageId,
+                result.Data);
+        }
+
+        return ToActionResult(result);
+    }
+
+    private async Task BroadcastAsync(
+        int chatGroupId,
+        string method,
+        CancellationToken cancellationToken,
+        params object?[] args)
+    {
+        try
+        {
+            var hubContext = serviceProvider.GetService<IHubContext<ChatGroupHub>>();
+            if (hubContext != null)
+            {
+                string groupName = ChatGroupHub.GetGroupName(chatGroupId);
+                await hubContext.Clients.Group(groupName).SendCoreAsync(method, args, cancellationToken);
+            }
+        }
+        catch
+        {
+            // SignalR broadcast failure should not break the REST response
+        }
+    }
 }

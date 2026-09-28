@@ -33,6 +33,36 @@ public sealed class ChatController(
     public async Task<IActionResult> MarkConversationRead(int conversationId, CancellationToken cancellationToken) =>
         ToActionResult(await chatService.MarkConversationReadAsync(conversationId, cancellationToken));
 
+    /// <summary>Deletes a message for both participants. Sender only.</summary>
+    [HttpDelete("conversations/{conversationId:int}/messages/{messageId:int}")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> DeleteMessageForEveryone(
+        int conversationId, int messageId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatService.DeleteMessageForEveryoneAsync(conversationId, messageId, cancellationToken));
+
+    /// <summary>
+    /// Hides a message for the caller alone. Kept off DELETE because it is a per-viewer flag
+    /// rather than a mutation of the shared message, and the other participant is unaffected.
+    /// </summary>
+    [HttpPost("conversations/{conversationId:int}/messages/{messageId:int}/hide")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> DeleteMessageForSelf(
+        int conversationId, int messageId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatService.DeleteMessageForSelfAsync(conversationId, messageId, cancellationToken));
+
+    /// <summary>
+    /// Sets the caller's reaction, or clears it when the same emoji is sent again. Responds
+    /// with the full reaction list so the caller renders authoritative counts.
+    /// </summary>
+    [HttpPost("conversations/{conversationId:int}/messages/{messageId:int}/reaction")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> SetReaction(
+        int conversationId,
+        int messageId,
+        [FromBody] SetMessageReactionRequestModel request,
+        CancellationToken cancellationToken) =>
+        ToActionResult(await chatService.SetReactionAsync(conversationId, messageId, request?.Emoji, cancellationToken));
+
     [HttpPost("unlock/{creatorUserId:int}")]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
     public async Task<IActionResult> UnlockPrivateChat(int creatorUserId, CancellationToken cancellationToken)
