@@ -25,6 +25,18 @@ public sealed class ChatApiService(IHttpClientFactory clientFactory, IHttpContex
     public Task<Result<int>> UnlockPrivateChatAsync(int creatorUserId, CancellationToken cancellationToken = default) =>
         PostAsync<int, object>($"api/chat/unlock/{creatorUserId}", new { }, cancellationToken);
 
+    public Task<Result> DeleteMessageForEveryoneAsync(int conversationId, int messageId, CancellationToken cancellationToken = default) =>
+        DeleteAsync($"api/chat/conversations/{conversationId}/messages/{messageId}", cancellationToken);
+
+    public Task<Result> DeleteMessageForSelfAsync(int conversationId, int messageId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/chat/conversations/{conversationId}/messages/{messageId}/hide", new { }, cancellationToken);
+
+    public Task<Result<IReadOnlyList<MessageReactionModel>>> SetMessageReactionAsync(int conversationId, int messageId, string? emoji, CancellationToken cancellationToken = default) =>
+        PostAsync<IReadOnlyList<MessageReactionModel>, SetMessageReactionRequestModel>(
+            $"api/chat/conversations/{conversationId}/messages/{messageId}/reaction",
+            new SetMessageReactionRequestModel(emoji),
+            cancellationToken);
+
     public Task<Result<CreatorChatSettingModel>> GetCreatorChatSettingsAsync(int? creatorUserId = null, CancellationToken cancellationToken = default) =>
         creatorUserId.HasValue
             ? GetAsync<CreatorChatSettingModel>($"api/creator/chat/settings/{creatorUserId.Value}", cancellationToken)

@@ -1,5 +1,7 @@
 namespace CommunityLink.App.Components.Shared.Chat;
 
+using CommunityLink.Shared.Features.Chat;
+
 public sealed class ChatMessageViewModel
 {
     public int Id { get; init; }
@@ -24,6 +26,20 @@ public sealed class ChatMessageViewModel
 
     public bool CanDelete { get; init; }
 
+    public bool CanDeleteForEveryone { get; init; }
+
+    public bool CanDeleteForSelf { get; init; } = true;
+
+    public int? ReplyToMessageId { get; init; }
+
+    public string? ReplyToSenderName { get; init; }
+
+    public string? ReplyToPreview { get; init; }
+
+    public bool ReplyToIsDeleted { get; init; }
+
+    public IReadOnlyList<MessageReactionModel>? Reactions { get; init; }
+
     /// <summary>Stable key used to de-duplicate REST responses against SignalR pushes.</summary>
     public string DedupeKey => $"{(int)ThreadType}:{ThreadId}:{Id}";
 
@@ -43,6 +59,36 @@ public sealed class ChatMessageViewModel
         SentAtLocal = SentAtLocal,
         IsMine = IsMine,
         IsRead = true,
-        CanDelete = CanDelete
+        CanDelete = CanDelete,
+        CanDeleteForEveryone = CanDeleteForEveryone,
+        CanDeleteForSelf = CanDeleteForSelf,
+        ReplyToMessageId = ReplyToMessageId,
+        ReplyToSenderName = ReplyToSenderName,
+        ReplyToPreview = ReplyToPreview,
+        ReplyToIsDeleted = ReplyToIsDeleted,
+        Reactions = Reactions
+    };
+
+    public ChatMessageViewModel WithReactions(IReadOnlyList<MessageReactionModel>? reactions) => new()
+    {
+        Id = Id,
+        ThreadType = ThreadType,
+        ThreadId = ThreadId,
+        SenderId = SenderId,
+        SenderName = SenderName,
+        SenderAvatar = SenderAvatar,
+        Content = Content,
+        SentAtLocal = SentAtLocal,
+        IsMine = IsMine,
+        IsRead = IsRead,
+        CanDelete = CanDelete,
+        CanDeleteForEveryone = CanDeleteForEveryone,
+        CanDeleteForSelf = CanDeleteForSelf,
+        ReplyToMessageId = ReplyToMessageId,
+        ReplyToSenderName = ReplyToSenderName,
+        ReplyToPreview = ReplyToPreview,
+        ReplyToIsDeleted = ReplyToIsDeleted,
+        Reactions = reactions
     };
 }
+

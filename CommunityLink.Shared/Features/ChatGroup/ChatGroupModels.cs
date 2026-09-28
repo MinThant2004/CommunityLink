@@ -1,5 +1,7 @@
 namespace CommunityLink.Shared.Features.ChatGroup;
 
+using CommunityLink.Shared.Features.Chat;
+
 public sealed record CreateChatGroupRequestModel(
     string Name,
     string? Description,
@@ -36,7 +38,8 @@ public sealed record ChatGroupMemberModel(
 );
 
 public sealed record SendChatGroupMessageRequestModel(
-    string Content
+    string Content,
+    int? ReplyToChatGroupMessageId = null
 );
 
 public sealed record ChatGroupPreviewModel(
@@ -55,5 +58,13 @@ public sealed record ChatGroupMessageModel(
     string? SenderAvatar,
     string Content,
     DateTime CreatedAt,
-    bool IsMine = false
+    bool IsMine = false,
+    // Quoted message; see ChatMessageModel for the meaning of ReplyToIsDeleted.
+    int? ReplyToChatGroupMessageId = null,
+    string? ReplyToSenderName = null,
+    string? ReplyToPreview = null,
+    bool ReplyToIsDeleted = false,
+    IReadOnlyList<MessageReactionModel>? Reactions = null,
+    // Sender, or a group OWNER/ADMIN acting as a moderator.
+    bool CanDeleteForEveryone = false
 );

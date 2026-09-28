@@ -49,14 +49,6 @@
         }
         else
         {
-            @if (TypingSenderName is not null)
-            {
-                <div class="flex items-center gap-2 px-1 pb-1 text-xs text-slate-500" role="status">
-                    <span class="h-3.5 w-3.5 animate-spin rounded-full border-b-2 border-slate-400"></span>
-                    @TypingSenderName is typing…
-                </div>
-            }
-
             DateOnly? lastDate = null;
             var lastSenderId = 0;
 
@@ -77,7 +69,12 @@
                 }
 
                 <div class="py-0.5">
-                    <ChatMessageBubble Message="message" ShowHeader="showHeader" OnDelete="OnDeleteMessage" />
+                    <ChatMessageBubble Message="message"
+                                       ShowHeader="showHeader"
+                                       OnReply="OnReply"
+                                       OnDeleteForSelf="OnDeleteForSelf"
+                                       OnDeleteForEveryone="OnDeleteForEveryone"
+                                       OnToggleReaction="OnToggleReaction" />
                 </div>
 
                 lastDate = messageDate;
@@ -91,10 +88,12 @@
     [Parameter] public IReadOnlyList<ChatMessageViewModel> Messages { get; set; } = Array.Empty<ChatMessageViewModel>();
     [Parameter] public bool IsLoading { get; set; }
     [Parameter] public bool HasError { get; set; }
-    [Parameter] public string? TypingSenderName { get; set; }
 
     [Parameter] public EventCallback OnRetry { get; set; }
-    [Parameter] public EventCallback<int> OnDeleteMessage { get; set; }
+    [Parameter] public EventCallback<ChatMessageViewModel> OnReply { get; set; }
+    [Parameter] public EventCallback<ChatMessageViewModel> OnDeleteForSelf { get; set; }
+    [Parameter] public EventCallback<ChatMessageViewModel> OnDeleteForEveryone { get; set; }
+    [Parameter] public EventCallback<(ChatMessageViewModel Message, string Emoji)> OnToggleReaction { get; set; }
 
     private ElementReference _scrollContainer;
     private int? _lastMessageId;

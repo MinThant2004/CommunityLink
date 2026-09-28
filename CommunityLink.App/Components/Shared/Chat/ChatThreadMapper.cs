@@ -80,7 +80,14 @@ public static class ChatThreadMapper
         SentAtLocal = model.SentAt.ToLocalTime(),
         IsMine = model.SenderId == currentUserId,
         IsRead = model.IsRead,
-        CanDelete = false
+        CanDelete = model.SenderId == currentUserId,
+        CanDeleteForEveryone = model.CanDeleteForEveryone || model.SenderId == currentUserId,
+        CanDeleteForSelf = true,
+        ReplyToMessageId = model.ReplyToMessageId,
+        ReplyToSenderName = model.ReplyToSenderName,
+        ReplyToPreview = model.ReplyToPreview,
+        ReplyToIsDeleted = model.ReplyToIsDeleted,
+        Reactions = model.Reactions
     };
 
     public static ChatMessageViewModel ToMessage(
@@ -105,7 +112,14 @@ public static class ChatThreadMapper
             Content = model.Content,
             SentAtLocal = model.CreatedAt.ToLocalTime(),
             IsMine = model.SenderId == currentUserId,
-            CanDelete = canDelete
+            CanDelete = canDelete,
+            CanDeleteForEveryone = model.CanDeleteForEveryone || canDelete,
+            CanDeleteForSelf = true,
+            ReplyToMessageId = model.ReplyToChatGroupMessageId,
+            ReplyToSenderName = model.ReplyToSenderName,
+            ReplyToPreview = model.ReplyToPreview,
+            ReplyToIsDeleted = model.ReplyToIsDeleted,
+            Reactions = model.Reactions
         };
     }
 

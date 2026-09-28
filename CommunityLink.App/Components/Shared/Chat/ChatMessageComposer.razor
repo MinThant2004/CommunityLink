@@ -1,9 +1,28 @@
 @*
-    Message composer. Model-agnostic: it only emits text, so the unified page routes the
-    result to the 1:1 or the group endpoint depending on the active thread.
+    Message composer. Model-agnostic: it emits text and optional replyToId, so the unified page
+    routes the result to the 1:1 or the group endpoint depending on the active thread.
 *@
 
 <div class="shrink-0 border-t border-slate-200 bg-white px-3 py-3 sm:px-4">
+    @if (ReplyToMessage is not null)
+    {
+        <div class="mx-auto mb-2.5 flex max-w-3xl items-center justify-between rounded-xl border border-indigo-200 bg-indigo-50/80 px-3.5 py-2 text-xs">
+            <div class="min-w-0 flex-1 border-l-2 border-indigo-600 pl-2.5">
+                <span class="font-semibold text-indigo-900">Replying to @ReplyToMessage.SenderName</span>
+                <p class="truncate text-slate-600">@ReplyToMessage.Content</p>
+            </div>
+            <button type="button"
+                    @onclick="CancelReply"
+                    title="Cancel reply"
+                    aria-label="Cancel reply"
+                    class="ml-2 rounded-md p-1 text-slate-400 transition hover:bg-indigo-100 hover:text-slate-700">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    }
+
     <div class="mx-auto flex max-w-3xl items-end gap-2">
         <div class="relative shrink-0">
             <button type="button"
@@ -19,7 +38,7 @@
 
             @if (showEmojiPicker)
             {
-                <div class="absolute bottom-12 left-0 z-20 flex gap-1 rounded-xl border border-slate-200 bg-white p-2 text-xl">
+                <div class="absolute bottom-12 left-0 z-20 flex gap-1 rounded-xl border border-slate-200 bg-white p-2 text-xl shadow-lg">
                     @foreach (var emoji in quickEmojis)
                     {
                         <button type="button" @onclick="() => AddEmoji(emoji)" class="cursor-pointer rounded-lg p-1.5 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -32,8 +51,8 @@
 
         <label for="chat-composer" class="sr-only">Message</label>
         <textarea id="chat-composer"
-                  @bind="messageText"
-                  @bind:event="oninput"
+                  value="@messageText"
+                  @oninput="OnInputChanged"
                   @onkeydown="HandleKeyDown"
                   rows="1"
                   placeholder="@Placeholder"
@@ -71,20 +90,53 @@
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public string? DisabledReason { get; set; }
     [Parameter] public string Placeholder { get; set; } = "Write a message...";
-    [Parameter] public EventCallback<string> OnSend { get; set; }
+    [Parameter] public ChatMessageViewModel? ReplyToMessage { get; set; }
+    [Parameter] public EventCallback<SendMessagePayload> OnSend { get; set; }
+    [Parameter] public EventCallback OnCancelReply { get; set; }
+    [Parameter] public EventCallback<bool> OnTyping { get; set; }
 
     private string messageText = "";
     private bool showEmojiPicker;
+    private bool _isCurrentlyTyping;
+    private System.Threading.Timer? _typingTimer;
 
     private static readonly string[] quickEmojis = ["👍", "❤️", "🔥", "😊", "🎉", "👏", "🚀", "💡"];
 
     private void ToggleEmojiPicker() => showEmojiPicker = !showEmojiPicker;
 
-    private void AddEmoji(string emoji)
+    private async Task AddEmoji(string emoji)
     {
         messageText += emoji;
         showEmojiPicker = false;
+        await OnInputChanged(new ChangeEventArgs { Value = messageText });
     }
+
+    private async Task OnInputChanged(ChangeEventArgs e)
+    {
+        messageText = e.Value?.ToString() ?? "";
+        await NotifyTypingAsync(!string.IsNullOrWhiteSpace(messageText));
+    }
+
+    private async Task NotifyTypingAsync(bool isTyping)
+    {
+        if (isTyping != _isCurrentlyTyping)
+        {
+            _isCurrentlyTyping = isTyping;
+            await OnTyping.InvokeAsync(_isCurrentlyTyping);
+        }
+
+        _typingTimer?.Dispose();
+        if (_isCurrentlyTyping)
+        {
+            _typingTimer = new System.Threading.Timer(async _ =>
+            {
+                _isCurrentlyTyping = false;
+                await InvokeAsync(async () => await OnTyping.InvokeAsync(false));
+            }, null, 3000, System.Threading.Timeout.Infinite);
+        }
+    }
+
+    private async Task CancelReply() => await OnCancelReply.InvokeAsync();
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
@@ -101,9 +153,18 @@
             return;
         }
 
-        var textToSend = messageText;
+        _typingTimer?.Dispose();
+        if (_isCurrentlyTyping)
+        {
+            _isCurrentlyTyping = false;
+            await OnTyping.InvokeAsync(false);
+        }
+
+        var payload = new SendMessagePayload(messageText.Trim(), ReplyToMessage?.Id);
         messageText = "";
         showEmojiPicker = false;
-        await OnSend.InvokeAsync(textToSend);
+        await OnSend.InvokeAsync(payload);
     }
+
+    public record SendMessagePayload(string Text, int? ReplyToId);
 }

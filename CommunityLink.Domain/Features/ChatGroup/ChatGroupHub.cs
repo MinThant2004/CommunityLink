@@ -48,5 +48,18 @@ public class ChatGroupHub : Hub
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
     }
 
+    public async Task SendGroupTyping(int chatGroupId, bool isTyping)
+    {
+        var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? Context.User?.FindFirst("sub")?.Value
+            ?? Context.User?.FindFirst("nameid")?.Value;
+
+        if (int.TryParse(userIdStr, out int senderId))
+        {
+            string groupName = GetGroupName(chatGroupId);
+            await Clients.OthersInGroup(groupName).SendAsync("GroupTyping", chatGroupId, senderId, isTyping);
+        }
+    }
+
     public static string GetGroupName(int chatGroupId) => $"chat-group-{chatGroupId}";
 }

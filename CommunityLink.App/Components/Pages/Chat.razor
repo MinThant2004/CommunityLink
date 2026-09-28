@@ -55,6 +55,7 @@
         {
             <ChatThreadHeader Thread="activeThread"
                               Status="Realtime.OverallStatus"
+                              TypingText="@typingStatusText"
                               ShowBackButton="true"
                               OnToggleInfo="ToggleInfo"
                               OnBack="CloseThreadOnMobile" />
@@ -145,13 +146,18 @@
                 <ChatMessageList Messages="messages"
                                   IsLoading="isLoadingMessages"
                                   HasError="messagesFailed"
-                                  TypingSenderName="typingSenderName"
                                   OnRetry="LoadMessagesAsync"
-                                  OnDeleteMessage="DeleteMessageAsync" />
+                                  OnReply="msg => activeReplyMessage = msg"
+                                  OnDeleteForSelf="DeleteMessageForSelfAsync"
+                                  OnDeleteForEveryone="DeleteMessageForEveryoneAsync"
+                                  OnToggleReaction="ToggleMessageReactionAsync" />
 
                 <ChatMessageComposer IsSubmitting="isSending"
                                       Placeholder="@ComposerPlaceholder"
-                                      OnSend="SendMessageAsync" />
+                                      ReplyToMessage="activeReplyMessage"
+                                      OnSend="SendMessageAsync"
+                                      OnCancelReply="() => activeReplyMessage = null"
+                                      OnTyping="OnUserTypingAsync" />
             }
         }
     </div>
@@ -212,6 +218,7 @@
 
     private ChatThreadViewModel? activeThread;
     private ChatThreadViewModel placeholderThread = new() { Title = "Conversation" };
+    private ChatMessageViewModel? activeReplyMessage;
 
     private string activeSegment = "all";
     private string? searchText;
@@ -222,6 +229,8 @@
     private long walletBalance;
     private int? typingSenderId;
     private string? typingSenderName;
+    private string? typingStatusText;
+    private System.Threading.Timer? typingResetTimer;
 
     private bool isLoadingThreads = true;
     private bool threadsFailed;
@@ -310,6 +319,7 @@
         Realtime.PrivateMessageReceived += OnPrivateMessageReceived;
         Realtime.GroupMessageReceived += OnGroupMessageReceived;
         Realtime.TypingChanged += OnTypingChanged;
+        Realtime.GroupTypingChanged += OnGroupTypingChanged;
         Realtime.ConversationRead += OnConversationRead;
         Realtime.StateChanged += OnRealtimeStateChanged;
         _eventsWired = true;
@@ -332,6 +342,8 @@
             Realtime.PrivateMessageReceived -= OnPrivateMessageReceived;
             Realtime.GroupMessageReceived -= OnGroupMessageReceived;
             Realtime.TypingChanged -= OnTypingChanged;
+            Realtime.GroupTypingChanged -= OnGroupTypingChanged;
+            typingResetTimer?.Dispose();
             Realtime.ConversationRead -= OnConversationRead;
             Realtime.StateChanged -= OnRealtimeStateChanged;
         }
@@ -661,14 +673,15 @@
         }
     }
 
-    private async Task SendMessageAsync(string text)
+    private async Task SendMessageAsync(ChatMessageComposer.SendMessagePayload payload)
     {
-        if (activeThread is null || isSending || string.IsNullOrWhiteSpace(text))
+        if (activeThread is null || isSending || string.IsNullOrWhiteSpace(payload.Text))
         {
             return;
         }
 
         var thread = activeThread;
+        var replyToId = payload.ReplyToId;
         isSending = true;
         StateHasChanged();
 
@@ -676,10 +689,11 @@
         {
             if (thread.IsGroup)
             {
-                var res = await ChatGroupApi.SendMessageAsync(thread.Id, new SendChatGroupMessageRequestModel(text));
+                var res = await ChatGroupApi.SendMessageAsync(thread.Id, new SendChatGroupMessageRequestModel(payload.Text, replyToId));
                 if (res.IsSuccess && res.Data is not null)
                 {
                     AppendMessage(res.Data.ToMessage(thread.Id, currentUserId, thread.UserRole ?? "NONE"));
+                    activeReplyMessage = null;
                 }
                 else
                 {
@@ -691,13 +705,14 @@
                 // A 1:1 thread that has no server-side conversation id yet must be
                 // addressed by recipient; the server creates the conversation.
                 var request = thread.Id > 0
-                    ? new SendMessageRequestModel(thread.Id, null, text)
-                    : new SendMessageRequestModel(null, thread.DirectUserId, text);
+                    ? new SendMessageRequestModel(thread.Id, null, payload.Text, replyToId)
+                    : new SendMessageRequestModel(null, thread.DirectUserId, payload.Text, replyToId);
 
                 var res = await ChatApi.SendMessageAsync(request);
                 if (res.IsSuccess && res.Data is not null)
                 {
                     AppendMessage(res.Data.ToMessage(ChatThreadType.Private, thread.Id, currentUserId));
+                    activeReplyMessage = null;
                 }
                 else if (string.Equals(res.Message, "PRIVATE_CHAT_PAYMENT_REQUIRED", StringComparison.OrdinalIgnoreCase))
                 {
@@ -721,23 +736,71 @@
         }
     }
 
-    private async Task DeleteMessageAsync(int messageId)
+    private async Task DeleteMessageForSelfAsync(ChatMessageViewModel msg)
     {
-        if (activeThread is null || !activeThread.IsGroup)
+        if (activeThread is null)
         {
             return;
         }
 
-        var res = await ChatGroupApi.DeleteMessageAsync(activeThread.Id, messageId);
+        var res = activeThread.IsGroup
+            ? await ChatGroupApi.HideMessageForSelfAsync(activeThread.Id, msg.Id)
+            : await ChatApi.DeleteMessageForSelfAsync(activeThread.Id, msg.Id);
+
         if (res.IsSuccess)
         {
-            messages = messages.Where(m => m.Id != messageId).ToList();
-            Toast.Success("Message deleted.");
+            messages = messages.Where(m => m.Id != msg.Id).ToList();
+            Toast.Success("Message deleted for you.");
             StateHasChanged();
         }
         else
         {
-            Toast.Error(res.Message ?? "Message could not be deleted.");
+            Toast.Error(res.Message ?? "Could not delete message for you.");
+        }
+    }
+
+    private async Task DeleteMessageForEveryoneAsync(ChatMessageViewModel msg)
+    {
+        if (activeThread is null)
+        {
+            return;
+        }
+
+        var res = activeThread.IsGroup
+            ? await ChatGroupApi.DeleteMessageAsync(activeThread.Id, msg.Id)
+            : await ChatApi.DeleteMessageForEveryoneAsync(activeThread.Id, msg.Id);
+
+        if (res.IsSuccess)
+        {
+            messages = messages.Where(m => m.Id != msg.Id).ToList();
+            Toast.Success("Message deleted for everyone.");
+            StateHasChanged();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not delete message for everyone.");
+        }
+    }
+
+    private async Task ToggleMessageReactionAsync((ChatMessageViewModel Message, string Emoji) arg)
+    {
+        if (activeThread is null)
+        {
+            return;
+        }
+
+        var res = activeThread.IsGroup
+            ? await ChatGroupApi.SetMessageReactionAsync(activeThread.Id, arg.Message.Id, arg.Emoji)
+            : await ChatApi.SetMessageReactionAsync(activeThread.Id, arg.Message.Id, arg.Emoji);
+
+        if (res.IsSuccess && res.Data is not null)
+        {
+            messages = messages.Select(m => m.Id == arg.Message.Id ? m.WithReactions(res.Data) : m).ToList();
+            StateHasChanged();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not update reaction.");
         }
     }
 
@@ -1092,17 +1155,77 @@
         allThreads.AddRange(ordered);
     }
 
+    private async Task OnUserTypingAsync(bool isTyping)
+    {
+        if (activeThread is null) return;
+
+        if (activeThread.IsDirect && activeThread.DirectUserId.HasValue)
+        {
+            await Realtime.SendTypingAsync(activeThread.DirectUserId.Value, isTyping);
+        }
+        else if (activeThread.IsGroup)
+        {
+            await Realtime.SendGroupTypingAsync(activeThread.Id, isTyping);
+        }
+    }
+
     private Task OnTypingChanged(int senderId, bool isTyping)
     {
-        if (!isTyping || activeThread is null || activeThread.DirectUserId != senderId)
+        if (activeThread is not null && activeThread.IsDirect && activeThread.DirectUserId == senderId)
         {
-            typingSenderId = null;
-            typingSenderName = null;
+            typingResetTimer?.Dispose();
+            if (isTyping)
+            {
+                typingSenderId = senderId;
+                typingSenderName = activeThread.Title;
+                typingStatusText = "typing...";
+                typingResetTimer = new System.Threading.Timer(_ =>
+                {
+                    typingStatusText = null;
+                    typingSenderId = null;
+                    typingSenderName = null;
+                    InvokeAsync(StateHasChanged);
+                }, null, 3500, System.Threading.Timeout.Infinite);
+            }
+            else
+            {
+                typingSenderId = null;
+                typingSenderName = null;
+                typingStatusText = null;
+            }
         }
-        else
+
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnGroupTypingChanged(int chatGroupId, int senderId, bool isTyping)
+    {
+        if (activeThread is not null && activeThread.IsGroup && activeThread.Id == chatGroupId && senderId != currentUserId)
         {
-            typingSenderId = senderId;
-            typingSenderName = activeThread.Title;
+            typingResetTimer?.Dispose();
+            if (isTyping)
+            {
+                var member = groupMembers.FirstOrDefault(m => m.UserId == senderId);
+                var fullName = member?.DisplayName ?? member?.UserName ?? "Someone";
+                var frontName = fullName.Split(' ', System.StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? fullName;
+
+                typingSenderId = senderId;
+                typingSenderName = fullName;
+                typingStatusText = $"{frontName} is typing...";
+                typingResetTimer = new System.Threading.Timer(_ =>
+                {
+                    typingStatusText = null;
+                    typingSenderId = null;
+                    typingSenderName = null;
+                    InvokeAsync(StateHasChanged);
+                }, null, 3500, System.Threading.Timeout.Infinite);
+            }
+            else
+            {
+                typingSenderId = null;
+                typingSenderName = null;
+                typingStatusText = null;
+            }
         }
 
         return InvokeAsync(StateHasChanged);
