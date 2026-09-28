@@ -1,0 +1,328 @@
+@page "/admin/payouts"
+@layout AdminLayout
+@using CommunityLink.App.Apis
+@using CommunityLink.Shared.Features.Payout
+@inject CreatorPayoutApiService PayoutApi
+@inject ToastService Toast
+
+<PageTitle>Admin - Creator Payout Management</PageTitle>
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div>
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Admin Control Panel</div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Creator Payout Management</h1>
+            <p class="text-sm text-slate-600 mt-1">Review, approve, and process creator cash-out and withdrawal requests.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button type="button" @onclick='() => SetStatusFilter("")'
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50")">
+                All Requests
+            </button>
+            <button type="button" @onclick='() => SetStatusFilter("PENDING")'
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "PENDING" ? "bg-amber-600 text-white border-amber-600" : "bg-white text-amber-800 border-amber-200 hover:bg-amber-50")">
+                Pending
+            </button>
+            <button type="button" @onclick='() => SetStatusFilter("COMPLETED")'
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "COMPLETED" ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-50")">
+                Completed
+            </button>
+            <button type="button" @onclick='() => SetStatusFilter("REJECTED")'
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border @(activeStatus == "REJECTED" ? "bg-rose-600 text-white border-rose-600" : "bg-white text-rose-800 border-rose-200 hover:bg-rose-50")">
+                Rejected
+            </button>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-indigo-600 mb-4"></div>
+            <p class="text-sm font-medium text-slate-600">Loading payout requests...</p>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="bg-rose-50 border border-rose-200 rounded-xl p-6 text-rose-800 shadow-sm flex items-start gap-4">
+            <div class="flex-1">
+                <h3 class="font-bold text-rose-900">Error loading payouts</h3>
+                <p class="text-sm text-rose-700 mt-1">@errorMessage</p>
+                <button type="button" @onclick="LoadPayouts" class="mt-3 px-4 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition">
+                    Retry
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <h2 class="text-lg font-bold text-slate-900">Payout Requests (@payouts.Count)</h2>
+                <button type="button" @onclick="LoadPayouts" class="px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-200 transition">
+                    Refresh
+                </button>
+            </div>
+
+            @if (payouts.Count == 0)
+            {
+                <div class="py-12 px-4 text-center bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                    <p class="text-sm font-bold text-slate-700">No payout requests found.</p>
+                    <p class="text-xs text-slate-500">No creator withdrawal requests match the selected status filter.</p>
+                </div>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-700 border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500 tracking-wider">
+                                <th class="py-3 px-4">Creator</th>
+                                <th class="py-3 px-4 text-right">Amount (LD)</th>
+                                <th class="py-3 px-4 text-right">Est. MMK</th>
+                                <th class="py-3 px-4">Payment Method</th>
+                                <th class="py-3 px-4">Account Details</th>
+                                <th class="py-3 px-4">Date</th>
+                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach (var p in payouts)
+                            {
+                                <tr class="hover:bg-slate-50/80 transition">
+                                    <td class="py-3.5 px-4">
+                                        <div class="font-bold text-slate-900">@p.CreatorName</div>
+                                        <div class="text-xs text-slate-500">@p.CreatorEmail</div>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right font-extrabold text-slate-900">
+                                        @p.AmountLinkDrops LD
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right font-bold text-emerald-700">
+                                        @p.AmountMMK.ToString("N0") MMK
+                                    </td>
+                                    <td class="py-3.5 px-4 font-semibold text-slate-800">
+                                        @p.PaymentMethod
+                                    </td>
+                                    <td class="py-3.5 px-4 text-xs text-slate-600">
+                                        <div><span class="font-medium text-slate-800">@p.PaymentAccountName</span></div>
+                                        <div class="font-mono text-slate-500">@p.PaymentAccountNumber</div>
+                                    </td>
+                                    <td class="py-3.5 px-4 font-mono text-xs text-slate-600">
+                                        @p.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center">
+                                        @if (p.Status == "PENDING")
+                                        {
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-800">
+                                                Pending Review
+                                            </span>
+                                        }
+                                        else if (p.Status == "COMPLETED" || p.Status == "APPROVED")
+                                        {
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-200 text-emerald-800">
+                                                Completed
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 border border-rose-200 text-rose-800">
+                                                @p.Status
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right">
+                                        @if (p.Status == "PENDING")
+                                        {
+                                            <div class="flex items-center justify-end gap-2">
+                                                <button type="button" @onclick="() => OpenConfirmation(p, true)"
+                                                        class="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 transition">
+                                                    Approve
+                                                </button>
+                                                <button type="button" @onclick="() => OpenConfirmation(p, false)"
+                                                        class="px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition">
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-xs text-slate-400 italic">Reviewed</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- CONFIRMATION MODAL FOR APPROVAL / REJECTION -->
+@if (selectedPayout != null)
+{
+    <div class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-lg font-bold text-slate-900">
+                    @(isApprovingAction ? "Approve Payout Request" : "Reject Payout Request")
+                </h3>
+                <button type="button" @onclick="CloseModal" class="text-slate-400 hover:text-slate-600 font-bold text-lg">
+                    &times;
+                </button>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-2 text-xs text-slate-700">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Creator:</span>
+                    <span class="font-bold text-slate-900">@selectedPayout.CreatorName (@selectedPayout.CreatorEmail)</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Amount:</span>
+                    <span class="font-extrabold text-slate-900 text-sm">@selectedPayout.AmountLinkDrops LD</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">MMK Value:</span>
+                    <span class="font-bold text-emerald-700 text-sm">@selectedPayout.AmountMMK.ToString("N0") MMK</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Payment Account:</span>
+                    <span class="font-semibold text-slate-800">@selectedPayout.PaymentMethod - @selectedPayout.PaymentAccountName (@selectedPayout.PaymentAccountNumber)</span>
+                </div>
+            </div>
+
+            @if (isApprovingAction)
+            {
+                <p class="text-xs text-slate-600 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-emerald-800 font-medium">
+                    Approving this request will immediately deduct <strong>@selectedPayout.AmountLinkDrops Link Drops</strong> from the creator's EarnedBalance and record a CREATOR_PAYOUT audit ledger transaction.
+                </p>
+            }
+            else
+            {
+                <p class="text-xs text-slate-600 bg-rose-50 border border-rose-200 rounded-lg p-3 text-rose-800 font-medium">
+                    Rejecting this request will NOT deduct any Link Drops from the creator's wallet.
+                </p>
+            }
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Admin Note (Optional)</label>
+                <textarea rows="3" placeholder="e.g. Transaction ID / Reference code / Rejection reason" @bind="adminNoteInput"
+                          class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-xs text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none"></textarea>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button type="button" @onclick="CloseModal" class="px-4 py-2 bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-200 transition">
+                    Cancel
+                </button>
+                <button type="button" @onclick="ProcessAction" disabled="@isProcessing"
+                        class="px-5 py-2 text-white rounded-lg text-xs font-semibold transition disabled:opacity-50 @(isApprovingAction ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700")">
+                    @(isProcessing ? "Processing..." : (isApprovingAction ? "Confirm Approval" : "Confirm Rejection"))
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private string activeStatus = "";
+    private string? errorMessage;
+
+    private List<AdminPayoutModel> payouts = new();
+    private AdminPayoutModel? selectedPayout;
+    private bool isApprovingAction;
+    private string adminNoteInput = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPayouts();
+    }
+
+    private async Task SetStatusFilter(string status)
+    {
+        activeStatus = status;
+        await LoadPayouts();
+    }
+
+    private async Task LoadPayouts()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var res = await PayoutApi.GetAdminPayoutsAsync(activeStatus);
+            if (res.IsSuccess && res.Data != null)
+            {
+                payouts = res.Data.ToList();
+            }
+            else
+            {
+                errorMessage = res.Message ?? "Failed to load admin payouts.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+
+        isLoading = false;
+    }
+
+    private void OpenConfirmation(AdminPayoutModel payout, bool isApprove)
+    {
+        selectedPayout = payout;
+        isApprovingAction = isApprove;
+        adminNoteInput = "";
+    }
+
+    private void CloseModal()
+    {
+        selectedPayout = null;
+    }
+
+    private async Task ProcessAction()
+    {
+        if (selectedPayout == null || isProcessing) return;
+
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            Result<AdminPayoutModel> res;
+
+            if (isApprovingAction)
+            {
+                res = await PayoutApi.ApprovePayoutAsync(selectedPayout.CreatorPayoutRequestId, adminNoteInput);
+            }
+            else
+            {
+                res = await PayoutApi.RejectPayoutAsync(selectedPayout.CreatorPayoutRequestId, adminNoteInput);
+            }
+
+            if (res.IsSuccess)
+            {
+                Toast.Success(res.Message ?? (isApprovingAction ? "Payout approved successfully!" : "Payout rejected."));
+                selectedPayout = null;
+                await LoadPayouts();
+            }
+            else
+            {
+                Toast.Error(res.Message ?? "Failed to process payout action.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Unexpected error processing payout: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+}

@@ -1,0 +1,115 @@
+@using CommunityLink.App.Components.Shared.Chat
+
+@*
+    One-time LinkDrop payment confirmation, shared by paid group joins and paid 1:1 unlocks.
+*@
+
+<ChatModal IsOpen="IsOpen" Title="@ModalTitle" MaxWidth="max-w-md" OnClose="OnClose">
+    <ChildContent>
+    <div class="space-y-4 px-4 py-4">
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="rounded-lg border border-rose-200 bg-rose-50 p-3" role="alert">
+                <p class="text-sm font-medium text-rose-800">@errorMessage</p>
+            </div>
+        }
+
+        <div class="flex items-center gap-3">
+            @if (!string.IsNullOrWhiteSpace(AvatarUrl))
+            {
+                <img src="@AvatarUrl" alt="" class="h-11 w-11 shrink-0 rounded-full object-cover" />
+            }
+            else
+            {
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600">@Initials</span>
+            }
+            <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-slate-900">@SubjectName</p>
+                <p class="text-xs text-slate-500">@SubjectSubtitle</p>
+            </div>
+        </div>
+
+        <dl class="divide-y divide-slate-100 rounded-lg border border-slate-200">
+            <div class="flex items-center justify-between px-3 py-2.5">
+                <dt class="text-sm text-slate-600">Total price</dt>
+                <dd class="text-sm font-semibold text-slate-900">@FeeLinkDrops drops</dd>
+            </div>
+            <div class="flex items-center justify-between px-3 py-2.5">
+                <dt class="text-sm text-slate-600">Platform commission</dt>
+                <dd class="text-sm text-slate-700">@CommissionAmount drops</dd>
+            </div>
+            <div class="flex items-center justify-between px-3 py-2.5">
+                <dt class="text-sm text-slate-600">Creator receives</dt>
+                <dd class="text-sm font-semibold text-emerald-700">@CreatorAmount drops</dd>
+            </div>
+            <div class="flex items-center justify-between px-3 py-2.5">
+                <dt class="text-sm text-slate-600">Your balance</dt>
+                <dd class="text-sm font-semibold @(HasSufficientBalance ? "text-emerald-700" : "text-rose-600")">@Balance drops</dd>
+            </div>
+        </dl>
+
+        @if (!HasSufficientBalance)
+        {
+            <p class="text-xs leading-relaxed text-rose-700">
+                You need @Math.Max(0, FeeLinkDrops - Balance) more drops to continue. Buy drops from the LinkDrops page first.
+            </p>
+        }
+
+        <p class="text-xs leading-relaxed text-slate-500">
+            This is a one-time payment. Once confirmed, @(IsGroupUnlock ? "you can post in this group" : "this conversation unlocks permanently") and the amount is deducted from your LinkDrop wallet immediately.
+        </p>
+    </div>
+    </ChildContent>
+
+    <FooterContent>
+        <button type="button"
+                @onclick="OnClose"
+                class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300">
+            Cancel
+        </button>
+        <button type="button"
+                @onclick="OnConfirm"
+                disabled="@(IsSubmitting || !HasSufficientBalance)"
+                class="rounded-lg bg-amber-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+            @if (IsSubmitting)
+            {
+                <span class="flex items-center gap-1.5">
+                    <span class="h-3 w-3 animate-spin rounded-full border-b-2 border-white"></span>
+                    Processing…
+                </span>
+            }
+            else
+            {
+                <span>Pay @FeeLinkDrops drops</span>
+            }
+        </button>
+    </FooterContent>
+</ChatModal>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public bool IsGroupUnlock { get; set; }
+    [Parameter] public string SubjectName { get; set; } = string.Empty;
+    [Parameter] public string? SubjectSubtitle { get; set; }
+    [Parameter] public string? AvatarUrl { get; set; }
+    [Parameter] public long FeeLinkDrops { get; set; }
+    [Parameter] public long Balance { get; set; }
+    [Parameter] public decimal CommissionPercentage { get; set; }
+    [Parameter] public bool IsSubmitting { get; set; }
+    [Parameter] public string? errorMessage { get; set; }
+
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private string ModalTitle => IsGroupUnlock ? "Join paid group" : "Unlock conversation";
+
+    private bool HasSufficientBalance => Balance >= FeeLinkDrops;
+
+    private long CommissionAmount => (long)Math.Round(
+        FeeLinkDrops * (CommissionPercentage / 100m),
+        MidpointRounding.AwayFromZero);
+
+    private long CreatorAmount => FeeLinkDrops - CommissionAmount;
+
+    private string Initials => string.IsNullOrWhiteSpace(SubjectName) ? "?" : SubjectName.Trim()[..1].ToUpperInvariant();
+}

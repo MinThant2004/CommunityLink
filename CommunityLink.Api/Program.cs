@@ -1,4 +1,6 @@
 using CommunityLink.Domain;
+using CommunityLink.Domain.Features.Chat;
+using CommunityLink.Domain.Features.ChatGroup;
 using CommunityLink.Api.Controllers;
 using CommunityLink.Api.Middlewares;
 using CommunityLink.Database.AppDbContextModels;
@@ -19,6 +21,9 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add SignalR
+builder.Services.AddSignalR();
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "CommunityLinkSuperSecretSigningKey1234567890!_SecurityKey";
@@ -46,6 +51,23 @@ builder.Services.AddAuthentication(options =>
             NameClaimType = "name",
             RoleClaimType = "role"
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                // Browsers cannot set headers on the WebSocket handshake, so the JWT has to
+                // arrive as a query parameter. StartsWithSegments is segment-exact, so both
+                // hub paths must be listed: "/hubs/chat" does not cover "/hubs/chat-groups".
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/hubs/chat") || path.StartsWithSegments("/hubs/chat-groups")))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -64,6 +86,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await RbacSeeder.SeedAsync(db);
     await LinkDropSeeder.SeedAsync(db);
+    await PrivateChatDatabaseSeeder.SeedAsync(db);
 }
 
 // Middleware Pipeline
@@ -85,6 +108,8 @@ app.UseMiddleware<PasswordChangeRequirementMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatGroupHub>("/hubs/chat-groups");
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();
 

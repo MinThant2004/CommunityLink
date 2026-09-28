@@ -1,3 +1,5 @@
+@inherits LayoutComponentBase
+
 <div class="h-full flex flex-col min-h-0 overflow-hidden select-none bg-white dark:bg-[#0A0D14] transition-colors duration-150">
     <!-- Stationary Sidebar Header -->
     <div class="px-5 py-4 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shrink-0 bg-white dark:bg-[#0A0D14] z-10 transition-colors duration-150">
@@ -42,6 +44,12 @@
                         </NavLink>
                     </div>
                     <div class="px-1 py-0.5">
+                        <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="chat">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.189A8.721 8.721 0 0 1 3 12a8.721 8.721 0 0 1 3.04-6.06 8.721 8.721 0 0 1 6.96 0A8.721 8.721 0 0 1 21 12Z"/></svg>
+                            <span>Chat</span>
+                        </NavLink>
+                    </div>
+                    <div class="px-1 py-0.5">
                         <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="profile">
                             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                             <span>Profile</span>
@@ -64,6 +72,23 @@
                             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                             <span>Activity</span>
                         </NavLink>
+                    </div>
+
+                    <!-- Creator Center Section -->
+                    <div class="px-1 py-2 mt-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
+                        <div class="px-3 pb-1 font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
+                            Creator Center
+                        </div>
+                        <div class="space-y-1">
+                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/earnings">
+                                <span class="text-sm">💰</span>
+                                <span>Earnings</span>
+                            </NavLink>
+                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/payouts">
+                                <span class="text-sm">💸</span>
+                                <span>Payouts</span>
+                            </NavLink>
+                        </div>
                     </div>
 
                     <!-- Reports Section / Dropdown -->
@@ -109,6 +134,10 @@
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                                         <span>Overview Stats</span>
                                     </NavLink>
+                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/communities">
+                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                                        <span>Hub Moderation</span>
+                                    </NavLink>
                                     <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/users">
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                         <span>User Directory</span>
@@ -117,10 +146,6 @@
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
                                         <span>Account Creation</span>
                                     </NavLink>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/communities">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                                        <span>Hub Moderation</span>
-                                    </NavLink>
                                     <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/rbac">
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                                         <span>Role &amp; Permissions</span>
@@ -128,6 +153,14 @@
                                     <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/audits">
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                                         <span>System Audit Logs</span>
+                                    </NavLink>
+                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/payouts">
+                                        <span class="text-xs">💸</span>
+                                        <span>Creator Payouts</span>
+                                    </NavLink>
+                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/finance">
+                                        <span class="text-xs">💰</span>
+                                        <span>Platform Finance</span>
                                     </NavLink>
                                     <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/linkdrops">
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/><path d="M8.5 17.5a3.5 3.5 0 1 0-4.95-4.95"/><path d="M15.5 6.5A3.5 3.5 0 1 0 20.45 11.2"/></svg>

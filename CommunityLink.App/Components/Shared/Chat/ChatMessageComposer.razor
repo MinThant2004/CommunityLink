@@ -1,0 +1,109 @@
+@*
+    Message composer. Model-agnostic: it only emits text, so the unified page routes the
+    result to the 1:1 or the group endpoint depending on the active thread.
+*@
+
+<div class="shrink-0 border-t border-slate-200 bg-white px-3 py-3 sm:px-4">
+    <div class="mx-auto flex max-w-3xl items-end gap-2">
+        <div class="relative shrink-0">
+            <button type="button"
+                    @onclick="ToggleEmojiPicker"
+                    title="Insert emoji"
+                    aria-label="Insert emoji"
+                    aria-expanded="@showEmojiPicker.ToString().ToLowerInvariant()"
+                    class="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
+                </svg>
+            </button>
+
+            @if (showEmojiPicker)
+            {
+                <div class="absolute bottom-12 left-0 z-20 flex gap-1 rounded-xl border border-slate-200 bg-white p-2 text-xl">
+                    @foreach (var emoji in quickEmojis)
+                    {
+                        <button type="button" @onclick="() => AddEmoji(emoji)" class="cursor-pointer rounded-lg p-1.5 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            @emoji
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        <label for="chat-composer" class="sr-only">Message</label>
+        <textarea id="chat-composer"
+                  @bind="messageText"
+                  @bind:event="oninput"
+                  @onkeydown="HandleKeyDown"
+                  rows="1"
+                  placeholder="@Placeholder"
+                  disabled="@(IsSubmitting || Disabled)"
+                  class="max-h-32 min-h-[42px] w-full resize-none rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm leading-relaxed text-slate-900 placeholder-slate-400 transition focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600 disabled:bg-slate-100 disabled:text-slate-400"></textarea>
+
+        <button type="button"
+                @onclick="SubmitMessage"
+                disabled="@(IsSubmitting || Disabled || string.IsNullOrWhiteSpace(messageText))"
+                aria-label="Send message"
+                class="flex h-[42px] shrink-0 items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            @if (IsSubmitting)
+            {
+                <span class="h-3.5 w-3.5 animate-spin rounded-full border-b-2 border-white"></span>
+                <span class="hidden sm:inline">Sending</span>
+            }
+            else
+            {
+                <span class="hidden sm:inline">Send</span>
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.126A59.768 59.768 0 0 1 21.485 12 59.77 59.77 0 0 1 3.27 20.876L5.999 12Zm0 0h7.5" />
+                </svg>
+            }
+        </button>
+    </div>
+
+    @if (Disabled && !string.IsNullOrWhiteSpace(DisabledReason))
+    {
+        <p class="mx-auto mt-2 max-w-3xl text-xs text-slate-500">@DisabledReason</p>
+    }
+</div>
+
+@code {
+    [Parameter] public bool IsSubmitting { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? DisabledReason { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Write a message...";
+    [Parameter] public EventCallback<string> OnSend { get; set; }
+
+    private string messageText = "";
+    private bool showEmojiPicker;
+
+    private static readonly string[] quickEmojis = ["👍", "❤️", "🔥", "😊", "🎉", "👏", "🚀", "💡"];
+
+    private void ToggleEmojiPicker() => showEmojiPicker = !showEmojiPicker;
+
+    private void AddEmoji(string emoji)
+    {
+        messageText += emoji;
+        showEmojiPicker = false;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
+            await SubmitMessage();
+        }
+    }
+
+    private async Task SubmitMessage()
+    {
+        if (IsSubmitting || Disabled || string.IsNullOrWhiteSpace(messageText))
+        {
+            return;
+        }
+
+        var textToSend = messageText;
+        messageText = "";
+        showEmojiPicker = false;
+        await OnSend.InvokeAsync(textToSend);
+    }
+}

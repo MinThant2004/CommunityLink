@@ -233,7 +233,6 @@ public sealed class GroupService(
             BannerUrl = request.BannerUrl ?? request.AvatarUrl,
             Visibility = visibility,
             JoinPolicy = joinPolicy,
-            GroupType = "FREE",
             MemberCount = 1,
             PostCount = 0,
             CreatedAt = DateTime.UtcNow,

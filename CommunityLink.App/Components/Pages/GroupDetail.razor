@@ -292,19 +292,23 @@
                                 <!-- Post Author Header -->
                                 <div class="p-4 sm:p-5 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                     <div class="flex items-center gap-3">
-                                        @if (!string.IsNullOrEmpty(post.AuthorAvatar))
-                                        {
-                                            <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-10 h-10 rounded-full object-cover border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]" />
-                                        }
-                                        else
-                                        {
-                                            <div class="w-10 h-10 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center font-bold text-sm">
-                                                @(string.IsNullOrWhiteSpace(post.AuthorName) ? "U" : post.AuthorName.Substring(0, 1).ToUpper())
-                                            </div>
-                                        }
+                                        <a href="u/@(post.AuthorId > 0 ? post.AuthorId.ToString() : post.AuthorName)" class="shrink-0 hover:opacity-80 transition">
+                                            @if (!string.IsNullOrEmpty(post.AuthorAvatar))
+                                            {
+                                                <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-10 h-10 rounded-full object-cover border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]" />
+                                            }
+                                            else
+                                            {
+                                                <div class="w-10 h-10 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center font-bold text-sm">
+                                                    @(string.IsNullOrWhiteSpace(post.AuthorName) ? "U" : post.AuthorName.Substring(0, 1).ToUpper())
+                                                </div>
+                                            }
+                                        </a>
                                         <div>
                                             <div class="flex items-center gap-1.5 flex-wrap">
-                                                <h4 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] leading-tight" style="font-family:'Manrope',sans-serif">@post.AuthorName</h4>
+                                                <a href="u/@(post.AuthorId > 0 ? post.AuthorId.ToString() : post.AuthorName)" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition block leading-tight" style="font-family:'Manrope',sans-serif">
+                                                    @post.AuthorName
+                                                </a>
                                                 @if (post.AuthorRoleCode == "PUBLIC_FIGURE")
                                                 {
                                                     <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200" title="Public Figure VIP">
@@ -447,7 +451,7 @@
                                                             </div>
                                                             <div class="flex-1 bg-white dark:bg-[#112A46] p-2.5 rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                                                 <div class="flex items-center justify-between gap-2 mb-1">
-                                                                    <span class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@comment.AuthorName</span>
+                                                                    <a href="u/@comment.AuthorName" class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition">@comment.AuthorName</a>
                                                                     <span class="text-[10px] text-[#7A8CA6] font-mono">@comment.CreatedAt.ToLocalTime().ToString("g")</span>
                                                                 </div>
                                                                 <p class="text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line">@comment.Content</p>
@@ -493,11 +497,15 @@
                                 <!-- Poll Author Info -->
                                 <div class="p-4 sm:p-5 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center font-bold text-sm">
-                                            @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName.Substring(0, 1).ToUpper())
-                                        </div>
+                                        <a href="u/@poll.AuthorName" class="shrink-0 hover:opacity-80 transition">
+                                            <div class="w-10 h-10 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center font-bold text-sm">
+                                                @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName.Substring(0, 1).ToUpper())
+                                            </div>
+                                        </a>
                                         <div>
-                                            <h4 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] leading-tight">@poll.AuthorName</h4>
+                                            <a href="u/@poll.AuthorName" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition block leading-tight">
+                                                @poll.AuthorName
+                                            </a>
                                             <span class="text-[11px] text-[#557392] dark:text-[#7A8CA6]">@poll.CreatedAt.ToLocalTime().ToString("g")</span>
                                         </div>
                                     </div>
@@ -722,11 +730,13 @@
                         {
                             <div class="p-3.5 flex items-center justify-between text-xs hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/30 transition">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] flex items-center justify-center font-bold">
-                                        @(string.IsNullOrWhiteSpace(m.DisplayName) ? "U" : m.DisplayName.Substring(0, 1).ToUpper())
-                                    </div>
+                                    <a href="u/@m.UserName" class="shrink-0 hover:opacity-80 transition">
+                                        <div class="w-8 h-8 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] flex items-center justify-center font-bold">
+                                            @(string.IsNullOrWhiteSpace(m.DisplayName) ? "U" : m.DisplayName.Substring(0, 1).ToUpper())
+                                        </div>
+                                    </a>
                                     <div>
-                                        <span class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@m.DisplayName</span>
+                                        <a href="u/@m.UserName" class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition block">@m.DisplayName</a>
                                         <span class="text-[10px] text-[#557392] dark:text-[#7A8CA6] block">@@@m.UserName</span>
                                     </div>
                                 </div>
@@ -1366,6 +1376,12 @@
             await LoadGroupRatings();
         }
     }
+
+    private bool isGroupManager =>
+        currentUserId.HasValue &&
+        group != null &&
+        (group.CreatorId == currentUserId.Value ||
+         members?.Any(m => m.UserId == currentUserId.Value && (string.Equals(m.Role, "Owner", StringComparison.OrdinalIgnoreCase) || string.Equals(m.Role, "Admin", StringComparison.OrdinalIgnoreCase))) == true);
 
     private async Task LoadGroupData()
     {

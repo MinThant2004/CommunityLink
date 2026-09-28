@@ -17,7 +17,7 @@ using CommunityLink.Domain.Services;
 using CommunityLink.Shared;
 
 using CommunityLink.Domain.Features.Group;
-using CommunityLink.Domain.Features.GroupChat;
+using CommunityLink.Domain.Features.ChatGroup;
 using CommunityLink.Domain.Features.LinkDrop;
 
 namespace CommunityLink.Domain;
@@ -61,16 +61,21 @@ public static class FeatureManager
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<IPollService, PollService>();
         services.AddScoped<IChatService, ChatService>();
+        services.AddScoped<ICreatorChatSettingService, CreatorChatSettingService>();
+        services.AddScoped<IPrivateChatPaymentService, PrivateChatPaymentService>();
         services.AddScoped<IAdministrationService, AdministrationService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddScoped<CommunityLink.Domain.Features.Notification.INotificationService, CommunityLink.Domain.Features.Notification.NotificationService>();
         services.AddScoped<ILinkDropPaymentService, LinkDropPaymentService>();
         services.AddScoped<CommunityLink.Domain.Features.Admin.IPlatformSettingService, CommunityLink.Domain.Features.Admin.PlatformSettingService>();
-        services.AddScoped<IGroupChatService, GroupChatService>();
+        services.AddScoped<IChatGroupService, ChatGroupService>();
         services.AddScoped<CommunityLink.Domain.Features.Premium.ISubscriptionPlanService, CommunityLink.Domain.Features.Premium.SubscriptionPlanService>();
         services.AddScoped<CommunityLink.Domain.Features.Premium.IIdentityVerificationService, CommunityLink.Domain.Features.Premium.IdentityVerificationService>();
         services.AddScoped<CommunityLink.Domain.Features.Report.IReportService, CommunityLink.Domain.Features.Report.ReportService>();
+        services.AddScoped<CommunityLink.Domain.Features.Creator.ICreatorEarningsService, CommunityLink.Domain.Features.Creator.CreatorEarningsService>();
+        services.AddScoped<CommunityLink.Domain.Features.Payout.ICreatorPayoutService, CommunityLink.Domain.Features.Payout.CreatorPayoutService>();
+        services.AddScoped<CommunityLink.Domain.Features.Finance.IAdminFinanceService, CommunityLink.Domain.Features.Finance.AdminFinanceService>();
 
         return services;
     }

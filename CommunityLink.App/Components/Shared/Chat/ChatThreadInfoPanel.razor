@@ -1,0 +1,157 @@
+@using CommunityLink.App.Components.Shared.Chat
+@using CommunityLink.Shared.Features.ChatGroup
+
+<ChatModal IsOpen="IsOpen"
+           Title="@(Thread.IsGroup ? "Group info" : "Conversation details")"
+           MaxWidth="max-w-md"
+           OnClose="OnClose">
+    <ChildContent>
+    <div class="space-y-5 px-4 py-4">
+        <div class="flex flex-col items-center text-center">
+            @if (!string.IsNullOrWhiteSpace(Thread.AvatarUrl))
+            {
+                <img src="@Thread.AvatarUrl" alt="" class="h-16 w-16 rounded-full object-cover" />
+            }
+            else
+            {
+                <span class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-xl font-semibold text-slate-600">@Thread.Initials</span>
+            }
+            <p class="mt-3 text-base font-semibold text-slate-900">@Thread.Title</p>
+            <p class="mt-0.5 text-sm text-slate-500">@Thread.Subtitle</p>
+
+            @if (Thread.IsGroup)
+            {
+                <span class="mt-2 rounded border @(Thread.RequiresPayment ? "border-amber-200 bg-amber-50 text-amber-700" : "border-emerald-200 bg-emerald-50 text-emerald-700") px-2 py-0.5 text-xs font-semibold">
+                    @Thread.Badge group
+                </span>
+            }
+        </div>
+
+        @if (Thread.IsGroup && !string.IsNullOrWhiteSpace(CreatorName))
+        {
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Created by</p>
+                <p class="mt-1 text-sm text-slate-800">@CreatorName</p>
+            </div>
+        }
+
+        @if (Thread.IsGroup && !string.IsNullOrWhiteSpace(Description))
+        {
+            <div>
+                <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">About</h3>
+                <p class="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">@Description</p>
+            </div>
+        }
+
+        @if (Thread.RequiresPayment)
+        {
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <p class="text-sm font-semibold text-amber-900">@Thread.FeeLinkDrops LinkDrops</p>
+                <p class="mt-1 text-xs leading-relaxed text-amber-800">
+                    @if (Thread.IsGroup)
+                    {
+                        @(Thread.IsJoined
+                            ? "You have already paid to join this group. The creator earns the fee minus the platform commission."
+                            : "Join with a one-time payment. The creator earns the fee minus the platform commission.")
+                    }
+                    else
+                    {
+                        @(Thread.IsUnlocked
+                            ? "You have unlocked this conversation. The creator earns the fee minus the platform commission."
+                            : "Unlock this conversation with a one-time payment to start messaging this creator.")
+                    }
+                </p>
+            </div>
+        }
+
+        @if (Thread.IsGroup)
+        {
+            <div>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Members</h3>
+                    <span class="text-xs text-slate-400">@Thread.MemberCount</span>
+                </div>
+
+                <ul class="mt-2 max-h-56 space-y-1 overflow-y-auto" role="list">
+                    @if (IsLoadingMembers)
+                    {
+                        <li class="space-y-2 py-2">
+                            @for (var i = 0; i < 4; i++)
+                            {
+                                <div class="skeleton h-8 w-full"></div>
+                            }
+                        </li>
+                    }
+                    else if (Members.Count == 0)
+                    {
+                        <li class="py-3 text-center text-sm text-slate-500">No members to show.</li>
+                    }
+                    else
+                    {
+                        @foreach (var member in Members)
+                        {
+                            <li class="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
+                                @if (!string.IsNullOrWhiteSpace(member.UserAvatar))
+                                {
+                                    <img src="@member.UserAvatar" alt="" class="h-7 w-7 shrink-0 rounded-full object-cover" />
+                                }
+                                else
+                                {
+                                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">@Initial(member.DisplayName)</span>
+                                }
+                                <span class="min-w-0 flex-1 truncate text-sm text-slate-800">@(string.IsNullOrWhiteSpace(member.DisplayName) ? member.UserName : member.DisplayName)</span>
+                                @if (member.Role is "OWNER" or "ADMIN")
+                                {
+                                    <span class="shrink-0 rounded border @(member.Role == "OWNER" ? "border-amber-200 bg-amber-50 text-amber-700" : "border-indigo-200 bg-indigo-50 text-indigo-700") px-1.5 py-0.5 text-xs font-semibold">@member.Role</span>
+                                }
+                            </li>
+                        }
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+    </ChildContent>
+
+    <FooterContent>
+        @if (Thread.IsGroup && CanLeave)
+        {
+            <button type="button"
+                    @onclick="OnLeave"
+                    disabled="IsSubmitting"
+                    class="rounded-lg border border-rose-200 bg-white px-3.5 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-rose-400">
+                @(IsSubmitting ? "Leaving…" : "Leave group")
+            </button>
+        }
+        <button type="button"
+                @onclick="OnClose"
+                class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300">
+            Close
+        </button>
+    </FooterContent>
+</ChatModal>
+
+@code {
+    [Parameter, EditorRequired] public ChatThreadViewModel Thread { get; set; } = default!;
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public IReadOnlyList<ChatGroupMemberModel> Members { get; set; } = Array.Empty<ChatGroupMemberModel>();
+    [Parameter] public bool IsLoadingMembers { get; set; }
+    [Parameter] public bool IsSubmitting { get; set; }
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string? CreatorName { get; set; }
+
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnLeave { get; set; }
+
+    private bool CanLeave => Thread.IsGroup && Thread.IsJoined && Thread.UserRole != "OWNER";
+
+    private static string Initial(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return "?";
+        }
+
+        return name.Trim()[..1].ToUpperInvariant();
+    }
+}

@@ -51,6 +51,7 @@ builder.Services.AddHttpClient("CommunityApi", client =>
 // Register App Services & API Clients
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<AuthSessionService>();
+builder.Services.AddScoped<ChatRealtimeService>();
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthenticationApiService>();
 builder.Services.AddScoped<CommunityApiService>();
@@ -58,7 +59,7 @@ builder.Services.AddScoped<GroupApiService>();
 builder.Services.AddScoped<PostApiService>();
 builder.Services.AddScoped<PollApiService>();
 builder.Services.AddScoped<ChatApiService>();
-builder.Services.AddScoped<GroupChatApiService>();
+builder.Services.AddScoped<ChatGroupApiService>();
 builder.Services.AddScoped<RoleAndPermissionApiService>();
 builder.Services.AddScoped<AdministrationApiService>();
 builder.Services.AddScoped<UserDashboardApiService>();
@@ -68,6 +69,10 @@ builder.Services.AddScoped<LinkDropApiService>();
 builder.Services.AddScoped<SubscriptionPlanApiService>();
 builder.Services.AddScoped<PremiumUpgradeApiService>();
 builder.Services.AddScoped<ReportApiService>();
+builder.Services.AddScoped<CreatorEarningsApiService>();
+builder.Services.AddScoped<CreatorPayoutApiService>();
+builder.Services.AddScoped<AdminFinanceApiService>();
+
 
 var app = builder.Build();
 

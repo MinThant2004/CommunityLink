@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -45,7 +45,7 @@ public partial class TblGroup
 
     public byte[] RowVersion { get; set; } = null!;
 
-    public string GroupType { get; set; } = "FREE";
+    public string GroupType { get; set; } = null!;
 
     public long JoinFeeLinkDrops { get; set; }
 
@@ -54,8 +54,6 @@ public partial class TblGroup
     public virtual TblUser Creator { get; set; } = null!;
 
     public virtual TblCommunity SubCommunity { get; set; } = null!;
-
-    public virtual TblGroupChatRoom? TblGroupChatRoom { get; set; }
 
     public virtual ICollection<TblGroupJoinRequest> TblGroupJoinRequests { get; set; } = new List<TblGroupJoinRequest>();
 

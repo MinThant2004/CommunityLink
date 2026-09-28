@@ -62,6 +62,11 @@ public partial class TblUser
     public int? DeletedBy { get; set; }
 
     public byte[] RowVersion { get; set; } = null!;
+    public virtual ICollection<TblChatGroupMember> TblChatGroupMembers { get; set; } = new List<TblChatGroupMember>();
+
+    public virtual ICollection<TblChatGroupMessage> TblChatGroupMessages { get; set; } = new List<TblChatGroupMessage>();
+
+    public virtual ICollection<TblChatGroup> TblChatGroups { get; set; } = new List<TblChatGroup>();
 
     public virtual ICollection<TblChatMessage> TblChatMessages { get; set; } = new List<TblChatMessage>();
 
@@ -80,10 +85,6 @@ public partial class TblUser
     public virtual ICollection<TblConversation> TblConversationUserOnes { get; set; } = new List<TblConversation>();
 
     public virtual ICollection<TblConversation> TblConversationUserTwos { get; set; } = new List<TblConversation>();
-
-    public virtual ICollection<TblGroupChatMessage> TblGroupChatMessages { get; set; } = new List<TblGroupChatMessage>();
-
-    public virtual ICollection<TblGroupChatRoom> TblGroupChatRooms { get; set; } = new List<TblGroupChatRoom>();
 
     public virtual ICollection<TblGroupJoinRequest> TblGroupJoinRequestReviewedByNavigations { get; set; } = new List<TblGroupJoinRequest>();
 

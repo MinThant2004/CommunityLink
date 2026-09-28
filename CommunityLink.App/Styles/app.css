@@ -511,3 +511,16 @@
 .dark .dark\:hover\:border-\[\#D4AF37\]\/40:hover {
   border-color: rgba(212, 175, 55, 0.50) !important;
 }
+
+@layer components {
+  /*
+   * Full-bleed application shell used by the Chat page.
+   * --app-header-h is the height of MainLayout's <header>. It lives in one place so the
+   * viewport math below does not drift when the header padding changes.
+   */
+  .app-shell {
+    --app-header-h: 3.8125rem;
+    height: calc(100dvh - var(--app-header-h));
+  }
+}
+
