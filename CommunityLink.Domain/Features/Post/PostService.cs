@@ -69,6 +69,21 @@ public sealed class PostService(
                 query = query.Where(p => p.CommunityId == communityId.Value);
             }
 
+            List<int> followedAuthorIds = [];
+            List<int> joinedGroupIds = [];
+            if (currentUserId.HasValue)
+            {
+                followedAuthorIds = await dbContext.TblUserFollows
+                    .Where(f => f.FollowerId == currentUserId.Value && !f.IsDeleted)
+                    .Select(f => f.FolloweeId)
+                    .ToListAsync(cancellationToken);
+
+                joinedGroupIds = await dbContext.TblGroupMembers
+                    .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
+                    .Select(m => m.GroupId)
+                    .ToListAsync(cancellationToken);
+            }
+
             var rawPosts = await query
                 .OrderByDescending(p => p.CreatedAt)
                 .Take(50)
@@ -95,39 +110,48 @@ public sealed class PostService(
                     ShareCount = p.TblPostShares.Count(s => !s.IsDeleted),
                     IsLiked = currentUserId.HasValue && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
                     IsSaved = currentUserId.HasValue && p.TblSavedPosts.Any(s => s.UserId == currentUserId.Value && !s.IsDeleted),
-                    p.CreatedAt
+                    p.CreatedAt,
+                    p.CodeSnippet,
+                    p.CodeFileName,
+                    p.CodeLanguage
                 })
                 .ToListAsync(cancellationToken);
 
-            var list = rawPosts.Select(p =>
-            {
-                var roleCode = p.AuthorRoleCode;
-                var isVerified = p.AuthorIsVerified || (roleCode == "DOMAIN_PRO" || roleCode == "PUBLIC_FIGURE");
-                var authorName = !string.IsNullOrWhiteSpace(p.AuthorDisplayName)
-                    ? p.AuthorDisplayName
-                    : (!string.IsNullOrWhiteSpace(p.AuthorUserName) ? p.AuthorUserName : "Unknown");
+            var list = rawPosts
+                .OrderByDescending(p => followedAuthorIds.Contains(p.AuthorId) || (p.GroupId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)))
+                .ThenByDescending(p => p.CreatedAt)
+                .Select(p =>
+                {
+                    var roleCode = p.AuthorRoleCode;
+                    var isVerified = p.AuthorIsVerified || (roleCode == "DOMAIN_PRO" || roleCode == "PUBLIC_FIGURE");
+                    var authorName = !string.IsNullOrWhiteSpace(p.AuthorDisplayName)
+                        ? p.AuthorDisplayName
+                        : (!string.IsNullOrWhiteSpace(p.AuthorUserName) ? p.AuthorUserName : "Unknown");
 
-                return new PostModel(
-                    p.PostId,
-                    p.CommunityId,
-                    p.CommunityName,
-                    p.GroupId,
-                    p.GroupName,
-                    p.AuthorId,
-                    authorName,
-                    p.AuthorAvatar,
-                    p.Content,
-                    p.HasPoll,
-                    p.Images,
-                    p.LikeCount,
-                    p.CommentCount,
-                    p.ShareCount,
-                    p.IsLiked,
-                    p.IsSaved,
-                    p.CreatedAt,
-                    roleCode,
-                    isVerified);
-            }).ToList();
+                    return new PostModel(
+                        p.PostId,
+                        p.CommunityId,
+                        p.CommunityName,
+                        p.GroupId,
+                        p.GroupName,
+                        p.AuthorId,
+                        authorName,
+                        p.AuthorAvatar,
+                        p.Content,
+                        p.HasPoll,
+                        p.Images,
+                        p.LikeCount,
+                        p.CommentCount,
+                        p.ShareCount,
+                        p.IsLiked,
+                        p.IsSaved,
+                        p.CreatedAt,
+                        p.CodeSnippet,
+                        p.CodeFileName,
+                        p.CodeLanguage,
+                        roleCode,
+                        isVerified);
+                }).ToList();
 
             return Result<IReadOnlyList<PostModel>>.Success(list);
         }
@@ -182,6 +206,9 @@ public sealed class PostService(
             AuthorId = currentUser.UserId.Value,
             Content = request.Content.Trim(),
             HasPoll = false,
+            CodeSnippet = request.CodeSnippet,
+            CodeFileName = request.CodeFileName,
+            CodeLanguage = request.CodeLanguage ?? "TEXT",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -232,7 +259,10 @@ public sealed class PostService(
             0,
             false,
             false,
-            post.CreatedAt);
+            post.CreatedAt,
+            post.CodeSnippet,
+            post.CodeFileName,
+            post.CodeLanguage);
 
         return Result<PostModel>.Success(response, "Post created successfully.");
     }
@@ -258,6 +288,9 @@ public sealed class PostService(
             return Result<PostModel>.Failure("You can only edit your own posts.", ResultStatus.Forbidden);
 
         post.Content = request.Content.Trim();
+        post.CodeSnippet = request.CodeSnippet;
+        post.CodeFileName = request.CodeFileName;
+        post.CodeLanguage = request.CodeLanguage ?? "TEXT";
         post.UpdatedAt = DateTime.UtcNow;
         post.UpdatedBy = currentUser.UserId.Value;
 
@@ -304,7 +337,10 @@ public sealed class PostService(
             post.TblPostShares.Count,
             post.TblPostLikes.Any(l => l.UserId == currentUser.UserId.Value),
             false,
-            post.CreatedAt);
+            post.CreatedAt,
+            post.CodeSnippet,
+            post.CodeFileName,
+            post.CodeLanguage);
 
         return Result<PostModel>.Success(response, "Post updated successfully.");
     }

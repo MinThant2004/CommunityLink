@@ -9,6 +9,7 @@ public static class PermissionCatalog
     // Communities
     public const string CommunityView = "COMMUNITY.VIEW";
     public const string CommunityCreate = "COMMUNITY.CREATE";
+    public const string SubCommunityCreate = "SUBCOMMUNITY.CREATE";
     public const string CommunityManage = "COMMUNITY.MANAGE";
     public const string CommunityModerate = "COMMUNITY.MODERATE";
 
@@ -37,11 +38,16 @@ public static class PermissionCatalog
     public const string AdminUserView = "ADMIN.USER.VIEW";
     public const string AdminUserManage = "ADMIN.USER.MANAGE";
     public const string AdminRbacManage = "ADMIN.RBAC.MANAGE";
+    public const string SystemAuditView = "SYSTEMAUDIT.VIEW";
+
+    // Reports
+    public const string ReportView = "REPORT.VIEW";
 
     public static readonly IReadOnlyList<PermissionDefinition> All =
     [
         new(CommunityView, "View Communities", "Community", "/communities", true, true),
         new(CommunityCreate, "Create Community", "Community", "/communities/create", true, false),
+        new(SubCommunityCreate, "Create Sub-Community", "Community", "/communities/create", true, false),
         new(CommunityManage, "Manage Community Settings", "Community", null, true, false),
         new(CommunityModerate, "Moderate Communities & Join Requests", "Moderation", "/admin/communities", true, false),
         new(GroupView, "View Groups", "Group", "/groups", true, true),
@@ -59,7 +65,9 @@ public static class PermissionCatalog
         new(GroupChatCreate, "Create Group Chat (Premium)", "Chat", null, false, false),
         new(AdminUserView, "View Admin Users", "Administration", "/admin/users", true, false),
         new(AdminUserManage, "Manage Admin Users", "Administration", "/admin/users", true, false),
-        new(AdminRbacManage, "Manage RBAC Matrix", "Administration", "/admin/rbac", true, false)
+        new(AdminRbacManage, "Manage RBAC Matrix", "Administration", "/admin/rbac", true, false),
+        new(SystemAuditView, "View System Audit Logs", "Administration", "/admin/audits", true, false),
+        new(ReportView, "View Reports", "Reports", "/reports", true, true)
     ];
 
     public static IReadOnlyList<string> DefaultForRole(string roleCode) => roleCode.ToUpperInvariant() switch

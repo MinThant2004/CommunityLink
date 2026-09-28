@@ -104,6 +104,12 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
             .Where(rp => rp.RoleId == request.RoleId)
             .ToListAsync(cancellationToken);
 
+        var previousCodes = existingMappings
+            .Where(m => !m.IsDeleted)
+            .Join(allPermissions, m => m.PermissionId, p => p.PermissionId, (m, p) => p.PermissionCode)
+            .OrderBy(c => c)
+            .ToList();
+
         var grantedSet = new HashSet<string>(request.GrantedPermissionCodes, StringComparer.OrdinalIgnoreCase);
 
         foreach (var permission in allPermissions)
@@ -127,6 +133,20 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
                 mapping.UpdatedAt = DateTime.UtcNow;
             }
         }
+
+        // Audit Log for PERMISSION CHANGE
+        dbContext.TblAuditLogs.Add(new TblAuditLog
+        {
+            ActorType = currentUser.RoleCode ?? "ADMIN",
+            ActorId = currentUser.UserId,
+            Action = "CHANGE",
+            EntityName = "PERMISSION",
+            EntityId = role.RoleId,
+            OldValues = $"Role: {role.RoleName} | Granted ({previousCodes.Count}): {string.Join(", ", previousCodes)}",
+            NewValues = $"Role: {role.RoleName} | Granted ({request.GrantedPermissionCodes.Count}): {string.Join(", ", request.GrantedPermissionCodes.OrderBy(x => x))}",
+            ChangedColumns = "Permissions",
+            CreatedAt = DateTime.UtcNow
+        });
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success("Role permissions updated successfully.");
@@ -188,6 +208,20 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
             });
         }
 
+        // Audit Log for ROLE CREATE
+        dbContext.TblAuditLogs.Add(new TblAuditLog
+        {
+            ActorType = currentUser.RoleCode ?? "ADMIN",
+            ActorId = currentUser.UserId,
+            Action = "CREATE",
+            EntityName = "ROLE",
+            EntityId = newRole.RoleId,
+            OldValues = null,
+            NewValues = $"Code: {newRole.RoleCode}, Name: {newRole.RoleName}, Desc: {newRole.Description ?? "N/A"}",
+            ChangedColumns = "RoleCode, RoleName, Description",
+            CreatedAt = DateTime.UtcNow
+        });
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var resultModel = new RoleModel(
@@ -238,6 +272,20 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
             rp.IsDeleted = true;
             rp.DeletedAt = DateTime.UtcNow;
         }
+
+        // Audit Log for ROLE DELETE
+        dbContext.TblAuditLogs.Add(new TblAuditLog
+        {
+            ActorType = currentUser.RoleCode ?? "ADMIN",
+            ActorId = currentUser.UserId,
+            Action = "DELETE",
+            EntityName = "ROLE",
+            EntityId = role.RoleId,
+            OldValues = $"Code: {role.RoleCode}, Name: {role.RoleName}",
+            NewValues = "Deleted",
+            ChangedColumns = "IsDeleted",
+            CreatedAt = DateTime.UtcNow
+        });
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success($"Role '{role.RoleName}' deleted successfully and associated users were reassigned to 'USER'.");

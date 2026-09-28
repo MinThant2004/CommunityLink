@@ -5,6 +5,9 @@ using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Community;
 
+using CommunityLink.Domain.Features.RoleAndPermission;
+using CommunityLink.Shared.Security;
+
 namespace CommunityLink.Domain.Features.Community;
 
 public interface ICommunityService
@@ -21,45 +24,50 @@ public interface ICommunityService
     Task<Result<string>> UploadBannerAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default);
 }
 
-public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext currentUser) : ICommunityService
+public sealed class CommunityService(
+    AppDbContext dbContext,
+    ICurrentUserContext currentUser,
+    IPermissionEvaluator permissionEvaluator) : ICommunityService
 {
     public async Task<Result<IReadOnlyList<CommunityModel>>> GetCommunitiesAsync(string? search, CancellationToken cancellationToken = default)
     {
-        var baseQuery = dbContext.TblCommunities
-            .Where(c => !c.IsDeleted)
-            .AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(search))
+        try
         {
-            baseQuery = baseQuery.Where(c => c.Name.Contains(search) || c.Slug.Contains(search));
-        }
+            var baseQuery = dbContext.TblCommunities
+                .Where(c => !c.IsDeleted)
+                .AsNoTracking();
 
-        var rawList = await baseQuery.Select(c => new
-        {
-            c.CommunityId,
-            c.Name,
-            c.Slug,
-            c.Description,
-            c.AvatarUrl,
-            c.BannerUrl,
-            c.Visibility,
-            c.JoinPolicy,
-            MemberCount = c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted),
-            PostCount = c.PostCount > 0 ? c.PostCount : c.TblPosts.Count(p => !p.IsDeleted),
-            AverageRating = (double)(c.AverageRating ?? 5.0m),
-            c.OwnerId,
-            OwnerName = c.Owner != null ? c.Owner.DisplayName : "Admin",
-            c.CreatedAt,
-            c.ParentCommunityId,
-            ParentCommunityName = c.ParentCommunity != null ? c.ParentCommunity.Name : null,
-            SubCommunityCount = c.InverseParentCommunity.Count(sc => !sc.IsDeleted),
-            GroupCount = c.TblGroups.Count(g => !g.IsDeleted)
-        }).ToListAsync(cancellationToken);
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                baseQuery = baseQuery.Where(c => c.Name.Contains(search) || c.Slug.Contains(search));
+            }
 
-        if (!rawList.Any())
-        {
-            return Result<IReadOnlyList<CommunityModel>>.Success([]);
-        }
+            var rawList = await baseQuery.Select(c => new
+            {
+                c.CommunityId,
+                c.Name,
+                c.Slug,
+                c.Description,
+                c.AvatarUrl,
+                c.BannerUrl,
+                c.Visibility,
+                c.JoinPolicy,
+                MemberCount = c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                PostCount = c.PostCount > 0 ? c.PostCount : c.TblPosts.Count(p => !p.IsDeleted),
+                AverageRating = (double)(c.AverageRating ?? 5.0m),
+                c.OwnerId,
+                OwnerName = c.Owner != null ? c.Owner.DisplayName : "Admin",
+                c.CreatedAt,
+                c.ParentCommunityId,
+                ParentCommunityName = c.ParentCommunity != null ? c.ParentCommunity.Name : null,
+                SubCommunityCount = c.InverseParentCommunity.Count(sc => !sc.IsDeleted),
+                GroupCount = c.TblGroups.Count(g => !g.IsDeleted)
+            }).ToListAsync(cancellationToken);
+
+            if (!rawList.Any())
+            {
+                return Result<IReadOnlyList<CommunityModel>>.Success([]);
+            }
 
         var communityIds = rawList.Select(c => c.CommunityId).ToList();
 
@@ -171,7 +179,12 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
                 categoryName);
         }).ToList();
 
-        return Result<IReadOnlyList<CommunityModel>>.Success(list);
+            return Result<IReadOnlyList<CommunityModel>>.Success(list);
+        }
+        catch (OperationCanceledException)
+        {
+            return Result<IReadOnlyList<CommunityModel>>.Success([]);
+        }
     }
 
     public async Task<Result<CommunityModel>> GetCommunityByIdAsync(int communityId, CancellationToken cancellationToken = default)
@@ -325,14 +338,24 @@ public sealed class CommunityService(AppDbContext dbContext, ICurrentUserContext
             return Result<CommunityModel>.Failure(errorMessage, ResultStatus.Conflict);
         }
 
+        // Check permissions: COMMUNITY.CREATE for top-level, SUBCOMMUNITY.CREATE for nested
+        if (currentUser.UserId.HasValue)
+        {
+            var requiredPermission = request.ParentCommunityId.HasValue
+                ? PermissionCatalog.SubCommunityCreate
+                : PermissionCatalog.CommunityCreate;
+
+            var hasPermission = await permissionEvaluator.HasPermissionAsync(requiredPermission, cancellationToken);
+            if (!hasPermission && !currentUser.IsAdmin)
+            {
+                var actionType = request.ParentCommunityId.HasValue ? "sub-communities" : "communities";
+                return Result<CommunityModel>.Failure($"You do not have permission to create {actionType}.", ResultStatus.Forbidden);
+            }
+        }
+
         // Validate parent community if sub-community
         if (request.ParentCommunityId.HasValue)
         {
-            if (currentUser.UserId.HasValue && !currentUser.IsAdmin)
-            {
-                return Result<CommunityModel>.Failure("Only platform administrators can create sub-communities.", ResultStatus.Forbidden);
-            }
-
             var parentExists = await dbContext.TblCommunities
                 .AnyAsync(c => c.CommunityId == request.ParentCommunityId.Value && !c.IsDeleted, cancellationToken);
 

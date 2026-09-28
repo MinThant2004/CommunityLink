@@ -70,6 +70,7 @@ public static class FeatureManager
         services.AddScoped<IGroupChatService, GroupChatService>();
         services.AddScoped<CommunityLink.Domain.Features.Premium.ISubscriptionPlanService, CommunityLink.Domain.Features.Premium.SubscriptionPlanService>();
         services.AddScoped<CommunityLink.Domain.Features.Premium.IIdentityVerificationService, CommunityLink.Domain.Features.Premium.IdentityVerificationService>();
+        services.AddScoped<CommunityLink.Domain.Features.Report.IReportService, CommunityLink.Domain.Features.Report.ReportService>();
 
         return services;
     }

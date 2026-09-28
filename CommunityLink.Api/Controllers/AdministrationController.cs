@@ -65,7 +65,7 @@ public class AdministrationController : ControllerBase
     }
 
     [HttpGet("audits")]
-    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.SystemAuditView)]
     public async Task<IActionResult> GetAudits(CancellationToken cancellationToken)
     {
         var result = await _adminService.GetAuditLogsAsync(cancellationToken);
@@ -73,7 +73,7 @@ public class AdministrationController : ControllerBase
     }
 
     [HttpGet("audits/page")]
-    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.SystemAuditView)]
     public async Task<IActionResult> GetAuditLogsPage([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, CancellationToken cancellationToken = default)
     {
         var result = await _adminService.GetAuditLogsPageAsync(page, pageSize, search, cancellationToken);

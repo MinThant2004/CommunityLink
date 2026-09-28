@@ -67,6 +67,7 @@ builder.Services.AddScoped<NotificationApiService>();
 builder.Services.AddScoped<LinkDropApiService>();
 builder.Services.AddScoped<SubscriptionPlanApiService>();
 builder.Services.AddScoped<PremiumUpgradeApiService>();
+builder.Services.AddScoped<ReportApiService>();
 
 var app = builder.Build();
 

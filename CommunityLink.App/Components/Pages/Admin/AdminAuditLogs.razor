@@ -1,5 +1,5 @@
 @page "/admin/audits"
-@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+@attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.SystemAuditView)]
 @inject AdministrationApiService AdminApi
 
 <PageTitle>System Audit Logs — Admin Control Panel</PageTitle>
@@ -8,7 +8,7 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">📜 System Audit Trail</h1>
-            <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">System audit records, administrative operations, and security event logs.</p>
+            <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">Audit log tracking role creations, permission modifications, user role assignments, and account setup.</p>
         </div>
     </div>
 
@@ -41,35 +41,54 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-[#F1F5F9] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
-                            <th class="px-6 py-3">Log ID</th>
-                            <th class="px-6 py-3">Actor</th>
-                            <th class="px-6 py-3">Action</th>
-                            <th class="px-6 py-3">Target Entity</th>
-                            <th class="px-6 py-3">IP Address</th>
-                            <th class="px-6 py-3">Timestamp</th>
+                            <th class="px-4 py-3">No.</th>
+                            <th class="px-4 py-3">Type</th>
+                            <th class="px-4 py-3">Action</th>
+                            <th class="px-4 py-3">Old Value</th>
+                            <th class="px-4 py-3">New Value</th>
+                            <th class="px-4 py-3">Modified By</th>
+                            <th class="px-4 py-3">Changed Columns</th>
+                            <th class="px-4 py-3">Updated At</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)] text-sm">
+                    <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)] text-xs">
+                        @{
+                            var rowNum = (pageNumber - 1) * pageSize;
+                        }
                         @foreach (var l in logs)
                         {
+                            rowNum++;
                             <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/40 transition">
-                                <td class="px-6 py-4 font-mono text-xs text-[#7A8CA6]">#@l.AuditLogId</td>
-                                <td class="px-6 py-4">
-                                    <div class="font-medium text-[#0A1B2E] dark:text-[#E1E8F0]">@(l.UserName ?? "System")</div>
-                                    <div class="text-xs text-[#7A8CA6] font-mono">@(l.UserId != null ? $"User #{l.UserId}" : "System Actor")</div>
+                                <td class="px-4 py-3 font-mono text-xs text-[#7A8CA6]">@rowNum</td>
+                                <td class="px-4 py-3 font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-[#E2E8F0] dark:bg-[#1E3A5F] text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                        @l.EntityName
+                                    </span>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]">
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
+                                        @(l.Action == "CREATE" ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300" :
+                                          l.Action == "DELETE" ? "bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300" :
+                                          "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300")">
                                         @l.Action
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-[#0A1B2E] dark:text-[#E1E8F0] font-medium">
-                                    @l.EntityName @(l.EntityId != null ? $"({l.EntityId})" : "")
+                                <td class="px-4 py-3 max-w-xs break-words text-[#557392] dark:text-[#94A3B8]">
+                                    @(string.IsNullOrWhiteSpace(l.OldValues) ? "—" : l.OldValues)
                                 </td>
-                                <td class="px-6 py-4 font-mono text-xs text-[#7A8CA6]">
-                                    @(l.IpAddress ?? "Localhost")
+                                <td class="px-4 py-3 max-w-xs break-words font-medium text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                    @(string.IsNullOrWhiteSpace(l.NewValues) ? "—" : l.NewValues)
                                 </td>
-                                <td class="px-6 py-4 text-xs text-[#7A8CA6] font-mono">@l.CreatedAt.ToString("g")</td>
+                                <td class="px-4 py-3">
+                                    <div class="font-medium text-[#0A1B2E] dark:text-[#E1E8F0]">@(l.UserName ?? "System")</div>
+                                    <div class="text-[10px] text-[#7A8CA6]">@(l.ActorType ?? "User")</div>
+                                </td>
+                                <td class="px-4 py-3 font-mono text-[11px] text-[#557392] dark:text-[#94A3B8]">
+                                    @(string.IsNullOrWhiteSpace(l.ChangedColumns) ? "—" : l.ChangedColumns)
+                                </td>
+                                <td class="px-4 py-3 text-[11px] text-[#7A8CA6] font-mono whitespace-nowrap">
+                                    @((l.UpdatedAt ?? l.CreatedAt).ToString("yyyy-MM-dd HH:mm:ss"))
+                                </td>
                             </tr>
                         }
                     </tbody>

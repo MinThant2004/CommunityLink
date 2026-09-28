@@ -61,7 +61,7 @@
                                 <td class="px-6 py-4 text-[#557392] dark:text-[#C4D2E1] font-medium font-mono">@@@u.UserName</td>
                                 <td class="px-6 py-4 text-[#557392] dark:text-[#C4D2E1]">@u.Email</td>
                                 <td class="px-6 py-4">
-                                    <select value="@u.RoleId" @onchange="(e) => OnRoleSelected(u.UserId, e)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+                                    <select value="@u.RoleId" @onchange="(e) => PromptRoleChange(u, e)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
                                         @if (availableRoles != null)
                                         {
                                             @if (!availableRoles.Any(r => r.RoleId == u.RoleId))
@@ -105,8 +105,52 @@
     </div>
 </div>
 
+@if (showConfirmModal && pendingUser != null && pendingRole != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+        <div class="bg-white dark:bg-[#112A46] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-left space-y-4">
+            <div class="flex items-center gap-3 text-amber-500">
+                <div class="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/30">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Confirm Role Assignment</h3>
+            </div>
+            
+            <p class="text-sm text-slate-600 dark:text-slate-300">
+                Are you sure you want to change the role of <strong>@pendingUser.DisplayName</strong> (@@@pendingUser.UserName)?
+            </p>
+
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-xs space-y-1">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Current Role:</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200">@pendingUser.RoleCode</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">New Role:</span>
+                    <span class="font-bold text-indigo-600 dark:text-indigo-400">@pendingRole.Name (@pendingRole.Code)</span>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" @onclick="CancelRoleChange" class="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" @onclick="ConfirmRoleChange" disabled="@isAssigning" class="px-4 py-2 text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition shadow-sm cursor-pointer disabled:opacity-50">
+                    @(isAssigning ? "Updating..." : "Yes, Update Role")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private bool isLoading = true;
+    private bool isAssigning = false;
+    private bool showConfirmModal = false;
+    private UserInfoModel? pendingUser;
+    private CommunityLink.Shared.Features.RoleAndPermission.RoleModel? pendingRole;
     private IReadOnlyList<UserInfoModel>? users;
     private IReadOnlyList<CommunityLink.Shared.Features.RoleAndPermission.RoleModel>? availableRoles;
     private string searchFilter = "";
@@ -146,21 +190,50 @@
         isLoading = false;
     }
 
-    private async Task OnRoleSelected(int userId, ChangeEventArgs e)
+    private void PromptRoleChange(UserInfoModel user, ChangeEventArgs e)
     {
-        if (int.TryParse(e.Value?.ToString(), out var roleId))
+        if (int.TryParse(e.Value?.ToString(), out var roleId) && availableRoles != null)
         {
-            var res = await AdminApi.AssignUserRoleAsync(new CommunityLink.Shared.Features.Authentication.AssignUserRoleRequestModel(userId, roleId));
-            if (res.IsSuccess)
+            var targetRole = availableRoles.FirstOrDefault(r => r.RoleId == roleId);
+            if (targetRole != null && targetRole.RoleId != user.RoleId)
             {
-                Toast.Success("Role updated successfully!");
-                await LoadUsersAsync();
-            }
-            else
-            {
-                Toast.Error(res.Message);
+                pendingUser = user;
+                pendingRole = targetRole;
+                showConfirmModal = true;
+                return;
             }
         }
+        StateHasChanged();
+    }
+
+    private void CancelRoleChange()
+    {
+        showConfirmModal = false;
+        pendingUser = null;
+        pendingRole = null;
+    }
+
+    private async Task ConfirmRoleChange()
+    {
+        if (pendingUser == null || pendingRole == null) return;
+
+        isAssigning = true;
+        var res = await AdminApi.AssignUserRoleAsync(new CommunityLink.Shared.Features.Authentication.AssignUserRoleRequestModel(pendingUser.UserId, pendingRole.RoleId));
+        isAssigning = false;
+        showConfirmModal = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Role updated successfully!");
+            await LoadUsersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message);
+        }
+
+        pendingUser = null;
+        pendingRole = null;
     }
 
     private async Task OnSearchChanged()
