@@ -19,8 +19,8 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
-  <Target Name="BuildCss" BeforeTargets="Compile">
-    <Exec Command="npm run build:css" WorkingDirectory="$(MSBuildProjectDirectory)" />
+  <Target Name="BuildCss" BeforeTargets="Compile" Condition="Exists('$(MSBuildProjectDirectory)\node_modules')">
+    <Exec Command="npm run build:css" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="true" />
   </Target>
 
 </Project>

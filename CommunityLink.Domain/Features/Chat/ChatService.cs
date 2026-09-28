@@ -19,7 +19,6 @@ public interface IChatService
 public sealed class ChatService(
     AppDbContext dbContext,
     ICurrentUserContext currentUser,
-    IPrivateChatPaymentService privateChatPaymentService,
     IHubContext<ChatHub> hubContext) : IChatService
 {
     public async Task<Result<IReadOnlyList<ConversationModel>>> GetConversationsAsync(CancellationToken cancellationToken = default)

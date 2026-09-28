@@ -499,7 +499,7 @@
         if (rateRes.IsSuccess) conversionRate = rateRes.Data;
 
         var pkgRes = await LinkDropApi.GetActivePackagesAsync();
-        if (pkgRes.IsSuccess)
+        if (pkgRes.IsSuccess && pkgRes.Data != null)
         {
             activePackages = pkgRes.Data.ToList();
             if (activePackages.Count > 0 && selectedPackage == null)
@@ -510,7 +510,7 @@
         }
 
         var methodRes = await LinkDropApi.GetActivePaymentMethodsAsync();
-        if (methodRes.IsSuccess)
+        if (methodRes.IsSuccess && methodRes.Data != null)
         {
             activeMethods = methodRes.Data.ToList();
             if (activeMethods.Count > 0 && selectedPaymentMethod == null)
@@ -526,13 +526,13 @@
     private async Task LoadPurchasesAsync()
     {
         var res = await LinkDropApi.GetUserPurchasesAsync();
-        if (res.IsSuccess) userPurchases = res.Data.ToList();
+        if (res.IsSuccess && res.Data != null) userPurchases = res.Data.ToList();
     }
 
     private async Task LoadTransactionsAsync()
     {
         var res = await LinkDropApi.GetUserTransactionsAsync();
-        if (res.IsSuccess) userTransactions = res.Data.ToList();
+        if (res.IsSuccess && res.Data != null) userTransactions = res.Data.ToList();
     }
 
     private void SetTab(string tab)
@@ -622,7 +622,7 @@
         if (res.IsSuccess)
         {
             Toast.Success("Payment request submitted successfully! Waiting for admin verification.");
-            submittedPurchaseNumber = res.Data.PurchaseNumber;
+            submittedPurchaseNumber = res.Data?.PurchaseNumber ?? string.Empty;
             submissionCompleted = true;
             await LoadPurchasesAsync();
         }

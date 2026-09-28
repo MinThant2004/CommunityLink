@@ -217,7 +217,7 @@
                         <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">Group Polls</h3>
                         <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Vote on active polls or start a new survey for this group.</p>
                     </div>
-                    @if (group.IsJoined)
+                    @if (group?.IsJoined == true)
                     {
                         <button type="button" @onclick="OpenCreatePollModal"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95 cursor-pointer">
@@ -241,14 +241,14 @@
                         <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">Group Discussion</h3>
                         <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Stay updated and connect with other members in this group.</p>
                     </div>
-                    @if (group.IsJoined && canCreatePost)
+                    @if (group?.IsJoined == true && canCreatePost)
                     {
                         <button type="button" @onclick="OpenCreatePostModal"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95">
                             <span>✍️ Create Post</span>
                         </button>
                     }
-                    else if (!group.IsJoined)
+                    else if (group?.IsJoined != true)
                     {
                         <button type="button" @onclick="JoinGroup"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold text-xs rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] transition">
@@ -273,9 +273,9 @@
                         <div class="text-4xl mb-3">✍️</div>
                         <h4 class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] text-base" style="font-family:'Manrope',sans-serif">No group posts yet</h4>
                         <p class="text-xs text-[#7A8CA6] mt-1 max-w-sm mx-auto">
-                            @(group.IsJoined ? "Start the conversation by sharing the first post in this group!" : "Join this group to share the first post.")
+                            @(group?.IsJoined == true ? "Start the conversation by sharing the first post in this group!" : "Join this group to share the first post.")
                         </p>
-                        @if (group.IsJoined)
+                        @if (group?.IsJoined == true)
                         {
                             <button type="button" @onclick="OpenCreatePostModal" class="mt-4 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] text-xs font-semibold rounded-xl shadow transition">
                                 Create Post Now
@@ -476,9 +476,9 @@
                         <div class="text-4xl mb-3">📊</div>
                         <h4 class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] text-base">No live polls in this group</h4>
                         <p class="text-xs text-[#557392] dark:text-[#7A8CA6] mt-1 max-w-sm mx-auto">
-                            @(group.IsJoined ? "Launch a poll to gather feedback or opinions from fellow members." : "Join this group to participate in or create polls.")
+                            @(group?.IsJoined == true ? "Launch a poll to gather feedback or opinions from fellow members." : "Join this group to participate in or create polls.")
                         </p>
-                        @if (group.IsJoined)
+                        @if (group?.IsJoined == true)
                         {
                             <button type="button" @onclick="OpenCreatePollModal"
                                     class="mt-4 px-5 py-2.5 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] text-xs font-semibold rounded shadow-sm transition inline-flex items-center gap-1.5 cursor-pointer">
@@ -777,7 +777,7 @@
                                 </div>
                             </div>
 
-                            @if (group.IsJoined)
+                            @if (group?.IsJoined == true)
                             {
                                 <button type="button" @onclick="OpenRatingModal"
                                         class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-amber-500/20 transition active:scale-95 inline-flex items-center gap-2 cursor-pointer">
@@ -787,7 +787,7 @@
                             }
                         </div>
 
-                        @if (!group.IsJoined)
+                        @if (group?.IsJoined != true)
                         {
                             <div class="mt-4 p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between gap-3 text-xs text-amber-800">
                                 <div class="flex items-center gap-2">
@@ -814,9 +814,9 @@
                             <div class="text-4xl mb-3">⭐</div>
                             <h4 class="font-semibold text-slate-800 text-base">No reviews yet</h4>
                             <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-                                @(group.IsJoined ? "Share your rating and feedback to help others know what this group is about." : "Members have not reviewed this group yet.")
+                                @(group?.IsJoined == true ? "Share your rating and feedback to help others know what this group is about." : "Members have not reviewed this group yet.")
                             </p>
-                            @if (group.IsJoined)
+                            @if (group?.IsJoined == true)
                             {
                                 <button type="button" @onclick="OpenRatingModal" class="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow transition">
                                     Write the First Review

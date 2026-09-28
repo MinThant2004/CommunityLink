@@ -89,7 +89,8 @@ public class CommunityEndpointTests(CommunityApiFactory factory) : IClassFixture
         var parentReq = new CreateCommunityRequestModel(parentName, null, "Parent community", null, null, "PUBLIC", "INSTANT");
         var parentRes = await client.PostAsJsonAsync("/api/communities", parentReq);
         var parentResult = await parentRes.Content.ReadFromJsonAsync<Result<CommunityModel>>();
-        Assert.True(parentResult?.IsSuccess);
+        Assert.NotNull(parentResult);
+        Assert.True(parentResult.IsSuccess);
         var parentId = parentResult.Data!.CommunityId;
 
         // 1. Create Sub-community under parent
@@ -98,7 +99,8 @@ public class CommunityEndpointTests(CommunityApiFactory factory) : IClassFixture
         var subRes = await client.PostAsJsonAsync("/api/communities", subReq);
         Assert.Equal(HttpStatusCode.OK, subRes.StatusCode);
         var subResult = await subRes.Content.ReadFromJsonAsync<Result<CommunityModel>>();
-        Assert.True(subResult?.IsSuccess);
+        Assert.NotNull(subResult);
+        Assert.True(subResult.IsSuccess);
         Assert.Equal(parentId, subResult.Data!.ParentCommunityId);
 
         // 2. Attempt creating another Sub-community with same name (case-insensitive) -> should reject with sub-community message
