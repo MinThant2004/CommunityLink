@@ -97,6 +97,10 @@ public sealed class ChatService(
                 SenderName = m.Sender.DisplayName,
                 SenderAvatar = m.Sender.AvatarUrl,
                 m.MessageText,
+                m.MessageType,
+                m.AttachmentUrl,
+                m.FileName,
+                m.FileSizeByte,
                 m.IsRead,
                 m.CreatedAt,
                 m.ReplyToMessageId
@@ -127,6 +131,11 @@ public sealed class ChatService(
                 m.MessageText,
                 m.IsRead,
                 m.CreatedAt,
+                m.MessageType ?? "TEXT",
+                m.AttachmentUrl,
+                m.FileName,
+                m.FileSizeByte,
+                CommunityLink.Shared.Utils.FileSizeFormatter.FormatFileSize(m.FileSizeByte),
                 m.ReplyToMessageId,
                 hasReply ? reply.SenderName : null,
                 hasReply ? reply.Preview : null,
@@ -291,11 +300,16 @@ public sealed class ChatService(
             }
         }
 
+        var msgType = string.IsNullOrWhiteSpace(request.MessageType) ? "TEXT" : request.MessageType;
         var message = new TblChatMessage
         {
             ConversationId = conversation.ConversationId,
             SenderId = currentUserId,
-            MessageText = request.MessageText.Trim(),
+            MessageText = request.MessageText?.Trim() ?? string.Empty,
+            MessageType = msgType,
+            AttachmentUrl = request.AttachmentUrl,
+            FileName = request.FileName,
+            FileSizeByte = request.FileSizeByte,
             IsRead = false,
             CreatedAt = DateTime.UtcNow,
             ReplyToMessageId = request.ReplyToMessageId
@@ -303,7 +317,10 @@ public sealed class ChatService(
 
         dbContext.TblChatMessages.Add(message);
 
-        conversation.LastMessagePreview = message.MessageText;
+        var previewText = !string.IsNullOrWhiteSpace(message.MessageText)
+            ? message.MessageText
+            : $"[{msgType}] {message.FileName ?? "Attachment"}";
+        conversation.LastMessagePreview = previewText;
         conversation.LastMessageAt = message.CreatedAt;
         conversation.UpdatedAt = DateTime.UtcNow;
 
@@ -324,6 +341,11 @@ public sealed class ChatService(
             message.MessageText,
             message.IsRead,
             message.CreatedAt,
+            message.MessageType,
+            message.AttachmentUrl,
+            message.FileName,
+            message.FileSizeByte,
+            CommunityLink.Shared.Utils.FileSizeFormatter.FormatFileSize(message.FileSizeByte),
             message.ReplyToMessageId,
             hasReply ? replyStub.SenderName : null,
             hasReply ? replyStub.Preview : null,

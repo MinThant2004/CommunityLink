@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -17,7 +17,7 @@ public partial class TblUserVerificationAudit
 
     public string Authority { get; set; } = null!;
 
-    public string Status { get; set; } = "ACTIVE";
+    public string Status { get; set; } = null!;
 
     public DateTime AuditedAt { get; set; }
 

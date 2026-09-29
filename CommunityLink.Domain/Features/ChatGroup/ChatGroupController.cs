@@ -41,18 +41,39 @@ public sealed class ChatGroupController(
 
     [HttpPost("{chatGroupId:int}/join")]
     [Authorize]
-    public async Task<IActionResult> JoinChatGroup(int chatGroupId, CancellationToken cancellationToken) =>
-        ToActionResult(await chatGroupService.JoinChatGroupAsync(chatGroupId, cancellationToken));
+    public async Task<IActionResult> JoinChatGroup(int chatGroupId, CancellationToken cancellationToken)
+    {
+        var result = await chatGroupService.JoinChatGroupAsync(chatGroupId, cancellationToken);
+        if (result.IsSuccess)
+        {
+            await BroadcastAsync(chatGroupId, "GroupMemberUpdated", cancellationToken, chatGroupId);
+        }
+        return ToActionResult(result);
+    }
 
     [HttpPost("{chatGroupId:int}/join-paid")]
     [Authorize]
-    public async Task<IActionResult> JoinPaidChatGroup(int chatGroupId, CancellationToken cancellationToken) =>
-        ToActionResult(await chatGroupService.JoinPaidChatGroupAsync(chatGroupId, cancellationToken));
+    public async Task<IActionResult> JoinPaidChatGroup(int chatGroupId, CancellationToken cancellationToken)
+    {
+        var result = await chatGroupService.JoinPaidChatGroupAsync(chatGroupId, cancellationToken);
+        if (result.IsSuccess)
+        {
+            await BroadcastAsync(chatGroupId, "GroupMemberUpdated", cancellationToken, chatGroupId);
+        }
+        return ToActionResult(result);
+    }
 
     [HttpPost("{chatGroupId:int}/leave")]
     [Authorize]
-    public async Task<IActionResult> LeaveChatGroup(int chatGroupId, CancellationToken cancellationToken) =>
-        ToActionResult(await chatGroupService.LeaveChatGroupAsync(chatGroupId, cancellationToken));
+    public async Task<IActionResult> LeaveChatGroup(int chatGroupId, CancellationToken cancellationToken)
+    {
+        var result = await chatGroupService.LeaveChatGroupAsync(chatGroupId, cancellationToken);
+        if (result.IsSuccess)
+        {
+            await BroadcastAsync(chatGroupId, "GroupMemberUpdated", cancellationToken, chatGroupId);
+        }
+        return ToActionResult(result);
+    }
 
     [HttpGet("{chatGroupId:int}/members")]
     [Authorize]
@@ -128,6 +149,47 @@ public sealed class ChatGroupController(
                 result.Data);
         }
 
+        return ToActionResult(result);
+    }
+
+    [HttpPost("{chatGroupId:int}/mute")]
+    [Authorize]
+    public async Task<IActionResult> ToggleMute(int chatGroupId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatGroupService.ToggleMuteAsync(chatGroupId, cancellationToken));
+
+    [HttpPost("{chatGroupId:int}/members/{targetUserId:int}/promote")]
+    [Authorize]
+    public async Task<IActionResult> PromoteMember(int chatGroupId, int targetUserId, CancellationToken cancellationToken)
+    {
+        var result = await chatGroupService.PromoteMemberAsync(chatGroupId, targetUserId, cancellationToken);
+        if (result.IsSuccess)
+        {
+            await BroadcastAsync(chatGroupId, "GroupMemberUpdated", cancellationToken, chatGroupId);
+        }
+        return ToActionResult(result);
+    }
+
+    [HttpPost("{chatGroupId:int}/members/{targetUserId:int}/demote")]
+    [Authorize]
+    public async Task<IActionResult> DemoteMember(int chatGroupId, int targetUserId, CancellationToken cancellationToken)
+    {
+        var result = await chatGroupService.DemoteMemberAsync(chatGroupId, targetUserId, cancellationToken);
+        if (result.IsSuccess)
+        {
+            await BroadcastAsync(chatGroupId, "GroupMemberUpdated", cancellationToken, chatGroupId);
+        }
+        return ToActionResult(result);
+    }
+
+    [HttpDelete("{chatGroupId:int}/members/{targetUserId:int}")]
+    [Authorize]
+    public async Task<IActionResult> RemoveMember(int chatGroupId, int targetUserId, CancellationToken cancellationToken)
+    {
+        var result = await chatGroupService.RemoveMemberAsync(chatGroupId, targetUserId, cancellationToken);
+        if (result.IsSuccess)
+        {
+            await BroadcastAsync(chatGroupId, "GroupMemberUpdated", cancellationToken, chatGroupId);
+        }
         return ToActionResult(result);
     }
 

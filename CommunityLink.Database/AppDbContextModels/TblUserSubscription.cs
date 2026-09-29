@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
 
@@ -12,15 +13,15 @@ public partial class TblUserSubscription
 
     public int RoleId { get; set; }
 
-    public string Status { get; set; } = "Active"; // PendingReview, Active, Expired, Rejected, Canceled
+    public string Status { get; set; } = null!;
 
-    public string PaymentMethod { get; set; } = "LinkDropPoints"; // LinkDropPoints, ManualPaymentSlip, Card
+    public string PaymentMethod { get; set; } = null!;
 
-    public DateTime StartDateUtc { get; set; } = DateTime.UtcNow;
+    public DateTime StartDateUtc { get; set; }
 
     public DateTime ExpiresAtUtc { get; set; }
 
-    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAtUtc { get; set; }
 
     public virtual TblSubscriptionPlan Plan { get; set; } = null!;
 

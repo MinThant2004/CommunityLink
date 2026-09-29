@@ -6,11 +6,4 @@ namespace CommunityLink.Database.AppDbContextModels;
 /// </summary>
 public partial class TblChatGroupMessage
 {
-    /// <summary>
-    /// The group message this one replies to, or null. See
-    /// <see cref="TblChatMessage.ReplyToMessageId"/> for why nothing lazy-loads it.
-    /// </summary>
-    public int? ReplyToChatGroupMessageId { get; set; }
-
-    public virtual TblChatGroupMessage? ReplyToChatGroupMessage { get; set; }
 }

@@ -42,15 +42,16 @@
         </div>
 
         <div class="relative mt-3">
-            <label for="chat-thread-search" class="sr-only">Search conversations and groups</label>
+            <label for="chat-thread-search" class="sr-only">Search conversations and people by username</label>
             <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607Z" />
             </svg>
             <input id="chat-thread-search"
                    type="search"
-                   value="@searchText"
-                   @oninput="HandleSearchInput"
-                   placeholder="Search conversations"
+                   @bind="SearchText"
+                   @bind:event="oninput"
+                   @bind:after="NotifySearchChanged"
+                   placeholder="Search username or conversations..."
                    class="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 transition focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-600" />
         </div>
 
@@ -99,19 +100,92 @@
                 </button>
             </div>
         }
-        else if (VisibleThreads.Count == 0)
-        {
-            <div class="px-6 py-12 text-center">
-                <svg class="mx-auto h-8 w-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.189A8.721 8.721 0 0 1 3 12a8.721 8.721 0 0 1 3.04-6.06 8.721 8.721 0 0 1 6.96 0A8.721 8.721 0 0 1 21 12Z" />
-                </svg>
-                <p class="mt-3 text-sm font-semibold text-slate-700">@EmptyTitle</p>
-                <p class="mt-1 text-xs text-slate-500">@EmptyDescription</p>
-            </div>
-        }
         else
         {
-            <ul class="p-1.5" role="list">
+            @if (ShowPeopleSection)
+            {
+                <section class="border-b border-slate-200 px-1.5 pb-2 pt-2" aria-label="People">
+                    <h2 class="px-1 pb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">People</h2>
+
+                    @if (IsSearchingUsers)
+                    {
+                        <div class="space-y-1" aria-busy="true">
+                            @for (var i = 0; i < 3; i++)
+                            {
+                                <div class="flex items-center gap-3 rounded-lg p-2.5">
+                                    <div class="skeleton h-10 w-10 shrink-0 rounded-full"></div>
+                                    <div class="flex-1 space-y-2">
+                                        <div class="skeleton h-3 w-2/5"></div>
+                                        <div class="skeleton h-2.5 w-1/3"></div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (UserMatches.Count == 0)
+                    {
+                        <p class="px-1 py-3 text-xs text-slate-500">No people match that username.</p>
+                    }
+                    else
+                    {
+                        <ul class="space-y-0.5" role="list">
+                            @foreach (var person in UserMatches)
+                            {
+                                var isExisting = DirectThreadUserIds.Contains(person.UserId);
+                                <li>
+                                    <button type="button"
+                                            @onclick="() => OnStartChat.InvokeAsync(person)"
+                                            aria-label="@(isExisting ? $"Open chat with {person.DisplayName}" : $"Start a chat with {person.DisplayName}")"
+                                            class="group flex w-full items-center gap-3 rounded-lg border border-transparent px-2.5 py-2.5 text-left transition hover:border-indigo-200 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                        @if (!string.IsNullOrWhiteSpace(person.AvatarUrl))
+                                        {
+                                            <img src="@person.AvatarUrl" alt="" class="h-10 w-10 shrink-0 rounded-full object-cover" />
+                                        }
+                                        else
+                                        {
+                                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600">@Initial(person.DisplayName)</span>
+                                        }
+
+                                        <span class="min-w-0 flex-1">
+                                            <span class="flex items-center gap-1">
+                                                <span class="truncate text-sm font-medium text-slate-900">@person.DisplayName</span>
+                                                @if (person.IsVerified)
+                                                {
+                                                    <svg class="h-3.5 w-3.5 shrink-0 text-indigo-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-label="Verified">
+                                                        <path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 0 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" />
+                                                    </svg>
+                                                }
+                                            </span>
+                                            <span class="mt-0.5 block truncate text-xs text-slate-500">@@@person.UserName</span>
+                                        </span>
+
+                                        <span class="shrink-0 text-xs font-medium text-indigo-600 opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
+                                            @(isExisting ? "Open chat" : "Message")
+                                        </span>
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </section>
+            }
+
+            @if (VisibleThreads.Count == 0)
+            {
+                @if (!ShowPeopleSection)
+                {
+                    <div class="px-6 py-12 text-center">
+                        <svg class="mx-auto h-8 w-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.189A8.721 8.721 0 0 1 3 12a8.721 8.721 0 0 1 3.04-6.06 8.721 8.721 0 0 1 6.96 0A8.721 8.721 0 0 1 21 12Z" />
+                        </svg>
+                        <p class="mt-3 text-sm font-semibold text-slate-700">@EmptyTitle</p>
+                        <p class="mt-1 text-xs text-slate-500">@EmptyDescription</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <ul class="p-1.5" role="list">
                 @foreach (var thread in VisibleThreads)
                 {
                     var isActive = IsActive(thread);
@@ -166,7 +240,8 @@
                         </button>
                     </li>
                 }
-            </ul>
+                </ul>
+            }
         }
     </div>
 </div>
@@ -176,7 +251,10 @@
     [Parameter] public ChatThreadType? ActiveThreadType { get; set; }
     [Parameter] public int? ActiveThreadId { get; set; }
     [Parameter] public string ActiveSegment { get; set; } = "all";
-    [Parameter] public string? searchText { get; set; }
+    [Parameter] public string? SearchText { get; set; }
+    [Parameter] public IReadOnlyList<UserSearchResultDto> UserMatches { get; set; } = Array.Empty<UserSearchResultDto>();
+    [Parameter] public IReadOnlyCollection<int> DirectThreadUserIds { get; set; } = Array.Empty<int>();
+    [Parameter] public bool IsSearchingUsers { get; set; }
     [Parameter] public bool IsLoading { get; set; }
     [Parameter] public bool HasError { get; set; }
     [Parameter] public bool IsPremiumCreator { get; set; }
@@ -186,9 +264,15 @@
     [Parameter] public EventCallback<ChatThreadViewModel> OnSelect { get; set; }
     [Parameter] public EventCallback<string> OnSegmentChanged { get; set; }
     [Parameter] public EventCallback<string?> OnSearchChanged { get; set; }
+    [Parameter] public EventCallback<UserSearchResultDto> OnStartChat { get; set; }
     [Parameter] public EventCallback OnDiscover { get; set; }
     [Parameter] public EventCallback OnNewGroup { get; set; }
     [Parameter] public EventCallback OnRetry { get; set; }
+
+    private bool ShowPeopleSection => IsSearchingUsers || UserMatches.Count > 0;
+
+    private static string Initial(string? name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[..1].ToUpperInvariant();
 
     private static readonly (string Key, string Label)[] Segments =
     [
@@ -200,6 +284,6 @@
     private bool IsActive(ChatThreadViewModel thread) =>
         ActiveThreadId == thread.Id && ActiveThreadType == thread.Type;
 
-    private async Task HandleSearchInput(ChangeEventArgs e) =>
-        await OnSearchChanged.InvokeAsync(e.Value?.ToString());
+    private Task NotifySearchChanged() =>
+        OnSearchChanged.InvokeAsync(SearchText);
 }

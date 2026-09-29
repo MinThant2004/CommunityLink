@@ -60,4 +60,16 @@ public sealed class ChatGroupApiService(IHttpClientFactory clientFactory, IHttpC
             $"api/chat-groups/{chatGroupId}/messages/{messageId}/reaction",
             new SetMessageReactionRequestModel(emoji),
             cancellationToken);
+
+    public Task<Result> ToggleMuteAsync(int chatGroupId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/chat-groups/{chatGroupId}/mute", new { }, cancellationToken);
+
+    public Task<Result> PromoteMemberAsync(int chatGroupId, int userId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/chat-groups/{chatGroupId}/members/{userId}/promote", new { }, cancellationToken);
+
+    public Task<Result> DemoteMemberAsync(int chatGroupId, int userId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/chat-groups/{chatGroupId}/members/{userId}/demote", new { }, cancellationToken);
+
+    public Task<Result> RemoveMemberAsync(int chatGroupId, int userId, CancellationToken cancellationToken = default) =>
+        DeleteAsync($"api/chat-groups/{chatGroupId}/members/{userId}", cancellationToken);
 }

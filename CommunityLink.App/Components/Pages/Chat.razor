@@ -3,6 +3,7 @@
 @inject ChatApiService ChatApi
 @inject ChatGroupApiService ChatGroupApi
 @inject LinkDropApiService LinkDropApi
+@inject UserProfileApiService UserProfileApi
 @inject ChatRealtimeService Realtime
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
@@ -23,7 +24,7 @@
                         ActiveThreadType="activeThread?.Type"
                         ActiveThreadId="activeThread?.Id"
                         ActiveSegment="activeSegment"
-                        searchText="searchText"
+                        SearchText="@searchText"
                         IsLoading="isLoadingThreads"
                         HasError="threadsFailed"
                         IsPremiumCreator="isPremiumCreator"
@@ -32,6 +33,10 @@
                         OnSelect="SelectThreadAsync"
                         OnSegmentChanged="SetSegmentAsync"
                         OnSearchChanged="SetSearch"
+                        UserMatches="userMatches"
+                        DirectThreadUserIds="DirectThreadUserIds"
+                        IsSearchingUsers="isSearchingUsers"
+                        OnStartChat="StartChatWithUserAsync"
                         OnDiscover="OpenDiscover"
                         OnNewGroup="() => showCreateGroup = true"
                         OnRetry="LoadThreadsAsync" />
@@ -170,10 +175,15 @@
                      Members="groupMembers"
                      IsLoadingMembers="isLoadingMembers"
                      IsSubmitting="isActionSubmitting"
+                     IsMuted="isCurrentGroupMuted"
                      Description="activeThread?.Description"
                      CreatorName="activeThread?.CreatorName"
                      OnClose="() => showInfo = false"
-                     OnLeave="LeaveGroupAsync" />
+                     OnLeave="LeaveGroupAsync"
+                     OnToggleMute="ToggleGroupMuteAsync"
+                     OnPromoteMember="PromoteGroupMemberAsync"
+                     OnDemoteMember="DemoteGroupMemberAsync"
+                     OnRemoveMember="RemoveGroupMemberAsync" />
 
 @if (showDiscover)
 {
@@ -215,6 +225,7 @@
     private IReadOnlyList<ChatMessageViewModel> messages = Array.Empty<ChatMessageViewModel>();
     private IReadOnlyList<ChatGroupModel> discoverGroups = Array.Empty<ChatGroupModel>();
     private IReadOnlyList<ChatGroupMemberModel> groupMembers = Array.Empty<ChatGroupMemberModel>();
+    private bool isCurrentGroupMuted;
 
     private ChatThreadViewModel? activeThread;
     private ChatThreadViewModel placeholderThread = new() { Title = "Conversation" };
@@ -223,6 +234,9 @@
     private string activeSegment = "all";
     private string? searchText;
     private string? discoverSearch;
+    private IReadOnlyList<UserSearchResultDto> userMatches = Array.Empty<UserSearchResultDto>();
+    private bool isSearchingUsers;
+    private CancellationTokenSource? userSearchCts;
 
     private int currentUserId;
     private bool isPremiumCreator;
@@ -276,6 +290,13 @@
         _ => "Start a chat from a member's profile, or discover a group."
     };
 
+    // Rebuilt on render, but off a small list, so a HashSet beats a per-row scan.
+    private IReadOnlyCollection<int> DirectThreadUserIds =>
+        allThreads
+            .Where(t => t.IsDirect && t.DirectUserId.HasValue)
+            .Select(t => t.DirectUserId!.Value)
+            .ToHashSet();
+
     private IReadOnlyList<ChatThreadViewModel> VisibleThreads
     {
         get
@@ -321,6 +342,9 @@
         Realtime.TypingChanged += OnTypingChanged;
         Realtime.GroupTypingChanged += OnGroupTypingChanged;
         Realtime.ConversationRead += OnConversationRead;
+        Realtime.MessageDeleted += OnMessageDeleted;
+        Realtime.ReactionUpdated += OnReactionUpdated;
+        Realtime.GroupMembersUpdated += OnGroupMembersUpdated;
         Realtime.StateChanged += OnRealtimeStateChanged;
         _eventsWired = true;
 
@@ -345,9 +369,13 @@
             Realtime.GroupTypingChanged -= OnGroupTypingChanged;
             typingResetTimer?.Dispose();
             Realtime.ConversationRead -= OnConversationRead;
+            Realtime.MessageDeleted -= OnMessageDeleted;
+            Realtime.ReactionUpdated -= OnReactionUpdated;
+            Realtime.GroupMembersUpdated -= OnGroupMembersUpdated;
             Realtime.StateChanged -= OnRealtimeStateChanged;
         }
 
+        CancelUserSearch();
         await Realtime.SetSubscribedGroupAsync(null);
         GC.SuppressFinalize(this);
     }
@@ -504,7 +532,11 @@
         NavManager.NavigateTo("/chat", replace: true);
     }
 
-    private async Task OpenDirectThreadAsync(int targetUserId)
+    private async Task<ChatThreadViewModel> OpenDirectThreadAsync(
+        int targetUserId,
+        string? displayTitle = null,
+        string? displaySubtitle = null,
+        string? displayAvatarUrl = null)
     {
         var statusRes = await ChatApi.GetPrivateChatStatusAsync(targetUserId);
         var isPaid = statusRes.IsSuccess && statusRes.Data is not null && statusRes.Data.IsPaidChat;
@@ -515,8 +547,9 @@
             Type = ChatThreadType.Private,
             Id = 0,
             DirectUserId = targetUserId,
-            Title = "New conversation",
-            Subtitle = $"User #{targetUserId}",
+            Title = string.IsNullOrWhiteSpace(displayTitle) ? "New conversation" : displayTitle,
+            Subtitle = string.IsNullOrWhiteSpace(displaySubtitle) ? $"User #{targetUserId}" : displaySubtitle,
+            AvatarUrl = displayAvatarUrl,
             RequiresPayment = isPaid,
             FeeLinkDrops = statusRes.Data?.FeeLinkDrops ?? 0,
             IsUnlocked = isUnlocked,
@@ -534,6 +567,7 @@
         }
 
         await ActivateThreadAsync(thread);
+        return thread;
     }
 
     private async Task SelectThreadAsync(ChatThreadViewModel thread) => await ActivateThreadAsync(thread);
@@ -675,7 +709,10 @@
 
     private async Task SendMessageAsync(ChatMessageComposer.SendMessagePayload payload)
     {
-        if (activeThread is null || isSending || string.IsNullOrWhiteSpace(payload.Text))
+        var hasText = !string.IsNullOrWhiteSpace(payload.Text);
+        var hasAttachment = !string.IsNullOrWhiteSpace(payload.AttachmentUrl);
+
+        if (activeThread is null || isSending || (!hasText && !hasAttachment))
         {
             return;
         }
@@ -689,7 +726,15 @@
         {
             if (thread.IsGroup)
             {
-                var res = await ChatGroupApi.SendMessageAsync(thread.Id, new SendChatGroupMessageRequestModel(payload.Text, replyToId));
+                var req = new SendChatGroupMessageRequestModel(
+                    Content: payload.Text,
+                    MessageType: payload.MessageType,
+                    AttachmentUrl: payload.AttachmentUrl,
+                    FileName: payload.FileName,
+                    FileSizeByte: payload.FileSizeByte,
+                    ReplyToChatGroupMessageId: replyToId
+                );
+                var res = await ChatGroupApi.SendMessageAsync(thread.Id, req);
                 if (res.IsSuccess && res.Data is not null)
                 {
                     AppendMessage(res.Data.ToMessage(thread.Id, currentUserId, thread.UserRole ?? "NONE"));
@@ -705,8 +750,8 @@
                 // A 1:1 thread that has no server-side conversation id yet must be
                 // addressed by recipient; the server creates the conversation.
                 var request = thread.Id > 0
-                    ? new SendMessageRequestModel(thread.Id, null, payload.Text, replyToId)
-                    : new SendMessageRequestModel(null, thread.DirectUserId, payload.Text, replyToId);
+                    ? new SendMessageRequestModel(thread.Id, null, payload.Text, payload.MessageType, payload.AttachmentUrl, payload.FileName, payload.FileSizeByte, replyToId)
+                    : new SendMessageRequestModel(null, thread.DirectUserId, payload.Text, payload.MessageType, payload.AttachmentUrl, payload.FileName, payload.FileSizeByte, replyToId);
 
                 var res = await ChatApi.SendMessageAsync(request);
                 if (res.IsSuccess && res.Data is not null)
@@ -871,7 +916,100 @@
 
         var res = await ChatGroupApi.GetMembersAsync(activeThread.Id);
         groupMembers = res.IsSuccess && res.Data is not null ? res.Data : Array.Empty<ChatGroupMemberModel>();
+        
+        var selfMember = groupMembers.FirstOrDefault(m => m.UserId == currentUserId);
+        isCurrentGroupMuted = selfMember?.IsMuted ?? false;
+
         isLoadingMembers = false;
+        StateHasChanged();
+    }
+
+    private async Task ToggleGroupMuteAsync()
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.ToggleMuteAsync(activeThread.Id);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            isCurrentGroupMuted = !isCurrentGroupMuted;
+            Toast.Success(isCurrentGroupMuted ? "Group notifications muted." : "Group notifications enabled.");
+            await LoadGroupMembersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not toggle mute state.");
+        }
+        StateHasChanged();
+    }
+
+    private async Task PromoteGroupMemberAsync(ChatGroupMemberModel member)
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.PromoteMemberAsync(activeThread.Id, member.UserId);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success($"Promoted {member.DisplayName ?? member.UserName} to Admin.");
+            await LoadGroupMembersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not promote member.");
+        }
+        StateHasChanged();
+    }
+
+    private async Task DemoteGroupMemberAsync(ChatGroupMemberModel member)
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.DemoteMemberAsync(activeThread.Id, member.UserId);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success($"Demoted {member.DisplayName ?? member.UserName} to Member.");
+            await LoadGroupMembersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not demote admin.");
+        }
+        StateHasChanged();
+    }
+
+    private async Task RemoveGroupMemberAsync(ChatGroupMemberModel member)
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.RemoveMemberAsync(activeThread.Id, member.UserId);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success($"Removed {member.DisplayName ?? member.UserName} from group.");
+            await LoadGroupMembersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not remove member.");
+        }
         StateHasChanged();
     }
 
@@ -1099,7 +1237,106 @@
         await Task.CompletedTask;
     }
 
-    private void SetSearch(string? value) => searchText = value;
+    private async Task SetSearch(string? value)
+    {
+        searchText = value;
+        await ScheduleUserSearchAsync();
+    }
+
+    // ---------- People search ----------
+
+    private const int UserSearchDebounceMs = 300;
+    private const int UserSearchMinTermLength = 2;
+
+    private async Task ScheduleUserSearchAsync()
+    {
+        CancelUserSearch();
+
+        var term = (searchText ?? string.Empty).Trim();
+        if (term.Length < UserSearchMinTermLength)
+        {
+            userMatches = Array.Empty<UserSearchResultDto>();
+            isSearchingUsers = false;
+            return;
+        }
+
+        userSearchCts = new CancellationTokenSource();
+        var token = userSearchCts.Token;
+        isSearchingUsers = true;
+
+        // Render the skeleton before awaiting, otherwise the loading state is never
+        // painted: Blazor only re-renders once this handler finishes.
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            await Task.Delay(UserSearchDebounceMs, token);
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var res = await UserProfileApi.SearchUsersAsync(term, cancellationToken: token);
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            userMatches = res.IsSuccess && res.Data is not null ? res.Data : Array.Empty<UserSearchResultDto>();
+            isSearchingUsers = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (OperationCanceledException)
+        {
+            // A newer keystroke superseded this request; the newer one owns the UI state.
+        }
+    }
+
+    private void CancelUserSearch()
+    {
+        if (userSearchCts is null)
+        {
+            return;
+        }
+
+        try
+        {
+            userSearchCts.Cancel();
+            userSearchCts.Dispose();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Already torn down by a previous keystroke.
+        }
+
+        userSearchCts = null;
+    }
+
+    private async Task StartChatWithUserAsync(UserSearchResultDto user)
+    {
+        CancelUserSearch();
+        searchText = null;
+        userMatches = Array.Empty<UserSearchResultDto>();
+        isSearchingUsers = false;
+
+        var known = allThreads.FirstOrDefault(t => t.IsDirect && t.DirectUserId == user.UserId);
+        if (known is not null)
+        {
+            await SelectThreadAsync(known);
+            return;
+        }
+
+        _handledRoute = null;
+        var thread = await OpenDirectThreadAsync(user.UserId, user.DisplayName, $"@{user.UserName}", user.AvatarUrl);
+
+        // ActivateThreadAsync only promotes a thread that already has a server-side id, so
+        // seed the brand-new 1:1 thread here to keep it visible in the list.
+        if (!allThreads.Any(t => t.IsDirect && t.DirectUserId == thread.DirectUserId))
+        {
+            allThreads.Insert(0, thread);
+        }
+    }
+
 
     private void ToggleInfo()
     {
@@ -1232,6 +1469,32 @@
     }
 
     private Task OnConversationRead(int conversationId) => InvokeAsync(StateHasChanged);
+
+    private Task OnMessageDeleted(int threadId, int messageId)
+    {
+        if (activeThread is not null && activeThread.Id == threadId)
+        {
+            messages = messages.Where(m => m.Id != messageId).ToList();
+        }
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnReactionUpdated(int threadId, int messageId, List<MessageReactionModel> reactions)
+    {
+        if (activeThread is not null && activeThread.Id == threadId)
+        {
+            messages = messages.Select(m => m.Id == messageId ? m.WithReactions(reactions) : m).ToList();
+        }
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnGroupMembersUpdated(int chatGroupId)
+    {
+        if (activeThread is not null && activeThread.IsGroup && activeThread.Id == chatGroupId)
+        {
+            await LoadGroupMembersAsync();
+        }
+    }
 
     private void OnRealtimeStateChanged() => InvokeAsync(StateHasChanged);
 }

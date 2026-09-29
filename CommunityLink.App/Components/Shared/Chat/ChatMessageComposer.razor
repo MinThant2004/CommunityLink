@@ -1,6 +1,16 @@
+@using CommunityLink.App.Apis
+@using CommunityLink.Shared.Features.Chat
+@using CommunityLink.Shared.Utils
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject ChatApiService ChatApi
+
 @*
-    Message composer. Model-agnostic: it emits text and optional replyToId, so the unified page
-    routes the result to the 1:1 or the group endpoint depending on the active thread.
+    Message composer. Model-agnostic: it emits text, optional replyToId, and attachment details (IMAGE, FILE, VIDEO),
+    so the unified page routes the result to the 1:1 or group endpoint depending on active thread.
+
+    Attachments are uploaded to /api/chat/attachments first and the resulting short URL travels with the
+    message. The file bytes are never inlined into the message payload.
 *@
 
 <div class="shrink-0 border-t border-slate-200 bg-white px-3 py-3 sm:px-4">
@@ -23,8 +33,32 @@
         </div>
     }
 
+    @if (attachmentError is not null)
+    {
+        <p class="mx-auto mb-2.5 max-w-3xl text-xs font-medium text-red-600">@attachmentError</p>
+    }
+    else if (attachedFile is not null)
+    {
+        <div class="mx-auto mb-2.5 flex max-w-3xl items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs">
+            <div class="flex min-w-0 items-center gap-2">
+                <span class="rounded bg-emerald-600 px-1.5 py-0.5 font-bold uppercase text-white">@attachmentType</span>
+                <span class="truncate font-medium text-slate-800">@attachedFileName</span>
+                <span class="shrink-0 text-slate-500">(@formattedFileSize)</span>
+            </div>
+            <button type="button"
+                    @onclick="ClearAttachment"
+                    title="Remove attachment"
+                    aria-label="Remove attachment"
+                    class="ml-2 rounded-md p-1 text-slate-400 transition hover:bg-emerald-100 hover:text-slate-700">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    }
+
     <div class="mx-auto flex max-w-3xl items-end gap-2">
-        <div class="relative shrink-0">
+        <div class="relative shrink-0 flex items-center gap-1">
             <button type="button"
                     @onclick="ToggleEmojiPicker"
                     title="Insert emoji"
@@ -35,6 +69,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
                 </svg>
             </button>
+
+            <label title="Attach image, video, or file" class="cursor-pointer rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                </svg>
+                <InputFile OnChange="HandleFileSelected" accept="@ChatAttachmentPolicy.AcceptAttribute" class="hidden" disabled="@(IsSubmitting || Disabled)" />
+            </label>
 
             @if (showEmojiPicker)
             {
@@ -56,18 +97,18 @@
                   @onkeydown="HandleKeyDown"
                   rows="1"
                   placeholder="@Placeholder"
-                  disabled="@(IsSubmitting || Disabled)"
+                  disabled="@(IsSubmitting || isUploading || Disabled)"
                   class="max-h-32 min-h-[42px] w-full resize-none rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm leading-relaxed text-slate-900 placeholder-slate-400 transition focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600 disabled:bg-slate-100 disabled:text-slate-400"></textarea>
 
         <button type="button"
                 @onclick="SubmitMessage"
-                disabled="@(IsSubmitting || Disabled || string.IsNullOrWhiteSpace(messageText))"
+                disabled="@(IsSubmitting || isUploading || Disabled || (!HasContentToSubmit))"
                 aria-label="Send message"
                 class="flex h-[42px] shrink-0 items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-            @if (IsSubmitting)
+            @if (IsSubmitting || isUploading)
             {
                 <span class="h-3.5 w-3.5 animate-spin rounded-full border-b-2 border-white"></span>
-                <span class="hidden sm:inline">Sending</span>
+                <span class="hidden sm:inline">@(isUploading ? "Uploading" : "Sending")</span>
             }
             else
             {
@@ -100,6 +141,16 @@
     private bool _isCurrentlyTyping;
     private System.Threading.Timer? _typingTimer;
 
+    private IBrowserFile? attachedFile;
+    private string? attachedFileName;
+    private long? attachedFileSize;
+    private string formattedFileSize = "0 B";
+    private string? attachmentError;
+    private string attachmentType = ChatAttachmentPolicy.MessageTypeText;
+    private bool isUploading;
+
+    private bool HasContentToSubmit => !string.IsNullOrWhiteSpace(messageText) || attachedFile is not null;
+
     private static readonly string[] quickEmojis = ["👍", "❤️", "🔥", "😊", "🎉", "👏", "🚀", "💡"];
 
     private void ToggleEmojiPicker() => showEmojiPicker = !showEmojiPicker;
@@ -115,6 +166,58 @@
     {
         messageText = e.Value?.ToString() ?? "";
         await NotifyTypingAsync(!string.IsNullOrWhiteSpace(messageText));
+    }
+
+    private Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file is null) return Task.CompletedTask;
+
+        attachmentError = null;
+
+        if (!ChatAttachmentPolicy.IsAllowed(file.Name))
+        {
+            ResetAttachmentState();
+            attachmentError = $"Unsupported file type. Allowed: {ChatAttachmentPolicy.AllowedExtensionsDisplay}.";
+            return Task.CompletedTask;
+        }
+
+        if (file.Size > ChatAttachmentPolicy.MaxBytes)
+        {
+            ResetAttachmentState();
+            attachmentError = $"\"{file.Name}\" is {FileSizeFormatter.FormatFileSize(file.Size)}. The maximum is 25 MB.";
+            return Task.CompletedTask;
+        }
+
+        if (file.Size == 0)
+        {
+            ResetAttachmentState();
+            attachmentError = $"\"{file.Name}\" is empty.";
+            return Task.CompletedTask;
+        }
+
+        attachedFile = file;
+        attachedFileName = file.Name;
+        attachedFileSize = file.Size;
+        formattedFileSize = FileSizeFormatter.FormatFileSize(file.Size);
+        attachmentType = ChatAttachmentPolicy.Classify(file.Name, file.ContentType);
+
+        return Task.CompletedTask;
+    }
+
+    private void ClearAttachment()
+    {
+        ResetAttachmentState();
+        attachmentError = null;
+    }
+
+    private void ResetAttachmentState()
+    {
+        attachedFile = null;
+        attachedFileName = null;
+        attachedFileSize = null;
+        formattedFileSize = "0 B";
+        attachmentType = ChatAttachmentPolicy.MessageTypeText;
     }
 
     private async Task NotifyTypingAsync(bool isTyping)
@@ -148,7 +251,7 @@
 
     private async Task SubmitMessage()
     {
-        if (IsSubmitting || Disabled || string.IsNullOrWhiteSpace(messageText))
+        if (IsSubmitting || Disabled || isUploading || !HasContentToSubmit)
         {
             return;
         }
@@ -160,11 +263,56 @@
             await OnTyping.InvokeAsync(false);
         }
 
-        var payload = new SendMessagePayload(messageText.Trim(), ReplyToMessage?.Id);
+        var text = messageText.Trim();
+        var replyToId = ReplyToMessage?.Id;
+        var file = attachedFile;
+
+        // Upload the attachment first so the message we post carries a short URL. Doing it
+        // the other way round would leave an orphaned upload whenever the send is rejected.
+        string? attachmentUrl = null;
+        var messageType = ChatAttachmentPolicy.MessageTypeText;
+
+        if (file is not null)
+        {
+            isUploading = true;
+            StateHasChanged();
+
+            var upload = await ChatApi.UploadAttachmentAsync(file);
+            isUploading = false;
+
+            if (upload.IsFailure || upload.Data is null)
+            {
+                attachmentError = upload.Message ?? "The file could not be uploaded.";
+                StateHasChanged();
+                return;
+            }
+
+            attachmentUrl = upload.Data.Url;
+            messageType = upload.Data.MessageType;
+        }
+
+        var payload = new SendMessagePayload(
+            Text: text,
+            ReplyToId: replyToId,
+            MessageType: messageType,
+            AttachmentUrl: attachmentUrl,
+            FileName: file?.Name,
+            FileSizeByte: attachedFileSize
+        );
+
         messageText = "";
         showEmojiPicker = false;
+        ClearAttachment();
+        StateHasChanged();
         await OnSend.InvokeAsync(payload);
     }
 
-    public record SendMessagePayload(string Text, int? ReplyToId);
+    public record SendMessagePayload(
+        string Text,
+        int? ReplyToId,
+        string MessageType = ChatAttachmentPolicy.MessageTypeText,
+        string? AttachmentUrl = null,
+        string? FileName = null,
+        long? FileSizeByte = null
+    );
 }

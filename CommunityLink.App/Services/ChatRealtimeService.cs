@@ -71,6 +71,12 @@ public sealed class ChatRealtimeService
 
     public event Func<int, Task>? ConversationRead;
 
+    public event Func<int, int, Task>? MessageDeleted;
+
+    public event Func<int, int, List<MessageReactionModel>, Task>? ReactionUpdated;
+
+    public event Func<int, Task>? GroupMembersUpdated;
+
     public event Action? StateChanged;
 
     public async Task EnsureConnectedAsync()
@@ -201,6 +207,26 @@ public sealed class ChatRealtimeService
             return Task.CompletedTask;
         });
 
+        connection.On<int, int>("MessageDeleted", (conversationId, messageId) =>
+        {
+            if (MessageDeleted is not null)
+            {
+                return MessageDeleted.Invoke(conversationId, messageId);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int, int, List<MessageReactionModel>>("MessageReactionUpdated", (conversationId, messageId, reactions) =>
+        {
+            if (ReactionUpdated is not null)
+            {
+                return ReactionUpdated.Invoke(conversationId, messageId, reactions);
+            }
+
+            return Task.CompletedTask;
+        });
+
         connection.Reconnecting += _ =>
         {
             PrivateStatus = "Reconnecting…";
@@ -256,6 +282,36 @@ public sealed class ChatRealtimeService
             if (GroupTypingChanged is not null)
             {
                 return GroupTypingChanged.Invoke(chatGroupId, senderId, isTyping);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int, int>("ChatGroupMessageDeleted", (chatGroupId, messageId) =>
+        {
+            if (MessageDeleted is not null)
+            {
+                return MessageDeleted.Invoke(chatGroupId, messageId);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int, int, List<MessageReactionModel>>("ChatGroupReactionUpdated", (chatGroupId, messageId, reactions) =>
+        {
+            if (ReactionUpdated is not null)
+            {
+                return ReactionUpdated.Invoke(chatGroupId, messageId, reactions);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int>("GroupMemberUpdated", chatGroupId =>
+        {
+            if (GroupMembersUpdated is not null)
+            {
+                return GroupMembersUpdated.Invoke(chatGroupId);
             }
 
             return Task.CompletedTask;

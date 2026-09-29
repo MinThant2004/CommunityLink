@@ -149,6 +149,18 @@ BEGIN
         ON [dbo].[TblChatGroupMessageReaction] ([ChatGroupMessageId], [UserId]);
 END;
 
+IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblChatMessageReaction') AND name = 'RowVersion')
+   AND NOT EXISTS (SELECT * FROM sys.default_constraints WHERE parent_object_id = OBJECT_ID('dbo.TblChatMessageReaction') AND name = 'DF_TblChatMessageReaction_RowVersion')
+BEGIN
+    ALTER TABLE [dbo].[TblChatMessageReaction] ADD CONSTRAINT [DF_TblChatMessageReaction_RowVersion] DEFAULT (CONVERT(VARBINARY(8), NEWID())) FOR [RowVersion];
+END;
+
+IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblChatGroupMessageReaction') AND name = 'RowVersion')
+   AND NOT EXISTS (SELECT * FROM sys.default_constraints WHERE parent_object_id = OBJECT_ID('dbo.TblChatGroupMessageReaction') AND name = 'DF_TblChatGroupMessageReaction_RowVersion')
+BEGIN
+    ALTER TABLE [dbo].[TblChatGroupMessageReaction] ADD CONSTRAINT [DF_TblChatGroupMessageReaction_RowVersion] DEFAULT (CONVERT(VARBINARY(8), NEWID())) FOR [RowVersion];
+END;
+
 PRINT 'SUCCESS: Chat message actions schema is in place (reply links, per-user state, reactions).';
 ";
 }

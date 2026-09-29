@@ -34,12 +34,17 @@ public sealed record ChatGroupMemberModel(
     string DisplayName,
     string? UserAvatar,
     string Role,
-    DateTime JoinedAt
+    DateTime JoinedAt,
+    bool IsMuted = false
 );
 
 public sealed record SendChatGroupMessageRequestModel(
     string Content,
-    int? ReplyToChatGroupMessageId = null
+    int? ReplyToChatGroupMessageId = null,
+    string MessageType = "TEXT",
+    string? AttachmentUrl = null,
+    string? FileName = null,
+    long? FileSizeByte = null
 );
 
 public sealed record ChatGroupPreviewModel(
@@ -66,5 +71,10 @@ public sealed record ChatGroupMessageModel(
     bool ReplyToIsDeleted = false,
     IReadOnlyList<MessageReactionModel>? Reactions = null,
     // Sender, or a group OWNER/ADMIN acting as a moderator.
-    bool CanDeleteForEveryone = false
+    bool CanDeleteForEveryone = false,
+    string MessageType = "TEXT",
+    string? AttachmentUrl = null,
+    string? FileName = null,
+    long? FileSizeByte = null,
+    string? FormattedFileSize = null
 );

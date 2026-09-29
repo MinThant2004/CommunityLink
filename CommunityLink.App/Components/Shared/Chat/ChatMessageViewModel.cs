@@ -18,6 +18,16 @@ public sealed class ChatMessageViewModel
 
     public string Content { get; init; } = string.Empty;
 
+    public string MessageType { get; init; } = "TEXT";
+
+    public string? AttachmentUrl { get; init; }
+
+    public string? FileName { get; init; }
+
+    public long? FileSizeByte { get; init; }
+
+    public string? FormattedFileSize { get; init; }
+
     public DateTime SentAtLocal { get; init; }
 
     public bool IsMine { get; init; }
@@ -56,6 +66,11 @@ public sealed class ChatMessageViewModel
         SenderName = SenderName,
         SenderAvatar = SenderAvatar,
         Content = Content,
+        MessageType = MessageType,
+        AttachmentUrl = AttachmentUrl,
+        FileName = FileName,
+        FileSizeByte = FileSizeByte,
+        FormattedFileSize = FormattedFileSize,
         SentAtLocal = SentAtLocal,
         IsMine = IsMine,
         IsRead = true,
@@ -78,6 +93,11 @@ public sealed class ChatMessageViewModel
         SenderName = SenderName,
         SenderAvatar = SenderAvatar,
         Content = Content,
+        MessageType = MessageType,
+        AttachmentUrl = AttachmentUrl,
+        FileName = FileName,
+        FileSizeByte = FileSizeByte,
+        FormattedFileSize = FormattedFileSize,
         SentAtLocal = SentAtLocal,
         IsMine = IsMine,
         IsRead = IsRead,
@@ -91,4 +111,3 @@ public sealed class ChatMessageViewModel
         Reactions = reactions
     };
 }
-

@@ -21,9 +21,34 @@
 
             @if (Thread.IsGroup)
             {
-                <span class="mt-2 rounded border @(Thread.RequiresPayment ? "border-amber-200 bg-amber-50 text-amber-700" : "border-emerald-200 bg-emerald-50 text-emerald-700") px-2 py-0.5 text-xs font-semibold">
-                    @Thread.Badge group
-                </span>
+                <div class="mt-2 flex items-center gap-2">
+                    <span class="rounded border @(Thread.RequiresPayment ? "border-amber-200 bg-amber-50 text-amber-700" : "border-emerald-200 bg-emerald-50 text-emerald-700") px-2 py-0.5 text-xs font-semibold">
+                        @Thread.Badge group
+                    </span>
+                    @if (Thread.IsJoined)
+                    {
+                        <button type="button"
+                                @onclick="ToggleMuteAsync"
+                                disabled="IsSubmitting"
+                                title="Toggle group notifications"
+                                class="flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition @(IsMuted ? "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100")">
+                            @if (IsMuted)
+                            {
+                                <svg class="h-3.5 w-3.5 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6 4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.395C2.806 8.757 3.63 8.25 4.51 8.25H6.75Z" />
+                                </svg>
+                                <span>Muted</span>
+                            }
+                            else
+                            {
+                                <svg class="h-3.5 w-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                </svg>
+                                <span>Notifications On</span>
+                            }
+                        </button>
+                    }
+                </div>
             }
         </div>
 
@@ -90,20 +115,67 @@
                     {
                         @foreach (var member in Members)
                         {
-                            <li class="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
-                                @if (!string.IsNullOrWhiteSpace(member.UserAvatar))
-                                {
-                                    <img src="@member.UserAvatar" alt="" class="h-7 w-7 shrink-0 rounded-full object-cover" />
-                                }
-                                else
-                                {
-                                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">@Initial(member.DisplayName)</span>
-                                }
-                                <span class="min-w-0 flex-1 truncate text-sm text-slate-800">@(string.IsNullOrWhiteSpace(member.DisplayName) ? member.UserName : member.DisplayName)</span>
-                                @if (member.Role is "OWNER" or "ADMIN")
-                                {
-                                    <span class="shrink-0 rounded border @(member.Role == "OWNER" ? "border-amber-200 bg-amber-50 text-amber-700" : "border-indigo-200 bg-indigo-50 text-indigo-700") px-1.5 py-0.5 text-xs font-semibold">@member.Role</span>
-                                }
+                            <li class="flex items-center justify-between gap-2.5 rounded-lg px-2 py-1.5 hover:bg-slate-50">
+                                <div class="flex min-w-0 items-center gap-2.5">
+                                    @if (!string.IsNullOrWhiteSpace(member.UserAvatar))
+                                    {
+                                        <img src="@member.UserAvatar" alt="" class="h-7 w-7 shrink-0 rounded-full object-cover" />
+                                    }
+                                    else
+                                    {
+                                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">@Initial(member.DisplayName)</span>
+                                    }
+                                    <span class="min-w-0 truncate text-sm text-slate-800">@(string.IsNullOrWhiteSpace(member.DisplayName) ? member.UserName : member.DisplayName)</span>
+                                    @if (member.Role is "OWNER" or "ADMIN")
+                                    {
+                                        <span class="shrink-0 rounded border @(member.Role == "OWNER" ? "border-amber-200 bg-amber-50 text-amber-700" : "border-indigo-200 bg-indigo-50 text-indigo-700") px-1.5 py-0.5 text-[10px] font-semibold">@member.Role</span>
+                                    }
+                                    @if (member.IsMuted)
+                                    {
+                                        <span class="shrink-0 rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-600" title="Muted">🔕 Muted</span>
+                                    }
+                                </div>
+
+                                <!-- Member Action Controls -->
+                                <div class="flex items-center gap-1">
+                                    @if (CanManageMember(member))
+                                    {
+                                        @if (Thread.UserRole == "OWNER")
+                                        {
+                                            @if (member.Role == "MEMBER")
+                                            {
+                                                <button type="button"
+                                                        @onclick="() => OnPromoteMember.InvokeAsync(member)"
+                                                        disabled="IsSubmitting"
+                                                        title="Promote to Admin"
+                                                        class="rounded bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100">
+                                                    Promote
+                                                </button>
+                                            }
+                                            else if (member.Role == "ADMIN")
+                                            {
+                                                <button type="button"
+                                                        @onclick="() => OnDemoteMember.InvokeAsync(member)"
+                                                        disabled="IsSubmitting"
+                                                        title="Demote to Member"
+                                                        class="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-200">
+                                                    Demote
+                                                </button>
+                                            }
+                                        }
+
+                                        <button type="button"
+                                                @onclick="() => OnRemoveMember.InvokeAsync(member)"
+                                                disabled="IsSubmitting"
+                                                title="Remove member"
+                                                aria-label="Remove member"
+                                                class="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    }
+                                </div>
                             </li>
                         }
                     }
@@ -137,13 +209,31 @@
     [Parameter] public IReadOnlyList<ChatGroupMemberModel> Members { get; set; } = Array.Empty<ChatGroupMemberModel>();
     [Parameter] public bool IsLoadingMembers { get; set; }
     [Parameter] public bool IsSubmitting { get; set; }
+    [Parameter] public bool IsMuted { get; set; }
     [Parameter] public string? Description { get; set; }
     [Parameter] public string? CreatorName { get; set; }
 
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnLeave { get; set; }
+    [Parameter] public EventCallback OnToggleMute { get; set; }
+    [Parameter] public EventCallback<ChatGroupMemberModel> OnPromoteMember { get; set; }
+    [Parameter] public EventCallback<ChatGroupMemberModel> OnDemoteMember { get; set; }
+    [Parameter] public EventCallback<ChatGroupMemberModel> OnRemoveMember { get; set; }
 
     private bool CanLeave => Thread.IsGroup && Thread.IsJoined && Thread.UserRole != "OWNER";
+
+    private bool CanManageMember(ChatGroupMemberModel member)
+    {
+        if (!Thread.IsGroup || member.Role == "OWNER") return false;
+        if (Thread.UserRole == "OWNER") return true;
+        if (Thread.UserRole == "ADMIN" && member.Role == "MEMBER") return true;
+        return false;
+    }
+
+    private async Task ToggleMuteAsync()
+    {
+        await OnToggleMute.InvokeAsync();
+    }
 
     private static string Initial(string? name)
     {

@@ -29,7 +29,25 @@ public partial class TblChatGroupMessage
 
     public byte[] RowVersion { get; set; } = null!;
 
+    public int? ReplyToChatGroupMessageId { get; set; }
+
+    public string MessageType { get; set; } = null!;
+
+    public string? AttachmentUrl { get; set; }
+
+    public string? FileName { get; set; }
+
+    public long? FileSizeByte { get; set; }
+
     public virtual TblChatGroup ChatGroup { get; set; } = null!;
 
+    public virtual ICollection<TblChatGroupMessage> InverseReplyToChatGroupMessage { get; set; } = new List<TblChatGroupMessage>();
+
+    public virtual TblChatGroupMessage? ReplyToChatGroupMessage { get; set; }
+
     public virtual TblUser Sender { get; set; } = null!;
+
+    public virtual ICollection<TblChatGroupMessageReaction> TblChatGroupMessageReactions { get; set; } = new List<TblChatGroupMessageReaction>();
+
+    public virtual ICollection<TblChatGroupMessageUserState> TblChatGroupMessageUserStates { get; set; } = new List<TblChatGroupMessageUserState>();
 }

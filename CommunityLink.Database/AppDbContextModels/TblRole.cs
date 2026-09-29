@@ -31,9 +31,13 @@ public partial class TblRole
 
     public byte[] RowVersion { get; set; } = null!;
 
+    public virtual ICollection<TblAdminInvite> TblAdminInvites { get; set; } = new List<TblAdminInvite>();
+
     public virtual ICollection<TblAdminRole> TblAdminRoles { get; set; } = new List<TblAdminRole>();
 
     public virtual ICollection<TblRolePermission> TblRolePermissions { get; set; } = new List<TblRolePermission>();
 
     public virtual ICollection<TblUserRole> TblUserRoles { get; set; } = new List<TblUserRole>();
+
+    public virtual ICollection<TblUserSubscription> TblUserSubscriptions { get; set; } = new List<TblUserSubscription>();
 }

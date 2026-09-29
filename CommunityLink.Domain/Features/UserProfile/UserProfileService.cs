@@ -9,6 +9,7 @@ using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.UserProfile;
 using CommunityLink.Domain.Features.Notification;
+using CommunityLink.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CommunityLink.Domain.Features.UserProfile;
@@ -17,11 +18,13 @@ public class UserProfileService : IUserProfileService
 {
     private readonly AppDbContext _dbContext;
     private readonly INotificationService _notificationService;
+    private readonly IPublicUrlBuilder _publicUrlBuilder;
 
-    public UserProfileService(AppDbContext dbContext, INotificationService notificationService)
+    public UserProfileService(AppDbContext dbContext, INotificationService notificationService, IPublicUrlBuilder publicUrlBuilder)
     {
         _dbContext = dbContext;
         _notificationService = notificationService;
+        _publicUrlBuilder = publicUrlBuilder;
     }
 
     public async Task<Result<UserProfileDto>> GetOwnerProfileAsync(int currentUserId, CancellationToken cancellationToken = default)
@@ -81,6 +84,49 @@ public class UserProfileService : IUserProfileService
         bool isSelf = currentUserId.HasValue && currentUserId.Value == user.UserId;
         var profile = await BuildProfileDtoAsync(user, currentUserId, isOwnerView: isSelf, cancellationToken);
         return Result<UserProfileDto>.Success(profile);
+    }
+
+    public async Task<Result<IReadOnlyList<UserSearchResultDto>>> SearchUsersAsync(
+        string? search,
+        int currentUserId,
+        int limit = 10,
+        CancellationToken cancellationToken = default)
+    {
+        var term = (search ?? string.Empty).Trim().TrimStart('@').Trim();
+
+        // Short terms are treated as "no match" rather than a validation error, so a
+        // single keystroke in a typeahead cannot be used to enumerate the user table.
+        if (term.Length < 2)
+            return Result<IReadOnlyList<UserSearchResultDto>>.Success([]);
+
+        // A non-positive limit means "caller did not specify one" rather than "return nothing".
+        limit = limit <= 0 ? 10 : Math.Clamp(limit, 1, 25);
+
+        var normalized = term.ToUpperInvariant();
+        var lowered = term.ToLower();
+
+        // NormalizedUserName is the indexed uppercase column, so prefix hits stay cheap;
+        // the display-name fallback is a substring match and is ordered below them.
+        var items = await _dbContext.TblUsers
+            .Where(u => !u.IsDeleted && u.IsActive && u.UserId != currentUserId)
+            .Where(u => u.NormalizedUserName.StartsWith(normalized)
+                     || u.DisplayName.ToLower().Contains(lowered))
+            .AsNoTracking()
+            .OrderBy(u => u.NormalizedUserName.StartsWith(normalized) ? 0 : 1)
+            .ThenBy(u => u.DisplayName)
+            .Take(limit)
+            .Select(u => new UserSearchResultDto
+            {
+                UserId = u.UserId,
+                UserName = u.UserName,
+                DisplayName = u.DisplayName,
+                AvatarUrl = u.AvatarUrl,
+                Headline = u.Headline,
+                IsVerified = u.IsVerified
+            })
+            .ToListAsync(cancellationToken);
+
+        return Result<IReadOnlyList<UserSearchResultDto>>.Success(items);
     }
 
     public async Task<Result<UserProfileDto>> UpdateProfileAsync(int currentUserId, UpdateUserProfileRequestDto dto, CancellationToken cancellationToken = default)
@@ -163,7 +209,7 @@ public class UserProfileService : IUserProfileService
             await fileStream.CopyToAsync(destStream, cancellationToken);
         }
 
-        var avatarUrl = $"/uploads/avatars/{uniqueFileName}";
+        var avatarUrl = _publicUrlBuilder.Build($"/uploads/avatars/{uniqueFileName}");
         user.AvatarUrl = avatarUrl;
         user.UpdatedAt = DateTime.UtcNow;
         user.UpdatedBy = currentUserId;
@@ -279,6 +325,8 @@ public class UserProfileService : IUserProfileService
     public async Task<Result<List<UserPostItemDto>>> GetUserPostsAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default)
     {
         var rawPosts = await _dbContext.TblPosts
+            .AsNoTracking()
+            .AsSplitQuery()
             .Include(p => p.Author)
             .Include(p => p.Community)
             .Include(p => p.TblPostImages)
@@ -299,6 +347,8 @@ public class UserProfileService : IUserProfileService
     public async Task<Result<List<UserPostItemDto>>> GetSavedPostsAsync(int currentUserId, CancellationToken cancellationToken = default)
     {
         var rawPosts = await _dbContext.TblSavedPosts
+            .AsNoTracking()
+            .AsSplitQuery()
             .Include(sp => sp.Post)
                 .ThenInclude(p => p.Author)
             .Include(sp => sp.Post)
@@ -340,6 +390,8 @@ public class UserProfileService : IUserProfileService
         }
 
         var recycledPosts = await _dbContext.TblPosts
+            .AsNoTracking()
+            .AsSplitQuery()
             .Include(p => p.Author)
             .Include(p => p.Community)
             .Include(p => p.TblPostImages)

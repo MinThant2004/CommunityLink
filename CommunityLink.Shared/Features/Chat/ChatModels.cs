@@ -18,6 +18,11 @@ public sealed record ChatMessageModel(
     string MessageText,
     bool IsRead,
     DateTime SentAt,
+    string MessageType = "TEXT",
+    string? AttachmentUrl = null,
+    string? FileName = null,
+    long? FileSizeByte = null,
+    string? FormattedFileSize = null,
     // Quoted message. ReplyToIsDeleted is true when the original was deleted for everyone,
     // so the client can render the tombstone strip instead of vanished text.
     int? ReplyToMessageId = null,
@@ -32,7 +37,22 @@ public sealed record SendMessageRequestModel(
     int? ConversationId,
     int? TargetUserId,
     string MessageText,
+    string MessageType = "TEXT",
+    string? AttachmentUrl = null,
+    string? FileName = null,
+    long? FileSizeByte = null,
     int? ReplyToMessageId = null);
+
+/// <summary>
+/// Returned by the chat attachment upload endpoint. The client then sends the message with
+/// <see cref="Url"/> as its <c>AttachmentUrl</c>, so the file itself never travels in the
+/// message JSON.
+/// </summary>
+public sealed record ChatAttachmentUploadResponse(
+    string Url,
+    string FileName,
+    long FileSizeByte,
+    string MessageType);
 
 /// <summary>Body of a reaction toggle. The same emoji twice removes the reaction.</summary>
 public sealed record SetMessageReactionRequestModel(string? Emoji);

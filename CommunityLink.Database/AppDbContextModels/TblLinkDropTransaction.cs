@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -31,6 +31,10 @@ public partial class TblLinkDropTransaction
 
     public long EarnedAmountDeducted { get; set; }
 
+    public int? RelatedUserId { get; set; }
+
+    public int? RelatedGroupId { get; set; }
+
     public long PurchasedBalanceBefore { get; set; }
 
     public long PurchasedBalanceAfter { get; set; }
@@ -38,10 +42,6 @@ public partial class TblLinkDropTransaction
     public long EarnedBalanceBefore { get; set; }
 
     public long EarnedBalanceAfter { get; set; }
-
-    public int? RelatedUserId { get; set; }
-
-    public int? RelatedGroupId { get; set; }
 
     public virtual TblUser User { get; set; } = null!;
 

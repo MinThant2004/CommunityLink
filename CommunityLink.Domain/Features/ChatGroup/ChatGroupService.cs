@@ -7,6 +7,7 @@ using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Chat;
 using CommunityLink.Shared.Features.ChatGroup;
+using CommunityLink.Shared.Utils;
 
 public sealed class ChatGroupService(
     AppDbContext dbContext,
@@ -348,7 +349,8 @@ public sealed class ChatGroupService(
                 m.User.DisplayName ?? m.User.UserName,
                 m.User.AvatarUrl,
                 m.Role,
-                m.JoinedAt
+                m.JoinedAt,
+                m.IsMuted
             ))
             .ToListAsync(cancellationToken);
 
@@ -615,7 +617,11 @@ public sealed class ChatGroupService(
                 SenderAvatar = m.Sender.AvatarUrl,
                 m.Content,
                 m.CreatedAt,
-                m.ReplyToChatGroupMessageId
+                m.ReplyToChatGroupMessageId,
+                m.MessageType,
+                m.AttachmentUrl,
+                m.FileName,
+                m.FileSizeByte
             })
             .ToListAsync(cancellationToken);
 
@@ -649,7 +655,12 @@ public sealed class ChatGroupService(
                 hasReply ? reply.Preview : null,
                 hasReply && reply.IsDeleted,
                 reactions.TryGetValue(m.ChatGroupMessageId, out var list) ? list : Array.Empty<MessageReactionModel>(),
-                m.SenderId == userId || canModerate
+                m.SenderId == userId || canModerate,
+                m.MessageType ?? "TEXT",
+                m.AttachmentUrl,
+                m.FileName,
+                m.FileSizeByte,
+                FileSizeFormatter.FormatFileSize(m.FileSizeByte)
             );
         }).ToList();
 
@@ -757,10 +768,15 @@ public sealed class ChatGroupService(
             return Result<ChatGroupMessageModel>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
         }
 
-        var text = request?.Content?.Trim();
-        if (string.IsNullOrWhiteSpace(text))
+        var text = request?.Content?.Trim() ?? string.Empty;
+        var msgType = string.IsNullOrWhiteSpace(request?.MessageType) ? "TEXT" : request.MessageType.Trim().ToUpperInvariant();
+        var attachmentUrl = request?.AttachmentUrl?.Trim();
+        var fileName = request?.FileName?.Trim();
+        var fileSizeByte = request?.FileSizeByte;
+
+        if (string.IsNullOrWhiteSpace(text) && string.IsNullOrWhiteSpace(attachmentUrl))
         {
-            return Result<ChatGroupMessageModel>.Failure("Message content cannot be empty.");
+            return Result<ChatGroupMessageModel>.Failure("Message content or attachment is required.");
         }
 
         var userId = currentUser.UserId.Value;
@@ -796,6 +812,10 @@ public sealed class ChatGroupService(
             ChatGroupId = chatGroupId,
             SenderId = userId,
             Content = text,
+            MessageType = msgType,
+            AttachmentUrl = attachmentUrl,
+            FileName = fileName,
+            FileSizeByte = fileSizeByte,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = userId,
             ReplyToChatGroupMessageId = replyToId
@@ -807,6 +827,41 @@ public sealed class ChatGroupService(
         var sender = await dbContext.TblUsers
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+
+        // Dispatch notifications to active, non-muted group members (excluding the sender)
+        var recipients = await dbContext.TblChatGroupMembers
+            .AsNoTracking()
+            .Where(m => m.ChatGroupId == chatGroupId && m.UserId != userId && !m.IsDeleted && !m.IsMuted)
+            .Select(m => m.UserId)
+            .ToListAsync(cancellationToken);
+
+        if (recipients.Count > 0)
+        {
+            var chatGroup = await dbContext.TblChatGroups
+                .AsNoTracking()
+                .FirstOrDefaultAsync(cg => cg.ChatGroupId == chatGroupId, cancellationToken);
+
+            var groupName = chatGroup?.Name ?? "Chat Group";
+            var senderName = sender?.DisplayName ?? sender?.UserName ?? "Someone";
+            var previewText = string.IsNullOrWhiteSpace(text) ? $"[Sent a {msgType.ToLowerInvariant()}]" : text;
+
+            var notifications = recipients.Select(recipientId => new TblNotification
+            {
+                RecipientUserId = recipientId,
+                ActorUserId = userId,
+                NotificationType = "GROUP_CHAT_MESSAGE",
+                Title = groupName,
+                Message = $"{senderName}: {previewText}",
+                TargetEntityName = "TblChatGroup",
+                TargetEntityId = chatGroupId,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = userId
+            }).ToList();
+
+            dbContext.TblNotifications.AddRange(notifications);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
 
         var replies = await GetReplyStubsAsync(
             replyToId.HasValue ? [replyToId.Value] : [],
@@ -828,7 +883,12 @@ public sealed class ChatGroupService(
             hasReply ? replyStub.Preview : null,
             hasReply && replyStub.IsDeleted,
             Array.Empty<MessageReactionModel>(),
-            CanDeleteForEveryone: true
+            CanDeleteForEveryone: true,
+            msg.MessageType ?? "TEXT",
+            msg.AttachmentUrl,
+            msg.FileName,
+            msg.FileSizeByte,
+            FileSizeFormatter.FormatFileSize(msg.FileSizeByte)
         );
 
         return Result<ChatGroupMessageModel>.Success(model);
@@ -1079,5 +1139,150 @@ public sealed class ChatGroupService(
             .ToListAsync(cancellationToken);
 
         return Result<IReadOnlyList<ChatGroupPreviewModel>>.Success(previews);
+    }
+
+    public async Task<Result> ToggleMuteAsync(int chatGroupId, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var userId = currentUser.UserId.Value;
+
+        var member = await dbContext.TblChatGroupMembers
+            .FirstOrDefaultAsync(m => m.ChatGroupId == chatGroupId && m.UserId == userId && !m.IsDeleted, cancellationToken);
+
+        if (member == null)
+        {
+            return Result.Failure("You are not a member of this Chat Group.", ResultStatus.NotFound);
+        }
+
+        member.IsMuted = !member.IsMuted;
+        member.UpdatedAt = DateTime.UtcNow;
+        member.UpdatedBy = userId;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var statusMessage = member.IsMuted ? "Muted group notifications." : "Unmuted group notifications.";
+        return Result.Success(statusMessage);
+    }
+
+    public async Task<Result> PromoteMemberAsync(int chatGroupId, int targetUserId, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var currentUserId = currentUser.UserId.Value;
+        var callerRole = await dbContext.TblChatGroupMembers
+            .AsNoTracking()
+            .Where(m => m.ChatGroupId == chatGroupId && m.UserId == currentUserId && !m.IsDeleted)
+            .Select(m => m.Role)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (!string.Equals(callerRole, "OWNER", StringComparison.OrdinalIgnoreCase))
+        {
+            return Result.Failure("Only the Group Owner can promote members to Admin.", ResultStatus.Forbidden);
+        }
+
+        var targetMember = await dbContext.TblChatGroupMembers
+            .FirstOrDefaultAsync(m => m.ChatGroupId == chatGroupId && m.UserId == targetUserId && !m.IsDeleted, cancellationToken);
+
+        if (targetMember == null)
+        {
+            return Result.Failure("Target user is not a member of this group.", ResultStatus.NotFound);
+        }
+
+        if (string.Equals(targetMember.Role, "ADMIN", StringComparison.OrdinalIgnoreCase) || string.Equals(targetMember.Role, "OWNER", StringComparison.OrdinalIgnoreCase))
+        {
+            return Result.Failure("User is already an Admin or Owner.", ResultStatus.ValidationError);
+        }
+
+        targetMember.Role = "ADMIN";
+        targetMember.UpdatedAt = DateTime.UtcNow;
+        targetMember.UpdatedBy = currentUserId;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return Result.Success("Member promoted to Admin successfully.");
+    }
+
+    public async Task<Result> DemoteMemberAsync(int chatGroupId, int targetUserId, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var currentUserId = currentUser.UserId.Value;
+        var callerRole = await dbContext.TblChatGroupMembers
+            .AsNoTracking()
+            .Where(m => m.ChatGroupId == chatGroupId && m.UserId == currentUserId && !m.IsDeleted)
+            .Select(m => m.Role)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (!string.Equals(callerRole, "OWNER", StringComparison.OrdinalIgnoreCase))
+        {
+            return Result.Failure("Only the Group Owner can demote Admins.", ResultStatus.Forbidden);
+        }
+
+        var targetMember = await dbContext.TblChatGroupMembers
+            .FirstOrDefaultAsync(m => m.ChatGroupId == chatGroupId && m.UserId == targetUserId && !m.IsDeleted, cancellationToken);
+
+        if (targetMember == null)
+        {
+            return Result.Failure("Target user is not a member of this group.", ResultStatus.NotFound);
+        }
+
+        if (string.Equals(targetMember.Role, "OWNER", StringComparison.OrdinalIgnoreCase))
+        {
+            return Result.Failure("Cannot demote Group Owner.", ResultStatus.ValidationError);
+        }
+
+        targetMember.Role = "MEMBER";
+        targetMember.UpdatedAt = DateTime.UtcNow;
+        targetMember.UpdatedBy = currentUserId;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return Result.Success("Admin demoted to Member successfully.");
+    }
+
+    public async Task<Result> RemoveMemberAsync(int chatGroupId, int targetUserId, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var currentUserId = currentUser.UserId.Value;
+        var canModerate = await IsModeratorAsync(chatGroupId, currentUserId, cancellationToken);
+        if (!canModerate)
+        {
+            return Result.Failure("Only Group Owner or Admins can remove members.", ResultStatus.Forbidden);
+        }
+
+        var targetMember = await dbContext.TblChatGroupMembers
+            .FirstOrDefaultAsync(m => m.ChatGroupId == chatGroupId && m.UserId == targetUserId && !m.IsDeleted, cancellationToken);
+
+        if (targetMember == null)
+        {
+            return Result.Failure("Target user is not a member of this group.", ResultStatus.NotFound);
+        }
+
+        if (string.Equals(targetMember.Role, "OWNER", StringComparison.OrdinalIgnoreCase))
+        {
+            return Result.Failure("Group Owner cannot be removed from the group.", ResultStatus.ValidationError);
+        }
+
+        targetMember.IsDeleted = true;
+        targetMember.DeletedAt = DateTime.UtcNow;
+        targetMember.DeletedBy = currentUserId;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return Result.Success("Member removed from group successfully.");
     }
 }

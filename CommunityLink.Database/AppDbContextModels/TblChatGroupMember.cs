@@ -31,6 +31,8 @@ public partial class TblChatGroupMember
 
     public byte[] RowVersion { get; set; } = null!;
 
+    public bool IsMuted { get; set; }
+
     public virtual TblChatGroup ChatGroup { get; set; } = null!;
 
     public virtual TblUser User { get; set; } = null!;

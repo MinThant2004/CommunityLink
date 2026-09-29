@@ -25,6 +25,14 @@ builder.Services.AddSwaggerGen();
 // Add SignalR
 builder.Services.AddSignalR();
 
+// Chat attachments are uploaded as multipart bodies. The framework default body limit is
+// 30,000,000 bytes, which is only ~3.7 MB of headroom over the 25 MB chat cap, so the
+// limit is set explicitly here to keep the two in step.
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 30_000_000;
+});
+
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "CommunityLinkSuperSecretSigningKey1234567890!_SecurityKey";
 var issuer = builder.Configuration["Jwt:Issuer"] ?? "CommunityLink.Api";

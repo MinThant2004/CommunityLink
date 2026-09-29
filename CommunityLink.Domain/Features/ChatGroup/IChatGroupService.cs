@@ -29,4 +29,9 @@ public interface IChatGroupService
         int chatGroupId, int messageId, string? emoji, CancellationToken cancellationToken = default);
 
     Task<Result<IReadOnlyList<ChatGroupPreviewModel>>> GetPreviewsAsync(CancellationToken cancellationToken = default);
+
+    Task<Result> ToggleMuteAsync(int chatGroupId, CancellationToken cancellationToken = default);
+    Task<Result> PromoteMemberAsync(int chatGroupId, int targetUserId, CancellationToken cancellationToken = default);
+    Task<Result> DemoteMemberAsync(int chatGroupId, int targetUserId, CancellationToken cancellationToken = default);
+    Task<Result> RemoveMemberAsync(int chatGroupId, int targetUserId, CancellationToken cancellationToken = default);
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -19,6 +20,9 @@ public sealed class UserProfileApiService(IHttpClientFactory clientFactory, IHtt
 
     public Task<Result<UserProfileDto>> GetPublicProfileAsync(string userNameOrId, CancellationToken cancellationToken = default) =>
         GetAsync<UserProfileDto>($"api/users/{userNameOrId}", cancellationToken);
+
+    public Task<Result<IReadOnlyList<UserSearchResultDto>>> SearchUsersAsync(string? search, int limit = 10, CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<UserSearchResultDto>>($"api/users/search?search={Uri.EscapeDataString((search ?? string.Empty).Trim())}&limit={limit}", cancellationToken);
 
     public Task<Result<UserProfileDto>> UpdateProfileAsync(UpdateUserProfileRequestDto dto, CancellationToken cancellationToken = default) =>
         PutAsync<UserProfileDto, UpdateUserProfileRequestDto>("api/users/me", dto, cancellationToken);

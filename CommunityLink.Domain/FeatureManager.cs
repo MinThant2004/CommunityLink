@@ -52,6 +52,7 @@ public static class FeatureManager
 
         // Infrastructure Services
         services.AddScoped<IEmailSender, SmtpEmailSender>();
+        services.AddSingleton<IPublicUrlBuilder, PublicUrlBuilder>();
 
         // Domain Services
         services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -61,6 +62,7 @@ public static class FeatureManager
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<IPollService, PollService>();
         services.AddScoped<IChatService, ChatService>();
+        services.AddSingleton<IChatAttachmentStorage, ChatAttachmentStorage>();
         services.AddScoped<ICreatorChatSettingService, CreatorChatSettingService>();
         services.AddScoped<IPrivateChatPaymentService, PrivateChatPaymentService>();
         services.AddScoped<IAdministrationService, AdministrationService>();

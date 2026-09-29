@@ -46,4 +46,6 @@ public partial class TblChatGroup
     public virtual ICollection<TblChatGroupMember> TblChatGroupMembers { get; set; } = new List<TblChatGroupMember>();
 
     public virtual ICollection<TblChatGroupMessage> TblChatGroupMessages { get; set; } = new List<TblChatGroupMessage>();
+
+    public virtual ICollection<TblChatGroupPaymentTransaction> TblChatGroupPaymentTransactions { get; set; } = new List<TblChatGroupPaymentTransaction>();
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -15,7 +15,7 @@ public partial class TblSkillEndorsement
 
     public bool IsDeleted { get; set; }
 
-    public virtual TblUserSkill Skill { get; set; } = null!;
-
     public virtual TblUser EndorserUser { get; set; } = null!;
+
+    public virtual TblUserSkill Skill { get; set; } = null!;
 }

@@ -10,6 +10,7 @@ public interface IUserProfileService
 {
     Task<Result<UserProfileDto>> GetOwnerProfileAsync(int currentUserId, CancellationToken cancellationToken = default);
     Task<Result<UserProfileDto>> GetPublicProfileAsync(string userNameOrId, int? currentUserId, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<UserSearchResultDto>>> SearchUsersAsync(string? search, int currentUserId, int limit = 10, CancellationToken cancellationToken = default);
     Task<Result<UserProfileDto>> UpdateProfileAsync(int currentUserId, UpdateUserProfileRequestDto dto, CancellationToken cancellationToken = default);
     Task<Result<UploadAvatarResponseDto>> UploadAvatarAsync(int currentUserId, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default);
     Task<Result<bool>> ToggleSaveAccountAsync(int currentUserId, int targetUserId, CancellationToken cancellationToken = default);

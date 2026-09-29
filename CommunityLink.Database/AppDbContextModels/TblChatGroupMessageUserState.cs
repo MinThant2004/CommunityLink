@@ -1,10 +1,8 @@
+﻿using System;
+using System.Collections.Generic;
+
 namespace CommunityLink.Database.AppDbContextModels;
 
-/// <summary>
-/// Per-viewer state for a chat group message. Group counterpart of
-/// <see cref="TblChatMessageUserState"/>; kept as a separate table so the two stacks stay
-/// independently deployable.
-/// </summary>
 public partial class TblChatGroupMessageUserState
 {
     public int ChatGroupMessageUserStateId { get; set; }

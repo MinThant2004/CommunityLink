@@ -33,6 +33,8 @@ public partial class TblConversation
 
     public virtual ICollection<TblChatMessage> TblChatMessages { get; set; } = new List<TblChatMessage>();
 
+    public virtual ICollection<TblPrivateChatPaymentTransaction> TblPrivateChatPaymentTransactions { get; set; } = new List<TblPrivateChatPaymentTransaction>();
+
     public virtual TblUser UserOne { get; set; } = null!;
 
     public virtual TblUser UserTwo { get; set; } = null!;

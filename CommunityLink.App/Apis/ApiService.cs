@@ -20,6 +20,21 @@ public class ApiService(IHttpClientFactory clientFactory, IHttpContextAccessor h
         return client;
     }
 
+    /// <summary>
+    /// Client with the extended upload timeout. Used for multipart attachment posts, which
+    /// carry far more bytes than the JSON endpoints.
+    /// </summary>
+    protected HttpClient CreateUploadClient()
+    {
+        var client = clientFactory.CreateClient("CommunityApiUpload");
+        var token = httpContextAccessor.HttpContext?.User.FindFirst("access_token")?.Value;
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
+        return client;
+    }
+
     protected async Task<Result<T>> GetAsync<T>(string url, CancellationToken cancellationToken = default)
     {
         try
