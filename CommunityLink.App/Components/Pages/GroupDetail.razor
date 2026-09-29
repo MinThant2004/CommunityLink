@@ -371,11 +371,59 @@
                                     @post.Content
                                 </div>
 
-                                <!-- Post Images -->
+                                <!-- Post Images (Threads-style Single Image Carousel) -->
                                 @if (post.ImageUrls != null && post.ImageUrls.Count > 0)
                                 {
-                                    <div class="bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center max-h-96 overflow-hidden border-t border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                                        <img src="@post.ImageUrls[0]" alt="Post attachment" class="max-h-96 object-contain w-full" />
+                                    var imgCount = post.ImageUrls.Count;
+                                    var activeIdx = Math.Clamp(GetActiveImageIndex(post.PostId), 0, imgCount - 1);
+                                    var currentImage = post.ImageUrls[activeIdx];
+
+                                    <div class="relative overflow-hidden border-t border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#0d1117] group select-none">
+                                        <!-- Active Display Image (Standard Fixed Height matching text snippet preview) -->
+                                        <div class="relative w-full h-72 sm:h-80 flex items-center justify-center bg-[#0d1117] overflow-hidden">
+                                            <img src="@currentImage" alt="Post attachment @(activeIdx + 1) of @imgCount"
+                                                 class="w-full h-full object-contain transition-all duration-200" />
+                                        </div>
+
+                                        @if (imgCount > 1)
+                                        {
+                                            <!-- Previous Button -->
+                                            @if (activeIdx > 0)
+                                            {
+                                                <button type="button" @onclick="() => PrevImage(post.PostId, imgCount)"
+                                                        class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/85 text-white/90 hover:text-white flex items-center justify-center transition shadow-lg backdrop-blur-xs cursor-pointer z-10"
+                                                        aria-label="Previous image">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                                                </button>
+                                            }
+
+                                            <!-- Next Button -->
+                                            @if (activeIdx < imgCount - 1)
+                                            {
+                                                <button type="button" @onclick="() => NextImage(post.PostId, imgCount)"
+                                                        class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/85 text-white/90 hover:text-white flex items-center justify-center transition shadow-lg backdrop-blur-xs cursor-pointer z-10"
+                                                        aria-label="Next image">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                                </button>
+                                            }
+
+                                            <!-- Threads-style Badge Counter (Top Right) -->
+                                            <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md text-[11px] font-mono text-white/90 font-semibold shadow-xs z-10">
+                                                @(activeIdx + 1)/@imgCount
+                                            </div>
+
+                                            <!-- Threads-style Pagination Dots (Bottom Center) -->
+                                            <div class="absolute bottom-3 inset-x-0 flex items-center justify-center gap-1.5 z-10 pointer-events-auto">
+                                                @for (int dotIdx = 0; dotIdx < imgCount; dotIdx++)
+                                                {
+                                                    var targetIdx = dotIdx;
+                                                    <button type="button" @onclick="() => SetActiveImage(post.PostId, targetIdx)"
+                                                            class="transition-all duration-200 cursor-pointer @(dotIdx == activeIdx ? "w-5 h-1.5 rounded-full bg-white shadow-xs" : "w-1.5 h-1.5 rounded-full bg-white/50 hover:bg-white/80")"
+                                                            aria-label="Go to image @(targetIdx + 1)">
+                                                    </button>
+                                                }
+                                            </div>
+                                        }
                                     </div>
                                 }
 
@@ -900,62 +948,92 @@
 @if (showPostModal)
 {
     <div class="fixed inset-0 z-50 overflow-y-auto bg-[#0A1B2E]/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-[#112A46] rounded-lg shadow-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] w-full max-w-lg overflow-hidden text-[#0A1B2E] dark:text-[#E1E8F0]">
+        <div class="bg-white dark:bg-[#112A46] rounded-xl shadow-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] w-full max-w-lg overflow-hidden text-[#0A1B2E] dark:text-[#E1E8F0] animate-in fade-in duration-200">
             <div class="px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="text-lg">✍️</span>
                     <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">Post to @group?.Name</h3>
                 </div>
-                <button type="button" @onclick="() => showPostModal = false" class="text-[#557392] dark:text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white">✕</button>
+                <button type="button" @onclick="() => showPostModal = false" class="text-[#557392] dark:text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white font-bold text-sm cursor-pointer">&times;</button>
             </div>
-            <div class="p-5 space-y-4">
+            <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
                 <div>
                     <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">What's on your mind? *</label>
                     <textarea @bind="newPostText" rows="4" placeholder="Share thoughts, news, or questions with the group..."
-                              class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded p-3 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]"></textarea>
+                              class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded-xl p-3 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]"></textarea>
                 </div>
 
-                <!-- Image Attachment -->
+                <!-- Text File Attachment Section -->
                 <div>
-                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">Attach Image (Optional)</label>
-                    @if (string.IsNullOrEmpty(uploadedImageUrl))
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Attach Text File (.txt) (Optional)</label>
+                        @if (!string.IsNullOrEmpty(newPostCodeSnippet))
+                        {
+                            <button type="button" @onclick="RemovePostCodeFile" class="text-xs text-rose-500 hover:underline">Remove file</button>
+                        }
+                    </div>
+
+                    @if (string.IsNullOrEmpty(newPostCodeSnippet))
                     {
-                        <div class="relative border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded p-4 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E]">
-                            <InputFile OnChange="HandleFileSelected" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                            @if (isUploadingImage)
-                            {
-                                <div class="flex items-center justify-center gap-2 text-xs text-[#0A1B2E] dark:text-[#E1E8F0] font-medium">
-                                    <span class="animate-spin">⏳</span> Uploading image...
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="flex flex-col items-center">
-                                    <span class="text-xl mb-1">🖼️</span>
-                                    <span class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">Click to upload an image</span>
-                                    <span class="text-[10px] text-[#557392] dark:text-[#7A8CA6]">PNG, JPG, WebP up to 10MB</span>
-                                </div>
-                            }
-                        </div>
+                        <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
+                            <span class="text-base">📄</span>
+                            <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isReadingTextFile ? "Scanning text file..." : "Click to select a .txt file")</span>
+                            <InputFile OnChange="HandlePostTextFileSelected" accept=".txt" class="hidden" disabled="@isReadingTextFile" />
+                        </label>
                     }
                     else
                     {
-                        <div class="modal-image-preview-container relative rounded-xl overflow-hidden border border-slate-200 bg-slate-950 flex items-center justify-center" style="height: 140px; max-height: 140px; width: 100%;">
-                            <img src="@uploadedImageUrl" alt="Preview" class="modal-image-preview-img object-contain" style="max-height: 140px; max-width: 100%; height: auto; width: auto; display: block; margin: 0 auto;" />
-                            <button type="button" @onclick="() => uploadedImageUrl = null"
-                                    class="absolute top-2 right-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full p-1.5 shadow transition text-xs font-bold" title="Remove image">
-                                ✕
-                            </button>
+                        <div class="prof-code-block p-3 space-y-1.5 rounded-xl border border-gray-800 bg-[#0d1117] text-gray-200">
+                            <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
+                                <span class="font-bold text-emerald-400 font-mono">📄 @(string.IsNullOrWhiteSpace(newPostCodeFileName) ? "attachment.txt" : newPostCodeFileName)</span>
+                                <span class="font-mono text-gray-500">TEXT</span>
+                            </div>
+                            <div class="overflow-x-auto overflow-y-auto max-h-40 text-[11px] leading-relaxed">
+                                <pre class="whitespace-pre font-mono"><code>@newPostCodeSnippet</code></pre>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Multiple Images Attachment Section -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Attach Images (Multiple allowed)</label>
+                        <span class="text-[10px] text-[#7A8CA6]">PNG, JPG, WebP</span>
+                    </div>
+
+                    <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
+                        <span class="text-base">🖼️</span>
+                        <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isUploadingImage ? "Uploading image(s)..." : "Upload images (Choose multiple)")</span>
+                        <InputFile OnChange="HandleMultipleImagesSelected" accept="image/*" multiple class="hidden" disabled="@isUploadingImage" />
+                    </label>
+
+                    @if (uploadedImageUrls.Count > 0)
+                    {
+                        <div class="grid grid-cols-3 gap-2 mt-2.5">
+                            @for (int i = 0; i < uploadedImageUrls.Count; i++)
+                            {
+                                var imgIndex = i;
+                                var imgUrl = uploadedImageUrls[imgIndex];
+                                <div class="relative rounded-lg overflow-hidden border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] bg-slate-900 group aspect-video">
+                                    <img src="@imgUrl" alt="Thumbnail" class="w-full h-full object-cover" />
+                                    <button type="button" @onclick="() => RemoveUploadedImage(imgIndex)"
+                                            class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow cursor-pointer transition">
+                                        &times;
+                                    </button>
+                                </div>
+                            }
                         </div>
                     }
                 </div>
             </div>
-            <div class="px-5 py-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex justify-end gap-2">
-                <button type="button" @onclick="() => showPostModal = false" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded transition">Cancel</button>
-                <button type="button" @onclick="SubmitGroupPost" disabled="@(isSubmitting || isUploadingImage)" class="px-5 py-2 text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded shadow-sm transition disabled:opacity-50 flex items-center gap-2">
+            <div class="px-5 py-3.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex justify-end gap-2.5">
+                <button type="button" @onclick="() => showPostModal = false" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg transition cursor-pointer">Cancel</button>
+                <button type="button" @onclick="SubmitGroupPost" disabled="@(isSubmitting || isUploadingImage || isReadingTextFile || (string.IsNullOrWhiteSpace(newPostText) && string.IsNullOrWhiteSpace(newPostCodeSnippet) && uploadedImageUrls.Count == 0))"
+                        class="px-5 py-2 text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded-lg shadow-sm transition disabled:opacity-50 flex items-center gap-2 cursor-pointer">
                     @if (isSubmitting)
                     {
-                        <span class="animate-spin">⏳</span>
+                        <span class="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                         <span>Publishing...</span>
                     }
                     else
@@ -1288,6 +1366,23 @@
     private HashSet<int> openCommentPostIds = [];
     private Dictionary<int, string> commentInputs = [];
     private Dictionary<int, IReadOnlyList<CommentModel>> commentsByPost = [];
+    private readonly Dictionary<int, int> postActiveImageIndex = new();
+
+    private int GetActiveImageIndex(int postId) => postActiveImageIndex.TryGetValue(postId, out var idx) ? idx : 0;
+    private void PrevImage(int postId, int count)
+    {
+        var current = GetActiveImageIndex(postId);
+        postActiveImageIndex[postId] = (current - 1 + count) % count;
+    }
+    private void NextImage(int postId, int count)
+    {
+        var current = GetActiveImageIndex(postId);
+        postActiveImageIndex[postId] = (current + 1) % count;
+    }
+    private void SetActiveImage(int postId, int index)
+    {
+        postActiveImageIndex[postId] = index;
+    }
 
     // Share Modal
     private bool showShareModal;
@@ -1312,8 +1407,11 @@
     // Create Post Modal State
     private bool showPostModal;
     private string newPostText = "";
-    private string? uploadedImageUrl;
+    private readonly List<string> uploadedImageUrls = new();
     private bool isUploadingImage;
+    private string? newPostCodeSnippet;
+    private string? newPostCodeFileName;
+    private bool isReadingTextFile = false;
 
     // Create Poll Modal State
     private bool showPollModal;
@@ -1527,7 +1625,9 @@
     private void OpenCreatePostModal()
     {
         newPostText = "";
-        uploadedImageUrl = null;
+        uploadedImageUrls.Clear();
+        newPostCodeSnippet = null;
+        newPostCodeFileName = null;
         showPostModal = true;
     }
 
@@ -1559,36 +1659,41 @@
         }
     }
 
-    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    private async Task HandleMultipleImagesSelected(InputFileChangeEventArgs e)
     {
-        var file = e.File;
-        if (file == null) return;
+        var files = e.GetMultipleFiles(maximumFileCount: 10);
+        if (files == null || files.Count == 0) return;
 
         try
         {
             isUploadingImage = true;
-            var uploadsDir = Path.Combine(Environment.WebRootPath, "uploads");
+            var subfolder = DateTime.UtcNow.ToString("yyyyMM");
+            var uploadsDir = Path.Combine(Environment.WebRootPath, "uploads", "posts", subfolder);
             if (!Directory.Exists(uploadsDir))
             {
                 Directory.CreateDirectory(uploadsDir);
             }
 
-            var extension = Path.GetExtension(file.Name);
-            if (string.IsNullOrEmpty(extension)) extension = ".jpg";
+            foreach (var file in files)
+            {
+                var extension = Path.GetExtension(file.Name);
+                if (string.IsNullOrEmpty(extension)) extension = ".jpg";
 
-            var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow.Ticks}{extension}";
-            var fullPath = Path.Combine(uploadsDir, uniqueFileName);
+                var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow.Ticks}{extension}";
+                var fullPath = Path.Combine(uploadsDir, uniqueFileName);
 
-            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-            using var fileStream = new FileStream(fullPath, FileMode.Create);
-            await stream.CopyToAsync(fileStream);
+                using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+                using var fileStream = new FileStream(fullPath, FileMode.Create);
+                await stream.CopyToAsync(fileStream);
 
-            uploadedImageUrl = $"/uploads/{uniqueFileName}";
-            Toast.Success("Image uploaded!");
+                uploadedImageUrls.Add($"/uploads/posts/{subfolder}/{uniqueFileName}");
+            }
+
+            Toast.Success($"{files.Count} image(s) attached!");
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to process image: {ex.Message}");
+            Toast.Error($"Failed to process images: {ex.Message}");
         }
         finally
         {
@@ -1596,17 +1701,71 @@
         }
     }
 
+    private void RemoveUploadedImage(int index)
+    {
+        if (index >= 0 && index < uploadedImageUrls.Count)
+        {
+            uploadedImageUrls.RemoveAt(index);
+        }
+    }
+
+    private async Task HandlePostTextFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        if (!file.Name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+        {
+            Toast.Error("Only plain text (.txt) files are allowed.");
+            return;
+        }
+
+        try
+        {
+            isReadingTextFile = true;
+            using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+            using var reader = new StreamReader(stream);
+            newPostCodeSnippet = await reader.ReadToEndAsync();
+            newPostCodeFileName = file.Name;
+            Toast.Success($"Text file '{file.Name}' read successfully.");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to read text file: {ex.Message}");
+        }
+        finally
+        {
+            isReadingTextFile = false;
+        }
+    }
+
+    private void RemovePostCodeFile()
+    {
+        newPostCodeSnippet = null;
+        newPostCodeFileName = null;
+    }
+
     private async Task SubmitGroupPost()
     {
-        if (string.IsNullOrWhiteSpace(newPostText))
+        if (string.IsNullOrWhiteSpace(newPostText) && string.IsNullOrWhiteSpace(newPostCodeSnippet) && uploadedImageUrls.Count == 0)
         {
             Toast.Warning("Post content cannot be empty.");
             return;
         }
 
         isSubmitting = true;
-        var images = string.IsNullOrWhiteSpace(uploadedImageUrl) ? null : new List<string> { uploadedImageUrl };
-        var res = await PostApi.CreatePostAsync(new CreatePostRequestModel(null, newPostText, images, groupId));
+        var images = uploadedImageUrls.Count > 0 ? uploadedImageUrls.ToList() : null;
+        var req = new CreatePostRequestModel(
+            null,
+            newPostText?.Trim() ?? string.Empty,
+            images,
+            groupId,
+            CodeSnippet: newPostCodeSnippet,
+            CodeFileName: newPostCodeFileName,
+            CodeLanguage: !string.IsNullOrWhiteSpace(newPostCodeSnippet) ? "TEXT" : null
+        );
+
+        var res = await PostApi.CreatePostAsync(req);
         isSubmitting = false;
 
         if (res.IsSuccess)
@@ -1614,7 +1773,9 @@
             Toast.Success("Group post published!");
             showPostModal = false;
             newPostText = "";
-            uploadedImageUrl = null;
+            uploadedImageUrls.Clear();
+            newPostCodeSnippet = null;
+            newPostCodeFileName = null;
             activeTab = "feed";
             await LoadGroupPosts();
         }

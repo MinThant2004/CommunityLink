@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @inject LinkDropApiService LinkDropApi
 @inject ToastService Toast
+@inject IConfiguration Configuration
 
 <PageTitle>Link Drops Verification - Admin Portal</PageTitle>
 
@@ -428,8 +429,22 @@
 
     private void OpenProofModal(string url)
     {
-        previewProofUrl = url;
+        previewProofUrl = BuildFileUrl(url);
         showProofModal = true;
+    }
+
+    private string BuildFileUrl(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+        if (path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            return path;
+        }
+
+        var apiBase = Configuration["CommunityApi:BaseUrl"] ?? "https://localhost:56536";
+        return $"{apiBase.TrimEnd('/')}/{path.TrimStart('/')}";
     }
 
     private void OpenApproveModal(PurchaseResponseDto p)

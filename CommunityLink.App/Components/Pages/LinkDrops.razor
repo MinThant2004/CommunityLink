@@ -6,6 +6,7 @@
 @inject LinkDropApiService LinkDropApi
 @inject ToastService Toast
 @inject NavigationManager Navigation
+@inject IConfiguration Configuration
 
 <PageTitle>Link Drops Top-Up</PageTitle>
 
@@ -271,7 +272,28 @@
                                 Upload Payment Slip Screenshot <span class="text-rose-500">*</span>
                             </label>
                             <InputFile OnChange="OnFileInputChange" accept=".jpg,.jpeg,.png,.webp,.pdf"
-                                       class="w-full text-xs text-slate-600 dark:text-[#C4D2E1] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-50 dark:file:bg-[#1B3B5A] file:text-indigo-700 dark:file:text-white hover:file:bg-indigo-100" />
+                                       class="w-full text-xs text-slate-600 dark:text-[#C4D2E1] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-50 dark:file:bg-[#1B3B5A] file:text-indigo-700 dark:file:text-white hover:file:bg-indigo-100 cursor-pointer" />
+
+                            @if (!string.IsNullOrEmpty(localPreviewDataUrl))
+                            {
+                                <div class="flex items-center gap-3 pt-2">
+                                    <div class="relative group cursor-pointer" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" title="Click to view full size">
+                                        <img src="@localPreviewDataUrl" alt="Payment Slip Preview" class="w-16 h-16 object-cover rounded-lg border-2 border-indigo-500 shadow-sm transition group-hover:opacity-90 group-hover:scale-105" />
+                                        <div class="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-[10px] font-bold">
+                                            🔍
+                                        </div>
+                                    </div>
+                                    <div class="space-y-0.5">
+                                        <button type="button" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer">
+                                            <span>🔍 Click to view full size</span>
+                                        </button>
+                                        <div class="text-[10px] text-slate-400">@uploadedProofFile?.Name</div>
+                                        <button type="button" @onclick="ClearUploadedSlip" class="text-[11px] text-rose-500 hover:underline cursor-pointer">
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            }
                         </div>
                     </div>
 
@@ -443,17 +465,42 @@
                 }
                 @if (selectedDetailPurchase.Proof != null && !string.IsNullOrWhiteSpace(selectedDetailPurchase.Proof.FileUrl))
                 {
+                    var proofUrl = BuildFileUrl(selectedDetailPurchase.Proof.FileUrl);
                     <div class="pt-2">
                         <span class="text-slate-500 block mb-1">Receipt Proof Image:</span>
-                        <img src="@selectedDetailPurchase.Proof.FileUrl" class="w-full max-h-48 object-contain bg-slate-100 rounded-xl border border-slate-200" />
+                        <div class="relative group cursor-pointer rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center p-1"
+                             @onclick="() => OpenEnlargedImage(proofUrl)" title="Click to view full size">
+                            <img src="@proofUrl" alt="Receipt Proof" class="w-full max-h-56 object-contain rounded-lg" />
+                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1.5 backdrop-blur-2xs">
+                                <span>🔍 Click to view full size</span>
+                            </div>
+                        </div>
                     </div>
                 }
             </div>
 
             <div class="pt-2">
-                <button @onclick="() => selectedDetailPurchase = null" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs">
+                <button @onclick="() => selectedDetailPurchase = null" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs cursor-pointer">
                     Close
                 </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- FULL-SIZE IMAGE LIGHTBOX MODAL (Centered in Middle) -->
+@if (isLightboxOpen && !string.IsNullOrEmpty(lightboxImageUrl))
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150"
+         @onclick="CloseLightbox">
+        <div class="relative max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-700 rounded-2xl p-3 shadow-2xl overflow-hidden flex flex-col items-center"
+             @onclick:stopPropagation="true">
+            <div class="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-white px-2">
+                <span class="text-xs font-bold text-slate-300">Payment Slip Receipt (Full Size)</span>
+                <button type="button" @onclick="CloseLightbox" class="text-slate-400 hover:text-white text-lg font-bold p-1 cursor-pointer">✕</button>
+            </div>
+            <div class="overflow-auto max-h-[80vh] flex items-center justify-center w-full">
+                <img src="@lightboxImageUrl" alt="Full size payment slip" class="max-w-full max-h-[78vh] object-contain rounded-lg" />
             </div>
         </div>
     </div>
@@ -578,9 +625,67 @@
         }
     }
 
-    private void OnFileInputChange(InputFileChangeEventArgs e)
+    private string? localPreviewDataUrl;
+    private bool isLightboxOpen = false;
+    private string? lightboxImageUrl;
+
+    private async Task OnFileInputChange(InputFileChangeEventArgs e)
     {
         uploadedProofFile = e.File;
+        localPreviewDataUrl = null;
+
+        if (uploadedProofFile != null)
+        {
+            try
+            {
+                var format = uploadedProofFile.ContentType;
+                if (string.IsNullOrWhiteSpace(format) || !format.StartsWith("image/"))
+                {
+                    format = "image/jpeg";
+                }
+                var resizedImage = await uploadedProofFile.RequestImageFileAsync(format, 1200, 1200);
+                using var stream = resizedImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                var base64 = Convert.ToBase64String(ms.ToArray());
+                localPreviewDataUrl = $"data:{format};base64,{base64}";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating slip preview: {ex.Message}");
+            }
+        }
+    }
+
+    private void ClearUploadedSlip()
+    {
+        uploadedProofFile = null;
+        localPreviewDataUrl = null;
+    }
+
+    private void OpenEnlargedImage(string url)
+    {
+        lightboxImageUrl = url;
+        isLightboxOpen = true;
+    }
+
+    private void CloseLightbox()
+    {
+        isLightboxOpen = false;
+    }
+
+    private string BuildFileUrl(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+        if (path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            return path;
+        }
+
+        var apiBase = Configuration["CommunityApi:BaseUrl"] ?? "https://localhost:56536";
+        return $"{apiBase.TrimEnd('/')}/{path.TrimStart('/')}";
     }
 
     private async Task SubmitPurchaseAsync()
@@ -624,6 +729,7 @@
             Toast.Success("Payment request submitted successfully! Waiting for admin verification.");
             submittedPurchaseNumber = res.Data?.PurchaseNumber ?? string.Empty;
             submissionCompleted = true;
+            localPreviewDataUrl = null;
             await LoadPurchasesAsync();
         }
         else
@@ -638,5 +744,6 @@
         transactionRefNo = string.Empty;
         userNotes = string.Empty;
         uploadedProofFile = null;
+        localPreviewDataUrl = null;
     }
 }
