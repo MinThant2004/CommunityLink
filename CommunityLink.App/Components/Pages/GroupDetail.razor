@@ -109,8 +109,9 @@
                         }
                         else if (group.UserJoinStatus == "PENDING")
                         {
-                            <span class="px-4 py-2 bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50 text-xs font-semibold rounded-xl">
-                                ⏳ Join Requested
+                            <span class="px-4 py-2 bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50 text-xs font-semibold rounded-xl inline-flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span>Join Requested</span>
                             </span>
                         }
                         else
@@ -126,12 +127,12 @@
                 <!-- Stats Bar & Actions -->
                 <div class="pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-4 text-xs font-medium text-[#557392] dark:text-[#C4D2E1]">
-                        <span>👥 @group.MemberCount members</span>
+                        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>@group.MemberCount members</span>
                         <span>•</span>
-                        <span>📝 @group.PostCount posts</span>
+                        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>@group.PostCount posts</span>
                         <span>•</span>
-                        <span class="inline-flex items-center gap-1 text-amber-600">
-                            <span>⭐</span>
+                        <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                            <svg class="w-3.5 h-3.5 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                             <span>@(group.AverageRating.HasValue ? group.AverageRating.Value.ToString("0.0") : "No ratings")</span>
                             <span class="text-slate-400">(@(group.RatingCount))</span>
                         </span>
@@ -144,12 +145,12 @@
                         <div class="flex items-center gap-2">
                             <button type="button" @onclick="OpenCreatePostModal"
                                     class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs rounded-xl shadow-sm transition inline-flex items-center gap-1.5 active:scale-95">
-                                <span>✍️</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                 <span>Upload Group Post</span>
                             </button>
                             <button type="button" @onclick="OpenCreatePollModal"
                                     class="px-4 py-2 bg-white dark:bg-[#1B3B5A] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold text-xs rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] shadow-sm transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer">
-                                <span>📊</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                                 <span>Upload Group Poll</span>
                             </button>
                         </div>
@@ -162,8 +163,8 @@
         {
             <!-- PRIVATE GROUP LOCK BANNER -->
             <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-amber-300 dark:border-amber-500/30 p-12 text-center shadow-sm">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 flex items-center justify-center text-3xl text-amber-500">
-                    🔒
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 flex items-center justify-center text-amber-500">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                 </div>
                 <h2 class="text-lg font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">This group is private</h2>
                 <p class="text-sm text-[#557392] dark:text-[#C4D2E1] max-w-md mx-auto mt-2">
@@ -173,7 +174,8 @@
                     @if (group.UserJoinStatus == "PENDING")
                     {
                         <span class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-semibold text-sm rounded-xl border border-amber-200 dark:border-amber-900/50">
-                            ⏳ Join Request Pending Approval
+                            <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>Join Request Pending Approval</span>
                         </span>
                     }
                     else
@@ -189,23 +191,27 @@
         else
         {
             <!-- Navigation Tabs: Feed, Polls, Members -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-2 flex items-center gap-2">
+            <div class="bg-white dark:bg-[#112A46] rounded-2xl shadow-sm border border-slate-200 dark:border-[rgba(196,210,225,0.12)] p-2 flex items-center gap-2">
                 <button type="button" @onclick='() => SetActiveTab("feed")'
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "feed" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
-                    📝 Feed (@(posts?.Count ?? 0))
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "feed" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Feed (@(posts?.Count ?? 0))</span>
                 </button>
                 <button type="button" @onclick='() => SetActiveTab("polls")'
                         style="@(activeTab == "polls" ? "background-color: #7c3aed; color: #ffffff !important;" : "")"
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "polls" ? "bg-purple-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
-                    📊 Polls (@(polls?.Count ?? 0))
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "polls" ? "bg-purple-600 text-white shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>Polls (@(polls?.Count ?? 0))</span>
                 </button>
                 <button type="button" @onclick='() => SetActiveTab("members")'
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "members" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
-                    👥 Members (@(members?.Count ?? 0))
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "members" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span>Members (@(members?.Count ?? 0))</span>
                 </button>
                 <button type="button" @onclick='() => SetActiveTab("ratings")'
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center @(activeTab == "ratings" ? "bg-amber-500 text-slate-950 shadow-sm" : "text-slate-600 hover:bg-slate-100")">
-                    ⭐ Ratings (@(ratingSummary?.TotalRatings ?? group?.RatingCount ?? 0))
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "ratings" ? "bg-amber-500 text-slate-950 shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
+                    <svg class="w-4 h-4 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                    <span>Ratings (@(ratingSummary?.TotalRatings ?? group?.RatingCount ?? 0))</span>
                 </button>
             </div>
 
@@ -221,7 +227,7 @@
                     {
                         <button type="button" @onclick="OpenCreatePollModal"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95 cursor-pointer">
-                            <span>📊</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                             <span>Upload Group Poll</span>
                         </button>
                     }
@@ -245,7 +251,8 @@
                     {
                         <button type="button" @onclick="OpenCreatePostModal"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95">
-                            <span>✍️ Create Post</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            <span>Create Post</span>
                         </button>
                     }
                     else if (group?.IsJoined != true)
@@ -270,7 +277,9 @@
                 else if (posts == null || posts.Count == 0)
                 {
                     <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] p-12 text-center text-[#557392] dark:text-[#C4D2E1]">
-                        <div class="text-4xl mb-3">✍️</div>
+                        <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        </div>
                         <h4 class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] text-base" style="font-family:'Manrope',sans-serif">No group posts yet</h4>
                         <p class="text-xs text-[#7A8CA6] mt-1 max-w-sm mx-auto">
                             @(group?.IsJoined == true ? "Start the conversation by sharing the first post in this group!" : "Join this group to share the first post.")
@@ -311,15 +320,15 @@
                                                 </a>
                                                 @if (post.AuthorRoleCode == "PUBLIC_FIGURE")
                                                 {
-                                                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200" title="Public Figure VIP">
-                                                        <span>🏛️</span>
+                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-950/50 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="Public Figure VIP">
+                                                        <svg class="w-3 h-3 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                                                         <span class="hidden sm:inline">VIP</span>
                                                     </span>
                                                 }
                                                 else if (post.AuthorRoleCode == "DOMAIN_PRO" || post.IsAuthorVerified)
                                                 {
-                                                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="Domain Professional Verified">
-                                                        <span>⭐</span>
+                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="Domain Professional Verified">
+                                                        <svg class="w-3 h-3 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                                                         <span class="hidden sm:inline">PRO</span>
                                                     </span>
                                                 }
@@ -342,7 +351,7 @@
                                                 <!-- Save Button (For all users) -->
                                                 <button type="button" @onclick="() => ToggleSavePost(post.PostId)"
                                                         class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
-                                                    <span>🔖</span>
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                                                     <span>@(post.IsSavedByCurrentUser ? "Unsave Post" : "Save Post")</span>
                                                 </button>
 
@@ -351,13 +360,13 @@
                                                 {
                                                     <button type="button" @onclick="() => OpenEditPost(post)"
                                                             class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
-                                                        <span>✏️</span>
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                         <span>Edit Description</span>
                                                     </button>
                                                     <div class="border-t border-slate-100 my-1"></div>
                                                     <button type="button" @onclick="() => ConfirmDeletePost(post.PostId)"
                                                             class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
-                                                        <span>🗑️</span>
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                         <span>Delete Post</span>
                                                     </button>
                                                 }
@@ -418,8 +427,8 @@
                                     <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-4 sm:p-5 bg-[#F8FAFC] dark:bg-[#0A1B2E] space-y-4">
                                         <!-- Add Comment -->
                                         <div class="flex items-start gap-2.5">
-                                            <div class="w-8 h-8 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                                                💬
+                                            <div class="w-8 h-8 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] flex items-center justify-center shrink-0 mt-0.5">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                                             </div>
                                             <div class="flex-1 flex gap-2">
                                                 <input type="text" @bind="commentInputs[post.PostId]"
@@ -473,7 +482,9 @@
                 @if (polls == null || polls.Count == 0)
                 {
                     <div class="bg-white dark:bg-[#112A46] rounded-lg border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] p-12 text-center text-[#557392] dark:text-[#7A8CA6]">
-                        <div class="text-4xl mb-3">📊</div>
+                        <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        </div>
                         <h4 class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] text-base">No live polls in this group</h4>
                         <p class="text-xs text-[#557392] dark:text-[#7A8CA6] mt-1 max-w-sm mx-auto">
                             @(group?.IsJoined == true ? "Launch a poll to gather feedback or opinions from fellow members." : "Join this group to participate in or create polls.")
@@ -482,7 +493,7 @@
                         {
                             <button type="button" @onclick="OpenCreatePollModal"
                                     class="mt-4 px-5 py-2.5 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] text-xs font-semibold rounded shadow-sm transition inline-flex items-center gap-1.5 cursor-pointer">
-                                <span>📊</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                                 <span>Upload Group Poll</span>
                             </button>
                         }
@@ -532,7 +543,7 @@
                                                     <!-- Save Button (All users) -->
                                                     <button type="button" @onclick="() => ToggleSavePoll(poll.PostId)"
                                                             class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
-                                                        <span>🔖</span>
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                                                         <span>Save Poll</span>
                                                     </button>
 
@@ -541,13 +552,13 @@
                                                     {
                                                         <button type="button" @onclick="() => OpenEditPoll(poll)"
                                                                 class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
-                                                            <span>✏️</span>
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                             <span>Edit Poll</span>
                                                         </button>
                                                         <div class="border-t border-slate-100 my-1"></div>
                                                         <button type="button" @onclick="() => DeletePoll(poll.PollId)"
                                                                 class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
-                                                            <span>🗑️</span>
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                             <span>Delete Poll</span>
                                                         </button>
                                                     }
@@ -611,7 +622,7 @@
                                 <!-- Poll Summary Footer -->
                                 <div class="px-5 py-2.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between text-xs text-[#557392] dark:text-[#7A8CA6]">
                                     <div class="flex items-center gap-2">
-                                        <span>👥 @poll.TotalVotes total votes</span>
+                                        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>@poll.TotalVotes total votes</span>
                                         <span>•</span>
                                         <span>@(poll.IsMultipleChoice ? "Multiple votes allowed" : "Single choice")</span>
                                     </div>
@@ -666,8 +677,8 @@
                                 {
                                     <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] p-4 sm:p-5 bg-[#F8FAFC] dark:bg-[#0A1B2E] space-y-4">
                                         <div class="flex items-start gap-2.5">
-                                            <div class="w-8 h-8 rounded-full bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                                                💬
+                                            <div class="w-8 h-8 rounded-full bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] flex items-center justify-center shrink-0 mt-0.5">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                                             </div>
                                             <div class="flex-1 flex gap-2">
                                                 <input type="text" @bind="commentInputs[poll.PostId]"
@@ -781,7 +792,7 @@
                             {
                                 <button type="button" @onclick="OpenRatingModal"
                                         class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-amber-500/20 transition active:scale-95 inline-flex items-center gap-2 cursor-pointer">
-                                    <span>⭐</span>
+                                    <svg class="w-4 h-4 fill-slate-950 text-slate-950" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                                     <span>@(ratingSummary?.UserRating != null ? "Edit Your Review" : "Rate This Group")</span>
                                 </button>
                             }
@@ -789,9 +800,9 @@
 
                         @if (group?.IsJoined != true)
                         {
-                            <div class="mt-4 p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between gap-3 text-xs text-amber-800">
+                            <div class="mt-4 p-3.5 bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl flex items-center justify-between gap-3 text-xs text-amber-800 dark:text-amber-300">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-base">🔒</span>
+                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                     <span>Only approved group members can rate and review this group. You can still view all reviews below.</span>
                                 </div>
                                 <button type="button" @onclick="JoinGroup" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shrink-0 transition">
@@ -810,8 +821,10 @@
                     }
                     else if (ratingSummary == null || ratingSummary.Ratings.Count == 0)
                     {
-                        <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500">
-                            <div class="text-4xl mb-3">⭐</div>
+                        <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-dashed border-slate-300 dark:border-[rgba(196,210,225,0.20)] p-12 text-center text-slate-500 dark:text-[#7A8CA6]">
+                            <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mx-auto mb-3 text-amber-500">
+                                <svg class="w-7 h-7 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                            </div>
                             <h4 class="font-semibold text-slate-800 text-base">No reviews yet</h4>
                             <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">
                                 @(group?.IsJoined == true ? "Share your rating and feedback to help others know what this group is about." : "Members have not reviewed this group yet.")
@@ -903,7 +916,7 @@
         <div class="bg-white dark:bg-[#112A46] rounded-lg shadow-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] w-full max-w-lg overflow-hidden text-[#0A1B2E] dark:text-[#E1E8F0]">
             <div class="px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="text-lg">✍️</span>
+                    <svg class="w-5 h-5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                     <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">Post to @group?.Name</h3>
                 </div>
                 <button type="button" @onclick="() => showPostModal = false" class="text-[#557392] dark:text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white">✕</button>
@@ -925,13 +938,14 @@
                             @if (isUploadingImage)
                             {
                                 <div class="flex items-center justify-center gap-2 text-xs text-[#0A1B2E] dark:text-[#E1E8F0] font-medium">
-                                    <span class="animate-spin">⏳</span> Uploading image...
+                                    <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    <span>Uploading image...</span>
                                 </div>
                             }
                             else
                             {
                                 <div class="flex flex-col items-center">
-                                    <span class="text-xl mb-1">🖼️</span>
+                                    <svg class="w-7 h-7 text-[#557392] dark:text-[#7A8CA6] mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     <span class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">Click to upload an image</span>
                                     <span class="text-[10px] text-[#557392] dark:text-[#7A8CA6]">PNG, JPG, WebP up to 10MB</span>
                                 </div>
@@ -955,7 +969,7 @@
                 <button type="button" @onclick="SubmitGroupPost" disabled="@(isSubmitting || isUploadingImage)" class="px-5 py-2 text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded shadow-sm transition disabled:opacity-50 flex items-center gap-2">
                     @if (isSubmitting)
                     {
-                        <span class="animate-spin">⏳</span>
+                        <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <span>Publishing...</span>
                     }
                     else
@@ -975,7 +989,7 @@
         <div class="bg-white dark:bg-[#112A46] rounded-lg shadow-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] w-full max-w-lg overflow-hidden text-[#0A1B2E] dark:text-[#E1E8F0]">
             <div class="px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="text-lg">📊</span>
+                    <svg class="w-5 h-5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">Create Poll in @group?.Name</h3>
                 </div>
                 <button type="button" @onclick="() => showPollModal = false" class="text-[#557392] dark:text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white">✕</button>
@@ -1066,12 +1080,12 @@
                         class="px-5 py-2.5 text-xs font-bold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded shadow-sm transition disabled:opacity-50 flex items-center gap-2 cursor-pointer">
                     @if (isSubmitting)
                     {
-                        <span class="animate-spin text-sm">⏳</span>
+                        <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <span>Creating Poll...</span>
                     }
                     else
                     {
-                        <span class="text-sm">📊</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                         <span>Publish Group Poll</span>
                     }
                 </button>
@@ -1087,7 +1101,7 @@
         <div class="bg-white dark:bg-[#112A46] rounded-lg shadow-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] w-full max-w-md overflow-hidden text-[#0A1B2E] dark:text-[#E1E8F0]">
             <div class="px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="text-xl">🚀</span>
+                    <svg class="w-5 h-5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
                     <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">Share to Your Network</h3>
                 </div>
                 <button type="button" @onclick="() => showShareModal = false" class="text-[#557392] dark:text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white">✕</button>
@@ -1115,27 +1129,28 @@
 {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                    <span>✏️</span> Edit Post Description
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h3 class="font-bold text-slate-900 dark:text-[#E1E8F0] text-base flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    <span>Edit Post Description</span>
                 </h3>
-                <button type="button" @onclick="() => showEditPostModal = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+                <button type="button" @onclick="() => showEditPostModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg">&times;</button>
             </div>
 
             <div class="space-y-1">
-                <label class="text-xs font-semibold text-slate-500">Post Description / Content</label>
-                <textarea @bind="editingPostContent" rows="5" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none resize-none transition" placeholder="Update your post description..."></textarea>
-                <p class="text-[11px] text-slate-400">Note: Post images cannot be modified.</p>
+                <label class="text-xs font-semibold text-slate-500 dark:text-[#C4D2E1]">Post Description / Content</label>
+                <textarea @bind="editingPostContent" rows="5" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none resize-none transition" placeholder="Update your post description..."></textarea>
+                <p class="text-[11px] text-slate-400 dark:text-[#7A8CA6]">Note: Post images cannot be modified.</p>
             </div>
 
-            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                <button type="button" @onclick="() => showEditPostModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button type="button" @onclick="() => showEditPostModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
                     Cancel
                 </button>
                 <button type="button" @onclick="SaveEditPostAsync" disabled="@(isSavingEditPost || string.IsNullOrWhiteSpace(editingPostContent))" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-md shadow-indigo-600/20 flex items-center gap-2 cursor-pointer">
                     @if (isSavingEditPost)
                     {
-                        <span class="animate-spin text-xs">⌛</span>
+                        <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <span>Saving...</span>
                     }
                     else
@@ -1153,36 +1168,37 @@
 {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                    <span>✏️</span> Edit Poll
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h3 class="font-bold text-slate-900 dark:text-[#E1E8F0] text-base flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    <span>Edit Poll</span>
                 </h3>
-                <button type="button" @onclick="() => showEditPollModal = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+                <button type="button" @onclick="() => showEditPollModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg">&times;</button>
             </div>
 
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Poll Question <span class="text-rose-500">*</span></label>
-                    <input type="text" @bind="editingPollQuestion" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition" />
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-[#C4D2E1] mb-1">Poll Question <span class="text-rose-500">*</span></label>
+                    <input type="text" @bind="editingPollQuestion" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition" />
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Description <span class="text-slate-400 font-normal">(Optional)</span></label>
-                    <textarea @bind="editingPollContent" rows="3" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none resize-none transition" placeholder="Add additional context for voters..."></textarea>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-[#C4D2E1] mb-1">Description <span class="text-slate-400 dark:text-[#7A8CA6] font-normal">(Optional)</span></label>
+                    <textarea @bind="editingPollContent" rows="3" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none resize-none transition" placeholder="Add additional context for voters..."></textarea>
                 </div>
-                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 flex items-center gap-2">
-                    <span>ℹ️</span>
+                <div class="p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-500 dark:text-[#C4D2E1] flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span>Options and existing votes cannot be modified to maintain voting integrity.</span>
                 </div>
             </div>
 
-            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                <button type="button" @onclick="() => showEditPollModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button type="button" @onclick="() => showEditPollModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
                     Cancel
                 </button>
                 <button type="button" @onclick="SaveEditPollAsync" disabled="@(isSavingEditPoll || string.IsNullOrWhiteSpace(editingPollQuestion))" class="px-5 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-md shadow-purple-600/20 flex items-center gap-2 cursor-pointer">
                     @if (isSavingEditPoll)
                     {
-                        <span class="animate-spin text-xs">⌛</span>
+                        <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <span>Saving...</span>
                     }
                     else
@@ -1200,18 +1216,18 @@
 {
     <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150 p-6 space-y-5">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
-                    <span class="text-xl">⭐</span>
-                    <h3 class="font-bold text-base text-slate-900">
+                    <svg class="w-5 h-5 text-amber-500 fill-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-[#E1E8F0]">
                         @(ratingSummary?.UserRating != null ? "Edit Your Review" : "Rate This Group")
                     </h3>
                 </div>
-                <button type="button" @onclick="CloseRatingModal" class="text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+                <button type="button" @onclick="CloseRatingModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
             </div>
 
             <div class="text-center space-y-3">
-                <p class="text-xs text-slate-500">Tap a star to rate your experience in <strong class="text-slate-700">@group?.Name</strong></p>
+                <p class="text-xs text-slate-500 dark:text-[#C4D2E1]">Tap a star to rate your experience in <strong class="text-slate-700 dark:text-white">@group?.Name</strong></p>
                 
                 <!-- Interactive Star Selector -->
                 <div class="flex items-center justify-center gap-2 text-3xl py-1">
@@ -1219,36 +1235,36 @@
                     {
                         var starScore = i;
                         <button type="button" @onclick="() => selectedRatingScore = starScore" class="transition-transform hover:scale-125 cursor-pointer focus:outline-none">
-                            <span class="@(starScore <= selectedRatingScore ? "text-amber-400" : "text-slate-200")">★</span>
+                            <span class="@(starScore <= selectedRatingScore ? "text-amber-400" : "text-slate-200 dark:text-slate-700")">★</span>
                         </button>
                     }
                 </div>
-                <div class="text-xs font-bold text-amber-600 uppercase tracking-wider">
+                <div class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
                     @selectedRatingScore Star@(selectedRatingScore > 1 ? "s" : "")
                 </div>
 
                 <div class="text-left mt-2">
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Your Review / Comments</label>
-                    <textarea @bind="ratingReviewText" rows="3" maxlength="1000" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition" placeholder="Tell other members what you think of this group, its topics, and discussions..."></textarea>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1] uppercase tracking-wider mb-1">Your Review / Comments</label>
+                    <textarea @bind="ratingReviewText" rows="3" maxlength="1000" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition" placeholder="Tell other members what you think of this group, its topics, and discussions..."></textarea>
                     <div class="text-[11px] text-slate-400 text-right mt-0.5">@(ratingReviewText?.Length ?? 0)/1000</div>
                 </div>
             </div>
 
             @if (!string.IsNullOrEmpty(ratingErrorMessage))
             {
-                <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-medium">
+                <div class="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs rounded-xl font-medium">
                     @ratingErrorMessage
                 </div>
             }
 
-            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                <button type="button" @onclick="CloseRatingModal" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button type="button" @onclick="CloseRatingModal" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
                     Cancel
                 </button>
                 <button type="button" @onclick="SubmitRatingAsync" disabled="@isSubmittingRating" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition shadow-md shadow-amber-500/30 flex items-center gap-2 cursor-pointer">
                     @if (isSubmittingRating)
                     {
-                        <span class="animate-spin text-xs">⌛</span>
+                        <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <span>Submitting...</span>
                     }
                     else

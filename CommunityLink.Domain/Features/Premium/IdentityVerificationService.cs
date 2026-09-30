@@ -119,54 +119,55 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
             return Result<IdentityVerificationDetailDto>.Failure("You already have an upgrade & verification audit pending review.", ResultStatus.Conflict);
         }
 
-        // Handle LinkDrop payment deduction if selected
-        long pointsDeducted = 0;
-        if (request.PaymentMethod.Equals("LinkDropPoints", StringComparison.OrdinalIgnoreCase) && plan.LinkDropCost > 0)
+        // Enforce mandatory LinkDrop wallet deduction
+        if (plan.LinkDropCost <= 0)
         {
-            var wallet = await dbContext.TblLinkDropWallets.FirstOrDefaultAsync(w => w.UserId == userId, cancellationToken);
-            if (wallet == null || wallet.Balance < plan.LinkDropCost)
-            {
-                var currentBalance = wallet?.Balance ?? 0;
-                return Result<IdentityVerificationDetailDto>.Failure($"Insufficient LinkDrop points balance. Plan requires {plan.LinkDropCost:N0} Drops, but your balance is {currentBalance:N0} Drops.", ResultStatus.ValidationError);
-            }
-
-            // Deduct from wallet (first from purchased, then from earned)
-            var amountToDeduct = plan.LinkDropCost;
-            var fromPurchased = Math.Min(wallet.PurchasedBalance, amountToDeduct);
-            var fromEarned = amountToDeduct - fromPurchased;
-
-            var bBefore = wallet.Balance;
-            var pBefore = wallet.PurchasedBalance;
-            var eBefore = wallet.EarnedBalance;
-
-            wallet.PurchasedBalance -= fromPurchased;
-            wallet.EarnedBalance -= fromEarned;
-            wallet.Balance = wallet.PurchasedBalance + wallet.EarnedBalance;
-            wallet.UpdatedAt = DateTime.UtcNow;
-
-            pointsDeducted = plan.LinkDropCost;
-
-            // Log Transaction
-            dbContext.TblLinkDropTransactions.Add(new TblLinkDropTransaction
-            {
-                WalletId = wallet.WalletId,
-                UserId = userId,
-                TransactionType = "TIER_UPGRADE",
-                Amount = -plan.LinkDropCost,
-                BalanceBefore = bBefore,
-                BalanceAfter = wallet.Balance,
-                PurchasedBalanceBefore = pBefore,
-                PurchasedBalanceAfter = wallet.PurchasedBalance,
-                EarnedBalanceBefore = eBefore,
-                EarnedBalanceAfter = wallet.EarnedBalance,
-                PurchasedAmountDeducted = fromPurchased,
-                EarnedAmountDeducted = fromEarned,
-                ReferenceType = "TblSubscriptionPlan",
-                ReferenceId = plan.PlanId,
-                Notes = $"Verification fee for {plan.PlanName}",
-                CreatedAt = DateTime.UtcNow
-            });
+            return Result<IdentityVerificationDetailDto>.Failure("This subscription plan does not have a valid LinkDrop cost configured.", ResultStatus.ValidationError);
         }
+
+        var wallet = await dbContext.TblLinkDropWallets.FirstOrDefaultAsync(w => w.UserId == userId, cancellationToken);
+        if (wallet == null || wallet.Balance < plan.LinkDropCost)
+        {
+            var currentBalance = wallet?.Balance ?? 0;
+            return Result<IdentityVerificationDetailDto>.Failure($"Insufficient LinkDrop points balance. Plan requires {plan.LinkDropCost:N0} Drops, but your current balance is {currentBalance:N0} Drops.", ResultStatus.ValidationError);
+        }
+
+        // Deduct from wallet (first from purchased, then from earned)
+        var amountToDeduct = plan.LinkDropCost;
+        var fromPurchased = Math.Min(wallet.PurchasedBalance, amountToDeduct);
+        var fromEarned = amountToDeduct - fromPurchased;
+
+        var bBefore = wallet.Balance;
+        var pBefore = wallet.PurchasedBalance;
+        var eBefore = wallet.EarnedBalance;
+
+        wallet.PurchasedBalance -= fromPurchased;
+        wallet.EarnedBalance -= fromEarned;
+        wallet.Balance = wallet.PurchasedBalance + wallet.EarnedBalance;
+        wallet.UpdatedAt = DateTime.UtcNow;
+
+        long pointsDeducted = plan.LinkDropCost;
+
+        // Log Transaction using existing allowed 'PURCHASE' type
+        dbContext.TblLinkDropTransactions.Add(new TblLinkDropTransaction
+        {
+            WalletId = wallet.WalletId,
+            UserId = userId,
+            TransactionType = "PURCHASE",
+            Amount = -plan.LinkDropCost,
+            BalanceBefore = bBefore,
+            BalanceAfter = wallet.Balance,
+            PurchasedBalanceBefore = pBefore,
+            PurchasedBalanceAfter = wallet.PurchasedBalance,
+            EarnedBalanceBefore = eBefore,
+            EarnedBalanceAfter = wallet.EarnedBalance,
+            PurchasedAmountDeducted = fromPurchased,
+            EarnedAmountDeducted = fromEarned,
+            ReferenceType = "TblSubscriptionPlan",
+            ReferenceId = plan.PlanId,
+            Notes = $"Verification fee for {plan.PlanName}",
+            CreatedAt = DateTime.UtcNow
+        });
 
         var verification = new TblIdentityVerification
         {
@@ -188,6 +189,10 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
 
         // Also add pending UserSubscription
         var targetRole = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == plan.TargetRoleCode, cancellationToken);
+        if (targetRole is null && (plan.TargetRoleCode == "DOMAIN_PRO" || plan.TargetRoleCode == "DOMAIN_PROFESSIONAL"))
+        {
+            targetRole = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "DOMAIN_PRO" || r.RoleCode == "DOMAIN_PROFESSIONAL", cancellationToken);
+        }
         var roleId = targetRole?.RoleId ?? 1;
 
         var userSub = new TblUserSubscription
@@ -317,6 +322,10 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
             return Result<IdentityVerificationDetailDto>.Failure($"Cannot approve verification in '{verification.Status}' state.", ResultStatus.Conflict);
 
         var targetRole = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == verification.TargetRoleCode, cancellationToken);
+        if (targetRole is null && (verification.TargetRoleCode == "DOMAIN_PRO" || verification.TargetRoleCode == "DOMAIN_PROFESSIONAL"))
+        {
+            targetRole = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "DOMAIN_PRO" || r.RoleCode == "DOMAIN_PROFESSIONAL", cancellationToken);
+        }
         if (targetRole is null)
             return Result<IdentityVerificationDetailDto>.Failure($"Target role '{verification.TargetRoleCode}' was not found in system roles.", ResultStatus.NotFound);
 
@@ -456,7 +465,7 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
                 {
                     WalletId = wallet.WalletId,
                     UserId = verification.UserId,
-                    TransactionType = "TIER_REFUND",
+                    TransactionType = "REFUND",
                     Amount = verification.LinkDropPointsDeducted,
                     BalanceBefore = bBefore,
                     BalanceAfter = wallet.Balance,

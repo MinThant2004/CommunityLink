@@ -12,22 +12,22 @@
 
 <PageTitle>Creator Earnings - CommunityLink</PageTitle>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 text-slate-800 dark:text-slate-200">
     <!-- Navigation / Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
-            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                 <span>Creator Center</span>
                 <span>&rarr;</span>
-                <span class="text-indigo-600">Earnings Dashboard</span>
+                <span class="text-indigo-600 dark:text-indigo-400">Earnings Dashboard</span>
             </div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Earnings Dashboard</h1>
-            <p class="text-sm text-slate-600 mt-1">
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Earnings Dashboard</h1>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
                 Monitor your revenue from Paid Chat Groups and platform commissions.
             </p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="chat?type=groups" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold hover:bg-slate-800 transition shadow-sm flex items-center gap-2">
+            <a href="chat?type=groups" class="px-4 py-2 bg-slate-900 dark:bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-slate-800 dark:hover:bg-indigo-500 transition shadow-sm flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -39,21 +39,21 @@
     @if (isLoading)
     {
         <!-- Clean Loading State -->
-        <div class="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-indigo-600 mb-4"></div>
-            <p class="text-sm font-medium text-slate-600">Loading your creator earnings...</p>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-12 text-center shadow-sm">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600 mb-4"></div>
+            <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Loading your creator earnings...</p>
         </div>
     }
     else if (!string.IsNullOrEmpty(errorMessage))
     {
         <!-- Clean Error State -->
-        <div class="bg-rose-50 border border-rose-200 rounded-xl p-6 text-rose-800 shadow-sm flex items-start gap-4">
+        <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl p-6 text-rose-800 dark:text-rose-200 shadow-sm flex items-start gap-4">
             <svg class="w-6 h-6 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
             </svg>
             <div class="flex-1">
-                <h3 class="font-bold text-rose-900">Unable to load earnings</h3>
-                <p class="text-sm text-rose-700 mt-1">@errorMessage</p>
+                <h3 class="font-bold text-rose-900 dark:text-rose-100">Unable to load earnings</h3>
+                <p class="text-sm text-rose-700 dark:text-rose-300 mt-1">@errorMessage</p>
                 <button type="button" @onclick="LoadEarningsData" class="mt-3 px-4 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition">
                     Retry
                 </button>
@@ -65,64 +65,73 @@
         <!-- SUMMARY CARDS SECTION -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <!-- Card 1: Available Earnings -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
-                <div class="flex items-center justify-between text-slate-500">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-2">
+                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
                     <span class="text-xs font-semibold uppercase tracking-wider">Available Earnings</span>
-                    <span class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center text-sm font-bold">💧</span>
+                    <span class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">
+                        <LinkDropIcon Class="w-5 h-5 shrink-0" />
+                    </span>
                 </div>
-                <div class="text-2xl font-extrabold text-slate-900">
-                    @dashboard.Summary.AvailableEarnings <span class="text-sm font-normal text-slate-500">Link Drops</span>
+                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
+                    @dashboard.Summary.AvailableEarnings <span class="text-sm font-normal text-slate-500 dark:text-slate-400">Link Drops</span>
                 </div>
-                <div class="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2.5 py-1 inline-block">
+                <div class="text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 rounded-md px-2.5 py-1 inline-block">
                     Est. Value: @dashboard.Summary.EstimatedValueMmk.ToString("N0") MMK
                 </div>
             </div>
 
             <!-- Card 2: Total Earned -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
-                <div class="flex items-center justify-between text-slate-500">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-2">
+                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
                     <span class="text-xs font-semibold uppercase tracking-wider">Total Earned</span>
-                    <span class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center text-sm font-bold">📈</span>
+                    <span class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm font-bold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg>
+                    </span>
                 </div>
-                <div class="text-2xl font-extrabold text-slate-900">
-                    @dashboard.Summary.TotalEarned <span class="text-sm font-normal text-slate-500">Link Drops</span>
+                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
+                    @dashboard.Summary.TotalEarned <span class="text-sm font-normal text-slate-500 dark:text-slate-400">Link Drops</span>
                 </div>
-                <p class="text-xs text-slate-500">Gross revenue generated from paid joins</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Gross revenue generated from paid joins</p>
             </div>
 
             <!-- Card 3: Total Commission -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
-                <div class="flex items-center justify-between text-slate-500">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-2">
+                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
                     <span class="text-xs font-semibold uppercase tracking-wider">Total Commission</span>
-                    <span class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center text-sm font-bold">🏛️</span>
+                    <span class="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm font-bold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.333A12.062 12.062 0 0 0 12 9c-2.485 0-4.81.75-6.75 2.033V21m15 0H3"/></svg>
+                    </span>
                 </div>
-                <div class="text-2xl font-extrabold text-slate-900">
-                    @dashboard.Summary.TotalCommission <span class="text-sm font-normal text-slate-500">Link Drops</span>
+                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
+                    @dashboard.Summary.TotalCommission <span class="text-sm font-normal text-slate-500 dark:text-slate-400">Link Drops</span>
                 </div>
-                <p class="text-xs text-slate-500">Platform maintenance commission deducted</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Platform maintenance commission deducted</p>
             </div>
 
             <!-- Card 4: Total Transactions -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
-                <div class="flex items-center justify-between text-slate-500">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-2">
+                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
                     <span class="text-xs font-semibold uppercase tracking-wider">Total Transactions</span>
-                    <span class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center text-sm font-bold">🧾</span>
+                    <span class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center text-sm font-bold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
+                    </span>
                 </div>
-                <div class="text-2xl font-extrabold text-slate-900">
+                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
                     @dashboard.Summary.TotalTransactions
                 </div>
-                <p class="text-xs text-slate-500">Successful paid member joins</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Successful paid member joins</p>
             </div>
         </div>
 
         <!-- PRIVATE CHAT MONETIZATION SETTINGS SECTION -->
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <span>💬</span> Private Chat Monetization Settings
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.502 49.188 49.188 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>
+                        <span>Private Chat Monetization Settings</span>
                     </h2>
-                    <p class="text-xs text-slate-500">
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
                         Configure entry fee in Link Drops required for non-premium users to message you directly.
                     </p>
                 </div>
@@ -130,52 +139,57 @@
 
             @if (!string.IsNullOrEmpty(chatSettingsSuccessMessage))
             {
-                <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-xs font-semibold text-emerald-800 flex items-center justify-between">
+                <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 rounded-lg p-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center justify-between">
                     <span>✓ @chatSettingsSuccessMessage</span>
-                    <button type="button" @onclick="() => chatSettingsSuccessMessage = null" class="text-emerald-600 hover:text-emerald-900">&times;</button>
+                    <button type="button" @onclick="() => chatSettingsSuccessMessage = null" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-900">&times;</button>
                 </div>
             }
             @if (!string.IsNullOrEmpty(chatSettingsErrorMessage))
             {
-                <div class="bg-rose-50 border border-rose-200 rounded-lg p-3 text-xs font-semibold text-rose-800 flex items-center justify-between">
-                    <span>⚠ @chatSettingsErrorMessage</span>
-                    <button type="button" @onclick="() => chatSettingsErrorMessage = null" class="text-rose-600 hover:text-rose-900">&times;</button>
+                <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 rounded-lg p-3 text-xs font-semibold text-rose-800 dark:text-rose-300 flex items-center justify-between">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span>@chatSettingsErrorMessage</span>
+                    </span>
+                    <button type="button" @onclick="() => chatSettingsErrorMessage = null" class="text-rose-600 dark:text-rose-400 hover:text-rose-900">&times;</button>
                 </div>
             }
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <!-- Toggle Enable -->
                 <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-900">Paid Private Chat Status</label>
+                    <label class="block text-sm font-semibold text-slate-900 dark:text-white">Paid Private Chat Status</label>
                     <div class="flex items-center gap-3">
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" @bind="isPrivateChatEnabled" class="sr-only peer" />
-                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                            <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                         </label>
-                        <span class="text-sm font-medium @(isPrivateChatEnabled ? "text-indigo-600 font-bold" : "text-slate-500")">
+                        <span class="text-sm font-medium @(isPrivateChatEnabled ? "text-indigo-600 dark:text-indigo-400 font-bold" : "text-slate-500 dark:text-slate-400")">
                             @(isPrivateChatEnabled ? "Enabled (Paid Chat Active)" : "Disabled (Free Direct Messages)")
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500">
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
                         When enabled, users must pay your configured Link Drop fee to start a private chat with you.
                     </p>
                 </div>
 
                 <!-- Fee Input -->
                 <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-900">Private Chat Fee (Link Drops)</label>
-                    <div class="relative max-w-xs">
+                    <label class="block text-sm font-semibold text-slate-900 dark:text-white">Private Chat Fee (Link Drops)</label>
+                    <div class="relative max-w-xs flex items-center">
                         <input type="number" min="0" step="1" @bind="privateChatFeeLinkDrops" disabled="@(!isPrivateChatEnabled)"
-                               class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-100 disabled:text-slate-400" />
-                        <span class="absolute left-3 top-2.5 text-sm">💧</span>
+                               class="w-full pl-9 pr-4 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg text-sm font-semibold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-400" />
+                        <span class="absolute left-3 top-2.5 flex items-center">
+                            <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                        </span>
                     </div>
-                    <p class="text-xs text-slate-500">
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
                         Fee charged per new chat unlocked by a user.
                     </p>
                 </div>
             </div>
 
-            <div class="pt-2 border-t border-slate-100 flex justify-end">
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                 <button type="button" @onclick="SaveChatSettingsAsync" disabled="@isSavingChatSettings"
                         class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-sm disabled:opacity-50 flex items-center gap-2">
                     @if (isSavingChatSettings)
@@ -192,43 +206,43 @@
         </div>
 
         <!-- EARNINGS BREAKDOWN SECTION -->
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
-            <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">Earnings Breakdown</h2>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-5">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">Earnings Breakdown</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- Gross -->
-                <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Gross Earnings</div>
-                    <div class="text-xl font-bold text-slate-800">@dashboard.Summary.GrossEarnings Link Drops</div>
-                    <p class="text-xs text-slate-500 mt-1">Total revenue collected from buyers</p>
+                <div class="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+                    <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Gross Earnings</div>
+                    <div class="text-xl font-bold text-slate-800 dark:text-white">@dashboard.Summary.GrossEarnings Link Drops</div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Total revenue collected from buyers</p>
                 </div>
 
                 <!-- Commission -->
-                <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Platform Commission</div>
-                    <div class="text-xl font-bold text-rose-700">- @dashboard.Summary.PlatformCommission Link Drops</div>
-                    <p class="text-xs text-slate-500 mt-1">Deducted platform service fee</p>
+                <div class="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+                    <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Platform Commission</div>
+                    <div class="text-xl font-bold text-rose-600 dark:text-rose-400">- @dashboard.Summary.PlatformCommission Link Drops</div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Deducted platform service fee</p>
                 </div>
 
                 <!-- Net Earnings (Visually Prominent Accent Block) -->
-                <div class="bg-emerald-50 border-2 border-emerald-300 rounded-lg p-4">
-                    <div class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">Net Earnings</div>
-                    <div class="text-2xl font-extrabold text-emerald-700">@dashboard.Summary.NetEarnings Link Drops</div>
-                    <p class="text-xs font-medium text-emerald-800 mt-1">Total net earnings credited to creator wallet</p>
+                <div class="bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-700/60 rounded-lg p-4">
+                    <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider mb-1">Net Earnings</div>
+                    <div class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">@dashboard.Summary.NetEarnings Link Drops</div>
+                    <p class="text-xs font-medium text-emerald-800 dark:text-emerald-300 mt-1">Total net earnings credited to creator wallet</p>
                 </div>
             </div>
         </div>
 
         <!-- GROUP EARNINGS BREAKDOWN SECTION -->
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900">My Chat Groups</h2>
-                    <p class="text-xs text-slate-500">Breakdown of revenue per chat group</p>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">My Chat Groups</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Breakdown of revenue per chat group</p>
                 </div>
                 @if (selectedChatGroupId.HasValue)
                 {
-                    <button type="button" @onclick="ClearGroupFilter" class="px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-200 transition">
+                    <button type="button" @onclick="ClearGroupFilter" class="px-3 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition">
                         Show All Groups
                     </button>
                 }
@@ -236,7 +250,7 @@
 
             @if (dashboard.GroupBreakdown.Count == 0)
             {
-                <p class="text-sm text-slate-500 italic">No Chat Groups found.</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 italic">No Chat Groups found.</p>
             }
             else
             {
@@ -245,12 +259,12 @@
                     {
                         var isSelected = selectedChatGroupId == grp.ChatGroupId;
                         <div @onclick="() => FilterByGroup(grp.ChatGroupId)"
-                             class="cursor-pointer border rounded-xl p-4 transition text-left relative overflow-hidden @(isSelected ? "border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-600/20" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50")">
-                            <div class="font-bold text-sm text-slate-900 truncate">@grp.ChatGroupName</div>
-                            <div class="text-xs text-slate-500 mt-1">@grp.TransactionCount @(grp.TransactionCount == 1 ? "join" : "joins")</div>
-                            <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-                                <span class="text-xs font-medium text-slate-600">Total Earned:</span>
-                                <span class="text-sm font-bold text-indigo-600">@grp.TotalEarned LD</span>
+                             class="cursor-pointer border rounded-xl p-4 transition text-left relative overflow-hidden @(isSelected ? "border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/40 ring-2 ring-indigo-600/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/40")">
+                            <div class="font-bold text-sm text-slate-900 dark:text-white truncate">@grp.ChatGroupName</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">@grp.TransactionCount @(grp.TransactionCount == 1 ? "join" : "joins")</div>
+                            <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Total Earned:</span>
+                                <span class="text-sm font-bold text-indigo-600 dark:text-indigo-400">@grp.TotalEarned LD</span>
                             </div>
                         </div>
                     }
@@ -259,21 +273,21 @@
         </div>
 
         <!-- EARNINGS HISTORY TABLE SECTION -->
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900">Earnings History</h2>
-                    <p class="text-xs text-slate-500">Detailed transaction log for paid joins</p>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">Earnings History</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Detailed transaction log for paid joins</p>
                 </div>
 
                 <!-- Filters -->
                 <div class="flex items-center gap-2">
                     <button type="button" @onclick='() => SetFilterType("ALL")'
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border @(activeFilterType == "ALL" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50")">
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border @(activeFilterType == "ALL" ? "bg-slate-900 dark:bg-indigo-600 text-white border-slate-900 dark:border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700")">
                         All
                     </button>
                     <button type="button" @onclick='() => SetFilterType("GROUP")'
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border @(activeFilterType == "GROUP" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50")">
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border @(activeFilterType == "GROUP" ? "bg-slate-900 dark:bg-indigo-600 text-white border-slate-900 dark:border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700")">
                         Group Payments
                     </button>
                 </div>
@@ -281,13 +295,13 @@
 
             @if (dashboard.Transactions.Count == 0)
             {
-                <!-- EMPTY STATE (No gradient illustrations) -->
-                <div class="py-12 px-4 text-center bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                    <div class="w-12 h-12 bg-white border border-slate-200 text-slate-400 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
-                        💳
+                <!-- EMPTY STATE -->
+                <div class="py-12 px-4 text-center bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3">
+                    <div class="w-12 h-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-400 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+                        <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>
                     </div>
-                    <h3 class="text-base font-bold text-slate-800">No earnings yet.</h3>
-                    <p class="text-xs text-slate-500 max-w-sm mx-auto">
+                    <h3 class="text-base font-bold text-slate-800 dark:text-white">No earnings yet.</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                         Create a Paid Chat Group and start earning when users join.
                     </p>
                     <div class="pt-2">
@@ -301,9 +315,9 @@
             {
                 <!-- Desktop / Tablet Table View -->
                 <div class="hidden md:block overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-700 border-collapse">
+                    <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300 border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500 tracking-wider">
+                            <tr class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 tracking-wider">
                                 <th class="py-3 px-4">Date</th>
                                 <th class="py-3 px-4">Chat Group</th>
                                 <th class="py-3 px-4">Buyer</th>
@@ -313,30 +327,30 @@
                                 <th class="py-3 px-4 text-center">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             @foreach (var tx in dashboard.Transactions)
                             {
-                                <tr class="hover:bg-slate-50/80 transition">
-                                    <td class="py-3.5 px-4 font-mono text-xs text-slate-600">
+                                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                                    <td class="py-3.5 px-4 font-mono text-xs text-slate-600 dark:text-slate-400">
                                         @tx.Date.ToString("MMM dd, yyyy HH:mm")
                                     </td>
-                                    <td class="py-3.5 px-4 font-semibold text-slate-900">
+                                    <td class="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
                                         @tx.ChatGroupName
                                     </td>
-                                    <td class="py-3.5 px-4 text-slate-700">
+                                    <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300">
                                         @tx.BuyerName
                                     </td>
-                                    <td class="py-3.5 px-4 text-right font-medium text-slate-800">
+                                    <td class="py-3.5 px-4 text-right font-medium text-slate-800 dark:text-slate-200">
                                         @tx.GrossAmount LD
                                     </td>
-                                    <td class="py-3.5 px-4 text-right font-medium text-rose-600">
+                                    <td class="py-3.5 px-4 text-right font-medium text-rose-600 dark:text-rose-400">
                                         -@tx.CommissionAmount LD
                                     </td>
-                                    <td class="py-3.5 px-4 text-right font-bold text-emerald-600">
+                                    <td class="py-3.5 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
                                         +@tx.NetAmount LD
                                     </td>
                                     <td class="py-3.5 px-4 text-center">
-                                        <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-200 text-emerald-700">
+                                        <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400">
                                             @tx.Status
                                         </span>
                                     </td>
@@ -346,33 +360,33 @@
                     </table>
                 </div>
 
-                <!-- Mobile Responsive List View (No Horizontal Overflow) -->
+                <!-- Mobile Responsive List View -->
                 <div class="block md:hidden space-y-3">
                     @foreach (var tx in dashboard.Transactions)
                     {
-                        <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2 shadow-sm">
-                            <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
-                                <span class="font-mono text-slate-500">@tx.Date.ToString("MMM dd, yyyy HH:mm")</span>
-                                <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 border border-emerald-200 text-emerald-700">
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-2 shadow-sm">
+                            <div class="flex items-center justify-between text-xs border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <span class="font-mono text-slate-500 dark:text-slate-400">@tx.Date.ToString("MMM dd, yyyy HH:mm")</span>
+                                <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400">
                                     @tx.Status
                                 </span>
                             </div>
                             <div>
-                                <div class="font-bold text-sm text-slate-900">@tx.ChatGroupName</div>
-                                <div class="text-xs text-slate-500 mt-0.5">Buyer: <span class="font-medium text-slate-700">@tx.BuyerName</span></div>
+                                <div class="font-bold text-sm text-slate-900 dark:text-white">@tx.ChatGroupName</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Buyer: <span class="font-medium text-slate-700 dark:text-slate-300">@tx.BuyerName</span></div>
                             </div>
-                            <div class="pt-2 border-t border-slate-100 grid grid-cols-3 gap-2 text-center text-xs">
+                            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2 text-center text-xs">
                                 <div>
                                     <span class="text-slate-400 block text-[10px] uppercase">Gross</span>
-                                    <span class="font-semibold text-slate-700">@tx.GrossAmount LD</span>
+                                    <span class="font-semibold text-slate-700 dark:text-slate-300">@tx.GrossAmount LD</span>
                                 </div>
                                 <div>
                                     <span class="text-slate-400 block text-[10px] uppercase">Commission</span>
-                                    <span class="font-semibold text-rose-600">-@tx.CommissionAmount LD</span>
+                                    <span class="font-semibold text-rose-600 dark:text-rose-400">-@tx.CommissionAmount LD</span>
                                 </div>
                                 <div>
                                     <span class="text-slate-400 block text-[10px] uppercase">Net</span>
-                                    <span class="font-bold text-emerald-600">+@tx.NetAmount LD</span>
+                                    <span class="font-bold text-emerald-600 dark:text-emerald-400">+@tx.NetAmount LD</span>
                                 </div>
                             </div>
                         </div>

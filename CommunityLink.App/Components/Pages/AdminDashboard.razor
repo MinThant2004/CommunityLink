@@ -10,11 +10,15 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">🛡️ Admin Control Center</h1>
+            <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2.5" style="font-family:'Manrope',sans-serif">
+                <svg class="w-6 h-6 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Admin Control Center</span>
+            </h1>
             <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">Real-time stats, moderation queue, and system telemetry.</p>
         </div>
         <button @onclick="LoadDashboardAsync" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] hover:border-[#0A1B2E] dark:hover:border-[#E1E8F0] hover:text-[#0A1B2E] dark:hover:text-white transition shadow-sm cursor-pointer">
-            🔄 Refresh Metrics
+            <svg class="w-3.5 h-3.5 @(isLoading ? "animate-spin" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            <span>Refresh Metrics</span>
         </button>
     </div>
 
@@ -67,7 +71,10 @@
             <div class="lg:col-span-2 bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-sm">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                     <div>
-                        <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">📈 30-Day Activity Summary</h2>
+                        <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
+                            <svg class="w-4 h-4 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            <span>30-Day Activity Summary</span>
+                        </h2>
                         <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Platform user growth and daily engagement velocity.</p>
                     </div>
                 </div>
@@ -108,14 +115,17 @@
             <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-sm flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                        <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">🏛️ Moderation Queue</h2>
+                        <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
+                            <svg class="w-4 h-4 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                            <span>Moderation Queue</span>
+                        </h2>
                         <a href="admin/communities" class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition">View All &rarr;</a>
                     </div>
 
                     @if (!model.PendingJoinRequests.Any())
                     {
                         <div class="py-8 text-center text-[#7A8CA6]">
-                            <span class="text-2xl">✅</span>
+                            <svg class="w-8 h-8 mx-auto text-emerald-500 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                             <p class="text-xs mt-1">No pending join requests.</p>
                         </div>
                     }
@@ -138,11 +148,13 @@
                 </div>
 
                 <div class="mt-4 pt-4 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex gap-2">
-                    <a href="admin/users" class="flex-1 text-center py-2 px-3 bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg text-xs font-semibold transition border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]">
-                        👥 User Directory
+                    <a href="admin/users" class="flex-1 text-center py-2 px-3 bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg text-xs font-semibold transition border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] flex items-center justify-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span>User Directory</span>
                     </a>
-                    <a href="admin/audits" class="flex-1 text-center py-2 px-3 bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg text-xs font-semibold transition border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]">
-                        📜 System Audits
+                    <a href="admin/audits" class="flex-1 text-center py-2 px-3 bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg text-xs font-semibold transition border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] flex items-center justify-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        <span>System Audits</span>
                     </a>
                 </div>
             </div>

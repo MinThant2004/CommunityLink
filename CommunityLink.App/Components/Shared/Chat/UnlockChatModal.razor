@@ -32,19 +32,31 @@
         <dl class="divide-y divide-slate-100 rounded-lg border border-slate-200">
             <div class="flex items-center justify-between px-3 py-2.5">
                 <dt class="text-sm text-slate-600">Total price</dt>
-                <dd class="text-sm font-semibold text-slate-900">@FeeLinkDrops drops</dd>
+                <dd class="text-sm font-semibold text-slate-900 inline-flex items-center gap-1.5">
+                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                    <span>@FeeLinkDrops drops</span>
+                </dd>
             </div>
             <div class="flex items-center justify-between px-3 py-2.5">
                 <dt class="text-sm text-slate-600">Platform commission</dt>
-                <dd class="text-sm text-slate-700">@CommissionAmount drops</dd>
+                <dd class="text-sm text-slate-700 inline-flex items-center gap-1.5">
+                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                    <span>@CommissionAmount drops</span>
+                </dd>
             </div>
             <div class="flex items-center justify-between px-3 py-2.5">
                 <dt class="text-sm text-slate-600">Creator receives</dt>
-                <dd class="text-sm font-semibold text-emerald-700">@CreatorAmount drops</dd>
+                <dd class="text-sm font-semibold text-emerald-700 inline-flex items-center gap-1.5">
+                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                    <span>@CreatorAmount drops</span>
+                </dd>
             </div>
             <div class="flex items-center justify-between px-3 py-2.5">
                 <dt class="text-sm text-slate-600">Your balance</dt>
-                <dd class="text-sm font-semibold @(HasSufficientBalance ? "text-emerald-700" : "text-rose-600")">@Balance drops</dd>
+                <dd class="text-sm font-semibold @(HasSufficientBalance ? "text-emerald-700" : "text-rose-600") inline-flex items-center gap-1.5">
+                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                    <span>@Balance drops</span>
+                </dd>
             </div>
         </dl>
 
@@ -80,7 +92,10 @@
             }
             else
             {
-                <span>Pay @FeeLinkDrops drops</span>
+                <span class="inline-flex items-center gap-1.5">
+                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                    <span>Pay @FeeLinkDrops drops</span>
+                </span>
             }
         </button>
     </FooterContent>

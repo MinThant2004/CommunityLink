@@ -16,7 +16,7 @@
         <div class="flex items-center gap-2">
             <button @onclick='() => SetTab("buy")'
                     class="px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 @(activeTab == "buy" ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 dark:bg-[#1B3B5A] text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-200 dark:hover:bg-[#112A46]")">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                <LinkDropIcon Class="w-4 h-4 shrink-0" />
                 <span>Top-Up Link Drops</span>
             </button>
             <button @onclick='() => SetTab("purchases")'
@@ -39,8 +39,8 @@
 
         <div class="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/40 px-3 py-1.5 rounded-lg text-xs">
             <span class="text-slate-500 dark:text-slate-400 font-medium">Balance:</span>
-            <span class="font-extrabold text-indigo-700 dark:text-indigo-400 inline-flex items-center gap-1">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            <span class="font-extrabold text-indigo-700 dark:text-indigo-400 inline-flex items-center gap-1.5">
+                <LinkDropIcon Class="w-4 h-4 shrink-0" />
                 @(wallet?.Balance.ToString("N0") ?? "0") Drops
             </span>
         </div>
@@ -113,8 +113,8 @@
                 <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-4 text-white flex items-center justify-between shadow-sm">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Current Balance</span>
-                        <div class="text-xl font-black text-amber-300 flex items-center gap-1.5 mt-0.5">
-                            <svg class="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                        <div class="text-xl font-black text-amber-300 flex items-center gap-2 mt-0.5">
+                            <LinkDropIcon Class="w-5 h-5 shrink-0" />
                             <span>@(wallet?.Balance.ToString("N0") ?? "0") Link Drops</span>
                         </div>
                     </div>
@@ -148,8 +148,8 @@
                                     }
                                 </div>
                                 <div>
-                                    <div class="text-base font-black text-slate-900 dark:text-white flex items-center gap-1">
-                                        <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                                    <div class="text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                                        <LinkDropIcon Class="w-4 h-4 shrink-0" />
                                         <span>+@((pkg.LinkDropAmount + pkg.BonusAmount).ToString("N0"))</span>
                                     </div>
                                     <div class="text-[11px] font-bold text-slate-500 dark:text-[#7A8CA6]">
@@ -163,7 +163,7 @@
                     <!-- CUSTOM AMOUNT BAR -->
                     <div class="p-3 rounded-xl border-2 transition-all flex flex-col sm:flex-row items-center gap-3 @(isCustomPurchase ? "bg-amber-500/10 border-amber-500" : "bg-slate-50 dark:bg-[#1B3B5A]/40 border-slate-200 dark:border-[rgba(196,210,225,0.12)]")">
                         <button @onclick="EnableCustomPurchase" class="px-3 py-1.5 bg-amber-500 text-white font-extrabold text-xs rounded-lg shrink-0 flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                            <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                             <span>Custom Amount</span>
                         </button>
                         <div class="flex-1 flex items-center gap-2 w-full">
@@ -172,9 +172,9 @@
                                    @bind="customUsdAmount" @bind:after="OnCustomAmountChanged"
                                    class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.20)] rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                                    placeholder="e.g. 10.00 USD" />
-                            <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 whitespace-nowrap inline-flex items-center gap-1">
+                            <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 whitespace-nowrap inline-flex items-center gap-1.5">
                                 <span>=</span>
-                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                                <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                                 <span>@calculatedDrops.ToString("N0") Drops</span>
                             </span>
                         </div>
@@ -237,8 +237,8 @@
                 <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-xl p-4 text-white space-y-1.5 shadow-sm">
                     <div class="flex justify-between text-xs text-slate-300">
                         <span>Link Drops to Recharge:</span>
-                        <span class="font-black text-amber-400 inline-flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                        <span class="font-black text-amber-400 inline-flex items-center gap-1.5">
+                            <LinkDropIcon Class="w-4 h-4 shrink-0" />
                             +@calculatedDrops.ToString("N0") Drops
                         </span>
                     </div>
@@ -333,8 +333,8 @@
                                     <td class="p-2.5 text-slate-700">@(item.IsCustomPurchase ? "Custom" : item.SnapshotPackageName)</td>
                                     <td class="p-2.5 font-bold text-slate-900">$@item.SnapshotRealMoneyAmount.ToString("F2")</td>
                                     <td class="p-2.5 font-black text-indigo-700 dark:text-indigo-400">
-                                        <span class="inline-flex items-center gap-1">
-                                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                                        <span class="inline-flex items-center gap-1.5">
+                                            <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                                             @item.SnapshotLinkDropAmount.ToString("N0")
                                         </span>
                                     </td>
@@ -429,8 +429,8 @@
                 <div class="flex justify-between"><span class="text-slate-500">Amount Paid:</span><span class="font-bold text-slate-900">$@selectedDetailPurchase.SnapshotRealMoneyAmount.ToString("F2")</span></div>
                 <div class="flex justify-between">
                     <span class="text-slate-500">Drops Granted:</span>
-                    <span class="font-black text-indigo-700 dark:text-indigo-400 inline-flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                    <span class="font-black text-indigo-700 dark:text-indigo-400 inline-flex items-center gap-1.5">
+                        <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                         @selectedDetailPurchase.SnapshotLinkDropAmount.ToString("N0")
                     </span>
                 </div>

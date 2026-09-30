@@ -1,62 +1,78 @@
 @inherits LayoutComponentBase
 @inject NavigationManager Nav
 @inject AuthSessionService Session
+@inject IJSRuntime JS
 
-<div class="flex min-h-screen bg-slate-50 font-sans text-slate-800">
+<div class="flex min-h-screen bg-slate-50 dark:bg-[#0A0D14] font-sans text-slate-800 dark:text-[#E1E2EC] transition-colors duration-150">
     <!-- Admin Sidebar -->
-    <aside class="w-64 min-w-[16rem] bg-slate-900 text-slate-100 p-5 flex flex-col justify-between shadow-xl">
+    <aside class="w-64 min-w-[16rem] bg-slate-900 dark:bg-[#0A0D14] text-slate-100 p-5 flex flex-col justify-between shadow-xl border-r border-slate-800 dark:border-[rgba(255,255,255,0.08)] transition-colors duration-150 shrink-0">
         <div>
-            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800">
-                <span class="text-2xl">🛡️</span>
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800 dark:border-[rgba(255,255,255,0.08)]">
+                <span class="w-8 h-8 rounded bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] flex items-center justify-center font-bold text-sm shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">
+                    <svg class="w-4 h-4 text-white dark:text-[#0A0D14]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </span>
                 <div>
-                    <h5 class="text-base font-bold text-white tracking-tight">Community<span class="text-indigo-400">Link</span></h5>
+                    <h5 class="text-base font-bold text-white tracking-tight" style="font-family:'Plus Jakarta Sans',sans-serif">Community<span class="text-[#D4AF37]">Link</span></h5>
                     <p class="text-xs text-slate-400 font-medium">Admin Control Panel</p>
                 </div>
             </div>
 
             <nav class="flex flex-col gap-1">
-                <NavLink href="admin/dashboard" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>📊</span> Overview Stats
+                <NavLink href="admin/dashboard" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span>Overview Stats</span>
                 </NavLink>
-                <NavLink href="admin/communities" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>🏛️</span> Hub Moderation
+                <NavLink href="admin/communities" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                    <span>Hub Moderation</span>
                 </NavLink>
-                <NavLink href="admin/users" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>👥</span> User Directory
+                <NavLink href="admin/users" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>User Directory</span>
                 </NavLink>
-                <NavLink href="admin/accounts" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>🔑</span> Account Creation
+                <NavLink href="admin/accounts" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
+                    <span>Account Creation</span>
                 </NavLink>
-                <NavLink href="admin/rbac" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>🛡️</span> Role &amp; Permissions
+                <NavLink href="admin/rbac" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span>Role &amp; Permissions</span>
                 </NavLink>
-                <NavLink href="admin/audits" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>📜</span> System Audit Logs
+                <NavLink href="admin/audits" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <span>System Audit Logs</span>
                 </NavLink>
-                <NavLink href="admin/payouts" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>💸</span> Creator Payouts
+                <NavLink href="admin/payouts" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                    <span>Creator Payouts</span>
                 </NavLink>
-                <NavLink href="admin/finance" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>💰</span> Platform Finance
+                <NavLink href="admin/finance" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <span>Platform Finance</span>
                 </NavLink>
-                <NavLink href="admin/settings" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>⚙️</span> Platform Settings
+                <NavLink href="admin/linkdrops" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                    <span>Link Drops Review</span>
                 </NavLink>
-                <NavLink href="admin/linkdrops" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>💧</span> Link Drops Review
+                <NavLink href="admin/plans" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <span>Premium Plans</span>
                 </NavLink>
-                <NavLink href="admin/plans" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>⭐</span> Premium Plans
+                <NavLink href="admin/verifications" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+                    <span>Identity Audits</span>
                 </NavLink>
-                <NavLink href="admin/verifications" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="bg-indigo-600 text-white hover:bg-indigo-600">
-                    <span>🪪</span> Identity Audits
+                <NavLink href="admin/settings" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>Platform Settings</span>
                 </NavLink>
             </nav>
         </div>
 
-        <div class="pt-4 border-t border-slate-800">
-            <a href="/" class="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
-                <span>←</span> Back to Main App
+        <div class="pt-4 border-t border-slate-800 dark:border-[rgba(255,255,255,0.08)]">
+            <a href="/" class="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 dark:hover:bg-[#182030] rounded-lg transition-colors">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                <span>Back to Main App</span>
             </a>
         </div>
     </aside>
@@ -64,24 +80,90 @@
     <!-- Main Content Wrapper -->
     <div class="flex-1 flex flex-col min-w-0">
         <!-- Admin Topbar -->
-        <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
-            <h1 class="text-lg font-bold text-slate-900">System Administration</h1>
+        <header class="bg-white/95 dark:bg-[#111622]/95 backdrop-blur-md border-b border-slate-200 dark:border-[rgba(255,255,255,0.08)] px-6 py-3 flex items-center justify-between shadow-xs sticky top-0 z-10 transition-colors duration-150">
             <div class="flex items-center gap-3">
+                <h1 class="text-base font-bold text-slate-900 dark:text-[#E1E2EC] tracking-tight">System Administration</h1>
+            </div>
+            <div class="flex items-center gap-2.5">
+                <!-- Theme Toggle Button (Midnight Executive) -->
+                <button @onclick="ToggleThemeAsync"
+                        class="p-1.5 rounded border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.10)] bg-[#F1F5F9] dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E2EC] hover:bg-[#E2E8F0] dark:hover:bg-[#1C263A] transition cursor-pointer flex items-center justify-center shadow-2xs"
+                        title="@(isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode")"
+                        aria-label="Toggle visual theme">
+                    @if (isDarkMode)
+                    {
+                        <svg class="w-4 h-4 text-[#D4AF37]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                    }
+                    else
+                    {
+                        <svg class="w-4 h-4 text-[#0A1B2E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    }
+                </button>
+
                 <LinkDropNavbarBalance />
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200">
-                    ADMIN MODE
+
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono font-bold bg-[#F1F5F9] dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E2EC] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shadow-xs">
+                    <svg class="w-3 h-3 text-[#0A1B2E] dark:text-[#D4AF37]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>ADMIN NODE</span>
                 </span>
-                <a href="dashboard" class="inline-flex items-center px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition">
-                    My User View
+
+                <a href="dashboard" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-[#182030] dark:hover:bg-[#1C263A] text-slate-700 dark:text-[#E1E2EC] border border-slate-300 dark:border-[rgba(255,255,255,0.08)] transition">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>User View</span>
                 </a>
             </div>
         </header>
 
         <!-- Page Body -->
-        <main class="p-6 flex-1 bg-slate-50 overflow-y-auto">
+        <main class="p-6 flex-1 bg-slate-50 dark:bg-[#0A0D14] overflow-y-auto transition-colors duration-150">
             @Body
         </main>
         <ToastContainer />
     </div>
 </div>
 
+@code {
+    private bool isDarkMode = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var theme = await JS.InvokeAsync<string>("themeManager.getTheme");
+                isDarkMode = theme == "dark";
+                StateHasChanged();
+            }
+            catch
+            {
+                // Fallback gracefully if JS interop fails during prerender
+            }
+        }
+    }
+
+    private async Task ToggleThemeAsync()
+    {
+        try
+        {
+            var nextTheme = await JS.InvokeAsync<string>("themeManager.toggleTheme");
+            isDarkMode = nextTheme == "dark";
+        }
+        catch
+        {
+            isDarkMode = !isDarkMode;
+        }
+    }
+}
