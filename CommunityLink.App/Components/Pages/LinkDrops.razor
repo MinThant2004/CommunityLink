@@ -7,458 +7,905 @@
 @inject ToastService Toast
 @inject NavigationManager Navigation
 @inject IConfiguration Configuration
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+@implements IAsyncDisposable
 
-<PageTitle>Link Drops Top-Up</PageTitle>
+<PageTitle>LinkDrop Sovereign Treasury & Refill — CommunityLink</PageTitle>
 
-<div class="max-w-4xl mx-auto px-4 py-6 text-slate-800 space-y-5">
-
-    <!-- TOP BAR / TABS -->
-    <div class="flex items-center justify-between bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-3 shadow-sm">
-        <div class="flex items-center gap-2">
-            <button @onclick='() => SetTab("buy")'
-                    class="px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 @(activeTab == "buy" ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 dark:bg-[#1B3B5A] text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-200 dark:hover:bg-[#112A46]")">
-                <LinkDropIcon Class="w-4 h-4 shrink-0" />
-                <span>Top-Up Link Drops</span>
-            </button>
-            <button @onclick='() => SetTab("purchases")'
-                    class="px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 @(activeTab == "purchases" ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 dark:bg-[#1B3B5A] text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-200 dark:hover:bg-[#112A46]")">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
-                <span>My Purchases</span>
-                @if (userPurchases.Any(p => p.Status == "PENDING"))
-                {
-                    <span class="px-2 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded-full font-extrabold border border-amber-300">
-                        @(userPurchases.Count(p => p.Status == "PENDING"))
-                    </span>
-                }
-            </button>
-            <button @onclick='() => SetTab("ledger")'
-                    class="px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 @(activeTab == "ledger" ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 dark:bg-[#1B3B5A] text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-200 dark:hover:bg-[#112A46]")">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                <span>Wallet &amp; Ledger</span>
-            </button>
-        </div>
-
-        <div class="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/40 px-3 py-1.5 rounded-lg text-xs">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">Balance:</span>
-            <span class="font-extrabold text-indigo-700 dark:text-indigo-400 inline-flex items-center gap-1.5">
-                <LinkDropIcon Class="w-4 h-4 shrink-0" />
-                @(wallet?.Balance.ToString("N0") ?? "0") Drops
-            </span>
-        </div>
-    </div>
-
-    <!-- TAB 1: SINGLE-PAGE TOP-UP FORM (LIGHT WHITE UI MATCHING MOCKUP) -->
-    @if (activeTab == "buy")
-    {
-        @if (submissionCompleted)
-        {
-            <!-- SUBMISSION SUCCESS CONFIRMATION BANNER -->
-            <div class="bg-white border border-emerald-200 rounded-2xl p-8 text-center space-y-5 shadow-sm max-w-xl mx-auto">
-                <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto border border-emerald-200">
-                    ✓
-                </div>
-                <div class="space-y-1.5">
-                    <span class="inline-block px-3 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold rounded-full uppercase tracking-wider">
-                        Status: PENDING ADMIN VERIFICATION
-                    </span>
-                    <h2 class="text-xl font-extrabold text-slate-900">Payment Request Submitted!</h2>
-                    <p class="text-slate-600 text-xs max-w-sm mx-auto">
-                        Your receipt slip and transaction reference have been received. Link Drops will be credited after admin manual verification.
-                    </p>
-                </div>
-
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left text-xs space-y-2 max-w-md mx-auto">
-                    <div class="flex justify-between border-b border-slate-200 pb-1.5">
-                        <span class="text-slate-500">Request #:</span>
-                        <span class="font-mono text-slate-900 font-bold">@submittedPurchaseNumber</span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-200 pb-1.5">
-                        <span class="text-slate-500">Transaction ID:</span>
-                        <span class="font-mono text-indigo-600 font-bold">@transactionRefNo</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Target Credit:</span>
-                        <span class="text-emerald-700 font-extrabold">+@calculatedDrops.ToString("N0") Link Drops</span>
-                    </div>
-                </div>
-
-                <div class="flex gap-3 justify-center pt-2">
-                    <button @onclick='() => SetTab("purchases")' class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition-all shadow-sm">
-                        View My Purchases
-                    </button>
-                    <button @onclick="ResetForm" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-all border border-slate-200">
-                        Submit Another Request
-                    </button>
-                </div>
+<div class="min-h-screen bg-background font-body-md text-body-md text-on-surface antialiased transition-colors duration-200">
+    <!-- Top System Directory Strip -->
+    <section class="bg-surface-container-lowest/80 backdrop-blur-md border-b border-surface-container-high/30">
+        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-space-sm flex items-center justify-between gap-3">
+            <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
+                <a href="/" class="hover:text-on-surface transition-colors flex items-center gap-1">Platform</a>
+                <span class="material-symbols-outlined text-xs">chevron_right</span>
+                <span class="text-on-surface font-semibold">LinkDrop Treasury</span>
             </div>
-        }
-        else
-        {
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-6 shadow-sm space-y-6">
+            <div class="flex items-center gap-space-sm">
+                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider hidden sm:inline">Settlement Protocol</span>
+                <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm border border-primary/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>LinkDrop Settlement Active
+                </span>
+            </div>
+        </div>
+    </section>
 
-                <!-- MODAL / FORM HEADER -->
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-[rgba(196,210,225,0.10)] pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xl">
-                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 2.69l3.5 3.5a5 5 0 1 1-7 0z"/></svg>
-                        </div>
-                        <div>
-                            <h1 class="text-lg font-extrabold text-slate-900 dark:text-white">Link Drops Top-Up</h1>
-                            <p class="text-slate-500 dark:text-[#C4D2E1] text-xs">Refill your wallet balance to purchase premium apps, features, and passes</p>
-                        </div>
-                    </div>
-                    <button @onclick="ResetForm" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-sm font-bold">✕</button>
-                </div>
+    <!-- Ambient Glowing Background Elements -->
+    <div class="relative w-full overflow-hidden">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+        <div class="absolute top-40 right-10 w-80 h-80 bg-secondary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
-                <!-- CURRENT BALANCE BANNER -->
-                <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-4 text-white flex items-center justify-between shadow-sm">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Current Balance</span>
-                        <div class="text-xl font-black text-amber-300 flex items-center gap-2 mt-0.5">
-                            <LinkDropIcon Class="w-5 h-5 shrink-0" />
-                            <span>@(wallet?.Balance.ToString("N0") ?? "0") Link Drops</span>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold rounded-full inline-flex items-center gap-1">
-                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                        <span>Manual Verification</span>
-                    </span>
-                </div>
+        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pt-space-md pb-space-lg w-full space-y-space-lg">
 
-                <!-- 1. SELECT LINK DROP AMOUNT -->
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-[#C4D2E1]">1. Select Link Drop Amount</h2>
-                        <span class="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">Custom amount supported</span>
-                    </div>
+            <!-- Breadcrumbs -->
+            <nav aria-label="Breadcrumbs" class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
+                <a class="hover:text-primary transition-colors" href="/">Platform</a>
+                <span class="material-symbols-outlined text-xs">chevron_right</span>
+                <span class="text-on-surface font-semibold">LinkDrop Virtual Currency &amp; Treasury</span>
+            </nav>
 
-                    <!-- PREDEFINED PACKAGES GRID -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        @foreach (var pkg in activePackages)
-                        {
-                            var isSelected = !isCustomPurchase && selectedPackage?.PackageId == pkg.PackageId;
-                            <div @onclick="() => SelectPackage(pkg)"
-                                 class="p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between space-y-2 relative @(isSelected ? "bg-amber-500/10 border-amber-500 shadow-sm" : "bg-slate-50 dark:bg-[#1B3B5A]/40 border-slate-200 dark:border-[rgba(196,210,225,0.12)] hover:border-slate-300 dark:hover:border-[rgba(196,210,225,0.25)]")">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[10px] font-extrabold uppercase tracking-wider @(isSelected ? "text-amber-800 dark:text-amber-300" : "text-slate-500 dark:text-[#7A8CA6]")">
-                                        @pkg.PackageName
-                                    </span>
-                                    @if (isSelected)
-                                    {
-                                        <span class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
-                                    }
-                                </div>
-                                <div>
-                                    <div class="text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                                        <LinkDropIcon Class="w-4 h-4 shrink-0" />
-                                        <span>+@((pkg.LinkDropAmount + pkg.BonusAmount).ToString("N0"))</span>
-                                    </div>
-                                    <div class="text-[11px] font-bold text-slate-500 dark:text-[#7A8CA6]">
-                                        $@pkg.RealMoneyAmount.ToString("F2") USD
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
+            <!-- HERO PANEL: Executive Layout with Large 3D Spinning Prism Showcase -->
+            <div class="relative rounded-2xl bg-surface-container-low p-space-md md:p-space-lg lg:p-space-xl overflow-hidden border border-surface-container-high/30 shadow-xs">
+                <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent"></div>
 
-                    <!-- CUSTOM AMOUNT BAR -->
-                    <div class="p-3 rounded-xl border-2 transition-all flex flex-col sm:flex-row items-center gap-3 @(isCustomPurchase ? "bg-amber-500/10 border-amber-500" : "bg-slate-50 dark:bg-[#1B3B5A]/40 border-slate-200 dark:border-[rgba(196,210,225,0.12)]")">
-                        <button @onclick="EnableCustomPurchase" class="px-3 py-1.5 bg-amber-500 text-white font-extrabold text-xs rounded-lg shrink-0 flex items-center gap-1.5">
-                            <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                            <span>Custom Amount</span>
-                        </button>
-                        <div class="flex-1 flex items-center gap-2 w-full">
-                            <span class="text-xs font-bold text-slate-500 dark:text-[#7A8CA6]">$</span>
-                            <input type="number" min="1" max="10000" step="0.5"
-                                   @bind="customUsdAmount" @bind:after="OnCustomAmountChanged"
-                                   class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.20)] rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                                   placeholder="e.g. 10.00 USD" />
-                            <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 whitespace-nowrap inline-flex items-center gap-1.5">
-                                <span>=</span>
-                                <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                                <span>@calculatedDrops.ToString("N0") Drops</span>
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
+                    
+                    <!-- Left Column: Title & Sovereign Settlement Context -->
+                    <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-space-sm">
+                        <!-- Badges Row -->
+                        <div class="flex flex-wrap items-center gap-space-sm">
+                            <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase tracking-wider border border-primary/20">
+                                <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>Sovereign Virtual Currency
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm border border-surface-container-high/40">
+                                <span class="material-symbols-outlined text-xs text-secondary">currency_exchange</span>
+                                <span>Exchange Peg:</span>
+                                <strong class="text-on-surface font-mono">1 USD = 100 Drops (~10 MMK/Drop)</strong>
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm border border-surface-container-high/40">
+                                <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                                <span>Balance:</span>
+                                <strong class="text-primary font-mono">@(wallet?.Balance.ToString("N0") ?? "0") Drops</strong>
                             </span>
                         </div>
+
+                        <!-- Grand Title -->
+                        <h1 class="font-headline-lg text-headline-lg md:text-display-md text-on-surface tracking-tight font-black leading-tight mt-space-xs">
+                            LinkDrop Treasury &amp; Settlement Platform
+                        </h1>
+
+                        <!-- Rich Narrative Content -->
+                        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed max-w-2xl">
+                            LinkDrops are the sovereign utility currency powering CommunityLink. Use your balance to unlock verified creator memberships, book private 1-on-1 expert advisory sessions, tip standout community builders, and gain access to sovereign sub-communities. Choose a verified top-up bundle or specify a custom allocation with instant multi-channel local settlement.
+                        </p>
+
+                        <!-- Quick Statistics Strip -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-space-sm mt-space-xs">
+                            <div class="p-3 rounded-xl bg-surface-container-lowest/80 border border-surface-container-high/40 shadow-xs flex flex-col justify-between">
+                                <span class="text-[11px] font-label-sm text-on-surface-variant uppercase tracking-wider">Total Balance</span>
+                                <div class="text-lg font-black text-primary flex items-center gap-1.5 mt-0.5">
+                                    <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                                    <span>@(wallet?.Balance.ToString("N0") ?? "0")</span>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-surface-container-lowest/80 border border-surface-container-high/40 shadow-xs flex flex-col justify-between">
+                                <span class="text-[11px] font-label-sm text-on-surface-variant uppercase tracking-wider">Purchased Drops</span>
+                                <div class="text-lg font-bold text-on-surface mt-0.5">
+                                    @(wallet?.PurchasedBalance.ToString("N0") ?? "0")
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-surface-container-lowest/80 border border-surface-container-high/40 shadow-xs flex flex-col justify-between">
+                                <span class="text-[11px] font-label-sm text-on-surface-variant uppercase tracking-wider">Earned Drops</span>
+                                <div class="text-lg font-bold text-on-surface mt-0.5">
+                                    @(wallet?.EarnedBalance.ToString("N0") ?? "0")
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-surface-container-lowest/80 border border-surface-container-high/40 shadow-xs flex flex-col justify-between">
+                                <span class="text-[11px] font-label-sm text-on-surface-variant uppercase tracking-wider">Verification SLA</span>
+                                <div class="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
+                                    <span class="material-symbols-outlined text-sm">bolt</span>
+                                    <span>&lt; 15 Mins</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Right Column: Prominent 3D Spinning Prism Page Decoration -->
+                    <div class="lg:col-span-5 xl:col-span-4 flex flex-col items-center justify-center relative">
+                        <!-- Ambient Neon Glow Halo Backdrop -->
+                        <div class="absolute w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-full bg-gradient-to-tr from-sky-400/20 via-primary/25 to-indigo-500/20 blur-3xl pointer-events-none -z-0"></div>
+
+                        <!-- Showcase Stage Card -->
+                        <div class="relative w-full max-w-[320px] rounded-3xl bg-surface-container/50 backdrop-blur-md border border-surface-container-high/50 p-4 flex flex-col items-center justify-center shadow-lg group">
+                            
+                            <!-- Concentric Neon Orbit Accents -->
+                            <div class="absolute inset-4 rounded-full border border-sky-400/20 animate-pulse pointer-events-none"></div>
+                            <div class="absolute inset-8 rounded-full border border-primary/20 border-dashed pointer-events-none"></div>
+
+                            <!-- 3D Spinning Prism Container -->
+                            <div id="@heroPrismContainerId"
+                                 class="w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 relative z-10 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+                                 title="Interactive 3D LinkDrop Sovereign Prism — Click & drag to rotate freely">
+                            </div>
+
+                            <!-- Interactive Badge Label -->
+                            <div class="relative z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md border border-surface-container-high/50 text-on-surface-variant font-label-sm text-[11px] shadow-xs mt-1 transition group-hover:border-primary/40">
+                                <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
+                                <span class="font-medium">✨ 3D Sovereign Prism &bull; Drag to Rotate</span>
+                            </div>
+
+                            <!-- Micro Feature Chips -->
+                            <div class="flex items-center gap-2 mt-3 text-[10px] font-label-sm text-on-surface-variant/80">
+                                <span>Zero Fees</span>
+                                <span>&bull;</span>
+                                <span>On-Platform Escrow</span>
+                                <span>&bull;</span>
+                                <span>Instant Utility</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- NAVIGATION TABS STRIP -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-space-sm bg-surface-container-lowest border border-surface-container-high/40 rounded-xl p-2 shadow-xs">
+                <div class="flex items-center gap-1.5 overflow-x-auto p-1">
+                    <button type="button" @onclick='() => SetTab("buy")'
+                            class="px-4 py-2.5 rounded-lg font-label-md text-label-md font-bold transition-all flex items-center gap-2 cursor-pointer @(activeTab == "buy" ? "bg-primary text-on-primary shadow-xs" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container")">
+                        <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                        <span>Top-Up LinkDrops</span>
+                    </button>
+                    <button type="button" @onclick='() => SetTab("purchases")'
+                            class="px-4 py-2.5 rounded-lg font-label-md text-label-md font-bold transition-all flex items-center gap-2 cursor-pointer @(activeTab == "purchases" ? "bg-primary text-on-primary shadow-xs" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container")">
+                        <span class="material-symbols-outlined text-sm">receipt_long</span>
+                        <span>My Purchases</span>
+                        @if (userPurchases.Any(p => p.Status == "PENDING"))
+                        {
+                            <span class="px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-full font-bold border border-amber-500/30">
+                                @(userPurchases.Count(p => p.Status == "PENDING"))
+                            </span>
+                        }
+                    </button>
+                    <button type="button" @onclick='() => SetTab("ledger")'
+                            class="px-4 py-2.5 rounded-lg font-label-md text-label-md font-bold transition-all flex items-center gap-2 cursor-pointer @(activeTab == "ledger" ? "bg-primary text-on-primary shadow-xs" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container")">
+                        <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
+                        <span>Wallet &amp; Ledger</span>
+                    </button>
+                    <button type="button" @onclick='() => SetTab("utility")'
+                            class="px-4 py-2.5 rounded-lg font-label-md text-label-md font-bold transition-all flex items-center gap-2 cursor-pointer @(activeTab == "utility" ? "bg-primary text-on-primary shadow-xs" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container")">
+                        <span class="material-symbols-outlined text-sm">help_outline</span>
+                        <span>Ecosystem Utility</span>
+                    </button>
                 </div>
 
-                <!-- 2. SELECT PAYMENT METHOD -->
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-[#C4D2E1]">2. Select Payment Method</h2>
-                        <span class="text-[11px] text-slate-500 dark:text-[#7A8CA6]">@activeMethods.Count methods available</span>
+                <!-- Quick Active Balance Pill -->
+                <div class="flex items-center justify-between sm:justify-end gap-3 px-3 py-1.5 rounded-lg bg-surface-container border border-surface-container-high/30">
+                    <span class="text-on-surface-variant font-label-sm text-label-sm">Active Balance:</span>
+                    <div class="inline-flex items-center gap-1.5 font-title-sm font-bold text-primary">
+                        <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                        <span>@(wallet?.Balance.ToString("N0") ?? "0") Drops</span>
                     </div>
+                </div>
+            </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        @foreach (var method in activeMethods)
-                        {
-                            var isSelected = selectedPaymentMethod?.PaymentMethodId == method.PaymentMethodId;
-                            <div @onclick="() => SelectPaymentMethod(method)"
-                                 class="p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between @(isSelected ? "bg-indigo-50 dark:bg-indigo-950/40 border-indigo-600 shadow-sm" : "bg-slate-50 dark:bg-[#1B3B5A]/40 border-slate-200 dark:border-[rgba(196,210,225,0.12)] hover:border-slate-300 dark:hover:border-[rgba(196,210,225,0.25)]")">
-                                <div class="space-y-0.5">
-                                    <div class="text-xs font-extrabold text-slate-900 dark:text-white">@method.MethodName</div>
-                                    <div class="text-[11px] font-mono text-indigo-700 dark:text-indigo-400">@method.AccountName (@method.AccountNumber)</div>
-                                </div>
-                                <span class="w-4 h-4 rounded-full border flex items-center justify-center @(isSelected ? "border-indigo-600 bg-indigo-600 text-white text-[10px] font-bold" : "border-slate-400")">
-                                    @if (isSelected) { <span>✓</span> }
+            <!-- ============================================================= -->
+            <!-- TAB 1: TOP-UP LINKDROPS WORKFLOW                             -->
+            <!-- ============================================================= -->
+            @if (activeTab == "buy")
+            {
+                @if (submissionCompleted)
+                {
+                    <!-- SUBMISSION SUCCESS CONFIRMATION BANNER -->
+                    <div class="rounded-2xl bg-surface-container-lowest border border-emerald-500/30 p-8 text-center space-y-6 shadow-sm max-w-2xl mx-auto">
+                        <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-3xl font-bold mx-auto border border-emerald-500/30 animate-bounce">
+                            ✓
+                        </div>
+                        <div class="space-y-2">
+                            <span class="inline-block px-3 py-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-[11px] font-bold rounded-full uppercase tracking-wider">
+                                Status: PENDING ADMIN VERIFICATION
+                            </span>
+                            <h2 class="text-2xl font-black text-on-surface">Payment Request Submitted!</h2>
+                            <p class="text-on-surface-variant text-sm max-w-md mx-auto leading-relaxed">
+                                Your payment receipt slip and transaction reference have been received by SecOps. LinkDrops will be credited after manual audit verification.
+                            </p>
+                        </div>
+
+                        <div class="bg-surface-container-low border border-surface-container-high/50 rounded-xl p-4 text-left text-xs space-y-2.5 max-w-md mx-auto">
+                            <div class="flex justify-between border-b border-surface-container-high/30 pb-2">
+                                <span class="text-on-surface-variant font-medium">Request Number:</span>
+                                <span class="font-mono text-on-surface font-bold">@submittedPurchaseNumber</span>
+                            </div>
+                            <div class="flex justify-between border-b border-surface-container-high/30 pb-2">
+                                <span class="text-on-surface-variant font-medium">Transaction ID:</span>
+                                <span class="font-mono text-primary font-bold">@transactionRefNo</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-on-surface-variant font-medium">Target Credit:</span>
+                                <span class="text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1">
+                                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                                    +@calculatedDrops.ToString("N0") Link Drops
                                 </span>
                             </div>
-                        }
-                    </div>
+                        </div>
 
-                    @if (selectedPaymentMethod != null)
-                    {
-                        <div class="bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-800/40 rounded-xl p-4 text-xs space-y-2">
-                            <div class="font-extrabold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                                <span>Instructions — @selectedPaymentMethod.MethodName</span>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="space-y-1 text-slate-700 dark:text-[#C4D2E1]">
-                                    <div>Account Name: <span class="font-bold text-slate-900 dark:text-white">@selectedPaymentMethod.AccountName</span></div>
-                                    <div>Account Number / Phone: <span class="font-mono font-bold text-indigo-700 dark:text-indigo-400">@selectedPaymentMethod.AccountNumber</span></div>
-                                    @if (!string.IsNullOrWhiteSpace(selectedPaymentMethod.Instructions))
+                        <div class="flex flex-wrap gap-3 justify-center pt-2">
+                            <button @onclick='() => SetTab("purchases")'
+                                    class="px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-lg transition-all shadow-xs cursor-pointer hover:opacity-90 flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-sm">receipt_long</span>
+                                <span>Track in My Purchases</span>
+                            </button>
+                            <button @onclick="ResetForm"
+                                    class="px-5 py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs rounded-lg transition-all border border-surface-container-high/50 cursor-pointer flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+                                <span>Submit Another Top-Up</span>
+                            </button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+                        
+                        <!-- Left Form Sections (8 Cols) -->
+                        <div class="lg:col-span-8 space-y-space-md">
+                            
+                            <!-- STEP 1: SELECT BUNDLE / AMOUNT -->
+                            <div class="rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 p-space-md md:p-space-lg shadow-xs space-y-space-md">
+                                <div class="flex items-center justify-between border-b border-surface-container-high/30 pb-3">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                                            1
+                                        </div>
+                                        <div>
+                                            <h2 class="font-title-md font-bold text-on-surface">Select LinkDrop Bundle</h2>
+                                            <p class="text-on-surface-variant font-label-sm text-label-sm">Choose a predefined tier or specify custom allocation</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-[11px]">
+                                        <span class="material-symbols-outlined text-xs text-primary">percent</span> Bonus Included
+                                    </span>
+                                </div>
+
+                                <!-- Predefined Packages Grid -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                    @foreach (var pkg in activePackages)
                                     {
-                                        <div class="text-[11px] text-slate-600 dark:text-[#7A8CA6] pt-1 leading-relaxed">@selectedPaymentMethod.Instructions</div>
+                                        var isSelected = !isCustomPurchase && selectedPackage?.PackageId == pkg.PackageId;
+                                        <div @onclick="() => SelectPackage(pkg)"
+                                             class="p-4 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between space-y-3 relative @(isSelected ? "bg-primary/5 border-primary shadow-xs" : "bg-surface-container-low border-surface-container-high/40 hover:border-surface-container-high")">
+                                            
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-[11px] font-black uppercase tracking-wider @(isSelected ? "text-primary" : "text-on-surface-variant")">
+                                                    @pkg.PackageName
+                                                </span>
+                                                @if (isSelected)
+                                                {
+                                                    <span class="w-4 h-4 rounded-full bg-primary text-on-primary flex items-center justify-center text-[10px] font-bold">✓</span>
+                                                }
+                                                else if (pkg.BonusAmount > 0)
+                                                {
+                                                    <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[9px] border border-emerald-500/20">
+                                                        +@pkg.BonusAmount.ToString("N0") Bonus
+                                                    </span>
+                                                }
+                                            </div>
+
+                                            <div>
+                                                <div class="text-xl font-black text-on-surface flex items-center gap-1.5">
+                                                    <LinkDropIcon Class="w-5 h-5 shrink-0" />
+                                                    <span>+@((pkg.LinkDropAmount + pkg.BonusAmount).ToString("N0"))</span>
+                                                </div>
+                                                <div class="text-xs font-bold text-on-surface-variant mt-0.5">
+                                                    $@pkg.RealMoneyAmount.ToString("F2") USD
+                                                </div>
+                                                <div class="text-[11px] text-on-surface-variant/70 font-mono mt-0.5">
+                                                    ~@((pkg.RealMoneyAmount * 3500m).ToString("N0")) MMK
+                                                </div>
+                                            </div>
+                                        </div>
                                     }
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(selectedPaymentMethod.QrCodeImageUrl))
+
+                                <!-- Custom Amount Calculator Card -->
+                                <div class="p-4 rounded-xl border-2 transition-all space-y-3 @(isCustomPurchase ? "bg-primary/5 border-primary shadow-xs" : "bg-surface-container-low border-surface-container-high/40")">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" @onclick="EnableCustomPurchase"
+                                                    class="px-3 py-1.5 bg-primary text-on-primary font-bold text-xs rounded-lg shrink-0 flex items-center gap-1.5 cursor-pointer">
+                                                <span class="material-symbols-outlined text-xs">calculate</span>
+                                                <span>Custom Amount</span>
+                                            </button>
+                                            <span class="text-xs text-on-surface-variant font-medium">Specify any custom budget in USD</span>
+                                        </div>
+
+                                        <!-- Quick Presets -->
+                                        <div class="flex items-center gap-1.5 overflow-x-auto">
+                                            <button type="button" @onclick="() => SetPresetAmount(10)" class="px-2 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface text-[11px] font-bold cursor-pointer">$10</button>
+                                            <button type="button" @onclick="() => SetPresetAmount(25)" class="px-2 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface text-[11px] font-bold cursor-pointer">$25</button>
+                                            <button type="button" @onclick="() => SetPresetAmount(50)" class="px-2 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface text-[11px] font-bold cursor-pointer">$50</button>
+                                            <button type="button" @onclick="() => SetPresetAmount(100)" class="px-2 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface text-[11px] font-bold cursor-pointer">$100</button>
+                                            <button type="button" @onclick="() => SetPresetAmount(250)" class="px-2 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface text-[11px] font-bold cursor-pointer">$250</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+                                        <div class="flex items-center gap-2 flex-1">
+                                            <span class="text-sm font-bold text-on-surface-variant">$</span>
+                                            <input type="number" min="1" max="10000" step="1"
+                                                   @bind="customUsdAmount" @bind:after="OnCustomAmountChanged"
+                                                   class="w-full bg-surface-container-lowest border border-surface-container-high/60 rounded-lg px-3 py-2 text-sm font-bold text-on-surface focus:outline-none focus:border-primary"
+                                                   placeholder="e.g. 50.00 USD" />
+                                        </div>
+                                        <div class="flex items-center justify-between sm:justify-start gap-2 bg-surface-container px-3 py-2 rounded-lg border border-surface-container-high/30">
+                                            <span class="text-xs text-on-surface-variant">Credits:</span>
+                                            <span class="text-sm font-black text-primary inline-flex items-center gap-1.5 whitespace-nowrap">
+                                                <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                                                <span>+@calculatedDrops.ToString("N0") Drops</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- STEP 2: SELECT PAYMENT METHOD RAIL -->
+                            <div class="rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 p-space-md md:p-space-lg shadow-xs space-y-space-md">
+                                <div class="flex items-center justify-between border-b border-surface-container-high/30 pb-3">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                                            2
+                                        </div>
+                                        <div>
+                                            <h2 class="font-title-md font-bold text-on-surface">Select Payment Gateway Rail</h2>
+                                            <p class="text-on-surface-variant font-label-sm text-label-sm">Direct transfer via verified local mobile wallets &amp; bank accounts</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold text-on-surface-variant">@activeMethods.Count Rails Active</span>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    @foreach (var method in activeMethods)
+                                    {
+                                        var isSelected = selectedPaymentMethod?.PaymentMethodId == method.PaymentMethodId;
+                                        <div @onclick="() => SelectPaymentMethod(method)"
+                                             class="p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between @(isSelected ? "bg-primary/5 border-primary shadow-xs" : "bg-surface-container-low border-surface-container-high/40 hover:border-surface-container-high")">
+                                            <div class="space-y-1">
+                                                <div class="text-sm font-black text-on-surface flex items-center gap-1.5">
+                                                    <span>@method.MethodName</span>
+                                                </div>
+                                                <div class="text-xs font-mono text-primary font-bold">
+                                                    @method.AccountName
+                                                </div>
+                                                <div class="text-[11px] font-mono text-on-surface-variant">
+                                                    @method.AccountNumber
+                                                </div>
+                                            </div>
+                                            <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center @(isSelected ? "border-primary bg-primary text-on-primary text-[10px] font-bold" : "border-surface-container-high")">
+                                                @if (isSelected) { <span>✓</span> }
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Dynamic Instructions & QR Code Panel -->
+                                @if (selectedPaymentMethod != null)
                                 {
-                                    <div class="text-center">
-                                        <img src="@selectedPaymentMethod.QrCodeImageUrl" class="w-24 h-24 object-contain mx-auto bg-white p-1 rounded-lg border border-slate-200 shadow-sm" />
-                                        <span class="text-[10px] text-slate-500 mt-1 block">Scan QR Code to Transfer</span>
+                                    <div class="bg-surface-container-low border border-surface-container-high/50 rounded-xl p-space-md space-y-3">
+                                        <div class="font-bold text-on-surface text-sm flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-sm text-primary">info</span>
+                                            <span>Transfer Instructions &bull; @selectedPaymentMethod.MethodName</span>
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                                            <div class="md:col-span-8 space-y-2 text-xs">
+                                                <div class="flex items-center justify-between bg-surface-container-lowest p-2.5 rounded-lg border border-surface-container-high/40">
+                                                    <span class="text-on-surface-variant">Account Name:</span>
+                                                    <span class="font-bold text-on-surface">@selectedPaymentMethod.AccountName</span>
+                                                </div>
+                                                <div class="flex items-center justify-between bg-surface-container-lowest p-2.5 rounded-lg border border-surface-container-high/40">
+                                                    <span class="text-on-surface-variant">Account / Phone:</span>
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="font-mono font-bold text-primary text-sm">@selectedPaymentMethod.AccountNumber</span>
+                                                        <button type="button" @onclick='() => CopyToClipboard(selectedPaymentMethod.AccountNumber, "Account number")'
+                                                                class="px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface text-[10px] font-bold border border-surface-container-high/50 cursor-pointer flex items-center gap-1">
+                                                            <span class="material-symbols-outlined text-xs">content_copy</span> Copy
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                @if (!string.IsNullOrWhiteSpace(selectedPaymentMethod.Instructions))
+                                                {
+                                                    <div class="text-[11px] text-on-surface-variant leading-relaxed pt-1">
+                                                        @selectedPaymentMethod.Instructions
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            @if (!string.IsNullOrWhiteSpace(selectedPaymentMethod.QrCodeImageUrl))
+                                            {
+                                                <div class="md:col-span-4 text-center">
+                                                    <div class="bg-white p-2 rounded-xl border border-surface-container-high/60 shadow-xs inline-block">
+                                                        <img src="@selectedPaymentMethod.QrCodeImageUrl" alt="Payment QR Code" class="w-28 h-28 object-contain" />
+                                                    </div>
+                                                    <span class="text-[10px] text-on-surface-variant mt-1.5 block font-medium">Scan QR in mobile wallet</span>
+                                                </div>
+                                            }
+                                        </div>
                                     </div>
                                 }
                             </div>
-                        </div>
-                    }
-                </div>
 
-                <!-- SUMMARY BANNER -->
-                <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-xl p-4 text-white space-y-1.5 shadow-sm">
-                    <div class="flex justify-between text-xs text-slate-300">
-                        <span>Link Drops to Recharge:</span>
-                        <span class="font-black text-amber-400 inline-flex items-center gap-1.5">
-                            <LinkDropIcon Class="w-4 h-4 shrink-0" />
-                            +@calculatedDrops.ToString("N0") Drops
-                        </span>
-                    </div>
-                    <div class="flex justify-between text-xs text-slate-300">
-                        <span>Selected Payment Method:</span>
-                        <span class="font-bold text-indigo-300">@(selectedPaymentMethod?.MethodName ?? "None")</span>
-                    </div>
-                    <div class="flex justify-between text-sm font-black text-white border-t border-slate-700/80 pt-2 mt-1">
-                        <span>Total Amount Charged:</span>
-                        <span class="text-emerald-400 font-extrabold text-base">$@calculatedUsdPrice.ToString("F2") USD</span>
-                    </div>
-                </div>
-
-                <!-- 3. PAYMENT INFORMATION & RECEIPT SLIP -->
-                <div class="space-y-3">
-                    <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-[#C4D2E1]">3. Transaction Details &amp; Payment Slip</h2>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="block text-[11px] font-bold text-slate-700 dark:text-[#C4D2E1]">
-                                Transaction Reference ID <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="text" @bind="transactionRefNo"
-                                   class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.20)] rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-600"
-                                   placeholder="e.g. TXN9841203" />
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="block text-[11px] font-bold text-slate-700 dark:text-[#C4D2E1]">
-                                Upload Payment Slip Screenshot <span class="text-rose-500">*</span>
-                            </label>
-                            <InputFile OnChange="OnFileInputChange" accept=".jpg,.jpeg,.png,.webp,.pdf"
-                                       class="w-full text-xs text-slate-600 dark:text-[#C4D2E1] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-50 dark:file:bg-[#1B3B5A] file:text-indigo-700 dark:file:text-white hover:file:bg-indigo-100 cursor-pointer" />
-
-                            @if (!string.IsNullOrEmpty(localPreviewDataUrl))
-                            {
-                                <div class="flex items-center gap-3 pt-2">
-                                    <div class="relative group cursor-pointer" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" title="Click to view full size">
-                                        <img src="@localPreviewDataUrl" alt="Payment Slip Preview" class="w-16 h-16 object-cover rounded-lg border-2 border-indigo-500 shadow-sm transition group-hover:opacity-90 group-hover:scale-105" />
-                                        <div class="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-[10px] font-bold">
-                                            🔍
+                            <!-- STEP 3: TRANSACTION PROOF & RECEIPT SLIP -->
+                            <div class="rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 p-space-md md:p-space-lg shadow-xs space-y-space-md">
+                                <div class="flex items-center justify-between border-b border-surface-container-high/30 pb-3">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                                            3
+                                        </div>
+                                        <div>
+                                            <h2 class="font-title-md font-bold text-on-surface">Transaction Reference &amp; Receipt Proof</h2>
+                                            <p class="text-on-surface-variant font-label-sm text-label-sm">Enter transaction ID and upload screenshot for rapid verification</p>
                                         </div>
                                     </div>
-                                    <div class="space-y-0.5">
-                                        <button type="button" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer">
-                                            <span>🔍 Click to view full size</span>
-                                        </button>
-                                        <div class="text-[10px] text-slate-400">@uploadedProofFile?.Name</div>
-                                        <button type="button" @onclick="ClearUploadedSlip" class="text-[11px] text-rose-500 hover:underline cursor-pointer">
-                                            Remove
-                                        </button>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-label-sm text-[11px] border border-emerald-500/20">
+                                        <span class="material-symbols-outlined text-xs">shield</span> Escrow Protected
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+                                    <div class="space-y-1.5">
+                                        <label class="block text-xs font-bold text-on-surface">
+                                            Transaction Reference ID <span class="text-rose-500">*</span>
+                                        </label>
+                                        <input type="text" @bind="transactionRefNo"
+                                               class="w-full bg-surface-container-low border border-surface-container-high/60 rounded-lg px-3 py-2 text-xs font-mono font-bold text-on-surface focus:outline-none focus:border-primary"
+                                               placeholder="e.g. TXN9841203 or KBZ-892147" />
+                                        <span class="text-[10px] text-on-surface-variant block">Copy reference from your banking receipt</span>
+                                    </div>
+
+                                    <div class="space-y-1.5">
+                                        <label class="block text-xs font-bold text-on-surface">
+                                            Upload Payment Slip Screenshot <span class="text-rose-500">*</span>
+                                        </label>
+                                        <InputFile OnChange="OnFileInputChange" accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                                   class="w-full text-xs text-on-surface-variant file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-surface-container file:text-on-surface hover:file:bg-surface-container-high cursor-pointer" />
+
+                                        @if (!string.IsNullOrEmpty(localPreviewDataUrl))
+                                        {
+                                            <div class="flex items-center gap-3 pt-2">
+                                                <div class="relative group cursor-pointer" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" title="Click to view full size">
+                                                    <img src="@localPreviewDataUrl" alt="Receipt Preview" class="w-16 h-16 object-cover rounded-lg border-2 border-primary shadow-xs transition group-hover:opacity-90 group-hover:scale-105" />
+                                                    <div class="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-[10px] font-bold">
+                                                        🔍
+                                                    </div>
+                                                </div>
+                                                <div class="space-y-0.5">
+                                                    <button type="button" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" class="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer">
+                                                        <span>🔍 Click to view full size</span>
+                                                    </button>
+                                                    <div class="text-[10px] text-on-surface-variant">@uploadedProofFile?.Name</div>
+                                                    <button type="button" @onclick="ClearUploadedSlip" class="text-[11px] text-rose-500 hover:underline cursor-pointer">
+                                                        Remove Screenshot
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
-                            }
+
+                                <div class="space-y-1.5">
+                                    <label class="block text-xs font-bold text-on-surface">Optional Notes for Admin</label>
+                                    <input type="text" @bind="userNotes"
+                                           class="w-full bg-surface-container-low border border-surface-container-high/60 rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
+                                           placeholder="Any special instructions or sender mobile info..." />
+                                </div>
+                            </div>
+
                         </div>
-                    </div>
 
-                    <div class="space-y-1">
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-[#C4D2E1]">User Notes (Optional)</label>
-                        <input type="text" @bind="userNotes"
-                               class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.20)] rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-indigo-600"
-                               placeholder="Additional information for admin review..." />
-                    </div>
-                </div>
+                        <!-- Right Sticky Order Summary Card (4 Cols) -->
+                        <div class="lg:col-span-4 sticky top-6 space-y-space-md">
+                            
+                            <div class="rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 p-space-md shadow-md space-y-space-md">
+                                <div class="border-b border-surface-container-high/30 pb-3 flex items-center justify-between">
+                                    <h3 class="font-title-md font-black text-on-surface">Order Summary</h3>
+                                    <span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-label-sm text-[11px] font-bold">
+                                        Escrow Active
+                                    </span>
+                                </div>
 
-                <!-- ACTION FOOTER BAR -->
-                <div class="flex items-center justify-end gap-3 border-t border-slate-100 dark:border-[rgba(196,210,225,0.10)] pt-4">
-                    <button @onclick="ResetForm" class="px-4 py-2 bg-slate-100 dark:bg-[#1B3B5A] hover:bg-slate-200 dark:hover:bg-[#112A46] text-slate-700 dark:text-[#C4D2E1] font-bold text-xs rounded-lg transition-all">
-                        Cancel
-                    </button>
-                    <button @onclick="SubmitPurchaseAsync" disabled="@isSubmitting"
-                            class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-lg transition-all shadow-sm disabled:opacity-50 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                        <span>@(isSubmitting ? "Submitting..." : $"Pay ${calculatedUsdPrice:F2} & Top Up +{calculatedDrops:N0} Link Drops")</span>
-                    </button>
-                </div>
-
-            </div>
-        }
-    }
-
-    <!-- TAB 2: MY PURCHASES -->
-    @if (activeTab == "purchases")
-    {
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-            <h2 class="text-base font-extrabold text-slate-900">My Purchase Requests</h2>
-
-            @if (userPurchases.Count == 0)
-            {
-                <div class="p-8 text-center text-slate-400 text-xs">No purchase requests submitted yet.</div>
-            }
-            else
-            {
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
-                            <tr>
-                                <th class="p-2.5">Date</th>
-                                <th class="p-2.5">Ref No</th>
-                                <th class="p-2.5">Type</th>
-                                <th class="p-2.5">Amount</th>
-                                <th class="p-2.5">Link Drops</th>
-                                <th class="p-2.5">Status</th>
-                                <th class="p-2.5 text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            @foreach (var item in userPurchases)
-                            {
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-2.5 font-mono text-slate-500">@item.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
-                                    <td class="p-2.5 font-mono font-bold text-indigo-700">@item.TransactionReferenceNo</td>
-                                    <td class="p-2.5 text-slate-700">@(item.IsCustomPurchase ? "Custom" : item.SnapshotPackageName)</td>
-                                    <td class="p-2.5 font-bold text-slate-900">$@item.SnapshotRealMoneyAmount.ToString("F2")</td>
-                                    <td class="p-2.5 font-black text-indigo-700 dark:text-indigo-400">
-                                        <span class="inline-flex items-center gap-1.5">
+                                <!-- Allocation Breakdown -->
+                                <div class="space-y-2.5 text-xs">
+                                    <div class="flex justify-between text-on-surface-variant">
+                                        <span>Selected Allocation:</span>
+                                        <span class="font-bold text-on-surface">@(isCustomPurchase ? "Custom Allocation" : selectedPackage?.PackageName ?? "None")</span>
+                                    </div>
+                                    <div class="flex justify-between text-on-surface-variant">
+                                        <span>LinkDrop Credit:</span>
+                                        <span class="font-black text-primary inline-flex items-center gap-1">
                                             <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                                            @item.SnapshotLinkDropAmount.ToString("N0")
+                                            +@calculatedDrops.ToString("N0") Drops
                                         </span>
-                                    </td>
-                                    <td class="p-2.5">
-                                        @if (item.Status == "PENDING")
+                                    </div>
+                                    <div class="flex justify-between text-on-surface-variant">
+                                        <span>Payment Rail:</span>
+                                        <span class="font-bold text-on-surface">@(selectedPaymentMethod?.MethodName ?? "None Selected")</span>
+                                    </div>
+                                    <div class="flex justify-between text-on-surface-variant">
+                                        <span>Recipient Account:</span>
+                                        <span class="font-mono text-on-surface">@(selectedPaymentMethod?.AccountNumber ?? "-")</span>
+                                    </div>
+
+                                    <div class="border-t border-surface-container-high/30 pt-3 mt-2 flex justify-between items-baseline">
+                                        <span class="text-xs font-bold text-on-surface">Total Amount:</span>
+                                        <div class="text-right">
+                                            <div class="text-xl font-black text-primary">$@calculatedUsdPrice.ToString("F2") USD</div>
+                                            <div class="text-[11px] text-on-surface-variant font-mono">~@((calculatedUsdPrice * 3500m).ToString("N0")) MMK</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Security Guarantee Box -->
+                                <div class="p-3 rounded-xl bg-surface-container-low border border-surface-container-high/40 text-[11px] space-y-1.5 text-on-surface-variant">
+                                    <div class="font-bold text-on-surface flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-sm text-emerald-600 dark:text-emerald-400">verified_user</span>
+                                        <span>SecOps Verified Protocol</span>
+                                    </div>
+                                    <p class="leading-relaxed">
+                                        Transactions are held in platform escrow and credited to your wallet balance within 5–15 minutes after admin slip verification.
+                                    </p>
+                                </div>
+
+                                <!-- Action Submit Button -->
+                                <div class="space-y-2 pt-2">
+                                    <button type="button" @onclick="SubmitPurchaseAsync" disabled="@isSubmitting"
+                                            class="w-full py-3.5 px-4 rounded-xl bg-primary text-on-primary font-black text-sm transition-all shadow-md cursor-pointer hover:opacity-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                                        @if (isSubmitting)
                                         {
-                                            <span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 font-bold text-[10px] rounded-full">PENDING</span>
-                                        }
-                                        else if (item.Status == "APPROVED")
-                                        {
-                                            <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] rounded-full">APPROVED</span>
+                                            <span class="material-symbols-outlined text-base animate-spin">progress_activity</span>
+                                            <span>Submitting Payment...</span>
                                         }
                                         else
                                         {
-                                            <span class="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 font-bold text-[10px] rounded-full">REJECTED</span>
+                                            <span class="material-symbols-outlined text-base">payments</span>
+                                            <span>Pay $@calculatedUsdPrice.ToString("F2") &bull; Top Up Drops</span>
                                         }
-                                    </td>
-                                    <td class="p-2.5 text-right">
-                                        <button @onclick="() => selectedDetailPurchase = item" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-bold text-[11px]">
-                                            Details
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                                    </button>
+                                    <button type="button" @onclick="ResetForm"
+                                            class="w-full py-2 text-xs font-bold text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer text-center">
+                                        Reset Form
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+            }
+
+            <!-- ============================================================= -->
+            <!-- TAB 2: MY PURCHASES TABLE                                     -->
+            <!-- ============================================================= -->
+            @if (activeTab == "purchases")
+            {
+                <div class="rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 p-space-md md:p-space-lg shadow-xs space-y-space-md">
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-surface-container-high/30 pb-3">
+                        <div>
+                            <h2 class="font-title-md font-bold text-on-surface">My Purchase Requests</h2>
+                            <p class="text-on-surface-variant font-label-sm text-label-sm">Track your past top-up submissions and admin approval logs</p>
+                        </div>
+
+                        <!-- Status Filter Chips -->
+                        <div class="flex items-center gap-1.5 overflow-x-auto">
+                            <button type="button" @onclick='() => purchaseStatusFilter = "ALL"'
+                                    class="px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "ALL" ? "bg-primary text-on-primary" : "bg-surface-container text-on-surface-variant hover:text-on-surface")">
+                                All (@userPurchases.Count)
+                            </button>
+                            <button type="button" @onclick='() => purchaseStatusFilter = "PENDING"'
+                                    class="px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "PENDING" ? "bg-primary text-on-primary" : "bg-surface-container text-on-surface-variant hover:text-on-surface")">
+                                Pending (@userPurchases.Count(p => p.Status == "PENDING"))
+                            </button>
+                            <button type="button" @onclick='() => purchaseStatusFilter = "APPROVED"'
+                                    class="px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "APPROVED" ? "bg-primary text-on-primary" : "bg-surface-container text-on-surface-variant hover:text-on-surface")">
+                                Approved (@userPurchases.Count(p => p.Status == "APPROVED"))
+                            </button>
+                            <button type="button" @onclick='() => purchaseStatusFilter = "REJECTED"'
+                                    class="px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "REJECTED" ? "bg-primary text-on-primary" : "bg-surface-container text-on-surface-variant hover:text-on-surface")">
+                                Rejected (@userPurchases.Count(p => p.Status == "REJECTED"))
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (!FilteredPurchases.Any())
+                    {
+                        <div class="py-12 text-center text-on-surface-variant space-y-2">
+                            <span class="material-symbols-outlined text-4xl text-on-surface-variant/40">receipt_long</span>
+                            <div class="text-sm font-bold text-on-surface">No purchase requests found</div>
+                            <p class="text-xs text-on-surface-variant max-w-sm mx-auto">
+                                You haven't submitted any top-up requests matching this filter.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-surface-container text-on-surface-variant uppercase text-[10px] tracking-wider border-b border-surface-container-high/40">
+                                    <tr>
+                                        <th class="p-3">Date</th>
+                                        <th class="p-3">Order Ref</th>
+                                        <th class="p-3">Transaction ID</th>
+                                        <th class="p-3">Bundle</th>
+                                        <th class="p-3">Amount Paid</th>
+                                        <th class="p-3">LinkDrops</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-surface-container-high/30">
+                                    @foreach (var item in FilteredPurchases)
+                                    {
+                                        <tr class="hover:bg-surface-container/50 transition-colors">
+                                            <td class="p-3 font-mono text-on-surface-variant">@item.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                                            <td class="p-3 font-mono font-bold text-on-surface">@item.PurchaseNumber</td>
+                                            <td class="p-3 font-mono text-primary font-bold">@item.TransactionReferenceNo</td>
+                                            <td class="p-3 text-on-surface">@(item.IsCustomPurchase ? "Custom Allocation" : item.SnapshotPackageName)</td>
+                                            <td class="p-3 font-bold text-on-surface">$@item.SnapshotRealMoneyAmount.ToString("F2")</td>
+                                            <td class="p-3 font-black text-primary">
+                                                <span class="inline-flex items-center gap-1">
+                                                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                                                    +@item.SnapshotLinkDropAmount.ToString("N0")
+                                                </span>
+                                            </td>
+                                            <td class="p-3">
+                                                @if (item.Status == "PENDING")
+                                                {
+                                                    <span class="px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-[10px] rounded-full inline-flex items-center gap-1">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>PENDING
+                                                    </span>
+                                                }
+                                                else if (item.Status == "APPROVED")
+                                                {
+                                                    <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold text-[10px] rounded-full inline-flex items-center gap-1">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>APPROVED
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="px-2 py-0.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold text-[10px] rounded-full inline-flex items-center gap-1">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>REJECTED
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="p-3 text-right">
+                                                <button type="button" @onclick="() => selectedDetailPurchase = item"
+                                                        class="px-3 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-bold text-[11px] border border-surface-container-high/40 transition cursor-pointer">
+                                                    Details
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
                 </div>
             }
-        </div>
-    }
 
-    <!-- TAB 3: WALLET & LEDGER -->
-    @if (activeTab == "ledger")
-    {
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-            <h2 class="text-base font-extrabold text-slate-900">Wallet Transaction Ledger</h2>
+            <!-- ============================================================= -->
+            <!-- TAB 3: WALLET & TRANSACTION LEDGER                            -->
+            <!-- ============================================================= -->
+            @if (activeTab == "ledger")
+            {
+                <div class="space-y-space-md">
+                    <!-- Balance Summary Row -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="p-space-md rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 shadow-xs">
+                            <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Current Balance</span>
+                            <div class="text-2xl font-black text-primary flex items-center gap-2 mt-1">
+                                <LinkDropIcon Class="w-5 h-5 shrink-0" />
+                                <span>@(wallet?.Balance.ToString("N0") ?? "0") Drops</span>
+                            </div>
+                        </div>
+                        <div class="p-space-md rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 shadow-xs">
+                            <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Total Purchased</span>
+                            <div class="text-2xl font-black text-on-surface mt-1">
+                                @(wallet?.PurchasedBalance.ToString("N0") ?? "0") Drops
+                            </div>
+                        </div>
+                        <div class="p-space-md rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 shadow-xs">
+                            <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Total Earned</span>
+                            <div class="text-2xl font-black text-on-surface mt-1">
+                                @(wallet?.EarnedBalance.ToString("N0") ?? "0") Drops
+                            </div>
+                        </div>
+                    </div>
 
-            @if (userTransactions.Count == 0)
-            {
-                <div class="p-8 text-center text-slate-400 text-xs">No transactions logged yet.</div>
-            }
-            else
-            {
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
-                            <tr>
-                                <th class="p-2.5">Date</th>
-                                <th class="p-2.5">Type</th>
-                                <th class="p-2.5">Amount</th>
-                                <th class="p-2.5">Balance Before</th>
-                                <th class="p-2.5">Balance After</th>
-                                <th class="p-2.5">Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            @foreach (var tx in userTransactions)
-                            {
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-2.5 font-mono text-slate-500">@tx.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
-                                    <td class="p-2.5 font-bold text-indigo-700">@tx.TransactionType</td>
-                                    <td class="p-2.5 font-black text-emerald-600">+@tx.Amount.ToString("N0")</td>
-                                    <td class="p-2.5 font-mono text-slate-500">@tx.BalanceBefore.ToString("N0")</td>
-                                    <td class="p-2.5 font-mono text-slate-900 font-bold">@tx.BalanceAfter.ToString("N0")</td>
-                                    <td class="p-2.5 text-slate-600">@(tx.Notes ?? "-")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                    <!-- Ledger Audit Table -->
+                    <div class="rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 p-space-md md:p-space-lg shadow-xs space-y-space-md">
+                        <div class="border-b border-surface-container-high/30 pb-3">
+                            <h2 class="font-title-md font-bold text-on-surface">Wallet Transaction Ledger</h2>
+                            <p class="text-on-surface-variant font-label-sm text-label-sm">Immutable audit trail of all debits, credits, and platform settlements</p>
+                        </div>
+
+                        @if (userTransactions.Count == 0)
+                        {
+                            <div class="py-12 text-center text-on-surface-variant text-xs">No transactions logged on this wallet yet.</div>
+                        }
+                        else
+                        {
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-surface-container text-on-surface-variant uppercase text-[10px] tracking-wider border-b border-surface-container-high/40">
+                                        <tr>
+                                            <th class="p-3">Date</th>
+                                            <th class="p-3">Transaction Type</th>
+                                            <th class="p-3">Amount</th>
+                                            <th class="p-3">Balance Before</th>
+                                            <th class="p-3">Balance After</th>
+                                            <th class="p-3">Audit Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-surface-container-high/30">
+                                        @foreach (var tx in userTransactions)
+                                        {
+                                            <tr class="hover:bg-surface-container/50 transition-colors">
+                                                <td class="p-3 font-mono text-on-surface-variant">@tx.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                                                <td class="p-3 font-bold text-primary">@tx.TransactionType</td>
+                                                <td class="p-3 font-black @(tx.Amount >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")">
+                                                    @(tx.Amount >= 0 ? "+" : "")@tx.Amount.ToString("N0") Drops
+                                                </td>
+                                                <td class="p-3 font-mono text-on-surface-variant">@tx.BalanceBefore.ToString("N0")</td>
+                                                <td class="p-3 font-mono text-on-surface font-bold">@tx.BalanceAfter.ToString("N0")</td>
+                                                <td class="p-3 text-on-surface-variant">@(tx.Notes ?? "-")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
                 </div>
             }
+
+            <!-- ============================================================= -->
+            <!-- TAB 4: ECOSYSTEM UTILITY & FAQ                                -->
+            <!-- ============================================================= -->
+            @if (activeTab == "utility")
+            {
+                <div class="space-y-space-md">
+                    
+                    <div class="rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 p-space-md md:p-space-lg shadow-xs space-y-space-md">
+                        <div class="border-b border-surface-container-high/30 pb-3">
+                            <h2 class="font-title-md font-bold text-on-surface">LinkDrop Utility Ecosystem</h2>
+                            <p class="text-on-surface-variant font-label-sm text-label-sm">Explore all the exclusive benefits powered by LinkDrops across CommunityLink</p>
+                        </div>
+
+                        <!-- 4 Value Proposition Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="p-4 rounded-xl bg-surface-container-low border border-surface-container-high/40 space-y-2">
+                                <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                                    <span class="material-symbols-outlined">workspace_premium</span>
+                                </div>
+                                <h3 class="font-bold text-on-surface text-sm">Tier Memberships</h3>
+                                <p class="text-xs text-on-surface-variant leading-relaxed">
+                                    Upgrade to Domain Professional or Public Figure VIP to unlock verified identity badges and sovereign creator rights.
+                                </p>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-surface-container-low border border-surface-container-high/40 space-y-2">
+                                <div class="w-10 h-10 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
+                                    <span class="material-symbols-outlined">video_call</span>
+                                </div>
+                                <h3 class="font-bold text-on-surface text-sm">1-on-1 Expert Advisory</h3>
+                                <p class="text-xs text-on-surface-variant leading-relaxed">
+                                    Book private consultation sessions with verified industry experts and community leaders with instant settlement.
+                                </p>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-surface-container-low border border-surface-container-high/40 space-y-2">
+                                <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                    <span class="material-symbols-outlined">lock_open</span>
+                                </div>
+                                <h3 class="font-bold text-on-surface text-sm">Sub-Community Passes</h3>
+                                <p class="text-xs text-on-surface-variant leading-relaxed">
+                                    Unlock gated specialized working groups, private executive channels, and invite-only mastermind circles.
+                                </p>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-surface-container-low border border-surface-container-high/40 space-y-2">
+                                <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                                    <span class="material-symbols-outlined">volunteer_activism</span>
+                                </div>
+                                <h3 class="font-bold text-on-surface text-sm">Creator Tipping</h3>
+                                <p class="text-xs text-on-surface-variant leading-relaxed">
+                                    Send instant micro-grants and tips directly to insightful contributors and top discussion leaders.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Section -->
+                    <div class="rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 p-space-md md:p-space-lg shadow-xs space-y-3">
+                        <h3 class="font-title-md font-bold text-on-surface">Frequently Asked Questions</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                            <div class="p-3.5 rounded-xl bg-surface-container-low border border-surface-container-high/30 space-y-1">
+                                <h4 class="font-bold text-xs text-on-surface">How long does top-up verification take?</h4>
+                                <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                                    Most requests are audited by SecOps within 5 to 15 minutes during active banking hours. Once approved, drops are immediately credited to your wallet balance.
+                                </p>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-surface-container-low border border-surface-container-high/30 space-y-1">
+                                <h4 class="font-bold text-xs text-on-surface">What payment rails are currently accepted?</h4>
+                                <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                                    We support KBZPay, WavePay, CB Pay, AYA Mobile Banking, and direct local bank transfer rails with zero additional platform fees.
+                                </p>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-surface-container-low border border-surface-container-high/30 space-y-1">
+                                <h4 class="font-bold text-xs text-on-surface">Can I withdraw earned LinkDrops?</h4>
+                                <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                                    Verified creators and domain experts who earn LinkDrops through advisory sessions or tips can request payouts in the Creator Studio.
+                                </p>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-surface-container-low border border-surface-container-high/30 space-y-1">
+                                <h4 class="font-bold text-xs text-on-surface">Are LinkDrop balances securely stored?</h4>
+                                <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                                    Every credit, debit, and escrow transaction is recorded in an immutable audit ledger with double-entry balance validation.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            }
+
         </div>
-    }
+    </div>
 </div>
 
-<!-- DETAIL MODAL -->
+<!-- ========================================================================= -->
+<!-- PURCHASE DETAIL MODAL                                                     -->
+<!-- ========================================================================= -->
 @if (selectedDetailPurchase != null)
 {
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 max-w-md w-full space-y-4 shadow-xl">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-sm font-extrabold text-slate-900">Purchase Request Detail</h3>
-                <button @onclick="() => selectedDetailPurchase = null" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-surface-container-lowest border border-surface-container-high/50 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b border-surface-container-high/30 pb-3">
+                <h3 class="font-title-sm font-bold text-on-surface">Purchase Request Detail</h3>
+                <button type="button" @onclick="() => selectedDetailPurchase = null" class="text-on-surface-variant hover:text-on-surface font-bold cursor-pointer">✕</button>
             </div>
 
-            <div class="space-y-2 text-xs">
-                <div class="flex justify-between"><span class="text-slate-500">Request #:</span><span class="font-mono text-slate-900 font-bold">@selectedDetailPurchase.PurchaseNumber</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Status:</span>
-                    <span class="font-bold uppercase @(selectedDetailPurchase.Status == "APPROVED" ? "text-emerald-700" : selectedDetailPurchase.Status == "REJECTED" ? "text-rose-700" : "text-amber-700")">@selectedDetailPurchase.Status</span>
-                </div>
-                <div class="flex justify-between"><span class="text-slate-500">Transaction ID:</span><span class="font-mono text-indigo-700 font-bold">@selectedDetailPurchase.TransactionReferenceNo</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Amount Paid:</span><span class="font-bold text-slate-900">$@selectedDetailPurchase.SnapshotRealMoneyAmount.ToString("F2")</span></div>
+            <div class="space-y-2.5 text-xs">
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Drops Granted:</span>
-                    <span class="font-black text-indigo-700 dark:text-indigo-400 inline-flex items-center gap-1.5">
+                    <span class="text-on-surface-variant">Request #:</span>
+                    <span class="font-mono text-on-surface font-bold">@selectedDetailPurchase.PurchaseNumber</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-on-surface-variant">Status:</span>
+                    <span class="font-bold uppercase @(selectedDetailPurchase.Status == "APPROVED" ? "text-emerald-600 dark:text-emerald-400" : selectedDetailPurchase.Status == "REJECTED" ? "text-rose-600 dark:text-rose-400" : "text-amber-600 dark:text-amber-400")">
+                        @selectedDetailPurchase.Status
+                    </span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-on-surface-variant">Transaction ID:</span>
+                    <span class="font-mono text-primary font-bold">@selectedDetailPurchase.TransactionReferenceNo</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-on-surface-variant">Amount Paid:</span>
+                    <span class="font-bold text-on-surface">$@selectedDetailPurchase.SnapshotRealMoneyAmount.ToString("F2")</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-on-surface-variant">Drops Granted:</span>
+                    <span class="font-black text-primary inline-flex items-center gap-1.5">
                         <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                        @selectedDetailPurchase.SnapshotLinkDropAmount.ToString("N0")
+                        +@selectedDetailPurchase.SnapshotLinkDropAmount.ToString("N0")
                     </span>
                 </div>
                 @if (!string.IsNullOrWhiteSpace(selectedDetailPurchase.RejectionReason))
                 {
-                    <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-rose-800 space-y-1 mt-2">
+                    <div class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 text-rose-700 dark:text-rose-300 space-y-1 mt-2">
                         <div class="font-bold">Rejection Reason:</div>
                         <div>@selectedDetailPurchase.RejectionReason</div>
                     </div>
@@ -467,11 +914,11 @@
                 {
                     var proofUrl = BuildFileUrl(selectedDetailPurchase.Proof.FileUrl);
                     <div class="pt-2">
-                        <span class="text-slate-500 block mb-1">Receipt Proof Image:</span>
-                        <div class="relative group cursor-pointer rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center p-1"
+                        <span class="text-on-surface-variant block mb-1">Receipt Proof Screenshot:</span>
+                        <div class="relative group cursor-pointer rounded-xl overflow-hidden border border-surface-container-high/40 bg-surface-container-low flex items-center justify-center p-1"
                              @onclick="() => OpenEnlargedImage(proofUrl)" title="Click to view full size">
                             <img src="@proofUrl" alt="Receipt Proof" class="w-full max-h-56 object-contain rounded-lg" />
-                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1.5 backdrop-blur-2xs">
+                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1.5">
                                 <span>🔍 Click to view full size</span>
                             </div>
                         </div>
@@ -480,24 +927,26 @@
             </div>
 
             <div class="pt-2">
-                <button @onclick="() => selectedDetailPurchase = null" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs cursor-pointer">
-                    Close
+                <button type="button" @onclick="() => selectedDetailPurchase = null" class="w-full py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-bold rounded-lg text-xs cursor-pointer transition">
+                    Close Detail
                 </button>
             </div>
         </div>
     </div>
 }
 
-<!-- FULL-SIZE IMAGE LIGHTBOX MODAL (Centered in Middle) -->
+<!-- ========================================================================= -->
+<!-- FULL-SIZE IMAGE LIGHTBOX MODAL                                            -->
+<!-- ========================================================================= -->
 @if (isLightboxOpen && !string.IsNullOrEmpty(lightboxImageUrl))
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150"
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm"
          @onclick="CloseLightbox">
-        <div class="relative max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-700 rounded-2xl p-3 shadow-2xl overflow-hidden flex flex-col items-center"
+        <div class="relative max-w-4xl max-h-[90vh] bg-surface-container-lowest border border-surface-container-high/60 rounded-2xl p-4 shadow-2xl overflow-hidden flex flex-col items-center"
              @onclick:stopPropagation="true">
-            <div class="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-white px-2">
-                <span class="text-xs font-bold text-slate-300">Payment Slip Receipt (Full Size)</span>
-                <button type="button" @onclick="CloseLightbox" class="text-slate-400 hover:text-white text-lg font-bold p-1 cursor-pointer">✕</button>
+            <div class="w-full flex items-center justify-between pb-2 mb-2 border-b border-surface-container-high/40 text-on-surface px-1">
+                <span class="text-xs font-bold text-on-surface">Payment Slip Receipt (Original Resolution)</span>
+                <button type="button" @onclick="CloseLightbox" class="text-on-surface-variant hover:text-on-surface text-lg font-bold p-1 cursor-pointer">✕</button>
             </div>
             <div class="overflow-auto max-h-[80vh] flex items-center justify-center w-full">
                 <img src="@lightboxImageUrl" alt="Full size payment slip" class="max-w-full max-h-[78vh] object-contain rounded-lg" />
@@ -508,6 +957,7 @@
 
 @code {
     private string activeTab = "buy";
+    private string purchaseStatusFilter = "ALL";
     private bool submissionCompleted = false;
     private string submittedPurchaseNumber = string.Empty;
 
@@ -531,10 +981,50 @@
     private bool isSubmitting = false;
 
     private PurchaseResponseDto? selectedDetailPurchase;
+    private string? localPreviewDataUrl;
+    private bool isLightboxOpen = false;
+    private string? lightboxImageUrl;
+
+    // Unique ID for the large 3D Spinning Prism hero decoration
+    private readonly string heroPrismContainerId = "ld_hero_prism_" + Guid.NewGuid().ToString("N")[..8];
+    private bool isHeroPrismInitialized = false;
+
+    private IEnumerable<PurchaseResponseDto> FilteredPurchases =>
+        string.Equals(purchaseStatusFilter, "ALL", StringComparison.OrdinalIgnoreCase)
+            ? userPurchases
+            : userPurchases.Where(p => string.Equals(p.Status, purchaseStatusFilter, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
     {
         await LoadAllAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !isHeroPrismInitialized)
+        {
+            isHeroPrismInitialized = true;
+            try
+            {
+                await JS.InvokeVoidAsync("initLinkDrop3d", heroPrismContainerId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing hero 3D prism: {ex.Message}");
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("disposeLinkDrop3d", heroPrismContainerId);
+        }
+        catch
+        {
+            // Circuit may have disconnected
+        }
     }
 
     private async Task LoadAllAsync()
@@ -600,6 +1090,13 @@
         Recalculate();
     }
 
+    private void SetPresetAmount(decimal amount)
+    {
+        isCustomPurchase = true;
+        customUsdAmount = amount;
+        Recalculate();
+    }
+
     private void SelectPaymentMethod(PaymentMethodDto method)
     {
         selectedPaymentMethod = method;
@@ -625,9 +1122,18 @@
         }
     }
 
-    private string? localPreviewDataUrl;
-    private bool isLightboxOpen = false;
-    private string? lightboxImageUrl;
+    private async Task CopyToClipboard(string text, string label)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            Toast.Success($"{label} copied to clipboard!");
+        }
+        catch
+        {
+            Toast.Info($"{label}: {text}");
+        }
+    }
 
     private async Task OnFileInputChange(InputFileChangeEventArgs e)
     {
