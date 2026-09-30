@@ -32,26 +32,58 @@
 
     <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-4 w-full space-y-3">
 
-        <!-- Breadcrumbs & Unboxed Page Title with 3D Spinning Prism -->
-        <div class="flex items-center justify-between gap-4">
-            <div>
-                <nav aria-label="Breadcrumbs" class="flex items-center gap-space-xs font-label-md text-xs text-on-surface-variant mb-1">
-                    <a class="hover:text-primary transition-colors" href="/">Platform</a>
-                    <span class="material-symbols-outlined text-[10px]">chevron_right</span>
-                    <span class="text-on-surface font-semibold">LinkDrops</span>
-                </nav>
-                <h1 class="text-xl sm:text-2xl font-bold text-on-surface tracking-tight">LinkDrop Treasury &amp; Top-Up</h1>
-                <p class="text-xs text-on-surface-variant mt-0.5">Top up your LinkDrop balance via KBZPay, WavePay, or bank transfer (1 Drop = 10 MMK)</p>
-            </div>
+        <!-- PROMINENT TOTAL LINKDROP BALANCE & 3D SPINNING PRISM SHOWCASE -->
+        <div class="rounded-2xl bg-surface-container-lowest border border-surface-container-high/40 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            
+            <!-- Left: Available Total LinkDrop Balance (Highly Visible to Customer) -->
+            <div class="space-y-1.5">
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-on-surface-variant font-label-sm">
+                        Available Wallet Balance
+                    </span>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-[10px] font-bold border border-primary/20">
+                        1 Drop = 10 MMK
+                    </span>
+                </div>
 
-            <!-- 3D Spinning Prism: Minimal Unboxed Decoration -->
-            <div class="relative shrink-0 flex items-center justify-center">
-                <div class="absolute w-20 h-20 rounded-full bg-sky-400/15 blur-lg pointer-events-none"></div>
-                <div id="@heroPrismContainerId"
-                     class="w-16 h-16 sm:w-20 sm:h-20 relative z-10 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
-                     title="Interactive 3D LinkDrop Sovereign Prism">
+                <div class="flex items-baseline gap-2.5">
+                    <span class="text-3xl sm:text-4xl lg:text-5xl font-black text-primary tracking-tight font-mono">
+                        @(wallet?.Balance.ToString("N0") ?? "0")
+                    </span>
+                    <span class="text-base sm:text-lg font-black text-on-surface">Link Drops</span>
+                    <span class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                        ≈ @(((wallet?.Balance ?? 0) * 10).ToString("N0")) MMK
+                    </span>
+                </div>
+
+                <!-- Balance Breakdown (Purchased & Earned) -->
+                <div class="flex flex-wrap items-center gap-3 text-xs text-on-surface-variant pt-0.5">
+                    <span class="inline-flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-primary"></span>
+                        <span>Purchased:</span>
+                        <strong class="text-on-surface font-mono font-bold">@(wallet?.PurchasedBalance.ToString("N0") ?? "0")</strong>
+                    </span>
+                    <span class="text-on-surface-variant/40 hidden sm:inline">&bull;</span>
+                    <span class="inline-flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>Earned:</span>
+                        <strong class="text-on-surface font-mono font-bold">@(wallet?.EarnedBalance.ToString("N0") ?? "0")</strong>
+                    </span>
                 </div>
             </div>
+
+            <!-- Right: Prominent 3D Spinning Prism Showcase (Visible, Eye-Catching & Interactive) -->
+            <div class="relative shrink-0 flex items-center justify-center self-center md:self-auto pr-0 sm:pr-2">
+                <!-- Soft Cyan/Blue Neon Glow Behind Prism -->
+                <div class="absolute w-36 h-36 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-sky-400/25 via-primary/20 to-indigo-500/20 blur-2xl pointer-events-none"></div>
+
+                <!-- 3D Spinning Prism Canvas Container (Large & clearly visible: 136px - 160px) -->
+                <div id="@heroPrismContainerId"
+                     class="w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 relative z-10 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+                     title="Interactive 3D LinkDrop Sovereign Prism — Click & drag to rotate">
+                </div>
+            </div>
+
         </div>
 
         <!-- NAVIGATION TABS STRIP -->
@@ -80,13 +112,10 @@
                 </button>
             </div>
 
-            <!-- Quick Active Balance Pill -->
-            <div class="flex items-center justify-between sm:justify-end gap-2.5 px-3 py-1 rounded-lg bg-surface-container border border-surface-container-high/30">
-                <span class="text-on-surface-variant font-label-sm text-xs">Active Balance:</span>
-                <div class="inline-flex items-center gap-1 font-title-sm font-bold text-primary text-xs">
-                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                    <span>@(wallet?.Balance.ToString("N0") ?? "0") Drops</span>
-                </div>
+            <!-- Protocol Badge -->
+            <div class="flex items-center justify-between sm:justify-end gap-2 px-3 py-1 rounded-lg bg-surface-container border border-surface-container-high/30">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-on-surface-variant font-label-sm text-xs font-medium">Settlement Rails Active</span>
             </div>
         </div>
 
