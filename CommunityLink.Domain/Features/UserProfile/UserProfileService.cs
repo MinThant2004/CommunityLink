@@ -278,83 +278,110 @@ public class UserProfileService : IUserProfileService
 
     public async Task<Result<List<UserPostItemDto>>> GetUserPostsAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default)
     {
-        var rawPosts = await _dbContext.TblPosts
-            .Include(p => p.Author)
-            .Include(p => p.Community)
-            .Include(p => p.TblPostImages)
-            .Include(p => p.TblPostLikes)
-            .Include(p => p.TblComments)
-            .Include(p => p.TblPolls)
-                .ThenInclude(poll => poll.TblPollOptions)
-            .Include(p => p.TblPolls)
-                .ThenInclude(poll => poll.TblPollVotes)
-            .Where(p => p.AuthorId == targetUserId && !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync(cancellationToken);
+        try
+        {
+            var rawPosts = await _dbContext.TblPosts
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Include(p => p.Author)
+                .Include(p => p.Community)
+                .Include(p => p.TblPostImages)
+                .Include(p => p.TblPostLikes)
+                .Include(p => p.TblComments)
+                .Include(p => p.TblPolls)
+                    .ThenInclude(poll => poll.TblPollOptions)
+                .Include(p => p.TblPolls)
+                    .ThenInclude(poll => poll.TblPollVotes)
+                .Where(p => p.AuthorId == targetUserId && !p.IsDeleted)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync(cancellationToken);
 
-        var list = rawPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
-        return Result<List<UserPostItemDto>>.Success(list);
+            var list = rawPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
+            return Result<List<UserPostItemDto>>.Success(list);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return Result<List<UserPostItemDto>>.Success([], "Request was canceled.");
+        }
     }
 
     public async Task<Result<List<UserPostItemDto>>> GetSavedPostsAsync(int currentUserId, CancellationToken cancellationToken = default)
     {
-        var rawPosts = await _dbContext.TblSavedPosts
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.Author)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.Community)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.TblPostImages)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.TblPostLikes)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.TblComments)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.TblPolls)
-                    .ThenInclude(poll => poll.TblPollOptions)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.TblPolls)
-                    .ThenInclude(poll => poll.TblPollVotes)
-            .Where(sp => sp.UserId == currentUserId && !sp.IsDeleted && sp.Post != null && !sp.Post.IsDeleted)
-            .OrderByDescending(sp => sp.CreatedAt)
-            .Select(sp => sp.Post)
-            .ToListAsync(cancellationToken);
+        try
+        {
+            var rawPosts = await _dbContext.TblSavedPosts
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Include(sp => sp.Post)
+                    .ThenInclude(p => p.Author)
+                .Include(sp => sp.Post)
+                    .ThenInclude(p => p.Community)
+                .Include(sp => sp.Post)
+                    .ThenInclude(p => p.TblPostImages)
+                .Include(sp => sp.Post)
+                    .ThenInclude(p => p.TblPostLikes)
+                .Include(sp => sp.Post)
+                    .ThenInclude(p => p.TblComments)
+                .Include(sp => sp.Post)
+                    .ThenInclude(p => p.TblPolls)
+                        .ThenInclude(poll => poll.TblPollOptions)
+                .Include(sp => sp.Post)
+                    .ThenInclude(p => p.TblPolls)
+                        .ThenInclude(poll => poll.TblPollVotes)
+                .Where(sp => sp.UserId == currentUserId && !sp.IsDeleted && sp.Post != null && !sp.Post.IsDeleted)
+                .OrderByDescending(sp => sp.CreatedAt)
+                .Select(sp => sp.Post)
+                .ToListAsync(cancellationToken);
 
-        var list = rawPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
-        return Result<List<UserPostItemDto>>.Success(list);
+            var list = rawPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
+            return Result<List<UserPostItemDto>>.Success(list);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return Result<List<UserPostItemDto>>.Success([], "Request was canceled.");
+        }
     }
 
     public async Task<Result<List<UserPostItemDto>>> GetRecycledPostsAsync(int currentUserId, CancellationToken cancellationToken = default)
     {
-        var tenDaysAgo = DateTime.UtcNow.AddDays(-10);
-
-        // Auto-purge any recycled posts older than 10 days
-        var expiredPosts = await _dbContext.TblPosts
-            .Where(p => p.AuthorId == currentUserId && p.IsDeleted && p.DeletedAt.HasValue && p.DeletedAt.Value < tenDaysAgo)
-            .ToListAsync(cancellationToken);
-
-        if (expiredPosts.Any())
+        try
         {
-            _dbContext.TblPosts.RemoveRange(expiredPosts);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            var tenDaysAgo = DateTime.UtcNow.AddDays(-10);
+
+            // Auto-purge any recycled posts older than 10 days
+            var expiredPosts = await _dbContext.TblPosts
+                .Where(p => p.AuthorId == currentUserId && p.IsDeleted && p.DeletedAt.HasValue && p.DeletedAt.Value < tenDaysAgo)
+                .ToListAsync(cancellationToken);
+
+            if (expiredPosts.Any())
+            {
+                _dbContext.TblPosts.RemoveRange(expiredPosts);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            var recycledPosts = await _dbContext.TblPosts
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Include(p => p.Author)
+                .Include(p => p.Community)
+                .Include(p => p.TblPostImages)
+                .Include(p => p.TblPostLikes)
+                .Include(p => p.TblComments)
+                .Include(p => p.TblPolls)
+                    .ThenInclude(poll => poll.TblPollOptions)
+                .Include(p => p.TblPolls)
+                    .ThenInclude(poll => poll.TblPollVotes)
+                .Where(p => p.AuthorId == currentUserId && p.IsDeleted && (!p.DeletedAt.HasValue || p.DeletedAt.Value >= tenDaysAgo))
+                .OrderByDescending(p => p.DeletedAt ?? p.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+            var list = recycledPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
+            return Result<List<UserPostItemDto>>.Success(list);
         }
-
-        var recycledPosts = await _dbContext.TblPosts
-            .Include(p => p.Author)
-            .Include(p => p.Community)
-            .Include(p => p.TblPostImages)
-            .Include(p => p.TblPostLikes)
-            .Include(p => p.TblComments)
-            .Include(p => p.TblPolls)
-                .ThenInclude(poll => poll.TblPollOptions)
-            .Include(p => p.TblPolls)
-                .ThenInclude(poll => poll.TblPollVotes)
-            .Where(p => p.AuthorId == currentUserId && p.IsDeleted && (!p.DeletedAt.HasValue || p.DeletedAt.Value >= tenDaysAgo))
-            .OrderByDescending(p => p.DeletedAt ?? p.CreatedAt)
-            .ToListAsync(cancellationToken);
-
-        var list = recycledPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
-        return Result<List<UserPostItemDto>>.Success(list);
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return Result<List<UserPostItemDto>>.Success([], "Request was canceled.");
+        }
     }
 
     public async Task<Result> RestorePostAsync(int currentUserId, int postId, CancellationToken cancellationToken = default)
