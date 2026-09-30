@@ -24,7 +24,8 @@
     }
 
     <div class="mx-auto flex max-w-3xl items-end gap-2">
-        <div class="relative shrink-0">
+        <div class="relative shrink-0 flex items-center gap-1">
+            <!-- Emoji Picker Button -->
             <button type="button"
                     @onclick="ToggleEmojiPicker"
                     title="Insert emoji"
@@ -43,6 +44,39 @@
                     {
                         <button type="button" @onclick="() => AddEmoji(emoji)" class="cursor-pointer rounded-lg p-1.5 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             @emoji
+                        </button>
+                    }
+                </div>
+            }
+
+            <!-- Sticker Picker Button -->
+            <button type="button"
+                    @onclick="ToggleStickerPicker"
+                    title="Send sticker"
+                    aria-label="Send sticker"
+                    aria-expanded="@showStickerPicker.ToString().ToLowerInvariant()"
+                    class="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+                    <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                    <path d="M9 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" fill="currentColor"/>
+                    <path d="M15 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" fill="currentColor"/>
+                    <path d="M10 16c.8 1 3.2 1 4 0"/>
+                </svg>
+            </button>
+
+            @if (showStickerPicker)
+            {
+                <div class="absolute bottom-12 left-8 z-30 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">Stickers</div>
+                    @foreach (var s in availableStickers)
+                    {
+                        <button type="button"
+                                @onclick="() => SendSticker(s.Url)"
+                                title="@s.Name"
+                                disabled="@(IsSubmitting || Disabled)"
+                                class="group relative flex h-12 w-12 items-center justify-center rounded-xl p-1 transition hover:scale-110 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <img src="@s.Url" alt="@s.Name" class="h-10 w-10 object-contain drop-shadow-sm transition group-hover:drop-shadow-md" />
                         </button>
                     }
                 </div>
@@ -97,12 +131,41 @@
 
     private string messageText = "";
     private bool showEmojiPicker;
+    private bool showStickerPicker;
     private bool _isCurrentlyTyping;
     private System.Threading.Timer? _typingTimer;
 
     private static readonly string[] quickEmojis = ["👍", "❤️", "🔥", "😊", "🎉", "👏", "🚀", "💡"];
 
-    private void ToggleEmojiPicker() => showEmojiPicker = !showEmojiPicker;
+    private record StickerItem(string Name, string Url);
+    private static readonly StickerItem[] availableStickers =
+    [
+        new("Like", "/stickers/like.svg"),
+        new("Love", "/stickers/love.svg"),
+        new("Fire", "/stickers/fire.svg"),
+        new("Party", "/stickers/party.svg"),
+        new("Cool", "/stickers/cool.svg")
+    ];
+
+    private void ToggleEmojiPicker()
+    {
+        showEmojiPicker = !showEmojiPicker;
+        if (showEmojiPicker) showStickerPicker = false;
+    }
+
+    private void ToggleStickerPicker()
+    {
+        showStickerPicker = !showStickerPicker;
+        if (showStickerPicker) showEmojiPicker = false;
+    }
+
+    private async Task SendSticker(string stickerUrl)
+    {
+        if (IsSubmitting || Disabled) return;
+        showStickerPicker = false;
+        var payload = new SendMessagePayload($"[sticker:{stickerUrl}]", ReplyToMessage?.Id);
+        await OnSend.InvokeAsync(payload);
+    }
 
     private async Task AddEmoji(string emoji)
     {

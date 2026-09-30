@@ -224,6 +224,9 @@ public partial class AppDbContext
             entity.ToTable("TblChatMessageUserState");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.RowVersion)
+                .HasDefaultValueSql("(CONVERT(VARBINARY(8), NEWID()))")
+                .ValueGeneratedOnAdd();
 
             // Not a concurrency token on purpose. Two tabs toggling the same reaction or the
             // same hide flag would otherwise surface DbUpdateConcurrencyException as a 500, and
@@ -248,6 +251,9 @@ public partial class AppDbContext
             entity.ToTable("TblChatGroupMessageUserState");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.RowVersion)
+                .HasDefaultValueSql("(CONVERT(VARBINARY(8), NEWID()))")
+                .ValueGeneratedOnAdd();
 
             entity.HasIndex(e => new { e.ChatGroupMessageId, e.UserId }).IsUnique();
             entity.HasIndex(e => new { e.UserId, e.IsHidden });
@@ -270,6 +276,9 @@ public partial class AppDbContext
 
             entity.Property(e => e.Emoji).HasMaxLength(16).IsRequired();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.RowVersion)
+                .HasDefaultValueSql("(CONVERT(VARBINARY(8), NEWID()))")
+                .ValueGeneratedOnAdd();
 
             // One reaction per person per message: choosing a different emoji updates the row.
             entity.HasIndex(e => new { e.ChatMessageId, e.UserId }).IsUnique();
@@ -292,6 +301,9 @@ public partial class AppDbContext
 
             entity.Property(e => e.Emoji).HasMaxLength(16).IsRequired();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.RowVersion)
+                .HasDefaultValueSql("(CONVERT(VARBINARY(8), NEWID()))")
+                .ValueGeneratedOnAdd();
 
             entity.HasIndex(e => new { e.ChatGroupMessageId, e.UserId }).IsUnique();
 
@@ -321,14 +333,35 @@ public partial class AppDbContext
 
     private void EnsureRowVersions()
     {
-        // SQL Server handles rowversion/timestamp columns automatically on the database server.
-        // Inserting an explicit value into a SQL Server timestamp column throws SqlException.
-        // Only generate in-memory dummy rowversions for testing providers like InMemoryDatabase.
+        // 1. In-memory database doesn't auto-generate rowversions for any entity.
         if (Database.IsInMemory())
         {
             foreach (var entry in ChangeTracker.Entries())
             {
                 if (entry.State is EntityState.Added or EntityState.Modified)
+                {
+                    var rowVersionProp = entry.Properties.FirstOrDefault(p => p.Metadata.Name == "RowVersion");
+                    if (rowVersionProp != null && (rowVersionProp.CurrentValue == null || ((byte[])rowVersionProp.CurrentValue).Length == 0))
+                    {
+                        rowVersionProp.CurrentValue = Guid.NewGuid().ToByteArray()[..8];
+                    }
+                }
+            }
+            return;
+        }
+
+        // 2. On SQL Server, native ROWVERSION/TIMESTAMP columns must NOT be assigned values on insert.
+        // However, tables created with VARBINARY(8) (like TblChatMessageReaction, TblChatMessageUserState,
+        // TblChatGroupMessageReaction, TblChatGroupMessageUserState) require a non-null VARBINARY(8) value.
+        // If EF Core hasn't marked them as store-generated or sends null, supply the 8-byte token.
+        foreach (var entry in ChangeTracker.Entries())
+        {
+            if (entry.State == EntityState.Added)
+            {
+                if (entry.Entity is TblChatMessageReaction
+                    or TblChatGroupMessageReaction
+                    or TblChatMessageUserState
+                    or TblChatGroupMessageUserState)
                 {
                     var rowVersionProp = entry.Properties.FirstOrDefault(p => p.Metadata.Name == "RowVersion");
                     if (rowVersionProp != null && (rowVersionProp.CurrentValue == null || ((byte[])rowVersionProp.CurrentValue).Length == 0))

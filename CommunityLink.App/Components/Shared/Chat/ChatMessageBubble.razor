@@ -55,8 +55,17 @@
                 </div>
             }
 
-            <!-- Main Message Text -->
-            <div class="whitespace-pre-wrap break-words">@Message.Content</div>
+            <!-- Main Message Content -->
+            @if (IsSticker(Message.Content, out var stickerUrl))
+            {
+                <div class="py-1">
+                    <img src="@stickerUrl" alt="Sticker" class="h-28 w-28 object-contain transition-transform hover:scale-105 drop-shadow-md select-none" />
+                </div>
+            }
+            else
+            {
+                <div class="whitespace-pre-wrap break-words">@Message.Content</div>
+            }
 
             <!-- Reaction Badges Bar -->
             @if (GroupedReactions.Any())
@@ -262,6 +271,19 @@
     {
         showMenu = false;
         await OnDeleteForEveryone.InvokeAsync(Message);
+    }
+
+    private static bool IsSticker(string? content, out string url)
+    {
+        url = "";
+        if (string.IsNullOrWhiteSpace(content)) return false;
+        var trimmed = content.Trim();
+        if (trimmed.StartsWith("[sticker:") && trimmed.EndsWith("]"))
+        {
+            url = trimmed.Substring(9, trimmed.Length - 10).Trim();
+            return !string.IsNullOrWhiteSpace(url);
+        }
+        return false;
     }
 
     private record GroupedReaction(string Emoji, int Count, bool HasUserReacted, string UserList);
