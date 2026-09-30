@@ -16,8 +16,8 @@
     <div class="bg-white dark:bg-[#112A46] rounded-lg shadow-xs border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded bg-[#F1F5F9] dark:bg-[#1B3B5A] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] flex items-center justify-center text-xl font-bold shadow-xs">
-                    📊
+                <div class="w-12 h-12 rounded bg-[#F1F5F9] dark:bg-[#1B3B5A] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] flex items-center justify-center shadow-xs">
+                    <svg class="w-6 h-6 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 </div>
                 <div>
                     <h1 class="text-xl font-extrabold text-[#0A1B2E] dark:text-[#E1E8F0] tracking-tight" style="font-family:'Manrope',sans-serif">Live Community Polls</h1>
@@ -48,7 +48,9 @@
     else if (polls == null || polls.Count == 0)
     {
         <div class="bg-white dark:bg-[#112A46] rounded-lg border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] p-12 text-center text-[#557392] dark:text-[#C4D2E1]">
-            <div class="text-4xl mb-3">🗳️</div>
+            <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            </div>
             <h3 class="text-base font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">No active polls found</h3>
             <p class="text-sm mt-1">Start a discussion and collect opinions by creating the first poll.</p>
         </div>
@@ -92,8 +94,9 @@
                             <div>
                                 @if (poll.IsExpired)
                                 {
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30">
-                                        <span>🔒</span> Closed
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                        <span>Closed</span>
                                     </span>
                                 }
                                 else if (poll.ExpiresAt.HasValue)
@@ -105,8 +108,9 @@
                                             ? $"{(int)remaining.TotalHours}h left"
                                             : $"{(int)remaining.TotalMinutes}m left";
 
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                                        <span>⏳</span> @remainingStr
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>@remainingStr</span>
                                     </span>
                                 }
                                 else
@@ -180,7 +184,7 @@
                     <!-- Voting Summary / Status Line -->
                     <div class="px-5 py-2.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between text-xs text-[#557392] dark:text-[#7A8CA6]">
                         <div class="flex items-center gap-2 font-mono">
-                            <span>👥 @poll.TotalVotes total votes</span>
+                            <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>@poll.TotalVotes total votes</span>
                             <span>•</span>
                             <span>@(poll.IsMultipleChoice ? "Multiple votes allowed" : "Single choice")</span>
                         </div>
@@ -243,8 +247,8 @@
                         <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] p-4 sm:p-5 bg-[#F8FAFC] dark:bg-[#0A1B2E] space-y-4">
                             <!-- New Comment Input -->
                             <div class="flex items-start gap-2.5">
-                                <div class="w-8 h-8 rounded-full bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)]">
-                                    💬
+                                <div class="w-8 h-8 rounded-full bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center shrink-0 mt-0.5 border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)]">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                                 </div>
                                 <div class="flex-1 flex gap-2">
                                     <input type="text" @bind="commentInputs[poll.PostId]"
@@ -302,7 +306,7 @@
             <!-- Modal Header -->
             <div class="px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="text-xl">📊</span>
+                    <svg class="w-5 h-5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">Create Community Poll</h3>
                 </div>
                 <button type="button" @onclick="CloseModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white p-1 rounded hover:bg-[#E2E8F0] dark:hover:bg-[#1B3B5A] transition">
@@ -470,7 +474,7 @@
                         class="px-5 py-2 text-sm bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold rounded shadow-sm transition disabled:opacity-50 flex items-center gap-2">
                     @if (isSubmitting)
                     {
-                        <span class="animate-spin">⏳</span>
+                        <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <span>Publishing...</span>
                     }
                     else
@@ -490,7 +494,7 @@
         <div class="bg-white dark:bg-[#112A46] rounded-lg shadow-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] w-full max-w-md overflow-hidden text-[#0A1B2E] dark:text-[#E1E8F0]">
             <div class="px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="text-xl">🚀</span>
+                    <svg class="w-5 h-5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
                     <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">Share Poll</h3>
                 </div>
                 <button type="button" @onclick="CloseShareModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white p-1 rounded hover:bg-[#E2E8F0] dark:hover:bg-[#1B3B5A] transition">
@@ -517,7 +521,7 @@
                         class="px-5 py-2 text-sm bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold rounded shadow-sm transition disabled:opacity-50 flex items-center gap-2">
                     @if (isSubmitting)
                     {
-                        <span class="animate-spin">⏳</span>
+                        <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <span>Sharing...</span>
                     }
                     else

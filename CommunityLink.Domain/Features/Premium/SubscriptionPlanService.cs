@@ -65,8 +65,8 @@ public sealed class SubscriptionPlanService(AppDbContext dbContext) : ISubscript
         if (request.DurationDays <= 0)
             return Result<SubscriptionPlanDto>.Failure("Duration days must be at least 1.", ResultStatus.ValidationError);
 
-        if (request.PriceAmount < 0)
-            return Result<SubscriptionPlanDto>.Failure("Price amount cannot be negative.", ResultStatus.ValidationError);
+        if (request.LinkDropCost <= 0)
+            return Result<SubscriptionPlanDto>.Failure("LinkDrop points cost must be at least 1 point.", ResultStatus.ValidationError);
 
         var normalizedTarget = request.TargetRoleCode.Trim().ToUpperInvariant();
         if (normalizedTarget != "DOMAIN_PRO" && normalizedTarget != "PUBLIC_FIGURE")
@@ -108,8 +108,8 @@ public sealed class SubscriptionPlanService(AppDbContext dbContext) : ISubscript
         if (request.DurationDays <= 0)
             return Result<SubscriptionPlanDto>.Failure("Duration days must be at least 1.", ResultStatus.ValidationError);
 
-        if (request.PriceAmount < 0)
-            return Result<SubscriptionPlanDto>.Failure("Price amount cannot be negative.", ResultStatus.ValidationError);
+        if (request.LinkDropCost <= 0)
+            return Result<SubscriptionPlanDto>.Failure("LinkDrop points cost must be at least 1 point.", ResultStatus.ValidationError);
 
         var normalizedTarget = request.TargetRoleCode.Trim().ToUpperInvariant();
         if (normalizedTarget != "DOMAIN_PRO" && normalizedTarget != "PUBLIC_FIGURE")

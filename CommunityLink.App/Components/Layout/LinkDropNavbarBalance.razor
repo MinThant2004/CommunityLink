@@ -4,33 +4,23 @@
 @implements IDisposable
 
 <div class="relative inline-flex items-center" data-testid="linkdrop-navbar-balance">
-    @if (isLoading)
-    {
-        <a href="linkdrops"
-           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200 transition hover:bg-sky-100"
-           title="Loading Link Drop Balance...">
-            <span class="text-sm">💧</span>
+    <a href="linkdrops"
+       class="inline-flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-lg text-xs font-bold @(isError ? "bg-slate-100 dark:bg-[#182030] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-[rgba(255,255,255,0.08)]" : "bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-200 border border-sky-200 dark:border-sky-800/60 hover:bg-sky-100 dark:hover:bg-sky-900/50 hover:border-sky-300 dark:hover:border-sky-700") transition shadow-2xs group cursor-pointer"
+       title="@(isLoading ? "Loading Link Drop Balance..." : isError || wallet == null ? "Link Drop Wallet Unavailable" : $"Total Link Drops: {wallet.Balance:N0} (Purchased: {wallet.PurchasedBalance:N0} | Earned: {wallet.EarnedBalance:N0})")">
+        <LinkDrop3dIcon Class="w-6 h-6 shrink-0 group-hover:scale-110 transition-transform" />
+        @if (isLoading)
+        {
             <span class="animate-pulse text-sky-500 font-mono">...</span>
-        </a>
-    }
-    else if (isError || wallet == null)
-    {
-        <a href="linkdrops"
-           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200 transition hover:bg-slate-200"
-           title="Link Drop Wallet Unavailable">
-            <span class="text-sm">💧</span>
+        }
+        else if (isError || wallet == null)
+        {
             <span class="font-mono">--</span>
-        </a>
-    }
-    else
-    {
-        <a href="linkdrops"
-           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-50 text-sky-800 border border-sky-200 hover:bg-sky-100 hover:border-sky-300 transition shadow-2xs group"
-           title="Total Link Drops: @wallet.Balance.ToString("N0") (Purchased: @wallet.PurchasedBalance.ToString("N0") | Earned: @wallet.EarnedBalance.ToString("N0"))">
-            <span class="text-sm group-hover:scale-110 transition-transform">💧</span>
+        }
+        else
+        {
             <span class="font-mono tracking-tight" data-testid="linkdrop-total-balance">@wallet.Balance.ToString("N0")</span>
-        </a>
-    }
+        }
+    </a>
 </div>
 
 @code {

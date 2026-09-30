@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+<!-- STITCH_THREEJS_START:ANIMATION_100 class="fixed inset-0 w-full h-full bg-transparent" -->
+<div class="fixed inset-0 w-full h-full bg-transparent" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_100" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_100');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const w = container.clientWidth || window.innerWidth || 600;
+const h = container.clientHeight || window.innerHeight || 600;
+
+// Setup Scene & Camera
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+camera.position.set(0, 0, 8.5);
+
+// WebGLRenderer with Alpha transparency
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+renderer.setSize(w, h);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+container.appendChild(renderer.domElement);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
+scene.add(ambientLight);
+
+const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 2.8);
+dirLight1.position.set(5, 8, 6);
+scene.add(dirLight1);
+
+const dirLight2 = new THREE.DirectionalLight(0x0284c7, 2.2);
+dirLight2.position.set(-6, -4, -4);
+scene.add(dirLight2);
+
+const pointLight = new THREE.PointLight(0x00f0ff, 4.0, 15);
+pointLight.position.set(0, 0, 2);
+scene.add(pointLight);
+
+// Master Group holding prism and neon ring
+const masterGroup = new THREE.Group();
+scene.add(masterGroup);
+
+// Internal Prism Group
+const prismGroup = new THREE.Group();
+masterGroup.add(prismGroup);
+
+// Rhombic Bipyramid Geometry (Pure 3D Diamond Prism, no chevron cutout)
+const vertices = new Float32Array([
+  // Top-Front-Right
+  0, 2.6, 0,   1.8, 0, 0,   0, 0, 1.1,
+  // Top-Front-Left
+  0, 2.6, 0,   0, 0, 1.1,   -1.8, 0, 0,
+  // Top-Back-Left
+  0, 2.6, 0,   -1.8, 0, 0,  0, 0, -1.1,
+  // Top-Back-Right
+  0, 2.6, 0,   0, 0, -1.1,  1.8, 0, 0,
+
+  // Bottom-Front-Right
+  0, -2.6, 0,  0, 0, 1.1,   1.8, 0, 0,
+  // Bottom-Front-Left
+  0, -2.6, 0,  -1.8, 0, 0,  0, 0, 1.1,
+  // Bottom-Back-Left
+  0, -2.6, 0,  0, 0, -1.1,  -1.8, 0, 0,
+  // Bottom-Back-Right
+  0, -2.6, 0,  1.8, 0, 0,   0, 0, -1.1,
+]);
+
+const prismGeo = new THREE.BufferGeometry();
+prismGeo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+prismGeo.computeVertexNormals();
+
+// Translucent Crystalline Material
+const prismMat = new THREE.MeshPhongMaterial({
+  color: 0x0284c7,
+  emissive: 0x0369a1,
+  specular: 0xffffff,
+  shininess: 95,
+  transparent: true,
+  opacity: 0.72,
+  side: THREE.DoubleSide,
+  depthWrite: false
+});
+
+const prismMesh = new THREE.Mesh(prismGeo, prismMat);
+prismGroup.add(prismMesh);
+
+// Glowing Edge Highlights
+const wireMat = new THREE.LineBasicMaterial({
+  color: 0xa5f3fc,
+  linewidth: 2,
+  transparent: true,
+  opacity: 0.95
+});
+const wireframeGeo = new THREE.WireframeGeometry(prismGeo);
+const wireframe = new THREE.LineSegments(wireframeGeo, wireMat);
+prismGroup.add(wireframe);
+
+// Inner Core Glowing Nucleus (Escrow settlement core)
+const coreGeo = new THREE.SphereGeometry(0.36, 32, 32);
+const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+prismGroup.add(coreMesh);
+
+const haloGeo = new THREE.SphereGeometry(0.58, 32, 32);
+const haloMat = new THREE.MeshBasicMaterial({
+  color: 0x38bdf8,
+  transparent: true,
+  opacity: 0.55
+});
+const haloMesh = new THREE.Mesh(haloGeo, haloMat);
+prismGroup.add(haloMesh);
+
+// 6 Outer Quantum Node Pips at Diamond Vertices
+const nodeGeo = new THREE.SphereGeometry(0.12, 16, 16);
+const nodeMat = new THREE.MeshBasicMaterial({ color: 0x67e8f9 });
+const nodePositions = [
+  [1.8, 0, 0],
+  [-1.8, 0, 0],
+  [0, 0, 1.1],
+  [0, 0, -1.1],
+  [0, 2.6, 0],
+  [0, -2.6, 0]
+];
+nodePositions.forEach(pos => {
+  const node = new THREE.Mesh(nodeGeo, nodeMat);
+  node.position.set(pos[0], pos[1], pos[2]);
+  prismGroup.add(node);
+});
+
+// THIN NEON STRING / RING ENCLOSING THE PRISM (Replaces the 2D dotted circle from Concept 3)
+// We build a multi-layered luminous thin neon ring that orbits smoothly around the prism
+const neonRingGroup = new THREE.Group();
+masterGroup.add(neonRingGroup);
+
+// 1. Core bright white-hot neon wire (fine thin tube)
+const thinStringGeo = new THREE.TorusGeometry(2.8, 0.022, 24, 128);
+const thinStringMat = new THREE.MeshBasicMaterial({
+  color: 0xffffff,
+  transparent: true,
+  opacity: 0.95
+});
+const thinStringMesh = new THREE.Mesh(thinStringGeo, thinStringMat);
+neonRingGroup.add(thinStringMesh);
+
+// 2. Intense electric cyan luminous bloom tube
+const neonBloomGeo = new THREE.TorusGeometry(2.8, 0.065, 24, 128);
+const neonBloomMat = new THREE.MeshBasicMaterial({
+  color: 0x00f0ff,
+  transparent: true,
+  opacity: 0.65
+});
+const neonBloomMesh = new THREE.Mesh(neonBloomGeo, neonBloomMat);
+neonRingGroup.add(neonBloomMesh);
+
+// 3. Wide diffuse neon aura halo
+const neonAuraGeo = new THREE.TorusGeometry(2.8, 0.14, 16, 128);
+const neonAuraMat = new THREE.MeshBasicMaterial({
+  color: 0x0284c7,
+  transparent: true,
+  opacity: 0.28
+});
+const neonAuraMesh = new THREE.Mesh(neonAuraGeo, neonAuraMat);
+neonRingGroup.add(neonAuraMesh);
+
+// 4. Subtle secondary orbital neon ring tilted on complementary angle
+const secRingGeo = new THREE.TorusGeometry(3.05, 0.016, 20, 128);
+const secRingMat = new THREE.MeshBasicMaterial({
+  color: 0x38bdf8,
+  transparent: true,
+  opacity: 0.55
+});
+const secRingMesh = new THREE.Mesh(secRingGeo, secRingMat);
+secRingMesh.rotation.x = Math.PI / 3;
+secRingMesh.rotation.y = Math.PI / 6;
+masterGroup.add(secRingMesh);
+
+// Interactive Drag Rotation & Auto-spin
+let isDragging = false;
+let previousMousePosition = { x: 0, y: 0 };
+let spinVelocityY = 0.012;
+let spinVelocityX = 0.004;
+
+container.addEventListener('mousedown', e => {
+  isDragging = true;
+  previousMousePosition = { x: e.clientX, y: e.clientY };
+});
+
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const deltaX = e.clientX - previousMousePosition.x;
+  const deltaY = e.clientY - previousMousePosition.y;
+
+  masterGroup.rotation.y += deltaX * 0.01;
+  masterGroup.rotation.x += deltaY * 0.01;
+
+  previousMousePosition = { x: e.clientX, y: e.clientY };
+});
+
+window.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+
+// Touch controls for mobile
+container.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+}, { passive: true });
+
+window.addEventListener('touchmove', e => {
+  if (!isDragging || e.touches.length !== 1) return;
+  const deltaX = e.touches[0].clientX - previousMousePosition.x;
+  const deltaY = e.touches[0].clientY - previousMousePosition.y;
+
+  masterGroup.rotation.y += deltaX * 0.01;
+  masterGroup.rotation.x += deltaY * 0.01;
+
+  previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, { passive: true });
+
+window.addEventListener('touchend', () => {
+  isDragging = false;
+});
+
+// Window resize handler
+function onWindowResize() {
+  const width = container.clientWidth || window.innerWidth;
+  const height = container.clientHeight || window.innerHeight;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+}
+window.addEventListener('resize', onWindowResize);
+
+// Animation Loop
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const elapsedTime = clock.getElapsedTime();
+
+  if (!isDragging) {
+    prismGroup.rotation.y += 0.014;
+    prismGroup.rotation.x = Math.sin(elapsedTime * 0.7) * 0.15;
+    prismGroup.position.y = Math.sin(elapsedTime * 1.6) * 0.12;
+
+    // Smooth subtle counter-orbital rotation for the thin neon rings
+    neonRingGroup.rotation.x = Math.PI / 2.3 + Math.sin(elapsedTime * 0.5) * 0.12;
+    neonRingGroup.rotation.y += 0.008;
+    secRingMesh.rotation.z += 0.005;
+  }
+
+  // Pulsing Core
+  const pulse = 1 + Math.sin(elapsedTime * 3.8) * 0.16;
+  haloMesh.scale.set(pulse, pulse, pulse);
+
+  // Subtle breathing bloom on the neon string
+  const ringPulse = 1 + Math.sin(elapsedTime * 2.5) * 0.06;
+  neonBloomMesh.scale.set(ringPulse, ringPulse, ringPulse);
+
+  renderer.render(scene, camera);
+}
+animate();
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_100 -->
+</body>
+</html>

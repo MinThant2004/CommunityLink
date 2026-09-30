@@ -6,15 +6,18 @@
 
 <PageTitle>Identity Verification Audits — Admin Control Panel</PageTitle>
 
-<div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
+<div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E2EC] transition-colors duration-150">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">🛡️ Identity Verification Audits</h1>
-            <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">Inspect official government credentials, legal identities, and LinkDrop payments submitted for premium badge upgrades.</p>
+            <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E2EC] flex items-center gap-2.5" style="font-family:'Manrope',sans-serif">
+                <svg class="w-6 h-6 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Identity Verification Audits</span>
+            </h1>
+            <p class="text-sm text-[#557392] dark:text-[#94A3B8]">Inspect official government credentials, legal identities, and LinkDrop payments submitted for premium badge upgrades.</p>
         </div>
         <div class="flex items-center gap-2">
-            <button @onclick="LoadVerificationsAsync" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition flex items-center gap-2 cursor-pointer shadow-sm">
+            <button @onclick="LoadVerificationsAsync" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E2EC] bg-white dark:bg-[#111622] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition flex items-center gap-2 cursor-pointer shadow-sm">
                 <svg class="w-3.5 h-3.5 @(isLoading ? "animate-spin" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Refresh List</span>
             </button>
@@ -22,17 +25,20 @@
     </div>
 
     <!-- Status Filter Tabs -->
-    <div class="flex items-center gap-2 border-b border-[#E2E8F0] pb-3 text-xs font-semibold">
-        <button @onclick='() => statusFilter = "PENDING"' class="px-3 py-1.5 rounded-lg transition @(statusFilter == "PENDING" ? "bg-amber-600 text-white shadow-sm" : "bg-white text-[#557392] hover:bg-[#F1F5F9]")">
-            ⏳ Pending Review (@(allList?.Count(v => v.Status == "PENDING") ?? 0))
+    <div class="flex items-center gap-2 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-3 text-xs font-semibold">
+        <button @onclick='() => statusFilter = "PENDING"' class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer @(statusFilter == "PENDING" ? "bg-amber-600 text-white shadow-sm" : "bg-white dark:bg-[#111622] text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
+            <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Pending Review (@(allList?.Count(v => IsPending(v.Status)) ?? 0))</span>
         </button>
-        <button @onclick='() => statusFilter = "APPROVED"' class="px-3 py-1.5 rounded-lg transition @(statusFilter == "APPROVED" ? "bg-emerald-600 text-white shadow-sm" : "bg-white text-[#557392] hover:bg-[#F1F5F9]")">
-            ✅ Approved (@(allList?.Count(v => v.Status == "APPROVED") ?? 0))
+        <button @onclick='() => statusFilter = "APPROVED"' class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer @(statusFilter == "APPROVED" ? "bg-emerald-600 text-white shadow-sm" : "bg-white dark:bg-[#111622] text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
+            <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Approved (@(allList?.Count(v => IsApproved(v.Status)) ?? 0))</span>
         </button>
-        <button @onclick='() => statusFilter = "REJECTED"' class="px-3 py-1.5 rounded-lg transition @(statusFilter == "REJECTED" ? "bg-rose-600 text-white shadow-sm" : "bg-white text-[#557392] hover:bg-[#F1F5F9]")">
-            ❌ Rejected (@(allList?.Count(v => v.Status == "REJECTED") ?? 0))
+        <button @onclick='() => statusFilter = "REJECTED"' class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer @(statusFilter == "REJECTED" ? "bg-rose-600 text-white shadow-sm" : "bg-white dark:bg-[#111622] text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
+            <svg class="w-3.5 h-3.5 text-rose-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Rejected (@(allList?.Count(v => IsRejected(v.Status)) ?? 0))</span>
         </button>
-        <button @onclick='() => statusFilter = "ALL"' class="px-3 py-1.5 rounded-lg transition @(statusFilter == "ALL" ? "bg-[#0A1B2E] text-white shadow-sm" : "bg-white text-[#557392] hover:bg-[#F1F5F9]")">
+        <button @onclick='() => statusFilter = "ALL"' class="px-3 py-1.5 rounded-lg transition cursor-pointer @(statusFilter == "ALL" ? "bg-[#0A1B2E] dark:bg-[#182030] text-white dark:text-[#D4AF37] shadow-sm" : "bg-white dark:bg-[#111622] text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
             All Records (@(allList?.Count ?? 0))
         </button>
     </div>
@@ -40,25 +46,25 @@
     <!-- Main Content Area -->
     @if (isLoading)
     {
-        <div class="p-12 text-center text-[#557392] bg-white rounded-xl border border-[#E2E8F0] shadow-sm">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] border-t-transparent"></div>
+        <div class="p-12 text-center text-[#557392] dark:text-[#94A3B8] bg-white dark:bg-[#111622] rounded-xl border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shadow-sm">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#D4AF37] border-t-transparent"></div>
             <p class="mt-3 text-xs font-medium">Loading identity audits...</p>
         </div>
     }
     else if (FilteredList.Count == 0)
     {
-        <div class="p-12 text-center bg-white rounded-xl border border-dashed border-[#CBD5E1] text-[#7A8CA6] space-y-3">
-            <span class="text-3xl">📭</span>
-            <h4 class="font-bold text-sm text-[#0A1B2E]">No Applications Found</h4>
+        <div class="p-12 text-center bg-white dark:bg-[#111622] rounded-xl border border-dashed border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] text-[#7A8CA6] dark:text-[#94A3B8] space-y-3">
+            <svg class="w-12 h-12 mx-auto text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-6l-2 3h-4l-2-3H2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-7z"/><path d="M5.45 5.11L2 12v0h20v0l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+            <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-[#E1E2EC]">No Applications Found</h4>
             <p class="text-xs max-w-sm mx-auto">There are no verification requests matching your selected filter at this time.</p>
         </div>
     }
     else
     {
-        <div class="bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+        <div class="bg-white dark:bg-[#111622] rounded-xl border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-700">
-                    <thead class="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-[#E2E8F0]">
+                <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                    <thead class="bg-slate-50 dark:bg-[#0A0D14] text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
                         <tr>
                             <th class="p-4">Applicant</th>
                             <th class="p-4">Target Tier</th>
@@ -69,47 +75,53 @@
                             <th class="p-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[#E2E8F0]">
+                    <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(255,255,255,0.08)]">
                         @foreach (var item in FilteredList)
                         {
-                            var isPending = item.Status == "PENDING";
-                            var isApproved = item.Status == "APPROVED";
-                            var isRejected = item.Status == "REJECTED";
+                            var isPending = IsPending(item.Status);
+                            var isApproved = IsApproved(item.Status);
+                            var isRejected = IsRejected(item.Status);
 
-                            <tr class="hover:bg-slate-50/70 transition-colors">
+                            <tr class="hover:bg-slate-50/70 dark:hover:bg-[#182030]/50 transition-colors">
                                 <td class="p-4">
-                                    <div class="font-bold text-slate-900">@item.UserName</div>
-                                    <div class="text-[11px] text-slate-400">@item.UserEmail</div>
+                                    <div class="font-bold text-slate-900 dark:text-white">@item.UserName</div>
+                                    <div class="text-[11px] text-slate-400 dark:text-slate-500">@item.UserEmail</div>
                                 </td>
                                 <td class="p-4">
                                     <div class="flex items-center gap-1.5">
                                         @if (item.TargetRoleCode == "PUBLIC_FIGURE")
                                         {
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
-                                                VIP Figure
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40 flex items-center gap-1">
+                                                <svg class="w-3 h-3 text-purple-500" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                                <span>VIP Figure</span>
                                             </span>
                                         }
                                         else
                                         {
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                                                Domain Pro
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40 flex items-center gap-1">
+                                                <svg class="w-3 h-3 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                                <span>Domain Pro</span>
                                             </span>
                                         }
-                                        <span class="font-medium text-slate-600">@item.PlanName</span>
+                                        <span class="font-medium text-slate-600 dark:text-slate-400">@item.PlanName</span>
                                     </div>
                                 </td>
                                 <td class="p-4">
-                                    <div class="font-semibold text-slate-900">@item.FullLegalName</div>
+                                    <div class="font-semibold text-slate-900 dark:text-white">@item.FullLegalName</div>
                                     @if (!string.IsNullOrWhiteSpace(item.WorkEmail))
                                     {
-                                        <div class="text-[11px] text-slate-500">✉️ @item.WorkEmail</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                                            <svg class="w-3 h-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                            <span>@item.WorkEmail</span>
+                                        </div>
                                     }
                                 </td>
                                 <td class="p-4">
                                     @if (item.LinkDropPointsDeducted > 0)
                                     {
-                                        <span class="inline-flex items-center gap-1 font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-                                            💧 @item.LinkDropPointsDeducted.ToString("N0") LD
+                                        <span class="inline-flex items-center gap-1.5 font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/40 px-2 py-0.5 rounded border border-sky-200 dark:border-sky-800/40">
+                                            <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                                            <span>@item.LinkDropPointsDeducted.ToString("N0") LD</span>
                                         </span>
                                     }
                                     else
@@ -117,32 +129,35 @@
                                         <span class="text-slate-400 font-medium">@(item.PaymentMethod ?? "Direct")</span>
                                     }
                                 </td>
-                                <td class="p-4 text-slate-500">
+                                <td class="p-4 text-slate-500 dark:text-slate-400">
                                     <div>@item.CreatedAtUtc.ToLocalTime().ToString("MMM dd, yyyy")</div>
-                                    <div class="text-[10px] text-slate-400">@item.CreatedAtUtc.ToLocalTime().ToString("hh:mm tt")</div>
+                                    <div class="text-[10px] text-slate-400 dark:text-slate-500">@item.CreatedAtUtc.ToLocalTime().ToString("hh:mm tt")</div>
                                 </td>
                                 <td class="p-4">
                                     @if (isPending)
                                     {
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                                            ⏳ Pending Audit
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
+                                            <svg class="w-3 h-3 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            <span>Pending Audit</span>
                                         </span>
                                     }
                                     else if (isApproved)
                                     {
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                            ✅ Approved
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+                                            <svg class="w-3 h-3 text-emerald-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                            <span>Approved</span>
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
-                                            ❌ Rejected
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40">
+                                            <svg class="w-3 h-3 text-rose-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                            <span>Rejected</span>
                                         </span>
                                     }
                                 </td>
                                 <td class="p-4 text-right">
-                                    <button @onclick="() => InspectVerification(item)" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#0A1B2E] hover:bg-[#112A46] transition cursor-pointer shadow-sm">
+                                    <button @onclick="() => InspectVerification(item)" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#0A1B2E] dark:bg-[#D4AF37] dark:text-[#0A0D14] hover:bg-[#112A46] dark:hover:bg-[#E5C158] transition cursor-pointer shadow-sm">
                                         Inspect ID
                                     </button>
                                 </td>
@@ -158,41 +173,43 @@
 <!-- Inspection Drawer / Modal -->
 @if (selectedItem != null)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-        <div class="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-150">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/75 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white dark:bg-[#111622] rounded-2xl max-w-2xl w-full border border-slate-200 dark:border-[rgba(255,255,255,0.10)] shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-150 text-[#0A1B2E] dark:text-[#E1E2EC]">
             <!-- Modal Header -->
-            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+            <div class="px-6 py-4 bg-slate-900 dark:bg-[#0A0D14] text-white flex items-center justify-between border-b border-slate-800 dark:border-[rgba(255,255,255,0.08)]">
                 <div class="flex items-center gap-3">
-                    <span class="text-xl">🪪</span>
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+                    </div>
                     <div>
                         <h3 class="font-bold text-base">Identity Audit: @selectedItem.FullLegalName</h3>
                         <p class="text-xs text-slate-300">Applying for @selectedItem.PlanName (@selectedItem.TargetRoleCode)</p>
                     </div>
                 </div>
-                <button @onclick="CloseModal" class="text-slate-400 hover:text-white p-1 rounded-md text-lg">✕</button>
+                <button @onclick="CloseModal" class="text-slate-400 hover:text-white p-1 rounded-md text-lg cursor-pointer">✕</button>
             </div>
 
             <!-- Modal Body -->
             <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
                 <!-- Applicant Metadata Card -->
-                <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 dark:bg-[#0A0D14] border border-slate-200 dark:border-[rgba(255,255,255,0.08)] text-xs">
                     <div>
                         <span class="text-slate-400 font-medium block">Account Username</span>
-                        <span class="font-bold text-slate-800 text-sm">@selectedItem.UserName</span>
+                        <span class="font-bold text-slate-800 dark:text-white text-sm">@selectedItem.UserName</span>
                     </div>
                     <div>
                         <span class="text-slate-400 font-medium block">Submission Date</span>
-                        <span class="font-semibold text-slate-700">@selectedItem.CreatedAtUtc.ToLocalTime().ToString("f")</span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-300">@selectedItem.CreatedAtUtc.ToLocalTime().ToString("f")</span>
                     </div>
                     <div>
                         <span class="text-slate-400 font-medium block">Work / Corporate Email</span>
-                        <span class="font-semibold text-slate-700">@(string.IsNullOrWhiteSpace(selectedItem.WorkEmail) ? "None specified" : selectedItem.WorkEmail)</span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-300">@(string.IsNullOrWhiteSpace(selectedItem.WorkEmail) ? "None specified" : selectedItem.WorkEmail)</span>
                     </div>
                     <div>
                         <span class="text-slate-400 font-medium block">Professional Profile URL</span>
                         @if (!string.IsNullOrWhiteSpace(selectedItem.ProfessionalUrl))
                         {
-                            <a href="@selectedItem.ProfessionalUrl" target="_blank" class="font-bold text-indigo-600 hover:underline truncate block">
+                            <a href="@selectedItem.ProfessionalUrl" target="_blank" class="font-bold text-indigo-600 dark:text-indigo-400 hover:underline truncate block">
                                 @selectedItem.ProfessionalUrl
                             </a>
                         }
@@ -203,11 +220,14 @@
                     </div>
                     <div>
                         <span class="text-slate-400 font-medium block">LinkDrop Escrow Paid</span>
-                        <span class="font-bold text-sky-700">@selectedItem.LinkDropPointsDeducted.ToString("N0") LD Points</span>
+                        <span class="font-bold text-sky-700 dark:text-sky-300 flex items-center gap-1.5 mt-0.5">
+                            <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                            <span>@selectedItem.LinkDropPointsDeducted.ToString("N0") LD Points</span>
+                        </span>
                     </div>
                     <div>
                         <span class="text-slate-400 font-medium block">Review Status</span>
-                        <span class="font-bold @(selectedItem.Status == "APPROVED" ? "text-emerald-600" : selectedItem.Status == "REJECTED" ? "text-rose-600" : "text-amber-600")">
+                        <span class="font-bold @(selectedItem.Status == "APPROVED" ? "text-emerald-600 dark:text-emerald-400" : selectedItem.Status == "REJECTED" ? "text-rose-600 dark:text-rose-400" : "text-amber-600 dark:text-amber-400")">
                             @selectedItem.Status
                         </span>
                     </div>
@@ -215,30 +235,30 @@
 
                 <!-- Identity Card Images -->
                 <div class="space-y-4">
-                    <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500">Government Identity Card Credentials</h4>
-                    
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Government Identity Card Credentials</h4>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Front Card -->
-                        <div class="border border-slate-200 rounded-xl p-3 bg-white space-y-2">
-                            <div class="flex items-center justify-between text-xs font-semibold text-slate-600">
+                        <div class="border border-slate-200 dark:border-[rgba(255,255,255,0.08)] rounded-xl p-3 bg-white dark:bg-[#182030] space-y-2">
+                            <div class="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
                                 <span>Front Face View</span>
-                                <a href="@selectedItem.IdCardFrontUrl" target="_blank" class="text-indigo-600 hover:underline text-[11px]">Open Full ↗</a>
+                                <a href="@selectedItem.IdCardFrontUrl" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px]">Open Full ↗</a>
                             </div>
-                            <div class="aspect-[1.586/1] bg-slate-100 rounded-lg overflow-hidden border border-slate-200 flex items-center justify-center">
+                            <div class="aspect-[1.586/1] bg-slate-100 dark:bg-[#0A0D14] rounded-lg overflow-hidden border border-slate-200 dark:border-[rgba(255,255,255,0.08)] flex items-center justify-center">
                                 <img src="@selectedItem.IdCardFrontUrl" alt="Identity Card Front" class="w-full h-full object-contain cursor-zoom-in" @onclick='() => previewImageUrl = selectedItem.IdCardFrontUrl' />
                             </div>
                         </div>
 
                         <!-- Back Card -->
-                        <div class="border border-slate-200 rounded-xl p-3 bg-white space-y-2">
-                            <div class="flex items-center justify-between text-xs font-semibold text-slate-600">
+                        <div class="border border-slate-200 dark:border-[rgba(255,255,255,0.08)] rounded-xl p-3 bg-white dark:bg-[#182030] space-y-2">
+                            <div class="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
                                 <span>Back Face View</span>
                                 @if (!string.IsNullOrWhiteSpace(selectedItem.IdCardBackUrl))
                                 {
-                                    <a href="@selectedItem.IdCardBackUrl" target="_blank" class="text-indigo-600 hover:underline text-[11px]">Open Full ↗</a>
+                                    <a href="@selectedItem.IdCardBackUrl" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px]">Open Full ↗</a>
                                 }
                             </div>
-                            <div class="aspect-[1.586/1] bg-slate-100 rounded-lg overflow-hidden border border-slate-200 flex items-center justify-center">
+                            <div class="aspect-[1.586/1] bg-slate-100 dark:bg-[#0A0D14] rounded-lg overflow-hidden border border-slate-200 dark:border-[rgba(255,255,255,0.08)] flex items-center justify-center">
                                 @if (!string.IsNullOrWhiteSpace(selectedItem.IdCardBackUrl))
                                 {
                                     <img src="@selectedItem.IdCardBackUrl" alt="Identity Card Back" class="w-full h-full object-contain cursor-zoom-in" @onclick='() => previewImageUrl = selectedItem.IdCardBackUrl' />
@@ -253,13 +273,13 @@
                 </div>
 
                 <!-- Admin Action Notes / Decision Record -->
-                @if (selectedItem.Status != "PENDING")
+                @if (!IsPending(selectedItem.Status))
                 {
-                    <div class="p-4 rounded-xl border @(selectedItem.Status == "APPROVED" ? "border-emerald-200 bg-emerald-50/50" : "border-rose-200 bg-rose-50/50") text-xs">
-                        <div class="font-bold text-slate-800 mb-1">Audit Record (@selectedItem.Status)</div>
+                    <div class="p-4 rounded-xl border @(IsApproved(selectedItem.Status) ? "border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-950/20" : "border-rose-200 dark:border-rose-800/40 bg-rose-50/50 dark:bg-rose-950/20") text-xs">
+                        <div class="font-bold text-slate-800 dark:text-white mb-1">Audit Record (@selectedItem.Status)</div>
                         @if (!string.IsNullOrWhiteSpace(selectedItem.ReviewNotes))
                         {
-                            <p class="text-slate-600"><strong>Notes:</strong> @selectedItem.ReviewNotes</p>
+                            <p class="text-slate-600 dark:text-slate-300"><strong>Notes:</strong> @selectedItem.ReviewNotes</p>
                         }
                         @if (selectedItem.ReviewedAtUtc.HasValue)
                         {
@@ -270,30 +290,39 @@
                 else
                 {
                     <!-- Review Actions Form -->
-                    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3 text-xs">
-                        <h5 class="font-bold text-slate-800">Admin Audit Action</h5>
+                    <div class="p-4 rounded-xl border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-slate-50 dark:bg-[#0A0D14] space-y-3 text-xs">
+                        <h5 class="font-bold text-slate-800 dark:text-white">Admin Audit Action</h5>
                         <div>
-                            <label class="block font-medium text-slate-600 mb-1">Optional Notes / Reason</label>
-                            <input type="text" @bind="adminNotesInput" placeholder="e.g. Identity verified against government database or reason if declining..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-indigo-600" />
+                            <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Optional Notes / Reason</label>
+                            <input type="text" @bind="adminNotesInput" placeholder="e.g. Identity verified against government database or reason if declining..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E2EC] focus:outline-none focus:border-indigo-600 dark:focus:border-[#D4AF37]" />
                         </div>
+                        @if (selectedItem.LinkDropPointsDeducted > 0)
+                        {
+                            <div class="p-2.5 rounded-lg bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/40 text-sky-800 dark:text-sky-300 text-[11px] flex items-center gap-2">
+                                <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                                <span><strong>Escrow Notice:</strong> Rejecting will automatically refund <strong>@selectedItem.LinkDropPointsDeducted.ToString("N0") LinkDrops</strong> to @selectedItem.UserName's wallet.</span>
+                            </div>
+                        }
                     </div>
                 }
             </div>
 
             <!-- Modal Footer -->
-            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                <button @onclick="CloseModal" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+            <div class="px-6 py-4 bg-slate-50 dark:bg-[#0A0D14] border-t border-slate-200 dark:border-[rgba(255,255,255,0.08)] flex items-center justify-between">
+                <button @onclick="CloseModal" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer">
                     Close
                 </button>
-                
-                @if (selectedItem.Status == "PENDING")
+
+                @if (IsPending(selectedItem.Status))
                 {
                     <div class="flex items-center gap-3">
-                        <button @onclick="RejectSelectedAsync" disabled="@isProcessing" class="px-4 py-2 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition disabled:opacity-50 flex items-center gap-1.5">
-                            <span>❌</span> Reject Application
+                        <button @onclick="RejectSelectedAsync" disabled="@isProcessing" class="px-4 py-2 rounded-lg text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800/40 transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer">
+                            <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <span>Reject &amp; Refund</span>
                         </button>
-                        <button @onclick="ApproveSelectedAsync" disabled="@isProcessing" class="px-5 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition disabled:opacity-50 flex items-center gap-1.5">
-                            <span>✅</span> Approve &amp; Issue Badge
+                        <button @onclick="ApproveSelectedAsync" disabled="@isProcessing" class="px-5 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer">
+                            <svg class="w-3.5 h-3.5 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span>Approve &amp; Issue Badge</span>
                         </button>
                     </div>
                 }
@@ -305,7 +334,7 @@
 <!-- Image Zoom Lightbox -->
 @if (!string.IsNullOrWhiteSpace(previewImageUrl))
 {
-    <div class="fixed inset-0 z-60 bg-black/80 flex items-center justify-center p-6" @onclick='() => previewImageUrl = null'>
+    <div class="fixed inset-0 z-60 bg-black/80 flex items-center justify-center p-6 cursor-pointer" @onclick='() => previewImageUrl = null'>
         <div class="relative max-w-4xl max-h-[90vh]">
             <img src="@previewImageUrl" alt="Enlarged view" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain" />
             <div class="text-center text-white text-xs mt-3 font-semibold">Click anywhere to close</div>
@@ -322,10 +351,29 @@
     private string? adminNotesInput;
     private string? previewImageUrl;
 
+    private static bool IsPending(string? s) =>
+        string.Equals(s, "PendingReview", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(s, "PENDING", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsApproved(string? s) =>
+        string.Equals(s, "Approved", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsRejected(string? s) =>
+        string.Equals(s, "Rejected", StringComparison.OrdinalIgnoreCase);
+
+    private static bool MatchesFilter(string? status, string filter)
+    {
+        if (filter == "ALL") return true;
+        if (filter == "PENDING") return IsPending(status);
+        if (filter == "APPROVED") return IsApproved(status);
+        if (filter == "REJECTED") return IsRejected(status);
+        return string.Equals(status, filter, StringComparison.OrdinalIgnoreCase);
+    }
+
     private IReadOnlyList<IdentityVerificationDetailDto> FilteredList =>
         allList == null ? Array.Empty<IdentityVerificationDetailDto>() :
         statusFilter == "ALL" ? allList :
-        allList.Where(v => v.Status == statusFilter).ToList();
+        allList.Where(v => MatchesFilter(v.Status, statusFilter)).ToList();
 
     protected override async Task OnInitializedAsync()
     {

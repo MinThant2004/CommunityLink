@@ -8,578 +8,607 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>Elevate Your Authority — CommunityLink</PageTitle>
+<PageTitle>Premium Membership — CommunityLink</PageTitle>
 
-<div class="max-w-7xl mx-auto space-y-16 py-8 px-4 sm:px-6">
-
-    <!-- Top Hero Section -->
-    <div class="text-center space-y-4 max-w-3xl mx-auto">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase bg-amber-500/10 text-amber-500 border border-amber-500/30">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            <span>VERIFIED REPUTATION &amp; MONETIZATION | TIER UPGRADE</span>
-        </div>
-
-        <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#0A1B2E] dark:text-white" style="font-family:'Manrope',sans-serif">
-            Elevate Your Authority. <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Monetize Your Expertise.</span>
-        </h1>
-
-        <p class="text-sm sm:text-base text-[#557392] dark:text-[#C4D2E1] max-w-2xl mx-auto leading-relaxed">
-            Unlock verified credential badges, accept paid 1-on-1 consultations with built-in escrow, collect peer ratings, and command sovereign sub-communities on CommunityLink.
-        </p>
-
-        <!-- Billing Interval Toggle -->
-        <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <div class="inline-flex items-center p-1 rounded-xl bg-[#F1F5F9] dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] shadow-inner">
-                <button type="button" @onclick='() => isAnnual = false'
-                        class="px-4 py-2 rounded-lg text-xs font-bold transition @(!isAnnual ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] shadow-sm" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E]")">
-                    Monthly Billing
-                </button>
-                <button type="button" @onclick='() => isAnnual = true'
-                        class="px-4 py-2 rounded-lg text-xs font-bold transition @(isAnnual ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] shadow-sm" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E]")">
-                    Annual Billing
-                </button>
+<div class="min-h-screen bg-background font-body-md text-body-md text-on-surface antialiased transition-colors duration-200">
+    <!-- Top System Directory Strip -->
+    <section class="bg-surface-container-lowest/80 backdrop-blur-md border-b border-surface-container-high/30">
+        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-space-sm flex items-center justify-between gap-3">
+            <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
+                <a href="/" class="hover:text-on-surface transition-colors flex items-center gap-1">Platform</a>
+                <span class="material-symbols-outlined text-xs">chevron_right</span>
+                <span class="text-on-surface font-semibold">Tier Membership</span>
             </div>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                <span>Save up to 20% &bull; Expedited 24h Audit</span>
-            </span>
-        </div>
-    </div>
-
-    <!-- Active Subscription Notice (if member already upgraded) -->
-    @if (myStatus?.HasActiveSubscription == true)
-    {
-        <div class="p-6 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </div>
-                <div>
-                    <h3 class="font-bold text-base">Active Membership: @myStatus.TierName</h3>
-                    <p class="text-xs text-emerald-700">Valid until @(myStatus.ExpiresAtUtc?.ToString("MMMM dd, yyyy")) (@myStatus.DaysRemaining days remaining).</p>
-                </div>
-            </div>
-            <span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-sm">
-                Verified Identity Active
-            </span>
-        </div>
-    }
-    else if (myStatus?.PendingVerification != null)
-    {
-        <div class="p-6 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-900 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center shrink-0 animate-pulse">
-                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </div>
-                <div>
-                    <h3 class="font-bold text-base">SecOps Verification In Progress</h3>
-                    <p class="text-xs text-amber-700">Your application for <strong>@myStatus.PendingVerification.PlanName</strong> is currently being audited by administrators. Identity documents under review.</p>
-                </div>
-            </div>
-            <span class="px-3.5 py-1.5 rounded-full text-xs font-mono font-bold bg-amber-500 text-white shadow-sm">
-                PENDING REVIEW
-            </span>
-        </div>
-    }
-
-    <!-- 3-TIER PRICING CARDS -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-
-        <!-- 1. Normal User (Current Plan) -->
-        <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] p-8 flex flex-col justify-between shadow-sm relative">
-            <div class="space-y-6">
-                <div class="flex items-center justify-between">
-                    <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-100 dark:bg-[#1B3B5A] text-slate-700 dark:text-slate-300">
-                        CURRENT PLAN
-                    </span>
-                    <svg class="w-5 h-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                </div>
-
-                <div>
-                    <h3 class="text-xl font-bold text-[#0A1B2E] dark:text-white">Normal User</h3>
-                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1">Foundational access for curious learners and active discussion participants.</p>
-                </div>
-
-                <div class="flex items-baseline gap-1">
-                    <span class="text-4xl font-extrabold text-[#0A1B2E] dark:text-white font-mono">$0</span>
-                    <span class="text-xs text-[#7A8CA6]">/ forever</span>
-                </div>
-
-                <ul class="space-y-3 text-xs text-[#334155] dark:text-[#C4D2E1] pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.10)]">
-                    <li class="flex items-start gap-2.5">
-                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
-                        <span>Discover feeds, posts, and public discussions</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
-                        <span>Join instant &amp; approval-required communities</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
-                        <span>Create articles, links, and poll votes</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
-                        <span>Direct messaging (1-on-1 networking)</span>
-                    </li>
-                    <li class="flex items-start gap-2.5 text-slate-400">
-                        <span class="text-slate-300">✕</span>
-                        <span>No paid 1-on-1 consultations</span>
-                    </li>
-                    <li class="flex items-start gap-2.5 text-slate-400">
-                        <span class="text-slate-300">✕</span>
-                        <span>No verified identity badge</span>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="pt-8">
-                <button disabled class="w-full py-3 rounded-xl text-xs font-bold text-slate-500 bg-slate-100 dark:bg-[#1B3B5A] cursor-not-allowed">
-                    Current Active Tier
-                </button>
+            <div class="flex items-center gap-space-sm">
+                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider hidden sm:inline">Escrow Protocol</span>
+                <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm border border-primary/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>LinkDrop Escrow Active
+                </span>
             </div>
         </div>
+    </section>
 
-        <!-- 2. Domain Professional (PRO) -->
-        @{
-            var proPlan = SelectedDomainProPlan;
-        }
-        <div class="bg-white dark:bg-[#112A46] rounded-2xl border-2 border-amber-400 dark:border-amber-500 p-8 flex flex-col justify-between shadow-xl relative overflow-hidden">
-            <div class="absolute -top-3 right-6 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md flex items-center gap-1">
-                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                <span>RECOMMENDED FOR PRACTITIONERS</span>
-            </div>
+    <div class="relative w-full overflow-hidden">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+        <div class="absolute top-40 right-10 w-80 h-80 bg-secondary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
-            <div class="space-y-6">
-                <div class="flex items-center justify-between">
-                    <span class="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        <span>DOMAIN PROFESSIONAL &bull; PRO</span>
-                    </span>
-                    <span class="text-xs font-mono text-emerald-600 font-bold">Audit Pass Rate: 91%</span>
-                </div>
+        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pt-space-md pb-space-lg w-full space-y-space-lg">
 
-                <div>
-                    <h3 class="text-2xl font-bold text-[#0A1B2E] dark:text-white">Domain Professional</h3>
-                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1">Official verified badge on all feeds, comments, and profile hero.</p>
-                </div>
+            <!-- Breadcrumbs -->
+            <nav aria-label="Breadcrumbs" class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
+                <a class="hover:text-primary transition-colors" href="/">Platform</a>
+                <span class="material-symbols-outlined text-xs">chevron_right</span>
+                <span class="text-on-surface font-semibold">Premium Membership</span>
+            </nav>
 
-                <div class="p-4 rounded-xl bg-amber-50/50 dark:bg-[#1B3B5A]/60 border border-amber-200/60 dark:border-amber-500/20 space-y-1">
-                    <div class="flex items-baseline gap-1">
-                        <span class="text-4xl font-extrabold text-[#0A1B2E] dark:text-white font-mono">
-                            $@(proPlan != null ? proPlan.PriceAmount.ToString("F0") : "39")
-                        </span>
-                        <span class="text-xs text-[#7A8CA6]">/ @(isAnnual ? "year (billed annually)" : "month")</span>
-                    </div>
-                    @if (proPlan?.LinkDropCost > 0)
-                    {
-                        <p class="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1 font-mono">
-                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                            <span>@proPlan.LinkDropCost.ToString("N0") LinkDrop Points balance equivalent</span>
-                        </p>
-                    }
-                </div>
+            <!-- Hero Panel (Matches Communities.razor) -->
+            <div class="relative rounded-xl bg-surface-container-low p-space-md md:p-space-lg overflow-hidden border border-surface-container-high/30">
+                <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
 
-                <ul class="space-y-3 text-xs text-[#334155] dark:text-[#C4D2E1] pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.10)]">
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        <span><strong>1-on-1 Paid Advisory Engine:</strong> Set custom hourly consultation rates ($100-$1,000/hr) with automated escrow.</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        <span><strong>Public Peer Rating &amp; Review Card:</strong> Showcase validated peer reviews (1-on-1 rating engine) on your profile.</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        <span><strong>Priority Sub-Community Ownership:</strong> Create up to 5 sovereign sub-groups with custom entry criteria.</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        <span><strong>Credential Verification:</strong> GitHub, LinkedIn, domain-accredited patents, or corporate email verification.</span>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="pt-8 space-y-2">
-                <button type="button" @onclick="() => OpenUpgradeModal(proPlan)"
-                        class="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
-                    <span>Upgrade to Domain Pro</span>
-                    <span>&rarr;</span>
-                </button>
-                <p class="text-[10px] text-center text-[#7A8CA6] font-mono">Includes 5-day expedited audit turnaround</p>
-            </div>
-        </div>
-
-        <!-- 3. Public Figure VIP (VIP) -->
-        @{
-            var vipPlan = SelectedPublicFigurePlan;
-        }
-        <div class="bg-white dark:bg-[#112A46] rounded-2xl border-2 border-purple-500 dark:border-purple-600 p-8 flex flex-col justify-between shadow-xl relative overflow-hidden">
-            <div class="absolute -top-3 right-6 bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md flex items-center gap-1">
-                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
-                <span>INDUSTRY LUMINARIES &amp; LEADERS</span>
-            </div>
-
-            <div class="space-y-6">
-                <div class="flex items-center justify-between">
-                    <span class="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
-                        <span>PUBLIC FIGURE &bull; VIP</span>
-                    </span>
-                    <span class="text-xs font-mono text-purple-600 font-bold">Tier 1 Compliant</span>
-                </div>
-
-                <div>
-                    <h3 class="text-2xl font-bold text-[#0A1B2E] dark:text-white">Public Figure VIP</h3>
-                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1">Unlock sovereign VIP badge and home shelf discovery placement.</p>
-                </div>
-
-                <div class="p-4 rounded-xl bg-purple-50/50 dark:bg-[#1B3B5A]/60 border border-purple-200/60 dark:border-purple-500/20 space-y-1">
-                    <div class="flex items-baseline gap-1">
-                        <span class="text-4xl font-extrabold text-[#0A1B2E] dark:text-white font-mono">
-                            $@(vipPlan != null ? vipPlan.PriceAmount.ToString("F0") : "119")
-                        </span>
-                        <span class="text-xs text-[#7A8CA6]">/ @(isAnnual ? "year (billed annually)" : "month")</span>
-                    </div>
-                    @if (vipPlan?.LinkDropCost > 0)
-                    {
-                        <p class="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1 font-mono">
-                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                            <span>@vipPlan.LinkDropCost.ToString("N0") LinkDrop Points balance equivalent</span>
-                        </p>
-                    }
-                </div>
-
-                <ul class="space-y-3 text-xs text-[#334155] dark:text-[#C4D2E1] pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.10)]">
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
-                        <span><strong>Discovery Shelf Priority:</strong> Guaranteed rotating feature spot in 'Verified Public Figures' on the Home Dashboard.</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
-                        <span><strong>Unlimited Sovereign Communities:</strong> Manage private working groups with custom criteria and token-gating.</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
-                        <span><strong>0% Platform Fees:</strong> 0% commission on your first $10,000 of paid advisory bookings each year.</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
-                        <span><strong>Dedicated Admin Concierge:</strong> Direct channel with SecOps and 12-hour turnaround for audits.</span>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="pt-8 space-y-2">
-                <button type="button" @onclick="() => OpenUpgradeModal(vipPlan)"
-                        class="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 shadow-lg shadow-purple-600/20 transition flex items-center justify-center gap-2 cursor-pointer">
-                    <span>Apply for Public Figure VIP</span>
-                    <span>&rarr;</span>
-                </button>
-                <p class="text-[10px] text-center text-[#7A8CA6] font-mono">Requires Government ID / Identity Card verification</p>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- HOW THE VERIFICATION AUDIT WORKS (4-STEP PROGRESS) -->
-    <div class="space-y-8 pt-6">
-        <div class="text-center space-y-2 max-w-xl mx-auto">
-            <span class="text-[10px] font-mono font-bold tracking-widest text-indigo-600 dark:text-indigo-400 uppercase">
-                STANDARD OPERATING PROCEDURE
-            </span>
-            <h2 class="text-2xl sm:text-3xl font-bold text-[#0A1B2E] dark:text-white" style="font-family:'Manrope',sans-serif">
-                How the Verification Audit Works
-            </h2>
-            <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">
-                CommunityLink is an audited trust network. We maintain high signal by thoroughly screening identity and credentials before badge deployment.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="bg-white dark:bg-[#112A46] p-6 rounded-2xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.12)] space-y-3 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <span class="px-2.5 py-1 rounded text-xs font-mono font-bold bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300">01</span>
-                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                </div>
-                <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-white">Select &amp; Checkout</h4>
-                <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Pick your tier. Verification audit fee is held in escrow until audit conclusion. Fully refunded if verification cannot be concluded.</p>
-            </div>
-
-            <div class="bg-white dark:bg-[#112A46] p-6 rounded-2xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.12)] space-y-3 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <span class="px-2.5 py-1 rounded text-xs font-mono font-bold bg-amber-50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300">02</span>
-                    <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M14 9h4M14 13h4M6 16c0-1.5 1.5-2 3-2s3 .5 3 2"/></svg>
-                </div>
-                <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-white">Submit Credentials</h4>
-                <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Upload your government Identity Card front/back, work email, GitHub, LinkedIn, or domain portfolio proof for audit examination.</p>
-            </div>
-
-            <div class="bg-white dark:bg-[#112A46] p-6 rounded-2xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.12)] space-y-3 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <span class="px-2.5 py-1 rounded text-xs font-mono font-bold bg-purple-50 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300">03</span>
-                    <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </div>
-                <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-white">SecOps Review</h4>
-                <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Dedicated administrative review team cross-examines submissions against public registries. The review action is logged.</p>
-            </div>
-
-            <div class="bg-white dark:bg-[#112A46] p-6 rounded-2xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.12)] space-y-3 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <span class="px-2.5 py-1 rounded text-xs font-mono font-bold bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300">04</span>
-                    <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                </div>
-                <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-white">Badge &amp; Monetization Live</h4>
-                <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Profile gains the verified Pro or VIP badge. Your 1-on-1 advisory booking scheduler opens, and peer rating collection activates.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- COMPREHENSIVE TIER MATRIX TABLE -->
-    <div class="space-y-6 pt-6">
-        <div>
-            <span class="text-[10px] font-mono font-bold tracking-widest text-[#7A8CA6] uppercase">DETAILED CAPABILITIES</span>
-            <h2 class="text-2xl font-bold text-[#0A1B2E] dark:text-white" style="font-family:'Manrope',sans-serif">Comprehensive Tier Matrix</h2>
-        </div>
-
-        <div class="overflow-x-auto rounded-2xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46] shadow-sm">
-            <table class="w-full text-left border-collapse text-xs">
-                <thead>
-                    <tr class="bg-[#F8FAFC] dark:bg-[#1B3B5A]/50 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] font-mono text-[10px] font-bold text-[#7A8CA6] uppercase">
-                        <th class="px-6 py-4">Core Capability</th>
-                        <th class="px-6 py-4 text-center">Normal User</th>
-                        <th class="px-6 py-4 text-center text-amber-600 font-bold">Domain Pro</th>
-                        <th class="px-6 py-4 text-center text-purple-600 font-bold">Public Figure</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.08)]">
-                    <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/20 transition">
-                        <td class="px-6 py-4 font-semibold text-[#0A1B2E] dark:text-white">Verified Identity Badge</td>
-                        <td class="px-6 py-4 text-center text-slate-400">None</td>
-                        <td class="px-6 py-4 text-center font-bold text-amber-600">
-                            <span class="inline-flex items-center gap-1 justify-center">
-                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                Pro Badge (Gold)
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+                    <div class="flex flex-col gap-space-xs max-w-2xl">
+                        <div class="flex flex-wrap items-center gap-space-sm">
+                            <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase tracking-wider border border-primary/20">
+                                <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>Verified Tiers
                             </span>
-                        </td>
-                        <td class="px-6 py-4 text-center font-bold text-purple-600">
-                            <span class="inline-flex items-center gap-1 justify-center">
-                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
-                                VIP Badge (Platinum/Lilac)
+                            <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm border border-surface-container-high/40">
+                                <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                                <span>Your Balance:</span>
+                                <strong class="text-primary font-mono">@userWalletDrops.ToString("N0") Drops</strong>
+                                <a href="linkdrops" class="text-secondary hover:underline font-semibold ml-1">Top Up &rarr;</a>
                             </span>
-                        </td>
-                    </tr>
-                    <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/20 transition">
-                        <td class="px-6 py-4 font-semibold text-[#0A1B2E] dark:text-white">1-on-1 Paid Advisory &amp; Escrow</td>
-                        <td class="px-6 py-4 text-center text-slate-400">✕</td>
-                        <td class="px-6 py-4 text-center text-emerald-600 font-semibold">Active ($100 - $1,000/hr)</td>
-                        <td class="px-6 py-4 text-center text-emerald-600 font-semibold">Active (Custom Uncapped &amp; Retainers)</td>
-                    </tr>
-                    <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/20 transition">
-                        <td class="px-6 py-4 font-semibold text-[#0A1B2E] dark:text-white">Public Peer Rating &amp; Review Profile</td>
-                        <td class="px-6 py-4 text-center text-slate-400">Can only rate others</td>
-                        <td class="px-6 py-4 text-center text-blue-600 font-semibold">Collect &amp; Display Reviews</td>
-                        <td class="px-6 py-4 text-center text-blue-600 font-semibold">Collect &amp; Priority Verified Badge</td>
-                    </tr>
-                    <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/20 transition">
-                        <td class="px-6 py-4 font-semibold text-[#0A1B2E] dark:text-white">Sub-Communities Ownership</td>
-                        <td class="px-6 py-4 text-center">1 Community</td>
-                        <td class="px-6 py-4 text-center font-semibold">Up to 5 Communities</td>
-                        <td class="px-6 py-4 text-center font-semibold text-purple-600">Unlimited Communities</td>
-                    </tr>
-                    <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/20 transition">
-                        <td class="px-6 py-4 font-semibold text-[#0A1B2E] dark:text-white">Home Discovery Shelf Priority</td>
-                        <td class="px-6 py-4 text-center text-slate-400">Standard algorithmic</td>
-                        <td class="px-6 py-4 text-center text-amber-600 font-semibold">High Relevance Boost</td>
-                        <td class="px-6 py-4 text-center font-bold text-purple-600">Guaranteed Section 1 Shelf</td>
-                    </tr>
-                    <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/20 transition">
-                        <td class="px-6 py-4 font-semibold text-[#0A1B2E] dark:text-white">Platform Fee on Consultations</td>
-                        <td class="px-6 py-4 text-center text-slate-400">N/A</td>
-                        <td class="px-6 py-4 text-center">5% platform fee</td>
-                        <td class="px-6 py-4 text-center text-emerald-600 font-bold">0% on first $10k/yr, then 2.5%</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- FREQUENTLY ASKED QUESTIONS (FAQ ACCORDION) -->
-    <div class="space-y-6 pt-6">
-        <div>
-            <span class="text-[10px] font-mono font-bold tracking-widest text-[#7A8CA6] uppercase">HELP &amp; AUDIT TRANSPARENCY</span>
-            <h2 class="text-2xl font-bold text-[#0A1B2E] dark:text-white" style="font-family:'Manrope',sans-serif">Frequently Asked Questions</h2>
-        </div>
-
-        <div class="space-y-3">
-            @for (int i = 0; i < faqItems.Count; i++)
-            {
-                var idx = i;
-                var faq = faqItems[idx];
-                var isOpen = openFaqIndex == idx;
-                <div class="bg-white dark:bg-[#112A46] rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.12)] overflow-hidden shadow-sm">
-                    <button type="button" @onclick="() => ToggleFaq(idx)"
-                            class="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm text-[#0A1B2E] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/40 transition cursor-pointer">
-                        <span>@faq.Question</span>
-                        <span class="text-xs text-[#7A8CA6] font-mono">@(isOpen ? "▲" : "▼")</span>
-                    </button>
-                    @if (isOpen)
-                    {
-                        <div class="px-5 pb-5 text-xs text-[#557392] dark:text-[#C4D2E1] leading-relaxed border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] pt-4">
-                            @faq.Answer
                         </div>
-                    }
+
+                        <h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight mt-space-xs font-bold">
+                            Premium Membership Tiers
+                        </h1>
+
+                        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                            Upgrade to Domain Professional or Public Figure VIP using LinkDrops. Verified credentials unlock paid 1-on-1 advisory bookings, sovereign sub-community ownership, and official verification badges.
+                        </p>
+                    </div>
+
+                    <!-- Billing Interval Selector -->
+                    <div class="flex items-center gap-space-sm shrink-0">
+                        <div class="inline-flex items-center p-1 rounded-lg bg-surface-container border border-surface-container-high/50 shadow-inner">
+                            <button type="button" @onclick='() => isAnnual = false'
+                                    class="px-3.5 py-1.5 rounded-md font-label-md text-label-md font-bold transition cursor-pointer @(!isAnnual ? "bg-primary text-on-primary shadow-sm" : "text-on-surface-variant hover:text-on-surface")">
+                                Monthly
+                            </button>
+                            <button type="button" @onclick='() => isAnnual = true'
+                                    class="px-3.5 py-1.5 rounded-md font-label-md text-label-md font-bold transition cursor-pointer @(isAnnual ? "bg-primary text-on-primary shadow-sm" : "text-on-surface-variant hover:text-on-surface")">
+                                Annual
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Subscription Notice (if user already upgraded) -->
+            @if (myStatus?.HasActiveSubscription == true)
+            {
+                <div class="p-space-md rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-on-surface flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+                    <div class="flex items-center gap-space-sm">
+                        <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">verified</span>
+                        </div>
+                        <div>
+                            <h3 class="font-title-md font-bold text-on-surface">Active Membership: @myStatus.TierName</h3>
+                            <p class="font-body-sm text-on-surface-variant">Valid until @(myStatus.ExpiresAtUtc?.ToString("MMMM dd, yyyy")) (@myStatus.DaysRemaining days remaining).</p>
+                        </div>
+                    </div>
+                    <span class="px-space-sm py-1 rounded-md font-label-sm text-label-sm uppercase tracking-wider font-bold bg-emerald-600 text-white shadow-sm shrink-0">
+                        Verified Identity Active
+                    </span>
                 </div>
             }
+            else if (myStatus?.PendingVerification != null)
+            {
+                <div class="p-space-md rounded-xl bg-amber-500/10 border border-amber-500/20 text-on-surface flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+                    <div class="flex items-center gap-space-sm">
+                        <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 animate-pulse">
+                            <span class="material-symbols-outlined text-lg">hourglass_top</span>
+                        </div>
+                        <div>
+                            <h3 class="font-title-md font-bold text-on-surface">Verification Audit In Progress</h3>
+                            <p class="font-body-sm text-on-surface-variant">Your application for <strong>@myStatus.PendingVerification.PlanName</strong> is currently being audited by SecOps. Identity documents are under review.</p>
+                        </div>
+                    </div>
+                    <span class="px-space-sm py-1 rounded-md font-label-sm text-label-sm uppercase tracking-wider font-bold bg-amber-500 text-white shadow-sm shrink-0">
+                        Pending Audit
+                    </span>
+                </div>
+            }
+
+            <!-- 3-TIER PRICING CARDS -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md items-stretch">
+
+                <!-- 1. Normal User (Current Plan) -->
+                <div class="rounded-xl bg-surface-container-low border border-surface-container-high/30 p-space-md md:p-space-lg flex flex-col justify-between space-y-space-md shadow-sm">
+                    <div class="space-y-space-md">
+                        <div class="flex items-center justify-between">
+                            <span class="px-space-sm py-0.5 rounded font-label-sm text-label-sm uppercase tracking-wider bg-surface-container text-on-surface-variant border border-surface-container-high/30 font-bold">
+                                Default Tier
+                            </span>
+                            <span class="material-symbols-outlined text-base text-on-surface-variant">person</span>
+                        </div>
+
+                        <div>
+                            <h3 class="font-title-lg font-bold text-on-surface">Normal User</h3>
+                            <p class="font-body-sm text-on-surface-variant mt-0.5">Foundational access for browsing feeds, joining discussions, and networking.</p>
+                        </div>
+
+                        <div class="p-space-sm rounded-lg bg-surface-container border border-surface-container-high/30">
+                            <div class="flex items-baseline gap-1">
+                                <span class="font-headline-lg font-bold text-on-surface font-mono">0</span>
+                                <span class="font-body-sm text-on-surface-variant">Drops / forever</span>
+                            </div>
+                            <p class="font-label-sm text-on-surface-variant mt-0.5">Standard community participation</p>
+                        </div>
+
+                        <ul class="space-y-2 pt-space-xs font-body-sm text-on-surface">
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-xs text-primary mt-0.5">check</span>
+                                <span>Discover feeds, posts, and public discussions</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-xs text-primary mt-0.5">check</span>
+                                <span>Join instant &amp; approval-required communities</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-xs text-primary mt-0.5">check</span>
+                                <span>Create articles, links, and poll votes</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-xs text-primary mt-0.5">check</span>
+                                <span>Direct messaging (1-on-1 networking)</span>
+                            </li>
+                            <li class="flex items-start gap-2 text-on-surface-variant opacity-60">
+                                <span class="material-symbols-outlined text-xs text-outline mt-0.5">close</span>
+                                <span>No paid 1-on-1 advisory bookings</span>
+                            </li>
+                            <li class="flex items-start gap-2 text-on-surface-variant opacity-60">
+                                <span class="material-symbols-outlined text-xs text-outline mt-0.5">close</span>
+                                <span>No verified identity badge</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pt-space-sm border-t border-surface-container-high/30">
+                        <button disabled class="w-full py-2.5 rounded-lg font-label-md text-label-md font-bold text-on-surface-variant bg-surface-container cursor-not-allowed">
+                            @(myStatus?.HasActiveSubscription == true ? "Standard Default Tier" : "Current Plan")
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Domain Professional (PRO) -->
+                @{
+                    var proPlan = SelectedDomainProPlan;
+                }
+                <div class="rounded-xl bg-surface-container-low border-2 border-amber-500/50 p-space-md md:p-space-lg flex flex-col justify-between space-y-space-md shadow-sm relative">
+                    <div class="space-y-space-md">
+                        <div class="flex items-center justify-between">
+                            <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded font-label-sm text-label-sm uppercase tracking-wider font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span>Domain Pro</span>
+                            </span>
+                            <span class="font-label-sm text-on-surface-variant">Practitioner Tier</span>
+                        </div>
+
+                        <div>
+                            <h3 class="font-title-lg font-bold text-on-surface">Domain Professional</h3>
+                            <p class="font-body-sm text-on-surface-variant mt-0.5">Official verified badge on feeds, comments, and profile hero.</p>
+                        </div>
+
+                        <div class="p-space-sm rounded-lg bg-surface-container border border-surface-container-high/30">
+                            @if (proPlan != null)
+                            {
+                                <div class="flex items-baseline gap-1.5">
+                                    <span class="font-headline-lg font-bold text-primary font-mono flex items-center gap-1.5">
+                                        <LinkDropIcon Class="w-5 h-5 shrink-0" />
+                                        <span>@proPlan.LinkDropCost.ToString("N0")</span>
+                                    </span>
+                                    <span class="font-body-sm text-on-surface-variant font-semibold">Drops / @(isAnnual ? "year" : "month")</span>
+                                </div>
+                                <p class="font-label-sm text-on-surface-variant mt-0.5">Billed in LinkDrop virtual currency</p>
+                            }
+                            else
+                            {
+                                <div class="font-body-sm text-on-surface-variant py-1">Plan not currently active</div>
+                            }
+                        </div>
+
+                        <ul class="space-y-2 pt-space-xs font-body-sm text-on-surface">
+                            @if (proPlan?.Perks != null && proPlan.Perks.Count > 0)
+                            {
+                                @foreach (var perk in proPlan.Perks)
+                                {
+                                    <li class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-xs text-amber-500 mt-0.5" style="font-variation-settings: 'FILL' 1;">check</span>
+                                        <span>@perk</span>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="font-body-sm text-on-surface-variant italic">Verified Domain Professional badge and tools.</li>
+                            }
+                        </ul>
+                    </div>
+
+                    <div class="pt-space-sm border-t border-surface-container-high/30">
+                        @if (proPlan != null)
+                        {
+                            @if (myStatus?.HasActiveSubscription == true && (myStatus.TargetRoleCode == "DOMAIN_PRO" || myStatus.TargetRoleCode == "DOMAIN_PROFESSIONAL"))
+                            {
+                                <button disabled class="w-full py-2.5 rounded-lg font-label-md text-label-md font-bold text-emerald-600 bg-emerald-500/10 border border-emerald-500/30 cursor-not-allowed flex items-center justify-center gap-1.5">
+                                    <span class="material-symbols-outlined text-base">check_circle</span>
+                                    <span>Current Active Tier</span>
+                                </button>
+                            }
+                            else if (myStatus?.PendingVerification?.PlanId == proPlan.PlanId)
+                            {
+                                <button disabled class="w-full py-2.5 rounded-lg font-label-md text-label-md font-bold text-amber-600 bg-amber-500/10 border border-amber-500/30 cursor-not-allowed flex items-center justify-center gap-1.5">
+                                    <span class="material-symbols-outlined text-base">hourglass_top</span>
+                                    <span>Audit Pending Review</span>
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" @onclick="() => OpenUpgradeModal(proPlan)"
+                                        class="w-full py-2.5 rounded-lg font-label-md text-label-md font-bold text-on-primary bg-primary hover:bg-primary/90 shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <span>Upgrade to Domain Pro</span>
+                                    <span>&rarr;</span>
+                                </button>
+                            }
+                        }
+                        else
+                        {
+                            <button disabled class="w-full py-2.5 rounded-lg font-label-md text-label-md font-bold text-on-surface-variant bg-surface-container cursor-not-allowed">
+                                Plan Unavailable
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- 3. Public Figure VIP (VIP) -->
+                @{
+                    var vipPlan = SelectedPublicFigurePlan;
+                }
+                <div class="rounded-xl bg-surface-container-low border-2 border-secondary/50 p-space-md md:p-space-lg flex flex-col justify-between space-y-space-md shadow-sm relative">
+                    <div class="space-y-space-md">
+                        <div class="flex items-center justify-between">
+                            <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded font-label-sm text-label-sm uppercase tracking-wider font-bold bg-secondary/10 text-secondary border border-secondary/20">
+                                <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+                                <span>Public Figure VIP</span>
+                            </span>
+                            <span class="font-label-sm text-on-surface-variant">Luminary Tier</span>
+                        </div>
+
+                        <div>
+                            <h3 class="font-title-lg font-bold text-on-surface">Public Figure VIP</h3>
+                            <p class="font-body-sm text-on-surface-variant mt-0.5">Sovereign VIP badge, home shelf discovery, and priority concierges.</p>
+                        </div>
+
+                        <div class="p-space-sm rounded-lg bg-surface-container border border-surface-container-high/30">
+                            @if (vipPlan != null)
+                            {
+                                <div class="flex items-baseline gap-1.5">
+                                    <span class="font-headline-lg font-bold text-secondary font-mono flex items-center gap-1.5">
+                                        <LinkDropIcon Class="w-5 h-5 shrink-0" />
+                                        <span>@vipPlan.LinkDropCost.ToString("N0")</span>
+                                    </span>
+                                    <span class="font-body-sm text-on-surface-variant font-semibold">Drops / @(isAnnual ? "year" : "month")</span>
+                                </div>
+                                <p class="font-label-sm text-on-surface-variant mt-0.5">Billed in LinkDrop virtual currency</p>
+                            }
+                            else
+                            {
+                                <div class="font-body-sm text-on-surface-variant py-1">Plan not currently active</div>
+                            }
+                        </div>
+
+                        <ul class="space-y-2 pt-space-xs font-body-sm text-on-surface">
+                            @if (vipPlan?.Perks != null && vipPlan.Perks.Count > 0)
+                            {
+                                @foreach (var perk in vipPlan.Perks)
+                                {
+                                    <li class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-xs text-secondary mt-0.5" style="font-variation-settings: 'FILL' 1;">check</span>
+                                        <span>@perk</span>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="font-body-sm text-on-surface-variant italic">Verified Public Figure VIP crest and tools.</li>
+                            }
+                        </ul>
+                    </div>
+
+                    <div class="pt-space-sm border-t border-surface-container-high/30">
+                        @if (vipPlan != null)
+                        {
+                            @if (myStatus?.HasActiveSubscription == true && myStatus.TargetRoleCode == "PUBLIC_FIGURE")
+                            {
+                                <button disabled class="w-full py-2.5 rounded-lg font-label-md text-label-md font-bold text-secondary bg-secondary/10 border border-secondary/30 cursor-not-allowed flex items-center justify-center gap-1.5">
+                                    <span class="material-symbols-outlined text-base">check_circle</span>
+                                    <span>Current Active Tier</span>
+                                </button>
+                            }
+                            else if (myStatus?.PendingVerification?.PlanId == vipPlan.PlanId)
+                            {
+                                <button disabled class="w-full py-2.5 rounded-lg font-label-md text-label-md font-bold text-amber-600 bg-amber-500/10 border border-amber-500/30 cursor-not-allowed flex items-center justify-center gap-1.5">
+                                    <span class="material-symbols-outlined text-base">hourglass_top</span>
+                                    <span>Audit Pending Review</span>
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" @onclick="() => OpenUpgradeModal(vipPlan)"
+                                        class="w-full py-2.5 rounded-lg font-label-md text-label-md font-bold text-on-secondary bg-secondary hover:bg-secondary/90 shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <span>Apply for Public Figure VIP</span>
+                                    <span>&rarr;</span>
+                                </button>
+                            }
+                        }
+                        else
+                        {
+                            <button disabled class="w-full py-2.5 rounded-lg font-label-md text-label-md font-bold text-on-surface-variant bg-surface-container cursor-not-allowed">
+                                Plan Unavailable
+                            </button>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- HOW THE VERIFICATION AUDIT WORKS (4-STEP SYSTEM TIMELINE) -->
+            <div class="space-y-space-md pt-space-xs">
+                <div class="space-y-space-xs">
+                    <span class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">
+                        Standard Operating Procedure
+                    </span>
+                    <h2 class="font-headline-md text-headline-md font-bold text-on-surface">
+                        How the Verification Audit Works
+                    </h2>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant max-w-2xl leading-relaxed">
+                        CommunityLink is an audited trust network. Every tier upgrade undergoes credential screening and LinkDrop escrow protection before badge deployment.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+                    <!-- Step 01 -->
+                    <div class="rounded-xl bg-surface-container-low border border-surface-container-high/30 p-space-md space-y-space-xs shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 rounded font-mono font-bold text-xs bg-primary/10 text-primary">01</span>
+                            <LinkDropIcon Class="w-5 h-5 shrink-0" />
+                        </div>
+                        <h4 class="font-title-md font-bold text-on-surface">Select &amp; Escrow</h4>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                            Pick your tier. LinkDrop points are held in platform escrow during audit. Fully refunded if verification cannot be concluded.
+                        </p>
+                    </div>
+
+                    <!-- Step 02 -->
+                    <div class="rounded-xl bg-surface-container-low border border-surface-container-high/30 p-space-md space-y-space-xs shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 rounded font-mono font-bold text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400">02</span>
+                            <span class="material-symbols-outlined text-lg text-amber-500">badge</span>
+                        </div>
+                        <h4 class="font-title-md font-bold text-on-surface">Submit Credentials</h4>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                            Upload your government Identity Card front/back, professional links (GitHub, LinkedIn), or domain portfolio proof for audit examination.
+                        </p>
+                    </div>
+
+                    <!-- Step 03 -->
+                    <div class="rounded-xl bg-surface-container-low border border-surface-container-high/30 p-space-md space-y-space-xs shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 rounded font-mono font-bold text-xs bg-secondary/10 text-secondary">03</span>
+                            <span class="material-symbols-outlined text-lg text-secondary">verified_user</span>
+                        </div>
+                        <h4 class="font-title-md font-bold text-on-surface">SecOps Review</h4>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                            The administration team cross-examines submissions against public registries. The review action is permanently logged in the audit trail.
+                        </p>
+                    </div>
+
+                    <!-- Step 04 -->
+                    <div class="rounded-xl bg-surface-container-low border border-surface-container-high/30 p-space-md space-y-space-xs shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 rounded font-mono font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">04</span>
+                            <span class="material-symbols-outlined text-lg text-emerald-500">military_tech</span>
+                        </div>
+                        <h4 class="font-title-md font-bold text-on-surface">Badge &amp; Tools Live</h4>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                            Profile gains the verified Pro or VIP badge. Your 1-on-1 advisory booking scheduler opens, and peer rating collection activates.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-
 </div>
 
-<!-- IDENTITY CARD INTAKE & CHECKOUT MODAL -->
+<!-- IDENTITY AUDIT INTAKE & CHECKOUT MODAL -->
 @if (showUpgradeModal && targetPlan != null)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 backdrop-blur-sm">
-        <div class="bg-white dark:bg-[#112A46] rounded-2xl shadow-2xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] max-w-xl w-full p-6 sm:p-8 space-y-6 text-[#0A1B2E] dark:text-white max-h-[92vh] overflow-y-auto">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-surface-container-low rounded-xl shadow-2xl border border-surface-container-high/40 max-w-xl w-full p-space-md md:p-space-lg space-y-space-md text-on-surface max-h-[92vh] overflow-y-auto">
 
             <!-- Modal Header -->
-            <div class="flex items-start justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-4">
+            <div class="flex items-start justify-between border-b border-surface-container-high/30 pb-space-sm">
                 <div>
-                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                        STEP 2 OF 4: IDENTITY AUDIT INTAKE
+                    <span class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">
+                        Identity Verification Audit
                     </span>
-                    <h3 class="text-xl font-bold text-[#0A1B2E] dark:text-white mt-1" style="font-family:'Manrope',sans-serif">
+                    <h3 class="font-title-lg font-bold text-on-surface mt-0.5">
                         Upgrade to @targetPlan.PlanName
                     </h3>
                 </div>
-                <button type="button" @onclick="CloseUpgradeModal" class="text-slate-400 hover:text-slate-600 text-2xl leading-none cursor-pointer">&times;</button>
+                <button type="button" @onclick="CloseUpgradeModal" class="text-on-surface-variant hover:text-on-surface text-xl leading-none cursor-pointer">&times;</button>
             </div>
 
             @if (!string.IsNullOrEmpty(modalError))
             {
-                <div class="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2">
-                    <svg class="w-4 h-4 shrink-0 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div class="p-space-sm bg-error/10 border border-error/30 text-error font-body-sm text-body-sm rounded-lg flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base shrink-0">error</span>
                     <span>@modalError</span>
                 </div>
             }
 
-            <form @onsubmit="SubmitUpgradeApplicationAsync" class="space-y-5 text-xs">
+            <form @onsubmit="SubmitUpgradeApplicationAsync" class="space-y-4 font-body-sm text-body-sm">
 
                 <!-- Plan Summary Box -->
-                <div class="p-4 rounded-xl bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between">
+                <div class="p-space-sm rounded-lg bg-surface-container border border-surface-container-high/30 flex items-center justify-between">
                     <div>
-                        <p class="font-bold text-sm text-[#0A1B2E] dark:text-white">@targetPlan.PlanName</p>
-                        <p class="text-[11px] text-[#7A8CA6]">Duration: @targetPlan.DurationDays Days &bull; @targetPlan.BillingInterval</p>
+                        <p class="font-title-md font-bold text-on-surface">@targetPlan.PlanName</p>
+                        <p class="font-label-sm text-on-surface-variant">Duration: @targetPlan.DurationDays Days &bull; @targetPlan.BillingInterval</p>
                     </div>
                     <div class="text-right">
-                        <p class="font-mono text-lg font-black text-[#0A1B2E] dark:text-white">$@targetPlan.PriceAmount.ToString("F2")</p>
-                        @if (targetPlan.LinkDropCost > 0)
-                        {
-                            <p class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">@targetPlan.LinkDropCost.ToString("N0") Drops</p>
-                        }
+                        <p class="font-title-lg font-mono font-bold text-primary flex items-center justify-end gap-1.5">
+                            <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                            <span>@targetPlan.LinkDropCost.ToString("N0") Drops</span>
+                        </p>
+                        <p class="font-label-sm text-on-surface-variant">Escrow Deposit</p>
                     </div>
                 </div>
 
                 <!-- Legal Full Name -->
                 <div class="space-y-1">
-                    <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider text-[11px]">
+                    <label class="block font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
                         Full Legal Name (matching Identity Card) *
                     </label>
                     <input type="text" required placeholder="e.g. Elena Rostova" @bind="inputLegalName"
-                           class="w-full px-3.5 py-2.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] dark:bg-[#0A1B2E] text-xs focus:border-[#0A1B2E] dark:focus:border-white outline-none" />
+                           class="w-full px-3 py-2 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface font-body-sm focus:border-primary outline-none" />
                 </div>
 
                 <!-- Professional Credentials / Links -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
                     <div class="space-y-1">
-                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider text-[11px]">
-                            Work / Domain Email (Optional)
+                        <label class="block font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
+                            Work Email (Optional)
                         </label>
                         <input type="email" placeholder="elena@company.com" @bind="inputWorkEmail"
-                               class="w-full px-3.5 py-2.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] dark:bg-[#0A1B2E] text-xs focus:border-[#0A1B2E] outline-none" />
+                               class="w-full px-3 py-2 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface font-body-sm focus:border-primary outline-none" />
                     </div>
                     <div class="space-y-1">
-                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider text-[11px]">
+                        <label class="block font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
                             LinkedIn / GitHub / Portfolio URL
                         </label>
                         <input type="url" placeholder="https://linkedin.com/in/elena" @bind="inputProfessionalUrl"
-                               class="w-full px-3.5 py-2.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] dark:bg-[#0A1B2E] text-xs focus:border-[#0A1B2E] outline-none" />
+                               class="w-full px-3 py-2 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface font-body-sm focus:border-primary outline-none" />
                     </div>
                 </div>
 
                 <!-- Identity Card Upload (Front) -->
                 <div class="space-y-1">
-                    <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider text-[11px]">
+                    <label class="block font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
                         Identity Card / Government ID (Front) *
                     </label>
-                    <div class="p-4 rounded-xl border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.25)] bg-[#F8FAFC] dark:bg-[#0A1B2E] text-center space-y-2">
-                        <InputFile OnChange="HandleFrontIdUpload" accept=".jpg,.jpeg,.png,.webp" class="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#0A1B2E] file:text-white hover:file:bg-[#112A46] cursor-pointer" />
-                        <p class="text-[10px] text-[#7A8CA6]">National Registration Card, Passport, or Driver's License (JPG, PNG, max 10MB)</p>
+                    <div class="p-space-sm rounded-lg border border-dashed border-outline-variant/60 bg-surface-container text-center space-y-1.5">
+                        <InputFile OnChange="HandleFrontIdUpload" accept=".jpg,.jpeg,.png,.webp" class="font-body-sm file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:font-label-sm file:font-bold file:bg-primary file:text-on-primary hover:file:opacity-90 cursor-pointer" />
+                        <p class="font-label-sm text-on-surface-variant">National Registration Card, Passport, or Driver's License (JPG, PNG, max 10MB)</p>
                         @if (!string.IsNullOrEmpty(frontIdFileName))
                         {
-                            <p class="text-xs text-emerald-600 font-bold">✓ Selected: @frontIdFileName</p>
+                            <p class="font-body-sm text-emerald-600 font-bold">✓ Selected: @frontIdFileName</p>
                         }
                     </div>
                 </div>
 
                 <!-- Identity Card Upload (Back - Optional) -->
                 <div class="space-y-1">
-                    <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider text-[11px]">
+                    <label class="block font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
                         Identity Card (Back - Optional)
                     </label>
-                    <div class="p-4 rounded-xl border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.25)] bg-[#F8FAFC] dark:bg-[#0A1B2E] text-center space-y-2">
-                        <InputFile OnChange="HandleBackIdUpload" accept=".jpg,.jpeg,.png,.webp" class="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#0A1B2E] file:text-white hover:file:bg-[#112A46] cursor-pointer" />
+                    <div class="p-space-sm rounded-lg border border-dashed border-outline-variant/60 bg-surface-container text-center space-y-1.5">
+                        <InputFile OnChange="HandleBackIdUpload" accept=".jpg,.jpeg,.png,.webp" class="font-body-sm file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:font-label-sm file:font-bold file:bg-primary file:text-on-primary hover:file:opacity-90 cursor-pointer" />
                         @if (!string.IsNullOrEmpty(backIdFileName))
                         {
-                            <p class="text-xs text-emerald-600 font-bold">✓ Selected: @backIdFileName</p>
+                            <p class="font-body-sm text-emerald-600 font-bold">✓ Selected: @backIdFileName</p>
                         }
                     </div>
                 </div>
 
-                <!-- Payment Selection -->
-                <div class="space-y-2 pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                    <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider text-[11px]">
-                        Payment &amp; Escrow Method *
-                    </label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <label class="p-3.5 rounded-xl border cursor-pointer flex items-start gap-2.5 transition @(selectedPaymentMethod == "LinkDropPoints" ? "border-blue-600 bg-blue-50/40 dark:bg-blue-900/20" : "border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)]")">
-                            <input type="radio" name="payMethod" checked="@(selectedPaymentMethod == "LinkDropPoints")" @onchange='() => selectedPaymentMethod = "LinkDropPoints"' class="mt-0.5" />
+                <!-- LinkDrop Escrow Breakdown -->
+                <div class="p-space-sm rounded-lg border @(userWalletDrops >= targetPlan.LinkDropCost ? "border-primary/20 bg-surface-container" : "border-amber-500/20 bg-amber-500/5") space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded flex items-center justify-center font-bold text-xs"><LinkDropIcon Class="w-6 h-6 shrink-0" /></span>
                             <div>
-                                <p class="font-bold text-xs text-[#0A1B2E] dark:text-white flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                                    <span>LinkDrop Points</span>
-                                </p>
-                                <p class="text-[10px] text-[#7A8CA6]">Pay with your @targetPlan.LinkDropCost.ToString("N0") Drops balance</p>
-                                <p class="text-[10px] text-emerald-600 font-semibold mt-0.5">Your balance: @(userWalletDrops.ToString("N0")) Drops</p>
+                                <p class="font-label-md text-label-md font-bold text-on-surface">LinkDrop Escrow Payment</p>
+                                <p class="font-label-sm text-on-surface-variant">Deducted on submission &amp; held in escrow</p>
                             </div>
-                        </label>
-                        <label class="p-3.5 rounded-xl border cursor-pointer flex items-start gap-2.5 transition @(selectedPaymentMethod == "ManualSlip" ? "border-blue-600 bg-blue-50/40 dark:bg-blue-900/20" : "border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)]")">
-                            <input type="radio" name="payMethod" checked="@(selectedPaymentMethod == "ManualSlip")" @onchange='() => selectedPaymentMethod = "ManualSlip"' class="mt-0.5" />
-                            <div>
-                                <p class="font-bold text-xs text-[#0A1B2E] dark:text-white flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
-                                    <span>SecOps Direct Invoicing</span>
-                                </p>
-                                <p class="text-[10px] text-[#7A8CA6]">Pay via direct invoice or corporate credit card</p>
-                            </div>
-                        </label>
+                        </div>
+                        <span class="px-space-sm py-0.5 rounded font-label-sm text-label-sm uppercase tracking-wider font-bold @(userWalletDrops >= targetPlan.LinkDropCost ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border border-amber-500/20")">
+                            @(userWalletDrops >= targetPlan.LinkDropCost ? "Sufficient Balance" : "Insufficient Drops")
+                        </span>
                     </div>
+
+                    <div class="grid grid-cols-3 gap-2 pt-2 border-t border-surface-container-high/30 text-center">
+                        <div class="p-1.5 rounded bg-surface-container-lowest border border-surface-container-high/30">
+                            <p class="font-label-sm text-on-surface-variant uppercase">Required</p>
+                            <p class="font-mono font-bold font-body-sm text-on-surface mt-0.5 flex items-center justify-center gap-1.5">
+                                <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                                <span>@targetPlan.LinkDropCost.ToString("N0")</span>
+                            </p>
+                        </div>
+                        <div class="p-1.5 rounded bg-surface-container-lowest border border-surface-container-high/30">
+                            <p class="font-label-sm text-on-surface-variant uppercase">Your Balance</p>
+                            <p class="font-mono font-bold font-body-sm text-on-surface mt-0.5 flex items-center justify-center gap-1.5">
+                                <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                                <span>@userWalletDrops.ToString("N0")</span>
+                            </p>
+                        </div>
+                        <div class="p-1.5 rounded bg-surface-container-lowest border border-surface-container-high/30">
+                            <p class="font-label-sm text-on-surface-variant uppercase">Remaining</p>
+                            @if (userWalletDrops >= targetPlan.LinkDropCost)
+                            {
+                                <p class="font-mono font-bold font-body-sm text-emerald-600 mt-0.5 flex items-center justify-center gap-1.5">
+                                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                                    <span>@((userWalletDrops - targetPlan.LinkDropCost).ToString("N0"))</span>
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="font-mono font-bold font-body-sm text-error mt-0.5 flex items-center justify-center gap-1.5">
+                                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                                    <span>-@((targetPlan.LinkDropCost - userWalletDrops).ToString("N0"))</span>
+                                </p>
+                            }
+                        </div>
+                    </div>
+
+                    @if (userWalletDrops < targetPlan.LinkDropCost)
+                    {
+                        <div class="p-2 rounded bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2 font-body-sm">
+                            <span class="text-amber-700 dark:text-amber-300">Need <strong>@((targetPlan.LinkDropCost - userWalletDrops).ToString("N0"))</strong> more LinkDrops to apply.</span>
+                            <a href="linkdrops" target="_blank" class="px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-bold shrink-0 font-label-sm transition">Top Up &rarr;</a>
+                        </div>
+                    }
+
+                    <p class="font-label-sm text-on-surface-variant leading-relaxed flex items-center gap-1">
+                        <span class="material-symbols-outlined text-xs text-primary">shield</span>
+                        <span><strong>Escrow Protection:</strong> Drops are held during SecOps audit. If rejected, your @targetPlan.LinkDropCost.ToString("N0") Drops are automatically refunded to your wallet.</span>
+                    </p>
                 </div>
 
                 <!-- Modal Actions -->
-                <div class="flex items-center justify-end gap-3 pt-4 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                    <button type="button" @onclick="CloseUpgradeModal" class="px-4 py-2.5 rounded-xl text-xs font-semibold border border-[#CBD5E1] text-[#557392] hover:bg-[#F1F5F9] transition">
+                <div class="flex items-center justify-end gap-space-sm pt-space-sm border-t border-surface-container-high/30">
+                    <button type="button" @onclick="CloseUpgradeModal" class="px-3.5 py-2 rounded-lg font-label-md text-label-md font-semibold border border-outline-variant/60 text-on-surface-variant hover:bg-surface-container transition">
                         Cancel
                     </button>
-                    <button type="submit" disabled="@isSubmittingApplication" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#0A1B2E] hover:bg-[#112A46] shadow-md transition flex items-center gap-2 cursor-pointer">
+                    <button type="submit" disabled="@isSubmittingApplication" class="px-5 py-2 rounded-lg font-label-md text-label-md font-bold text-on-primary bg-primary hover:bg-primary/90 shadow-sm transition flex items-center gap-2 cursor-pointer">
                         @if (isSubmittingApplication)
                         {
-                            <span class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
-                            <span>Uploading &amp; Submitting...</span>
+                            <span class="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></span>
+                            <span>Submitting Application...</span>
                         }
                         else
                         {
-                            <span>Submit for Verification Audit</span>
+                            <span>Submit for Verification Audit (@targetPlan.LinkDropCost.ToString("N0") Drops)</span>
                             <span>&rarr;</span>
                         }
                     </button>
@@ -594,7 +623,6 @@
     private UserSubscriptionStatusDto? myStatus;
     private long userWalletDrops = 0;
     private bool isAnnual = false;
-    private int openFaqIndex = 0;
 
     // Modal State
     private bool showUpgradeModal = false;
@@ -621,16 +649,6 @@
         plans?.FirstOrDefault(p => p.TargetRoleCode == "PUBLIC_FIGURE" && (isAnnual ? p.BillingInterval == "Annual" : p.BillingInterval == "Monthly"))
         ?? plans?.FirstOrDefault(p => p.TargetRoleCode == "PUBLIC_FIGURE");
 
-    private sealed record FaqItem(string Question, string Answer);
-
-    private readonly List<FaqItem> faqItems =
-    [
-        new("What happens if my verification audit is rejected?", "If the SecOps team cannot verify your credentials or if your Identity Card documentation is illegible, your application will be marked as Rejected with specific feedback. Any LinkDrop points held in escrow are immediately and automatically refunded to your wallet."),
-        new("How do 1-on-1 advisory bookings and client payouts work?", "Once verified as a Domain Professional or Public Figure, you can set your own advisory rates and connect your payout method. Clients book 1-on-1 consultations directly through your profile with built-in platform escrow."),
-        new("Can I upgrade from Domain Pro to Public Figure VIP later?", "Yes. You can upgrade to Public Figure VIP at any time. Your remaining credit from your Domain Pro plan will be prorated towards your VIP subscription."),
-        new("How do public peer ratings maintain integrity against spam?", "Only users who have confirmed verified interactions, consultations, or project collaborations with you can submit a rating. Ratings undergo cryptographic tamper checks and anomaly detection.")
-    ];
-
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
@@ -655,11 +673,6 @@
         {
             userWalletDrops = walletRes.Data.Balance;
         }
-    }
-
-    private void ToggleFaq(int index)
-    {
-        openFaqIndex = openFaqIndex == index ? -1 : index;
     }
 
     private void OpenUpgradeModal(SubscriptionPlanDto? plan)
@@ -736,6 +749,12 @@
         if (frontIdBytes == null || string.IsNullOrWhiteSpace(frontIdFileName))
         {
             modalError = "Please upload the front image of your Identity Card.";
+            return;
+        }
+
+        if (targetPlan.LinkDropCost > 0 && userWalletDrops < targetPlan.LinkDropCost)
+        {
+            modalError = $"Insufficient LinkDrop balance. You need {(targetPlan.LinkDropCost - userWalletDrops):N0} more Drops to apply.";
             return;
         }
 

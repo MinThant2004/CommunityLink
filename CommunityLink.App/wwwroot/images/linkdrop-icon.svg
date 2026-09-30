@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <defs>
+    <linearGradient id="bg_c2" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0b1120"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+
+    <!-- Beveled Hexagon Rim -->
+    <linearGradient id="hexRimGrad" x1="100" y1="80" x2="412" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="40%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+
+    <!-- Hex Face Inner Radial -->
+    <radialGradient id="hexFace" cx="50%" cy="40%" r="58%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="65%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </radialGradient>
+
+    <!-- Nexus Arm 1 Gradient -->
+    <linearGradient id="armGrad1" x1="256" y1="130" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Nexus Arm 2 Gradient -->
+    <linearGradient id="armGrad2" x1="140" y1="320" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+
+    <!-- Nexus Arm 3 Gradient -->
+    <linearGradient id="armGrad3" x1="372" y1="320" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <filter id="core_glow_c2" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Container -->
+  <rect width="512" height="512" rx="128" fill="url(#bg_c2)"/>
+  <rect x="2" y="2" width="508" height="508" rx="126" stroke="rgba(255, 255, 255, 0.08)" stroke-width="2"/>
+  <rect x="8" y="8" width="496" height="496" rx="120" stroke="rgba(56, 189, 248, 0.15)" stroke-width="1.5"/>
+
+  <!-- Background Orbit / Escrow Ring -->
+  <circle cx="256" cy="256" r="196" stroke="rgba(56, 189, 248, 0.08)" stroke-width="1.5" stroke-dasharray="4 6"/>
+
+  <!-- OUTER HEXAGONAL TOKEN / CHIP -->
+  <!-- Flat-topped Hexagon Path -->
+  <!-- Vertices: (256, 76), (412, 166), (412, 346), (256, 436), (100, 346), (100, 166) -->
+  <polygon points="256,76 412,166 412,346 256,436 100,346 100,166" 
+           fill="url(#hexFace)" 
+           stroke="url(#hexRimGrad)" 
+           stroke-width="12" 
+           stroke-linejoin="round"/>
+
+  <!-- Inner Inset Hexagon Guideline -->
+  <polygon points="256,98 392,176 392,336 256,414 120,336 120,176" 
+           fill="none" 
+           stroke="rgba(255, 255, 255, 0.1)" 
+           stroke-width="2" 
+           stroke-linejoin="round"/>
+
+  <!-- Security Perimeter Micro-Notches on 6 Hex Vertices -->
+  <circle cx="256" cy="76" r="5" fill="#38bdf8"/>
+  <circle cx="412" cy="166" r="5" fill="#38bdf8"/>
+  <circle cx="412" cy="346" r="5" fill="#38bdf8"/>
+  <circle cx="256" cy="436" r="5" fill="#38bdf8"/>
+  <circle cx="100" cy="346" r="5" fill="#38bdf8"/>
+  <circle cx="100" cy="166" r="5" fill="#38bdf8"/>
+
+  <!-- TRI-FOLD CRYPTOGRAPHIC POINT NEXUS (Value Flow & Staking Rails) -->
+  <!-- Top Vertical Node Branch -->
+  <line x1="256" y1="130" x2="256" y2="256" stroke="url(#armGrad1)" stroke-width="16" stroke-linecap="round"/>
+  <!-- Bottom Left Node Branch -->
+  <line x1="146" y1="320" x2="256" y2="256" stroke="url(#armGrad2)" stroke-width="16" stroke-linecap="round"/>
+  <!-- Bottom Right Node Branch -->
+  <line x1="366" y1="320" x2="256" y2="256" stroke="url(#armGrad3)" stroke-width="16" stroke-linecap="round"/>
+
+  <!-- Interlocking Security Collar Around Core -->
+  <circle cx="256" cy="256" r="46" fill="#0f172a" stroke="rgba(255, 255, 255, 0.2)" stroke-width="3"/>
+  <circle cx="256" cy="256" r="32" fill="#0284c7" opacity="0.3" filter="url(#core_glow_c2)"/>
+
+  <!-- Terminal Connection Nodes with Micro Value Pips -->
+  <circle cx="256" cy="130" r="14" fill="#0284c7"/>
+  <circle cx="256" cy="130" r="6" fill="#ffffff"/>
+
+  <circle cx="146" cy="320" r="14" fill="#334155"/>
+  <circle cx="146" cy="320" r="6" fill="#ffffff"/>
+
+  <circle cx="366" cy="320" r="14" fill="#0284c7"/>
+  <circle cx="366" cy="320" r="6" fill="#38bdf8"/>
+
+  <!-- Center Core Settlement Pip -->
+  <circle cx="256" cy="256" r="12" fill="#ffffff" filter="url(#core_glow_c2)"/>
+  <circle cx="256" cy="256" r="6" fill="#0284c7"/>
+
+  <!-- Micro Subscript -->
+  <text x="256" y="474" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="16" letter-spacing="4" fill="#64748b">HEXAGONAL SECURITY CHIP</text>
+</svg>

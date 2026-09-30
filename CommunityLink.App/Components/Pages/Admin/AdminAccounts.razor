@@ -11,7 +11,10 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">🛡️ Admin Account Management</h1>
+            <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2.5" style="font-family:'Manrope',sans-serif">
+                <svg class="w-6 h-6 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Admin Account Management</span>
+            </h1>
             <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">Provision operator credentials, invite administrators via 15-minute secure setup links, and govern access.</p>
         </div>
         <button @onclick="OpenInviteModal" class="px-4 py-2.5 rounded-lg text-xs font-bold text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white shadow-sm transition flex items-center gap-2 cursor-pointer">
@@ -98,14 +101,16 @@
                                 <td class="px-6 py-4">
                                     @if (admin.IsSuperAdmin)
                                     {
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold font-mono bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                                            <span>👑</span> SYSTEMADMIN
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold font-mono bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                            <svg class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
+                                            <span>SYSTEMADMIN</span>
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold font-mono bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                            <span>🛡️</span> ADMIN
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold font-mono bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                            <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                            <span>ADMIN</span>
                                         </span>
                                     }
                                 </td>
@@ -173,8 +178,9 @@
             <div class="p-6 space-y-4">
                 @if (!string.IsNullOrEmpty(modalError))
                 {
-                    <div class="p-3 rounded-lg bg-red-50 dark:bg-rose-950/40 border border-red-200 dark:border-rose-900/50 text-red-700 dark:text-rose-300 text-xs">
-                        ⚠️ @modalError
+                    <div class="p-3 rounded-lg bg-red-50 dark:bg-rose-950/40 border border-red-200 dark:border-rose-900/50 text-red-700 dark:text-rose-300 text-xs flex items-center gap-2">
+                        <svg class="w-4 h-4 text-rose-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <span>@modalError</span>
                     </div>
                 }
 
@@ -205,7 +211,10 @@
                 </div>
 
                 <div class="p-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-xs text-[#557392] dark:text-[#C4D2E1] space-y-1">
-                    <p class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">⏱️ 15-Minute Expiration Notice</p>
+                    <p class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>15-Minute Expiration Notice</span>
+                    </p>
                     <p>The invited admin will receive a link to set their password. Once created, they will log in strictly through the <strong>Admin Portal Login</strong>.</p>
                 </div>
             </div>

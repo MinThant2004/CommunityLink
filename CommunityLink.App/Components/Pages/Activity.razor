@@ -18,7 +18,8 @@
             <p class="text-xs sm:text-sm text-[#557392] dark:text-[#C4D2E1] mt-1">A running chronological record of your likes, comments, shares, and group activities.</p>
         </div>
         <button type="button" @onclick="LoadActivitiesAsync" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition shadow-sm cursor-pointer">
-            🔄 Refresh
+            <svg class="w-3.5 h-3.5 text-[#557392] dark:text-[#C4D2E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            <span>Refresh</span>
         </button>
     </div>
 
@@ -58,7 +59,7 @@
                         {
                             <div class="p-4 flex items-center justify-between gap-4 hover:bg-[#F8FAFC] dark:hover:bg-[#0A1B2E]/50 transition">
                                 <div class="flex items-center gap-3.5 min-w-0">
-                                    <span class="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0 @GetBadgeClass(act.ActivityType)">
+                                    <span class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 @GetBadgeClass(act.ActivityType)">
                                         @GetIcon(act.ActivityType)
                                     </span>
                                     <div class="min-w-0">
@@ -99,8 +100,8 @@
     <div class="fixed inset-0 z-50 bg-[#0A1B2E]/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white dark:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-[#0A1B2E] dark:text-[#E1E8F0]">
             <div class="flex items-center gap-3">
-                <span class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center text-lg shrink-0">
-                    🗑️
+                <span class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 </span>
                 <div>
                     <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">Delete Activity Log</h3>
@@ -189,14 +190,33 @@
         isDeleting = false;
     }
 
-    private static string GetIcon(string type) => type?.ToUpperInvariant() switch
+    private static RenderFragment GetIcon(string type) => builder =>
     {
-        "LIKE" => "❤️",
-        "COMMENT" => "💬",
-        "SHARE" => "🔁",
-        "GROUP_CREATE" => "👥",
-        "GROUP_JOIN_REVIEW" => "🛡️",
-        _ => "⚡"
+        var t = type?.ToUpperInvariant();
+        if (t == "LIKE")
+        {
+            builder.AddMarkupContent(0, "<svg class=\"w-4 h-4\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z\"/></svg>");
+        }
+        else if (t == "COMMENT")
+        {
+            builder.AddMarkupContent(0, "<svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z\"/></svg>");
+        }
+        else if (t == "SHARE")
+        {
+            builder.AddMarkupContent(0, "<svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z\"/></svg>");
+        }
+        else if (t == "GROUP_CREATE")
+        {
+            builder.AddMarkupContent(0, "<svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z\"/></svg>");
+        }
+        else if (t == "GROUP_JOIN_REVIEW")
+        {
+            builder.AddMarkupContent(0, "<svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z\"/></svg>");
+        }
+        else
+        {
+            builder.AddMarkupContent(0, "<svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13 10V3L4 14h7v7l9-11h-7z\"/></svg>");
+        }
     };
 
     private static string GetBadgeClass(string type) => type?.ToUpperInvariant() switch

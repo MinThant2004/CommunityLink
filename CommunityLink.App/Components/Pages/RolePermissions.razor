@@ -9,27 +9,43 @@
 <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">🔐 Role &amp; Permission Matrix</h1>
-            <p class="text-sm text-[#557392]">Manage database-driven authorization permissions per role in real time.</p>
+            <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
+                <svg class="w-6 h-6 text-[#557392] dark:text-[#C4D2E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <span>Role &amp; Permission Matrix</span>
+            </h1>
+            <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">Manage database-driven authorization permissions per role in real time.</p>
         </div>
         <div class="flex items-center gap-3">
-            <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white border border-[#CBD5E1] text-[#0A1B2E] hover:bg-[#F8FAFC] shadow-sm transition active:scale-[0.98]"
+            <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A] shadow-sm transition active:scale-[0.98]"
                     @onclick="OpenCreateRoleModal">
-                <span>➕</span> Add New Role
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Add New Role</span>
             </button>
             @if (matrix != null)
             {
                 if (IsSelectedRoleAdmin)
                 {
-                    <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#E2E8F0] text-[#475569] border border-[#CBD5E1]">
-                        🔒 Fixed System Permissions
+                    <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#475569] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)]">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <span>Fixed System Permissions</span>
                     </span>
                 }
                 else
                 {
-                    <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#0A1B2E] hover:bg-[#112A46] text-white shadow-sm transition disabled:opacity-50 active:scale-[0.98]"
+                    <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] shadow-sm transition disabled:opacity-50 active:scale-[0.98]"
                             @onclick="SaveChanges" disabled="@isSaving">
-                        @(isSaving ? "Saving..." : "💾 Save Changes")
+                        @if (isSaving)
+                        {
+                            <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                            <span>Save Changes</span>
+                        }
                     </button>
                 }
             }
@@ -40,8 +56,8 @@
         <!-- Role Selection Sidebar -->
         <div class="space-y-2">
             <div class="flex items-center justify-between px-1 mb-2">
-                <h2 class="text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">Select Role</h2>
-                <span class="text-[11px] text-[#557392] font-semibold">@(roles?.Count ?? 0) Roles</span>
+                <h2 class="text-[10px] font-bold text-[#7A8CA6] dark:text-[#C4D2E1] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">Select Role</h2>
+                <span class="text-[11px] text-[#557392] dark:text-[#7A8CA6] font-semibold">@(roles?.Count ?? 0) Roles</span>
             </div>
 
             @if (roles != null)
@@ -50,25 +66,25 @@
                     @foreach (var r in roles)
                     {
                         var isSel = selectedRoleId == r.RoleId;
-                        <div class="w-full text-left p-4 transition flex items-center justify-between group @(isSel ? "bg-[#F1F5F9] border-l-4 border-l-[#0A1B2E]" : "hover:bg-[#F8FAFC]") cursor-pointer"
+                        <div class="w-full text-left p-4 transition flex items-center justify-between group @(isSel ? "bg-[#F1F5F9] dark:bg-[#1B3B5A] border-l-4 border-l-[#0A1B2E] dark:border-l-[#E1E8F0]" : "hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/50") cursor-pointer"
                              @onclick="() => SelectRole(r.RoleId)">
                             <div class="min-w-0 pr-2">
                                 <div class="flex items-center gap-1.5">
-                                    <span class="font-bold text-sm truncate @(isSel ? "text-[#0A1B2E]" : "text-[#334155]")">@r.Name</span>
+                                    <span class="font-bold text-sm truncate @(isSel ? "text-[#0A1B2E] dark:text-[#E1E8F0]" : "text-[#334155] dark:text-[#C4D2E1]")">@r.Name</span>
                                     @if (r.IsSystemRole)
                                     {
-                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700 shrink-0">System</span>
+                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 shrink-0">System</span>
                                     }
                                 </div>
-                                <div class="text-xs text-[#7A8CA6] font-mono mt-0.5 truncate">@r.Code</div>
+                                <div class="text-xs text-[#7A8CA6] dark:text-[#7A8CA6] font-mono mt-0.5 truncate">@r.Code</div>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[#F1F5F9] text-[#557392] border border-[#E2E8F0]">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[#F1F5F9] dark:bg-[#0A1B2E] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                     @r.UserCount users
                                 </span>
                                 @if (!r.IsSystemRole && !string.Equals(r.Code, "ADMIN", StringComparison.OrdinalIgnoreCase) && !string.Equals(r.Code, "USER", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <button class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                                    <button class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition"
                                             title="Delete Role"
                                             @onclick:stopPropagation="true"
                                             @onclick="() => PromptDeleteRole(r)">
@@ -93,16 +109,17 @@
             }
             else if (matrix != null)
             {
-                <div class="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-sm">
-                    <div class="px-6 py-4 border-b border-[#E2E8F0] bg-[#F8FAFC] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden shadow-sm">
+                    <div class="px-6 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
-                            <span class="font-bold text-[#0A1B2E] text-sm" style="font-family:'Manrope',sans-serif">
-                                Permissions for: <span class="text-[#557392]">@matrix.RoleName (@matrix.RoleCode)</span>
+                            <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm" style="font-family:'Manrope',sans-serif">
+                                Permissions for: <span class="text-[#557392] dark:text-[#C4D2E1]">@matrix.RoleName (@matrix.RoleCode)</span>
                             </span>
                             @if (IsSelectedRoleAdmin)
                             {
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                                    ★ ALL GRANTED (READ-ONLY)
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/50 flex items-center gap-1">
+                                    <svg class="w-3 h-3 text-amber-600 dark:text-amber-400 fill-amber-600 dark:fill-amber-400" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                                    <span>ALL GRANTED (READ-ONLY)</span>
                                 </span>
                             }
                         </div>
@@ -110,13 +127,13 @@
                             @if (!IsSelectedRoleAdmin)
                             {
                                 <button type="button"
-                                        class="px-2.5 py-1 rounded text-xs font-semibold border border-[#CBD5E1] bg-white hover:bg-[#F1F5F9] text-[#0A1B2E] transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+                                        class="px-2.5 py-1 rounded text-xs font-semibold border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] bg-white dark:bg-[#1B3B5A] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] transition flex items-center gap-1.5 cursor-pointer shadow-sm"
                                         @onclick="() => ToggleSelectAll(!IsAllSelected)">
-                                    <svg class="w-3.5 h-3.5 text-[#557392]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                    <svg class="w-3.5 h-3.5 text-[#557392] dark:text-[#C4D2E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                                     <span>@(IsAllSelected ? "Deselect All" : "Select All")</span>
                                 </button>
                             }
-                            <span class="text-xs text-[#7A8CA6] font-mono">
+                            <span class="text-xs text-[#7A8CA6] dark:text-[#C4D2E1] font-mono">
                                 @(IsSelectedRoleAdmin ? matrix.Permissions.Count : grantedCodes.Count) of @matrix.Permissions.Count granted
                             </span>
                             @if (!IsSelectedRoleSystem)
@@ -124,7 +141,7 @@
                                 <button class="text-xs font-semibold text-rose-600 hover:text-rose-800 flex items-center gap-1 transition"
                                         @onclick="() => PromptDeleteRole(CurrentSelectedRole)">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    Delete Role
+                                    <span>Delete Role</span>
                                 </button>
                             }
                         </div>
@@ -133,7 +150,7 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-[#F1F5F9] border-b border-[#E2E8F0] text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
+                                <tr class="bg-[#F1F5F9] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[10px] font-bold text-[#7A8CA6] dark:text-[#C4D2E1] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
                                     <th class="w-16 px-6 py-3 text-center">
                                         @if (IsSelectedRoleAdmin)
                                         {
@@ -143,7 +160,7 @@
                                         {
                                             <div class="flex flex-col items-center gap-1">
                                                 <input type="checkbox"
-                                                       class="w-[18px] h-[18px] rounded cursor-pointer accent-[#0A1B2E]"
+                                                       class="w-[18px] h-[18px] rounded cursor-pointer accent-[#0A1B2E] dark:accent-[#E1E8F0]"
                                                        title="Select / Deselect All Permissions"
                                                        checked="@IsAllSelected"
                                                        @onchange="(e) => ToggleSelectAll((bool)(e.Value ?? false))" />
@@ -156,26 +173,26 @@
                                     <th class="px-6 py-3">Module</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-[#E2E8F0] text-sm">
+                            <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.08)] text-sm">
                                 @for (int i = 0; i < matrix.Permissions.Count; i++)
                                 {
                                     var p = matrix.Permissions[i];
                                     var rowNumber = i + 1;
-                                    <tr class="hover:bg-[#F8FAFC] transition">
+                                    <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/40 transition">
                                         <td class="px-6 py-4 text-center">
                                             @if (IsSelectedRoleAdmin)
                                             {
-                                                <span class="font-mono text-xs font-bold text-[#64748B]">@rowNumber</span>
+                                                <span class="font-mono text-xs font-bold text-[#64748B] dark:text-[#C4D2E1]">@rowNumber</span>
                                             }
                                             else
                                             {
-                                                <input type="checkbox" class="w-[18px] h-[18px] rounded cursor-pointer accent-[#0A1B2E]"
+                                                <input type="checkbox" class="w-[18px] h-[18px] rounded cursor-pointer accent-[#0A1B2E] dark:accent-[#E1E8F0]"
                                                        checked="@grantedCodes.Contains(p.Code)"
                                                        @onchange="(e) => TogglePermission(p.Code, (bool)(e.Value ?? false))" />
                                             }
                                         </td>
                                         <td class="px-6 py-4 font-mono text-xs text-[#557392] dark:text-[#C4D2E1] font-semibold">@p.Code</td>
-                                        <td class="px-6 py-4 font-medium text-[#0A1B2E] dark:text-white">@p.Name</td>
+                                        <td class="px-6 py-4 font-medium text-[#0A1B2E] dark:text-[#E1E8F0]">@p.Name</td>
                                         <td class="px-6 py-4">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)]">
                                                 @p.Module
@@ -195,63 +212,65 @@
 <!-- CREATE ROLE MODAL -->
 @if (showCreateModal)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 backdrop-blur-sm animate-fadeIn">
-        <div class="bg-white rounded-2xl shadow-2xl border border-[#CBD5E1] max-w-md w-full p-6 space-y-5 text-[#0A1B2E]">
-            <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 dark:bg-black/70 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white dark:bg-[#112A46] rounded-2xl shadow-2xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] max-w-md w-full p-6 space-y-5 text-[#0A1B2E] dark:text-[#E1E8F0]">
+            <div class="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-3">
                 <div class="flex items-center gap-2">
-                    <span class="text-xl">🛡️</span>
-                    <h3 class="font-bold text-base text-[#0A1B2E]" style="font-family:'Manrope',sans-serif">Create New Role</h3>
+                    <svg class="w-5 h-5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <h3 class="font-bold text-base text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">Create New Role</h3>
                 </div>
-                <button @onclick="CloseCreateRoleModal" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+                <button @onclick="CloseCreateRoleModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-2xl leading-none">&times;</button>
             </div>
 
             @if (!showCreateConfirm)
             {
                 <div class="space-y-4 text-xs">
                     <div>
-                        <label class="block font-bold text-[#64748B] uppercase tracking-wider mb-1">Role Code *</label>
+                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider mb-1">Role Code *</label>
                         <input type="text"
                                placeholder="e.g. AUDITOR"
                                @bind="createModel.RoleCode"
-                               class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] font-mono uppercase text-xs focus:border-[#0A1B2E] outline-none" />
+                               class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] font-mono uppercase text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] outline-none" />
                         <p class="text-[11px] text-[#7A8CA6] mt-1">Unique uppercase system code.</p>
                     </div>
 
                     <div>
-                        <label class="block font-bold text-[#64748B] uppercase tracking-wider mb-1">Role Name *</label>
+                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider mb-1">Role Name *</label>
                         <input type="text"
                                placeholder="e.g. Compliance Auditor"
                                @bind="createModel.RoleName"
-                               class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] text-xs focus:border-[#0A1B2E] outline-none" />
+                               class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] outline-none" />
                         <p class="text-[11px] text-[#7A8CA6] mt-1">Friendly display name.</p>
                     </div>
 
                     <div>
-                        <label class="block font-bold text-[#64748B] uppercase tracking-wider mb-1">Description *</label>
+                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider mb-1">Description *</label>
                         <textarea rows="3"
                                   placeholder="Describe the responsibilities and scope of this role..."
                                   @bind="createModel.Description"
-                                  class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] text-xs focus:border-[#0A1B2E] outline-none resize-none"></textarea>
+                                  class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] outline-none resize-none"></textarea>
                     </div>
 
-                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-[11px] flex items-center gap-2">
-                        <span>ℹ️</span>
+                    <div class="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 rounded-lg text-blue-800 dark:text-blue-300 text-[11px] flex items-center gap-2">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span>This role will automatically receive default permissions identical to standard <strong>USER</strong> role upon creation.</span>
                     </div>
 
                     @if (!string.IsNullOrEmpty(createErrorMessage))
                     {
-                        <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg">
+                        <div class="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-lg">
                             @createErrorMessage
                         </div>
                     }
                 </div>
 
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0]">
-                    <button @onclick="CloseCreateRoleModal" class="px-4 py-2 rounded-lg text-xs font-semibold border border-[#CBD5E1] text-slate-700 hover:bg-slate-100 transition">
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                    <button @onclick="CloseCreateRoleModal" class="px-4 py-2 rounded-lg text-xs font-semibold border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-slate-700 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition">
                         Cancel
                     </button>
-                    <button @onclick="ProceedToCreateConfirm" class="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0A1B2E] text-white hover:bg-[#112A46] transition">
+                    <button @onclick="ProceedToCreateConfirm" class="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:bg-[#112A46] dark:hover:bg-white transition">
                         Continue &gt;
                     </button>
                 </div>
@@ -260,32 +279,32 @@
             {
                 <!-- Confirmation Prompt In Middle -->
                 <div class="py-4 text-center space-y-3">
-                    <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-700 mx-auto flex items-center justify-center text-xl font-bold">
-                        ❓
+                    <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 mx-auto flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <h4 class="font-bold text-sm text-[#0A1B2E]">Are you sure you are going to add this new role?</h4>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-left text-xs space-y-1 font-mono">
+                    <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-[#E1E8F0]">Are you sure you are going to add this new role?</h4>
+                    <div class="p-3 bg-slate-50 dark:bg-[#0A1B2E] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-lg text-left text-xs space-y-1 font-mono">
                         <div><strong>Code:</strong> @createModel.RoleCode?.Trim().ToUpperInvariant()</div>
                         <div><strong>Name:</strong> @createModel.RoleName?.Trim()</div>
-                        <div class="text-[11px] text-slate-500 font-sans mt-1">@createModel.Description</div>
+                        <div class="text-[11px] text-slate-500 dark:text-[#7A8CA6] font-sans mt-1">@createModel.Description</div>
                     </div>
                 </div>
 
                 @if (!string.IsNullOrEmpty(createErrorMessage))
                 {
-                    <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg">
+                    <div class="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-lg">
                         @createErrorMessage
                     </div>
                 }
 
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0]">
-                    <button @onclick="() => showCreateConfirm = false" class="px-4 py-2 rounded-lg text-xs font-semibold border border-[#CBD5E1] text-slate-700 hover:bg-slate-100 transition" disabled="@isSubmittingCreate">
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                    <button @onclick="() => showCreateConfirm = false" class="px-4 py-2 rounded-lg text-xs font-semibold border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-slate-700 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition" disabled="@isSubmittingCreate">
                         Back
                     </button>
-                    <button @onclick="SubmitCreateRoleAsync" disabled="@isSubmittingCreate" class="px-5 py-2 rounded-lg text-xs font-semibold bg-[#0A1B2E] text-white hover:bg-[#112A46] transition flex items-center gap-1.5">
+                    <button @onclick="SubmitCreateRoleAsync" disabled="@isSubmittingCreate" class="px-5 py-2 rounded-lg text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:bg-[#112A46] dark:hover:bg-white transition flex items-center gap-1.5">
                         @if (isSubmittingCreate)
                         {
-                            <span class="animate-spin text-xs">⌛</span>
+                            <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             <span>Creating...</span>
                         }
                         else
@@ -302,38 +321,38 @@
 <!-- DELETE CONFIRMATION MODAL (Centered in Middle) -->
 @if (showDeleteModal && roleToDelete != null)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 backdrop-blur-sm animate-fadeIn">
-        <div class="bg-white rounded-2xl shadow-2xl border border-rose-200 max-w-md w-full p-6 space-y-4 text-center text-[#0A1B2E]">
-            <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 mx-auto flex items-center justify-center text-2xl font-bold">
-                ⚠️
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 dark:bg-black/70 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white dark:bg-[#112A46] rounded-2xl shadow-2xl border border-rose-200 dark:border-rose-900/50 max-w-md w-full p-6 space-y-4 text-center text-[#0A1B2E] dark:text-[#E1E8F0]">
+            <div class="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
 
             <div class="space-y-1">
-                <h3 class="font-bold text-base text-[#0A1B2E]">Are you sure you are going to delete this role?</h3>
-                <p class="text-xs text-[#557392]">
-                    Role to remove: <strong class="text-[#0A1B2E]">@roleToDelete.Name (@roleToDelete.Code)</strong>
+                <h3 class="font-bold text-base text-[#0A1B2E] dark:text-[#E1E8F0]">Are you sure you are going to delete this role?</h3>
+                <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">
+                    Role to remove: <strong class="text-[#0A1B2E] dark:text-white">@roleToDelete.Name (@roleToDelete.Code)</strong>
                 </p>
             </div>
 
-            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-left text-xs leading-relaxed">
+            <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-lg text-amber-900 dark:text-amber-300 text-left text-xs leading-relaxed">
                 <strong>Notice:</strong> Any user currently assigned to this role will automatically turn into the default <strong>'USER'</strong> role.
             </div>
 
             @if (!string.IsNullOrEmpty(deleteErrorMessage))
             {
-                <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg text-left">
+                <div class="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-lg text-left">
                     @deleteErrorMessage
                 </div>
             }
 
             <div class="flex items-center justify-center gap-3 pt-2">
-                <button @onclick="CloseDeleteModal" class="px-4 py-2 rounded-lg text-xs font-semibold border border-[#CBD5E1] text-slate-700 hover:bg-slate-100 transition" disabled="@isSubmittingDelete">
+                <button @onclick="CloseDeleteModal" class="px-4 py-2 rounded-lg text-xs font-semibold border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-slate-700 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition" disabled="@isSubmittingDelete">
                     Cancel
                 </button>
-                <button @onclick="ConfirmDeleteRoleAsync" disabled="@isSubmittingDelete" class="px-5 py-2 rounded-lg text-xs font-semibold bg-rose-600 text-white hover:bg-rose-700 transition flex items-center gap-1.5">
+                <button @onclick="ConfirmDeleteRoleAsync" disabled="@isSubmittingDelete" class="px-5 py-2 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition flex items-center gap-1.5">
                     @if (isSubmittingDelete)
                     {
-                        <span class="animate-spin text-xs">⌛</span>
+                        <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <span>Deleting...</span>
                     }
                     else

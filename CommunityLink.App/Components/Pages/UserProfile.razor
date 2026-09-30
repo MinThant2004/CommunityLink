@@ -365,7 +365,11 @@
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                                         @if (isPaidChatEnabled && privateChatFeeLinkDrops > 0)
                                         {
-                                            <span>Chat (💧 @privateChatFeeLinkDrops.ToString("N0") Drops)</span>
+                                            <span class="inline-flex items-center gap-1.5">
+                                                <span>Chat</span>
+                                                <LinkDropIcon Class="w-3.5 h-3.5 shrink-0 inline" />
+                                                <span>@privateChatFeeLinkDrops.ToString("N0") Drops</span>
+                                            </span>
                                         }
                                         else
                                         {
@@ -563,7 +567,7 @@
                         @if (isOwner)
                         {
                             <button @onclick='() => SetTab("recycle-bin")' class="@(activeTab == "recycle-bin" ? "chip-active" : "chip-standard")">
-                                <span>♻️</span>
+                                <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                 <span>RECYCLE BIN (@recycledPostsList.Count)</span>
                             </button>
                         }
@@ -877,7 +881,9 @@
                             @if (!recycledPostsList.Any())
                             {
                                 <div class="card-executive py-12 text-center text-xs text-[#64748B] dark:text-[#7A8CA6] space-y-2">
-                                    <div class="text-3xl">♻️</div>
+                                    <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </div>
                                     <p class="font-display font-bold">Your Recycle Bin is empty</p>
                                     <p class="text-[11px] max-w-sm mx-auto text-[#64748B]">Posts moved to the Recycle Bin will be preserved here for 10 days before permanent deletion.</p>
                                 </div>
@@ -886,7 +892,10 @@
                             {
                                 <div class="space-y-3">
                                     <div class="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-lg text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between">
-                                        <span>♻️ Posts in your Recycle Bin are automatically permanently purged after 10 days.</span>
+                                        <span class="flex items-center gap-1.5">
+                                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Posts in your Recycle Bin are automatically permanently purged after 10 days.
+                                        </span>
                                         <span class="font-mono text-[10px] font-semibold">@recycledPostsList.Count ITEM(S)</span>
                                     </div>
 
@@ -1189,40 +1198,42 @@
 @if (showProfileUnlockModal && profile != null)
 {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-sm w-full overflow-hidden p-6 text-center space-y-4">
-            <div class="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-2xl mx-auto text-sky-700 shadow-xs">
-                🔒
+        <div class="bg-white dark:bg-[#112A46] rounded-3xl shadow-2xl border border-slate-200 dark:border-[rgba(196,210,225,0.15)] max-w-sm w-full overflow-hidden p-6 text-center space-y-4">
+            <div class="w-14 h-14 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/50 flex items-center justify-center text-sky-700 dark:text-sky-300 mx-auto shadow-xs">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
             </div>
 
             <div>
-                <h3 class="text-base font-bold text-slate-900">Private Chat Locked</h3>
-                <p class="text-xs text-slate-600 mt-1 leading-normal">
+                <h3 class="text-base font-bold text-slate-900 dark:text-[#E1E8F0]">Private Chat Locked</h3>
+                <p class="text-xs text-slate-600 dark:text-[#C4D2E1] mt-1 leading-normal">
                     @profile.DisplayName requires a one-time unlock fee for direct 1-on-1 messaging.
                 </p>
             </div>
 
-            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
                 <div class="flex items-center justify-between">
-                    <span class="text-slate-500 font-medium">Creator Unlock Fee</span>
-                    <span class="font-bold text-sky-700 flex items-center gap-1">
-                        💧 @privateChatFeeLinkDrops.ToString("N0") Link Drops
+                    <span class="text-slate-500 dark:text-slate-400 font-medium">Creator Unlock Fee</span>
+                    <span class="font-bold text-sky-700 dark:text-sky-400 flex items-center gap-1.5">
+                        <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                        <span>@privateChatFeeLinkDrops.ToString("N0") Link Drops</span>
                     </span>
                 </div>
-                <div class="flex items-center justify-between border-t border-slate-200/60 pt-2">
-                    <span class="text-slate-500 font-medium">Your Available Balance</span>
-                    <span class="font-mono font-bold @(visitorWalletBalance >= privateChatFeeLinkDrops ? "text-slate-900" : "text-rose-600")">
-                        💧 @visitorWalletBalance.ToString("N0") Link Drops
+                <div class="flex items-center justify-between border-t border-slate-200/60 dark:border-slate-800 pt-2">
+                    <span class="text-slate-500 dark:text-slate-400 font-medium">Your Available Balance</span>
+                    <span class="font-mono font-bold flex items-center gap-1.5 @(visitorWalletBalance >= privateChatFeeLinkDrops ? "text-slate-900 dark:text-white" : "text-rose-600 dark:text-rose-400")">
+                        <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                        <span>@visitorWalletBalance.ToString("N0") Link Drops</span>
                     </span>
                 </div>
             </div>
 
             @if (visitorWalletBalance < privateChatFeeLinkDrops)
             {
-                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 text-left flex items-start gap-2">
-                    <span class="text-sm">⚠️</span>
+                <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 rounded-xl text-[11px] text-amber-800 dark:text-amber-300 text-left flex items-start gap-2">
+                    <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
                     <div>
                         <span class="font-bold">Insufficient Link Drops.</span> You need @((privateChatFeeLinkDrops - visitorWalletBalance).ToString("N0")) more Link Drops to unlock.
-                        <a href="linkdrops" class="text-indigo-600 hover:underline font-bold block mt-0.5">Top Up Link Drops &rarr;</a>
+                        <a href="linkdrops" class="text-indigo-600 dark:text-indigo-400 hover:underline font-bold block mt-0.5">Top Up Link Drops &rarr;</a>
                     </div>
                 </div>
             }
@@ -1236,7 +1247,7 @@
                     <button type="button" @onclick="ConfirmProfileUnlockAsync" disabled="@isUnlockingChat" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/30 transition cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1">
                         @if (isUnlockingChat)
                         {
-                            <span class="animate-spin text-xs">⌛</span>
+                            <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             <span>Unlocking...</span>
                         }
                         else

@@ -10,62 +10,69 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
     <!-- Admin Header Banner -->
-    <div class="bg-gradient-to-r from-amber-950/80 via-slate-900 to-indigo-950/80 border border-amber-500/20 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xl">
+    <div class="bg-gradient-to-r from-amber-500/10 via-slate-50 to-indigo-500/10 dark:from-amber-950/80 dark:via-slate-900 dark:to-indigo-950/80 border border-amber-500/30 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm dark:shadow-xl">
         <div>
-            <div class="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider mb-1">
-                <span>🛡️</span> Administrative Portal
+            <div class="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wider mb-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
+                <span>Administrative Portal</span>
             </div>
-            <h1 class="text-3xl font-extrabold text-white tracking-tight">Link Drops Review & Catalog</h1>
-            <p class="text-slate-400 text-sm mt-1">Review pending user payment receipts, approve token wallet allocations, and manage purchase packages.</p>
+            <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Link Drops Review & Catalog</h1>
+            <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Review pending user payment receipts, approve token wallet allocations, and manage purchase packages.</p>
         </div>
 
         <div class="flex items-center gap-3">
-            <span class="bg-amber-500/20 text-amber-300 font-extrabold px-4 py-2 rounded-xl text-sm border border-amber-500/30">
+            <span class="bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 font-extrabold px-4 py-2 rounded-xl text-sm border border-amber-300 dark:border-amber-500/30">
                 @pendingList.Count Pending Review
             </span>
-            <button @onclick="RefreshAllAsync" class="bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl transition">
-                🔄
+            <button @onclick="RefreshAllAsync" class="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-white p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 transition" title="Refresh">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
             </button>
         </div>
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="flex items-center border-b border-slate-800 space-x-2">
+    <div class="flex items-center border-b border-slate-200 dark:border-slate-800 space-x-2">
         <button @onclick='() => activeTab = "pending"'
-                class="@(activeTab == "pending" ? "border-amber-500 text-amber-400 font-bold" : "border-transparent text-slate-400 hover:text-slate-200 font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
-            <span>⏳</span> Pending Queue (@pendingList.Count)
+                class="@(activeTab == "pending" ? "border-amber-500 text-amber-600 dark:text-amber-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            <span>Pending Queue (@pendingList.Count)</span>
         </button>
         <button @onclick='() => activeTab = "packages"'
-                class="@(activeTab == "packages" ? "border-amber-500 text-amber-400 font-bold" : "border-transparent text-slate-400 hover:text-slate-200 font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
-            <span>🎁</span> Packages Catalog (@packagesList.Count)
+                class="@(activeTab == "packages" ? "border-amber-500 text-amber-600 dark:text-amber-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+            <span>Packages Catalog (@packagesList.Count)</span>
         </button>
         <button @onclick='() => activeTab = "methods"'
-                class="@(activeTab == "methods" ? "border-amber-500 text-amber-400 font-bold" : "border-transparent text-slate-400 hover:text-slate-200 font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
-            <span>💳</span> Payment Methods (@methodsList.Count)
+                class="@(activeTab == "methods" ? "border-amber-500 text-amber-600 dark:text-amber-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>
+            <span>Payment Methods (@methodsList.Count)</span>
         </button>
     </div>
 
     <!-- TAB 1: PENDING QUEUE -->
     @if (activeTab == "pending")
     {
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-            <div class="p-6 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="text-lg font-bold text-white">Pending Payment Verification Requests</h2>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white">Pending Payment Verification Requests</h2>
             </div>
 
             @if (isLoadingPending)
             {
-                <div class="p-12 text-center text-slate-400">Loading pending verification queue...</div>
+                <div class="p-12 text-center text-slate-500 dark:text-slate-400">Loading pending verification queue...</div>
             }
             else if (!pendingList.Any())
             {
-                <div class="p-12 text-center text-emerald-400 font-semibold">🎉 All purchase requests have been reviewed!</div>
+                <div class="p-12 text-center text-emerald-600 dark:text-emerald-400 font-semibold flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                    <span>All purchase requests have been reviewed!</span>
+                </div>
             }
             else
             {
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-300">
-                        <thead class="bg-slate-950 text-xs uppercase text-slate-400 border-b border-slate-800">
+                    <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300">
+                        <thead class="bg-slate-50 dark:bg-slate-950 text-xs uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                             <tr>
                                 <th class="py-3.5 px-6">Purchase #</th>
                                 <th class="py-3.5 px-6">Buyer</th>
@@ -77,25 +84,29 @@
                                 <th class="py-3.5 px-6">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800">
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
                             @foreach (var p in pendingList)
                             {
-                                <tr class="hover:bg-slate-800/40 transition">
-                                    <td class="py-4 px-6 font-mono font-bold text-indigo-400">@p.PurchaseNumber</td>
-                                    <td class="py-4 px-6 font-semibold text-white">@p.UserName</td>
-                                    <td class="py-4 px-6 text-slate-300">@(p.PackageName ?? "Custom Purchase")</td>
-                                    <td class="py-4 px-6 font-bold text-white">@p.SnapshotRealMoneyAmount.ToString("N0") @p.SnapshotCurrency</td>
-                                    <td class="py-4 px-6 font-extrabold text-amber-400">💧 @p.SnapshotLinkDropAmount.ToString("N0")</td>
+                                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                                    <td class="py-4 px-6 font-mono font-bold text-indigo-600 dark:text-indigo-400">@p.PurchaseNumber</td>
+                                    <td class="py-4 px-6 font-semibold text-slate-900 dark:text-white">@p.UserName</td>
+                                    <td class="py-4 px-6 text-slate-600 dark:text-slate-300">@(p.PackageName ?? "Custom Purchase")</td>
+                                    <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">@p.SnapshotRealMoneyAmount.ToString("N0") @p.SnapshotCurrency</td>
+                                    <td class="py-4 px-6 font-extrabold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                        <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                                        <span>@p.SnapshotLinkDropAmount.ToString("N0")</span>
+                                    </td>
                                     <td class="py-4 px-6">
-                                        <div class="font-medium text-slate-200">@p.PaymentMethodName</div>
-                                        <div class="font-mono text-xs text-slate-400">Ref: @p.TransactionReferenceNo</div>
+                                        <div class="font-medium text-slate-800 dark:text-slate-200">@p.PaymentMethodName</div>
+                                        <div class="font-mono text-xs text-slate-500 dark:text-slate-400">Ref: @p.TransactionReferenceNo</div>
                                     </td>
                                     <td class="py-4 px-6">
                                         @if (p.Proof != null && !string.IsNullOrWhiteSpace(p.Proof.FileUrl))
                                         {
                                             <button @onclick="() => OpenProofModal(p.Proof.FileUrl)"
-                                                    class="text-xs text-indigo-400 hover:underline flex items-center gap-1 font-semibold">
-                                                <span>🖼️</span> View Receipt
+                                                    class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-semibold">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+                                                <span>View Receipt</span>
                                             </button>
                                         }
                                         else
@@ -128,13 +139,13 @@
     @if (activeTab == "packages")
     {
         <div class="space-y-6">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                <h2 class="text-lg font-bold text-white">Create New Package</h2>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm">
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white">Create New Package</h2>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <input type="text" @bind="newPkgName" placeholder="Package Name (e.g. 100 Link Drops)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                    <input type="number" @bind="newPkgDrops" placeholder="Link Drops (e.g. 100)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                    <input type="number" @bind="newPkgBonus" placeholder="Bonus Drops (e.g. 0)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                    <input type="number" step="100" @bind="newPkgPrice" placeholder="Price (MMK)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="text" @bind="newPkgName" placeholder="Package Name (e.g. 100 Link Drops)" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                    <input type="number" @bind="newPkgDrops" placeholder="Link Drops (e.g. 100)" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                    <input type="number" @bind="newPkgBonus" placeholder="Bonus Drops (e.g. 0)" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                    <input type="number" step="100" @bind="newPkgPrice" placeholder="Price (MMK)" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
                 </div>
                 <div class="flex justify-end">
                     <button @onclick="CreatePackageAsync" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2 rounded-xl transition">
@@ -143,9 +154,9 @@
                 </div>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-                <table class="w-full text-left text-sm text-slate-300">
-                    <thead class="bg-slate-950 text-xs uppercase text-slate-400 border-b border-slate-800">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300">
+                    <thead class="bg-slate-50 dark:bg-slate-950 text-xs uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                             <th class="py-3 px-6">Package</th>
                             <th class="py-3 px-6">Drops</th>
@@ -155,23 +166,26 @@
                             <th class="py-3 px-6 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800">
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
                         @foreach (var pkg in packagesList)
                         {
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="py-4 px-6 font-bold text-white">@pkg.PackageName</td>
-                                <td class="py-4 px-6 font-bold text-amber-400">💧 @pkg.LinkDropAmount.ToString("N0")</td>
-                                <td class="py-4 px-6 text-amber-300">+@pkg.BonusAmount.ToString("N0")</td>
-                                <td class="py-4 px-6 font-bold text-white">@pkg.RealMoneyAmount.ToString("N0") @pkg.Currency</td>
+                            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                                <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">@pkg.PackageName</td>
+                                <td class="py-4 px-6 font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                    <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                                    <span>@pkg.LinkDropAmount.ToString("N0")</span>
+                                </td>
+                                <td class="py-4 px-6 text-amber-600 dark:text-amber-300">+@pkg.BonusAmount.ToString("N0")</td>
+                                <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">@pkg.RealMoneyAmount.ToString("N0") @pkg.Currency</td>
                                 <td class="py-4 px-6">
-                                    <span class="@(pkg.IsActive ? "text-emerald-400 bg-emerald-500/10" : "text-slate-400 bg-slate-800") text-xs font-bold px-2 py-0.5 rounded-md border border-slate-700">
+                                    <span class="@(pkg.IsActive ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30" : "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700") text-xs font-bold px-2 py-0.5 rounded-md border">
                                         @(pkg.IsActive ? "Active" : "Disabled")
                                     </span>
                                 </td>
                                 <td class="py-4 px-6">
                                     <div class="flex items-center justify-end gap-3">
-                                        <button @onclick="() => OpenEditPackageModal(pkg)" class="text-xs text-sky-400 hover:underline font-semibold">Edit</button>
-                                        <button @onclick="() => TogglePackageStatusAsync(pkg.PackageId)" class="text-xs text-indigo-400 hover:underline font-semibold">Toggle Status</button>
+                                        <button @onclick="() => OpenEditPackageModal(pkg)" class="text-xs text-sky-600 dark:text-sky-400 hover:underline font-semibold">Edit</button>
+                                        <button @onclick="() => TogglePackageStatusAsync(pkg.PackageId)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">Toggle Status</button>
                                     </div>
                                 </td>
                             </tr>
@@ -186,14 +200,14 @@
     @if (activeTab == "methods")
     {
         <div class="space-y-6">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                <h2 class="text-lg font-bold text-white">Add New Payment Channel</h2>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm">
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white">Add New Payment Channel</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" @bind="newMethodName" placeholder="Channel Name (e.g. KPAY)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                    <input type="text" @bind="newAccountName" placeholder="Account Holder Name" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                    <input type="text" @bind="newAccountNumber" placeholder="Account / Phone Number" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                    <input type="text" @bind="newQrUrl" placeholder="QR Code Image URL (optional)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                    <textarea @bind="newInstructions" rows="2" placeholder="Payment instructions shown to buyers (optional)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm md:col-span-2"></textarea>
+                    <input type="text" @bind="newMethodName" placeholder="Channel Name (e.g. KPAY)" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                    <input type="text" @bind="newAccountName" placeholder="Account Holder Name" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                    <input type="text" @bind="newAccountNumber" placeholder="Account / Phone Number" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                    <input type="text" @bind="newQrUrl" placeholder="QR Code Image URL (optional)" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                    <textarea @bind="newInstructions" rows="2" placeholder="Payment instructions shown to buyers (optional)" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm md:col-span-2"></textarea>
                 </div>
                 <div class="flex justify-end">
                     <button @onclick="CreatePaymentMethodAsync" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2 rounded-xl transition">
@@ -202,9 +216,9 @@
                 </div>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-                <table class="w-full text-left text-sm text-slate-300">
-                    <thead class="bg-slate-950 text-xs uppercase text-slate-400 border-b border-slate-800">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300">
+                    <thead class="bg-slate-50 dark:bg-slate-950 text-xs uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                             <th class="py-3 px-6">Channel</th>
                             <th class="py-3 px-6">Account Holder</th>
@@ -213,22 +227,22 @@
                             <th class="py-3 px-6 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800">
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
                         @foreach (var m in methodsList)
                         {
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="py-4 px-6 font-bold text-white">@m.MethodName</td>
-                                <td class="py-4 px-6 text-slate-200">@m.AccountName</td>
-                                <td class="py-4 px-6 font-mono font-bold text-amber-400">@m.AccountNumber</td>
+                            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                                <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">@m.MethodName</td>
+                                <td class="py-4 px-6 text-slate-700 dark:text-slate-200">@m.AccountName</td>
+                                <td class="py-4 px-6 font-mono font-bold text-amber-600 dark:text-amber-400">@m.AccountNumber</td>
                                 <td class="py-4 px-6">
-                                    <span class="@(m.IsActive ? "text-emerald-400 bg-emerald-500/10" : "text-slate-400 bg-slate-800") text-xs font-bold px-2 py-0.5 rounded-md border border-slate-700">
+                                    <span class="@(m.IsActive ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30" : "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700") text-xs font-bold px-2 py-0.5 rounded-md border">
                                         @(m.IsActive ? "Active" : "Disabled")
                                     </span>
                                 </td>
                                 <td class="py-4 px-6">
                                     <div class="flex items-center justify-end gap-3">
-                                        <button @onclick="() => OpenEditMethodModal(m)" class="text-xs text-sky-400 hover:underline font-semibold">Edit</button>
-                                        <button @onclick="() => TogglePaymentMethodStatusAsync(m.PaymentMethodId)" class="text-xs text-indigo-400 hover:underline font-semibold">Toggle Status</button>
+                                        <button @onclick="() => OpenEditMethodModal(m)" class="text-xs text-sky-600 dark:text-sky-400 hover:underline font-semibold">Edit</button>
+                                        <button @onclick="() => TogglePaymentMethodStatusAsync(m.PaymentMethodId)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">Toggle Status</button>
                                     </div>
                                 </td>
                             </tr>
@@ -244,16 +258,16 @@
 <!-- Approve Confirmation Modal -->
 @if (showApproveModal)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h3 class="text-lg font-bold text-white">Approve Purchase Request #@targetPurchase?.PurchaseNumber</h3>
-            <p class="text-xs text-slate-400">
-                This will credit <strong class="text-amber-400">💧 @targetPurchase?.SnapshotLinkDropAmount.ToString("N0") Drops</strong> to user <strong>@targetPurchase?.UserName</strong>.
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Approve Purchase Request #@targetPurchase?.PurchaseNumber</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400">
+                This will credit <strong class="text-amber-600 dark:text-amber-400 font-bold">@targetPurchase?.SnapshotLinkDropAmount.ToString("N0") Drops</strong> to user <strong class="text-slate-900 dark:text-white">@targetPurchase?.UserName</strong>.
             </p>
-            <input type="text" @bind="approveNotes" placeholder="Optional audit notes..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+            <input type="text" @bind="approveNotes" placeholder="Optional audit notes..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
             <div class="flex justify-end gap-3 pt-2">
-                <button @onclick="() => showApproveModal = false" class="px-4 py-2 text-sm text-slate-300">Cancel</button>
-                <button @onclick="ConfirmApproveAsync" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl">Confirm & Credit Wallet</button>
+                <button @onclick="() => showApproveModal = false" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">Cancel</button>
+                <button @onclick="ConfirmApproveAsync" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl shadow-sm">Confirm & Credit Wallet</button>
             </div>
         </div>
     </div>
@@ -262,14 +276,14 @@
 <!-- Reject Confirmation Modal -->
 @if (showRejectModal)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h3 class="text-lg font-bold text-white">Reject Purchase Request #@targetPurchase?.PurchaseNumber</h3>
-            <p class="text-xs text-slate-400">Enter the reason for rejection (visible to buyer):</p>
-            <input type="text" @bind="rejectReason" placeholder="Reason (e.g. Unverified ref number, invalid slip photo)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Reject Purchase Request #@targetPurchase?.PurchaseNumber</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400">Enter the reason for rejection (visible to buyer):</p>
+            <input type="text" @bind="rejectReason" placeholder="Reason (e.g. Unverified ref number, invalid slip photo)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
             <div class="flex justify-end gap-3 pt-2">
-                <button @onclick="() => showRejectModal = false" class="px-4 py-2 text-sm text-slate-300">Cancel</button>
-                <button @onclick="ConfirmRejectAsync" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold rounded-xl">Confirm Rejection</button>
+                <button @onclick="() => showRejectModal = false" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">Cancel</button>
+                <button @onclick="ConfirmRejectAsync" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold rounded-xl shadow-sm">Confirm Rejection</button>
             </div>
         </div>
     </div>
@@ -278,13 +292,13 @@
 <!-- Proof Image Viewer Modal -->
 @if (showProofModal)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl relative">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-base font-bold text-white">Payment Receipt Proof</h3>
-                <button @onclick="() => showProofModal = false" class="text-slate-400 hover:text-white">✕</button>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/90 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Payment Receipt Proof</h3>
+                <button @onclick="() => showProofModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
             </div>
-            <div class="max-h-[70vh] overflow-y-auto flex justify-center bg-slate-950 rounded-xl p-2">
+            <div class="max-h-[70vh] overflow-y-auto flex justify-center bg-slate-100 dark:bg-slate-950 rounded-xl p-2">
                 <img src="@previewProofUrl" alt="Receipt proof" class="max-w-full h-auto rounded-lg object-contain" />
             </div>
         </div>
@@ -294,29 +308,29 @@
 <!-- Edit Package Modal -->
 @if (showEditPackageModal && editPackage != null)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-white">Edit Package</h3>
-                <button @onclick="() => showEditPackageModal = false" class="text-slate-400 hover:text-white">✕</button>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Edit Package</h3>
+                <button @onclick="() => showEditPackageModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
             </div>
             <div class="space-y-3">
-                <input type="text" @bind="editPackage.PackageName" placeholder="Package Name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                <textarea @bind="editPackage.Description" rows="2" placeholder="Description (optional)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm"></textarea>
+                <input type="text" @bind="editPackage.PackageName" placeholder="Package Name" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                <textarea @bind="editPackage.Description" rows="2" placeholder="Description (optional)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm"></textarea>
                 <div class="grid grid-cols-2 gap-3">
-                    <input type="number" @bind="editPackage.LinkDropAmount" placeholder="Link Drops" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                    <input type="number" @bind="editPackage.BonusAmount" placeholder="Bonus Drops" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                    <input type="number" step="100" @bind="editPackage.RealMoneyAmount" placeholder="Price (MMK)" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                    <input type="number" @bind="editPackage.DisplayOrder" placeholder="Display Order" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="number" @bind="editPackage.LinkDropAmount" placeholder="Link Drops" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                    <input type="number" @bind="editPackage.BonusAmount" placeholder="Bonus Drops" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                    <input type="number" step="100" @bind="editPackage.RealMoneyAmount" placeholder="Price (MMK)" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                    <input type="number" @bind="editPackage.DisplayOrder" placeholder="Display Order" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
                 </div>
-                <label class="flex items-center gap-2 text-sm text-slate-300">
+                <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
                     <input type="checkbox" @bind="editPackage.IsActive" class="accent-indigo-500" />
                     Active (visible for purchase)
                 </label>
             </div>
             <div class="flex justify-end gap-3 pt-2">
-                <button @onclick="() => showEditPackageModal = false" class="px-4 py-2 text-sm text-slate-300">Cancel</button>
-                <button @onclick="SavePackageAsync" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl">Save Package</button>
+                <button @onclick="() => showEditPackageModal = false" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">Cancel</button>
+                <button @onclick="SavePackageAsync" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-sm">Save Package</button>
             </div>
         </div>
     </div>
@@ -325,31 +339,31 @@
 <!-- Edit Payment Method Modal -->
 @if (showEditMethodModal && editMethod != null)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-white">Edit Payment Channel</h3>
-                <button @onclick="() => showEditMethodModal = false" class="text-slate-400 hover:text-white">✕</button>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Edit Payment Channel</h3>
+                <button @onclick="() => showEditMethodModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
             </div>
             <div class="space-y-3">
-                <input type="text" @bind="editMethod.MethodName" placeholder="Channel Name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                <input type="text" @bind="editMethod.MethodName" placeholder="Channel Name" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <input type="text" @bind="editMethod.AccountName" placeholder="Account Holder Name" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                    <input type="text" @bind="editMethod.AccountNumber" placeholder="Account / Phone Number" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="text" @bind="editMethod.AccountName" placeholder="Account Holder Name" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                    <input type="text" @bind="editMethod.AccountNumber" placeholder="Account / Phone Number" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
                 </div>
-                <input type="text" @bind="editMethod.QrCodeImageUrl" placeholder="QR Code Image URL (optional)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
-                <textarea @bind="editMethod.Instructions" rows="3" placeholder="Payment instructions shown to buyers (optional)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm"></textarea>
+                <input type="text" @bind="editMethod.QrCodeImageUrl" placeholder="QR Code Image URL (optional)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
+                <textarea @bind="editMethod.Instructions" rows="3" placeholder="Payment instructions shown to buyers (optional)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm"></textarea>
                 <div class="grid grid-cols-2 gap-3">
-                    <input type="number" @bind="editMethod.DisplayOrder" placeholder="Display Order" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm" />
+                    <input type="number" @bind="editMethod.DisplayOrder" placeholder="Display Order" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-900 dark:text-white text-sm" />
                 </div>
-                <label class="flex items-center gap-2 text-sm text-slate-300">
+                <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
                     <input type="checkbox" @bind="editMethod.IsActive" class="accent-indigo-500" />
                     Active (visible for purchase)
                 </label>
             </div>
             <div class="flex justify-end gap-3 pt-2">
-                <button @onclick="() => showEditMethodModal = false" class="px-4 py-2 text-sm text-slate-300">Cancel</button>
-                <button @onclick="SaveMethodAsync" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl">Save Channel</button>
+                <button @onclick="() => showEditMethodModal = false" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">Cancel</button>
+                <button @onclick="SaveMethodAsync" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-sm">Save Channel</button>
             </div>
         </div>
     </div>

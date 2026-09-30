@@ -157,7 +157,8 @@ public sealed class PostService(
 
             return Result<IReadOnlyList<PostModel>>.Success(list);
         }
-        catch (OperationCanceledException)
+        catch (Exception ex) when (ex is OperationCanceledException ||
+                                   (ex is Microsoft.Data.SqlClient.SqlException sqlEx && (cancellationToken.IsCancellationRequested || sqlEx.Message.Contains("Operation cancelled by user", StringComparison.OrdinalIgnoreCase))))
         {
             return Result<IReadOnlyList<PostModel>>.Success([]);
         }

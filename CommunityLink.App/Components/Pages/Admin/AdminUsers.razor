@@ -9,7 +9,10 @@
 <div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">👥 Platform User Directory</h1>
+            <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2.5" style="font-family:'Manrope',sans-serif">
+                <svg class="w-6 h-6 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Platform User Directory</span>
+            </h1>
             <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">Manage registered users, roles, and account statuses across the platform.</p>
         </div>
     </div>
@@ -61,7 +64,7 @@
                                 <td class="px-6 py-4 text-[#557392] dark:text-[#C4D2E1] font-medium font-mono">@@@u.UserName</td>
                                 <td class="px-6 py-4 text-[#557392] dark:text-[#C4D2E1]">@u.Email</td>
                                 <td class="px-6 py-4">
-                                    <select value="@u.RoleId" @onchange="(e) => PromptRoleChange(u, e)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+                                    <select value="@u.RoleId" @onchange="(e) => PromptRoleChange(u, e)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#182030] text-slate-700 dark:text-[#E1E8F0] outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
                                         @if (availableRoles != null)
                                         {
                                             @if (!availableRoles.Any(r => r.RoleId == u.RoleId))

@@ -11,9 +11,11 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
         {
             await next(context);
         }
-        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        catch (Exception ex) when (context.RequestAborted.IsCancellationRequested ||
+                                   ex is OperationCanceledException ||
+                                   (ex is Microsoft.Data.SqlClient.SqlException sqlEx && sqlEx.Message.Contains("Operation cancelled by user", StringComparison.OrdinalIgnoreCase)))
         {
-            logger.LogDebug("Request {Path} was aborted by the client before completion.", context.Request.Path);
+            logger.LogDebug("Request {Path} was canceled before completion.", context.Request.Path);
         }
         catch (Exception ex)
         {
