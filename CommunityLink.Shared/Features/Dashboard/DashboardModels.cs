@@ -30,4 +30,10 @@ public sealed record DirectoryPersonModel(
     int JoinedCommunitiesCount,
     int PostsCount,
     decimal? AverageRating,
-    bool IsFollowedByCurrentUser = false);
+    bool IsFollowedByCurrentUser = false,
+    string? Headline = null,
+    string? AvailabilityStatus = null,
+    string? ResponseSlaText = null,
+    string? PercentileBadgeText = null,
+    int RatingCount = 0,
+    IReadOnlyList<string>? Skills = null);

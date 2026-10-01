@@ -785,53 +785,178 @@ else if (dashboard != null)
                 }
                 else
                 {
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @foreach (var person in dashboard.People)
                         {
-                            <div class="exec-card p-5 flex flex-col justify-between space-y-3">
-                                <div class="flex items-start gap-3">
-                                    @if (!string.IsNullOrWhiteSpace(person.AvatarUrl))
-                                    {
-                                        <img src="@person.AvatarUrl" alt="@person.DisplayName" class="w-12 h-12 rounded-full object-cover ring-2 ring-[#E1E8F0] shrink-0" />
-                                    }
-                                    else
-                                    {
-                                        <div class="w-12 h-12 rounded-full bg-[#E3EFFF] text-[#0A1B2E] font-bold text-sm flex items-center justify-center shrink-0 border border-[#C4D2E1]">
-                                            @((string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName).Substring(0, 1).ToUpper())
-                                        </div>
-                                    }
-                                    <div class="min-w-0 flex-1">
-                                        <div class="flex items-center gap-1.5">
-                                            <a href="u/@person.UserName" class="font-bold text-sm text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-[#34506D] truncate">
-                                                @(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)
-                                            </a>
+                            <div class="exec-card p-5 relative overflow-hidden flex flex-col justify-between group transition-all duration-200">
+                                <!-- Top Hairline Gradient Accent (Executive Theme) -->
+                                <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#0A1B2E] via-[#34506D] to-transparent dark:from-[#D4AF37] dark:via-[#F2CA50] dark:to-transparent"></div>
+
+                                <div>
+                                    <!-- Top Row: Avatar (Squircle + Verified Badge) & Role Pill + Real Stats -->
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="relative shrink-0">
+                                            @if (!string.IsNullOrWhiteSpace(person.AvatarUrl))
+                                            {
+                                                <img src="@person.AvatarUrl" alt="@person.DisplayName" class="w-14 h-14 rounded-xl object-cover ring-1 ring-[#E2E8F0] dark:ring-[rgba(255,255,255,0.08)] shadow-sm" />
+                                            }
+                                            else
+                                            {
+                                                <div class="w-14 h-14 rounded-xl bg-[#E3EFFF] dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E8F0] font-bold text-lg flex items-center justify-center border border-[#C4D2E1] dark:border-[rgba(255,255,255,0.12)] shadow-sm">
+                                                    @GetPersonInitials(person)
+                                                </div>
+                                            }
                                             @if (person.IsVerified)
                                             {
-                                                <span class="text-sky-500 text-xs" title="Verified">✓</span>
+                                                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#0A1B2E] text-white dark:bg-[#D4AF37] dark:text-[#0A0D14] flex items-center justify-center ring-2 ring-white dark:ring-[#111622] text-[10px] font-bold shadow-sm" title="Verified Member">✓</span>
                                             }
                                         </div>
-                                        <div class="text-[11px] text-[#7A8CA6] font-mono">@@@person.UserName</div>
-                                        @if (person.IsFollowedByCurrentUser)
+
+                                        <div class="flex flex-col items-end gap-1">
+                                            @if (person.RoleCode == "PUBLIC_FIGURE")
+                                            {
+                                                <span class="badge-public-figure">
+                                                    <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                                    @GetRoleBadgeText(person)
+                                                </span>
+                                            }
+                                            else if (person.RoleCode == "DOMAIN_PROFESSIONAL")
+                                            {
+                                                <span class="badge-domain-pro">
+                                                    <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                                    @GetRoleBadgeText(person)
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="chip-standard">
+                                                    @GetRoleBadgeText(person)
+                                                </span>
+                                            }
+
+                                            <span class="text-[11px] text-[#7A8CA6] font-mono tracking-tight">
+                                                @(person.PostsCount) posts &bull; @(person.JoinedCommunitiesCount) hubs
+                                                @if (person.AverageRating.HasValue && person.AverageRating.Value > 0)
+                                                {
+                                                    <span> &bull; ★ @person.AverageRating.Value.ToString("F1")</span>
+                                                }
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Middle: Name, Handle & Real Headline/Bio -->
+                                    <div class="mt-4">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <a href="u/@person.UserName" class="group/link inline-flex items-center gap-1 text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-[#34506D] dark:hover:text-[#F2CA50] transition-colors truncate">
+                                                <span class="truncate">@(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)</span>
+                                                <svg class="w-3.5 h-3.5 text-[#7A8CA6] group-hover/link:text-[#0A1B2E] dark:group-hover/link:text-[#F2CA50] transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H9M17 7V15"/>
+                                                </svg>
+                                            </a>
+                                            <span class="text-[11px] text-[#7A8CA6] font-mono">@@@person.UserName</span>
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(person.Headline))
                                         {
-                                            <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1 line-clamp-1 font-medium">
+                                                @person.Headline
+                                            </p>
+                                        }
+                                        else if (!string.IsNullOrWhiteSpace(person.Bio))
+                                        {
+                                            <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1 line-clamp-2 leading-relaxed">
+                                                @person.Bio
+                                            </p>
+                                        }
+                                    </div>
+
+                                    <!-- Real User Skills (No Mock Fallbacks) -->
+                                    @if (person.Skills != null && person.Skills.Any())
+                                    {
+                                        <div class="flex flex-wrap gap-1.5 mt-3">
+                                            @foreach (var skill in person.Skills)
+                                            {
+                                                <span class="chip-standard">
+                                                    @skill
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+
+                                    <!-- Real Availability / Response SLA (Only if set in profile) -->
+                                    @if (!string.IsNullOrWhiteSpace(person.ResponseSlaText) || !string.IsNullOrWhiteSpace(person.AvailabilityStatus))
+                                    {
+                                        <div class="mt-3 px-3 py-2 rounded bg-[#F1F5F9] dark:bg-[#182030] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] flex items-center justify-between text-xs">
+                                            @if (!string.IsNullOrWhiteSpace(person.ResponseSlaText))
+                                            {
+                                                <div class="flex items-center gap-1.5 text-[#34506D] dark:text-[#A5B4FC] font-medium">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <circle cx="12" cy="12" r="9" stroke-width="2"/>
+                                                        <path stroke-linecap="round" stroke-width="2" d="M12 7v5l3 3"/>
+                                                    </svg>
+                                                    <span>@person.ResponseSlaText</span>
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(person.AvailabilityStatus))
+                                            {
+                                                <div class="text-[#557392] dark:text-[#C0D0E6] text-[11px] font-medium">
+                                                    @person.AvailabilityStatus
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Footer Row: Real Network Status / Reputation & Actions (System UI Buttons) -->
+                                <div class="mt-5 pt-3.5 border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between gap-3">
+                                    <div>
+                                        @if (person.AverageRating.HasValue && person.AverageRating.Value > 0)
+                                        {
+                                            <div class="text-[9px] font-bold uppercase tracking-wider text-[#7A8CA6] font-mono">REPUTATION</div>
+                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                <span class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">★ @person.AverageRating.Value.ToString("F1")</span>
+                                                @if (person.RatingCount > 0)
+                                                {
+                                                    <span class="text-[11px] text-[#7A8CA6] font-mono">(@(person.RatingCount))</span>
+                                                }
+                                            </div>
+                                        }
+                                        else if (person.IsFollowedByCurrentUser)
+                                        {
+                                            <div class="text-[9px] font-bold uppercase tracking-wider text-[#7A8CA6] font-mono">NETWORK</div>
+                                            <span class="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-mono">
                                                 Following
                                             </span>
                                         }
+                                        else
+                                        {
+                                            <div class="text-[9px] font-bold uppercase tracking-wider text-[#7A8CA6] font-mono">STATUS</div>
+                                            <span class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mt-0.5 inline-block">
+                                                @(person.IsVerified ? "Verified Member" : "Active Member")
+                                            </span>
+                                        }
                                     </div>
-                                </div>
 
-                                <p class="text-xs text-[#557392] dark:text-[#C4D2E1] line-clamp-2 leading-relaxed">
-                                    @(string.IsNullOrWhiteSpace(person.Bio) ? "Active member on CommunityLink." : person.Bio)
-                                </p>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" @onclick="() => ToggleFollowPersonAsync(person.UserId)" 
+                                                class="btn-exec-secondary text-xs px-3 py-1.5 cursor-pointer @(person.IsFollowedByCurrentUser ? "opacity-90" : "")">
+                                            @if (person.IsFollowedByCurrentUser)
+                                            {
+                                                <span>Unfollow</span>
+                                            }
+                                            else
+                                            {
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                                <span>Follow</span>
+                                            }
+                                        </button>
 
-                                <div class="pt-3 border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between">
-                                    <span class="exec-mono text-[11px] text-[#7A8CA6]">
-                                        @(person.PostsCount) posts · @(person.JoinedCommunitiesCount) hubs
-                                    </span>
-                                    <button type="button" @onclick="() => ToggleFollowPersonAsync(person.UserId)" 
-                                            class="text-xs font-semibold px-3 py-1 rounded-xl transition cursor-pointer @(person.IsFollowedByCurrentUser ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200" : "bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:opacity-90")">
-                                        @(person.IsFollowedByCurrentUser ? "Unfollow" : "Follow")
-                                    </button>
+                                        <a href="u/@person.UserName" 
+                                           class="btn-exec-primary text-xs px-3.5 py-1.5 cursor-pointer">
+                                            <span>View Profile</span>
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         }
@@ -1934,6 +2059,28 @@ else if (dashboard != null)
             await JS.InvokeVoidAsync("eval", "document.getElementById('quick-composer')?.scrollIntoView({ behavior: 'smooth' })");
         }
         catch { }
+    }
+
+    private static string GetPersonInitials(DirectoryPersonModel person)
+    {
+        var name = string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName;
+        return string.IsNullOrWhiteSpace(name) ? "U" : name.Trim()[..1].ToUpperInvariant();
+    }
+
+    private static string GetRoleBadgeText(DirectoryPersonModel person)
+    {
+        if (!string.IsNullOrWhiteSpace(person.PercentileBadgeText))
+            return person.PercentileBadgeText;
+
+        return person.RoleCode switch
+        {
+            "PUBLIC_FIGURE" => "Public Figure",
+            "DOMAIN_PROFESSIONAL" => "Domain Pro",
+            "CREATOR" => "Creator",
+            "ADMIN" => "Community Lead",
+            "MODERATOR" => "Moderator",
+            _ => person.IsVerified ? "Verified Member" : "Active Member"
+        };
     }
 
     public void Dispose()
