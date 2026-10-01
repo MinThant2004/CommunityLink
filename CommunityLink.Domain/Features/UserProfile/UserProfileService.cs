@@ -129,6 +129,10 @@ public class UserProfileService : IUserProfileService
         user.Location = dto.Location?.Trim();
         user.AvailabilityStatus = dto.AvailabilityStatus?.Trim();
         user.Bio = dto.Bio?.Trim();
+        if (!string.IsNullOrWhiteSpace(dto.AvatarUrl))
+        {
+            user.AvatarUrl = dto.AvatarUrl.Trim();
+        }
         user.UpdatedAt = DateTime.UtcNow;
         user.UpdatedBy = currentUserId;
 
@@ -770,8 +774,8 @@ public class UserProfileService : IUserProfileService
             Pronouns = user.Pronouns,
             Location = user.Location,
             AvailabilityStatus = user.AvailabilityStatus,
-            ResponseSlaText = user.ResponseSlaText ?? "< 2 hrs Response",
-            PercentileBadgeText = user.PercentileBadgeText ?? "Top 1% Percentile",
+            ResponseSlaText = user.ResponseSlaText,
+            PercentileBadgeText = user.PercentileBadgeText,
             IsOnline = user.LastActiveAt.HasValue && user.LastActiveAt.Value > DateTime.UtcNow.AddMinutes(-10),
             AvatarUrl = user.AvatarUrl,
             Bio = user.Bio,

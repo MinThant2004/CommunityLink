@@ -2,14 +2,16 @@
 @page "/u/{UserNameOrId}"
 @attribute [Authorize]
 @implements IDisposable
+@using System.IO
 @inject UserProfileApiService ProfileApi
 @inject ToastService Toast
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject ChatApiService ChatApi
 @inject LinkDropApiService LinkDropApi
+@inject IWebHostEnvironment Environment
 
-<PageTitle>@(profile != null ? $"{profile.DisplayName} (@{profile.UserName}) — CommunityNexus" : "User Profile — CommunityNexus")</PageTitle>
+<PageTitle>@(profile != null ? $"{profile.DisplayName} (@{profile.UserName}) — CommunityLink" : "User Profile — CommunityLink")</PageTitle>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
 
 <style>
@@ -17,29 +19,45 @@
     .font-body    { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
     .font-mono    { font-family: 'JetBrains Mono', monospace; }
 
-    .prof-canvas {
-        font-family: 'Inter', sans-serif;
-        color: #0A1B2E;
-        background-color: #F8FAFC;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-    .dark .prof-canvas {
-        color: #E1E8F0;
-        background-color: #0A1B2E;
+    /* Executive Dual Theme Tokens */
+    :root {
+        --prof-bg: #F8FAFC;
+        --prof-text: #0A1B2E;
+        --prof-muted: #64748B;
+        --prof-card-bg: #FFFFFF;
+        --prof-card-border: #E2E8F0;
+        --prof-recessed-bg: #F1F5F9;
+        --prof-recessed-border: #E2E8F0;
     }
 
-    /* Executive Card Specification (UI_UX_DESIGN_SYSTEM.md Section 7) */
+    html.dark, :root.dark {
+        --prof-bg: #10131A;
+        --prof-text: #E1E8F0;
+        --prof-muted: #7A8CA6;
+        --prof-card-bg: #112A46;
+        --prof-card-border: rgba(196, 210, 225, 0.12);
+        --prof-recessed-bg: #1B3B5A;
+        --prof-recessed-border: rgba(196, 210, 225, 0.15);
+    }
+
+    .prof-canvas {
+        font-family: 'Inter', sans-serif;
+        color: var(--prof-text);
+        background-color: var(--prof-bg);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Executive Card Specification */
     .card-executive {
-        background-color: #FFFFFF;
-        border: 1px solid #E2E8F0;
+        background-color: var(--prof-card-bg);
+        border: 1px solid var(--prof-card-border);
         border-radius: 0.5rem;
         box-shadow: 0 2px 8px -2px rgba(10, 27, 46, 0.04), 0 1px 3px 0 rgba(10, 27, 46, 0.02);
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
     }
     .dark .card-executive {
-        background-color: #112A46;
-        border: 1px solid rgba(196, 210, 225, 0.12);
         box-shadow: none;
     }
     .card-executive:hover {
@@ -52,13 +70,10 @@
 
     /* Recessed Panel Specification */
     .panel-recessed {
-        background-color: #F1F5F9;
-        border: 1px solid #E2E8F0;
+        background-color: var(--prof-recessed-bg);
+        border: 1px solid var(--prof-recessed-border);
         border-radius: 0.375rem;
-    }
-    .dark .panel-recessed {
-        background-color: #1B3B5A;
-        border: 1px solid rgba(196, 210, 225, 0.15);
+        transition: background-color 0.2s ease, border-color 0.2s ease;
     }
 
     /* Buttons */
@@ -241,7 +256,7 @@
                     </div>
                     <div class="ml-auto flex items-center gap-2">
                         <span class="font-mono text-[10px] font-semibold px-2.5 py-0.5 rounded-[0.25rem] bg-[#1B3B5A]/90 text-[#C4D2E1] border border-[rgba(196,210,225,0.15)]">
-                            @(profile.IsVerified ? "TIER 0 // VERIFIED FELLOW" : (profile.Role?.RoleName?.ToUpper() == "ADMIN" ? "NEXUS GOVERNOR" : "MEMBER"))
+                            @(profile.IsVerified ? "TIER 0 // VERIFIED FELLOW" : (profile.Role?.RoleName?.ToUpper() == "ADMIN" ? "GOVERNOR" : "MEMBER"))
                         </span>
                     </div>
                 </div>
@@ -258,8 +273,8 @@
                         <div class="flex flex-col sm:flex-row gap-4 sm:gap-5 items-start">
                             
                             <!-- Avatar Stack -->
-                            <div class="relative shrink-0">
-                                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden shadow-md bg-[#1B3B5A] ring-2 ring-white dark:ring-[#112A46]">
+                            <div class="relative shrink-0 group">
+                                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden shadow-md bg-[#1B3B5A] ring-2 ring-white dark:ring-[#112A46] relative">
                                     @if (!string.IsNullOrWhiteSpace(profile.AvatarUrl))
                                     {
                                         <img alt="@profile.DisplayName" class="w-full h-full object-cover" src="@profile.AvatarUrl" />
@@ -270,11 +285,37 @@
                                             @(string.IsNullOrWhiteSpace(profile.DisplayName) ? "U" : profile.DisplayName.Substring(0, 1).ToUpper())
                                         </div>
                                     }
+
+                                    @if (isUploadingAvatar)
+                                    {
+                                        <div class="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white">
+                                            <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            <span class="text-[9px] font-mono mt-1">Uploading...</span>
+                                        </div>
+                                    }
+                                    else if (isOwner)
+                                    {
+                                        <label for="directAvatarUpload" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer" title="Upload new photo">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                            <span class="text-[9px] font-semibold mt-0.5">Change</span>
+                                        </label>
+                                    }
                                 </div>
-                                <!-- Online Status Pip -->
-                                <span class="absolute bottom-0.5 right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#112A46] flex items-center justify-center" title="Online & Active">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-white dark:bg-[#0A1B2E]"></span>
-                                </span>
+
+                                @if (isOwner)
+                                {
+                                    <label for="directAvatarUpload" class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-blue-600 hover:bg-blue-700 text-white ring-2 ring-white dark:ring-[#112A46] flex items-center justify-center shadow-md cursor-pointer transition z-10" title="Upload profile photo">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    </label>
+                                    <InputFile id="directAvatarUpload" OnChange="HandleAvatarUploadAsync" accept=".jpg,.jpeg,.png,.webp" class="hidden" disabled="@isUploadingAvatar" />
+                                }
+                                else
+                                {
+                                    <!-- Online Status Pip -->
+                                    <span class="absolute bottom-0.5 right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#112A46] flex items-center justify-center" title="Online & Active">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-white dark:bg-[#0A1B2E]"></span>
+                                    </span>
+                                }
                             </div>
 
                             <!-- Name, Badges, Headline & Metadata -->
@@ -451,16 +492,19 @@
                             <!-- Score Block -->
                             <div class="flex flex-col items-center justify-center p-3 rounded-[0.375rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] w-24 h-24">
                                 <span class="font-display text-3xl font-extrabold text-[#D97706] dark:text-[#FBBF24] leading-none">
-                                    @(profile.Metrics.AverageRating.HasValue ? profile.Metrics.AverageRating.Value.ToString("0.0") : "4.9")
+                                    @(profile.Metrics.AverageRating.HasValue && profile.Metrics.AverageRating.Value > 0 ? profile.Metrics.AverageRating.Value.ToString("0.0") : "0.0")
                                 </span>
                                 <div class="text-amber-500 text-xs flex items-center gap-0.5 mt-1">
+                                    @{
+                                        int scoreStars = (int)Math.Round(profile.Metrics.AverageRating ?? 0);
+                                    }
                                     @for (int i = 0; i < 5; i++)
                                     {
-                                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                        <svg class="w-3 h-3 @(i < scoreStars ? "text-amber-500" : "text-slate-300 dark:text-slate-700")" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                                     }
                                 </div>
                                 <span class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mt-0.5">
-                                    @(profile.Metrics.RatingCount > 0 ? $"{profile.Metrics.RatingCount} ratings" : "184 RATINGS")
+                                    @(profile.Metrics.RatingCount > 0 ? $"{profile.Metrics.RatingCount} RATINGS" : "0 RATINGS")
                                 </span>
                             </div>
 
@@ -469,23 +513,23 @@
                                 <div class="flex items-center gap-2">
                                     <span class="w-6 text-right inline-flex items-center justify-end gap-0.5">5 <svg class="w-2.5 h-2.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
                                     <div class="flex-1 h-1.5 bg-[#E2E8F0] dark:bg-[#1B3B5A] rounded-full overflow-hidden">
-                                        <div class="h-full bg-amber-500 rounded-full" style="width: @(profile.RatingDistribution?.Star5Percentage ?? 92)%;"></div>
+                                        <div class="h-full bg-amber-500 rounded-full" style="width: @(profile.RatingDistribution?.Star5Percentage ?? 0)%;"></div>
                                     </div>
-                                    <span class="w-7 text-right text-[#0A1B2E] dark:text-white font-semibold">@(profile.RatingDistribution?.Star5Percentage ?? 92)%</span>
+                                    <span class="w-7 text-right text-[#0A1B2E] dark:text-white font-semibold">@(profile.RatingDistribution?.Star5Percentage ?? 0)%</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="w-6 text-right inline-flex items-center justify-end gap-0.5">4 <svg class="w-2.5 h-2.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
                                     <div class="flex-1 h-1.5 bg-[#E2E8F0] dark:bg-[#1B3B5A] rounded-full overflow-hidden">
-                                        <div class="h-full bg-amber-500/80 rounded-full" style="width: @(profile.RatingDistribution?.Star4Percentage ?? 7)%;"></div>
+                                        <div class="h-full bg-amber-500/80 rounded-full" style="width: @(profile.RatingDistribution?.Star4Percentage ?? 0)%;"></div>
                                     </div>
-                                    <span class="w-7 text-right text-[#0A1B2E] dark:text-white font-semibold">@(profile.RatingDistribution?.Star4Percentage ?? 7)%</span>
+                                    <span class="w-7 text-right text-[#0A1B2E] dark:text-white font-semibold">@(profile.RatingDistribution?.Star4Percentage ?? 0)%</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="w-6 text-right inline-flex items-center justify-end gap-0.5">3 <svg class="w-2.5 h-2.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
                                     <div class="flex-1 h-1.5 bg-[#E2E8F0] dark:bg-[#1B3B5A] rounded-full overflow-hidden">
-                                        <div class="h-full bg-amber-500/50 rounded-full" style="width: @(profile.RatingDistribution?.Star3Percentage ?? 1)%;"></div>
+                                        <div class="h-full bg-amber-500/50 rounded-full" style="width: @(profile.RatingDistribution?.Star3Percentage ?? 0)%;"></div>
                                     </div>
-                                    <span class="w-7 text-right">@(profile.RatingDistribution?.Star3Percentage ?? 1)%</span>
+                                    <span class="w-7 text-right">@(profile.RatingDistribution?.Star3Percentage ?? 0)%</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="w-6 text-right inline-flex items-center justify-end gap-0.5">2 <svg class="w-2.5 h-2.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
@@ -500,12 +544,12 @@
                         <!-- Right: SLA Metric Chips -->
                         <div class="flex flex-wrap items-center gap-2.5 flex-1 lg:justify-end">
                             <div class="px-3 py-2 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center gap-2.5">
-                                <span class="w-7 h-7 rounded-[0.25rem] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs shrink-0">
+                                <span class="w-7 h-7 rounded-[0.25rem] @(profile.IsVerified ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400" : "bg-slate-100 dark:bg-slate-800 text-slate-500") flex items-center justify-center text-xs shrink-0">
                                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                 </span>
                                 <div>
-                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">100% Verified</div>
-                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">Authentic peer reviews</div>
+                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(profile.IsVerified ? "Verified Member" : "Active Member")</div>
+                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">@(profile.Metrics.RatingCount > 0 ? $"{profile.Metrics.RatingCount} peer ratings" : "No peer ratings yet")</div>
                                 </div>
                             </div>
 
@@ -514,8 +558,8 @@
                                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                 </span>
                                 <div>
-                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(string.IsNullOrWhiteSpace(profile.ResponseSlaText) ? "< 2 hrs Response" : profile.ResponseSlaText)</div>
-                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">Direct dispatch SLA</div>
+                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(!string.IsNullOrWhiteSpace(profile.ResponseSlaText) ? profile.ResponseSlaText : (profile.IsOnline ? "Active Now" : "Standard Dispatch"))</div>
+                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">Member Response Status</div>
                                 </div>
                             </div>
 
@@ -524,8 +568,8 @@
                                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
                                 </span>
                                 <div>
-                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(string.IsNullOrWhiteSpace(profile.PercentileBadgeText) ? "Top 1% Percentile" : profile.PercentileBadgeText)</div>
-                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">Peer-recognized rank</div>
+                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(string.IsNullOrWhiteSpace(profile.PercentileBadgeText) ? (profile.IsVerified ? "Audited Node" : "Standard Contributor") : profile.PercentileBadgeText)</div>
+                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">Reputation Tier</div>
                                 </div>
                             </div>
                         </div>
@@ -573,7 +617,7 @@
                         }
                     </div>
 
-                    <div class="hidden sm:flex items-center gap-1 shrink-0 ml-4 font-mono text-[10px] text-[#64748B]">
+                    <div class="hidden sm:flex items-center gap-1 shrink-0 ml-4 font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
                         <span>FILTER:</span>
                         <span class="px-2 py-0.5 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-white font-semibold">LATEST</span>
                     </div>
@@ -769,7 +813,7 @@
                                         {
                                             <p class="font-body text-xs text-[#475569] dark:text-[#C4D2E1] leading-relaxed pt-1">@review.ReviewText</p>
                                         }
-                                        <div class="font-mono text-[10px] text-[#64748B] text-right">
+                                        <div class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] text-right">
                                             @review.CreatedAt.ToString("g")
                                         </div>
                                     </div>
@@ -863,7 +907,7 @@
                                 @foreach (var sp in savedPostsList)
                                 {
                                     <div class="card-executive p-4 space-y-1.5">
-                                        <div class="flex items-center justify-between font-mono text-[10px] text-[#64748B]">
+                                        <div class="flex items-center justify-between font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
                                             <span class="font-semibold text-blue-600 dark:text-blue-400">@sp.CommunityName</span>
                                             <span>@sp.CreatedAt.ToString("g")</span>
                                         </div>
@@ -885,7 +929,7 @@
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                     </div>
                                     <p class="font-display font-bold">Your Recycle Bin is empty</p>
-                                    <p class="text-[11px] max-w-sm mx-auto text-[#64748B]">Posts moved to the Recycle Bin will be preserved here for 10 days before permanent deletion.</p>
+                                    <p class="text-[11px] max-w-sm mx-auto text-[#64748B] dark:text-[#7A8CA6]">Posts moved to the Recycle Bin will be preserved here for 10 days before permanent deletion.</p>
                                 </div>
                             }
                             else
@@ -902,7 +946,7 @@
                                     @foreach (var rp in recycledPostsList)
                                     {
                                         <div class="card-executive p-4 space-y-3 border-l-4 border-l-amber-500">
-                                            <div class="flex items-center justify-between font-mono text-[10px] text-[#64748B]">
+                                            <div class="flex items-center justify-between font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-semibold text-blue-600 dark:text-blue-400">@rp.CommunityName</span>
                                                     <span>•</span>
@@ -920,7 +964,7 @@
                                                 <div class="flex items-center gap-2">
                                                     @foreach (var img in rp.ImageUrls.Take(3))
                                                     {
-                                                        <img src="@img" alt="Attachment" class="w-14 h-14 rounded object-cover border border-[#E2E8F0]" />
+                                                        <img src="@img" alt="Attachment" class="w-14 h-14 rounded object-cover border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]" />
                                                     }
                                                 </div>
                                             }
@@ -977,7 +1021,7 @@
                                 }
                                 else
                                 {
-                                    <div class="py-4 text-center font-mono text-[10px] text-[#64748B]">
+                                    <div class="py-4 text-center font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
                                         NO AFFILIATED HUBS
                                     </div>
                                 }
@@ -1009,7 +1053,7 @@
                                 }
                                 else
                                 {
-                                    <div class="py-4 text-center font-mono text-[10px] text-[#64748B] w-full">
+                                    <div class="py-4 text-center font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] w-full">
                                         NO SKILLS RECORDED
                                     </div>
                                 }
@@ -1025,16 +1069,16 @@
                                     <span class="font-mono text-[10px] font-bold uppercase tracking-wider">IDENTITY VERIFICATION AUDIT</span>
                                 </div>
                                 <p class="font-body text-xs text-[#475569] dark:text-[#C4D2E1] leading-relaxed">
-                                    Verified Identity: <strong class="text-[#0A1B2E] dark:text-white">Domain Professional</strong>. Credentials audited by Nexus Governance.
+                                    Verified Identity: <strong class="text-[#0A1B2E] dark:text-white">@(profile.Role?.RoleName ?? "Community Member")</strong>. Credentials audited by CommunityLink Governance.
                                 </p>
                                 <div class="p-2.5 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] space-y-1 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                     <div class="flex justify-between">
                                         <span>AUDIT ID:</span>
-                                        <span class="font-semibold text-[#0A1B2E] dark:text-white">@(profile.VerificationAudit?.AuditCode ?? "#NX-9941-VERIFIED")</span>
+                                        <span class="font-semibold text-[#0A1B2E] dark:text-white">@(profile.VerificationAudit?.AuditCode ?? $"#CL-{profile.UserId:D4}-VERIFIED")</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span>AUTHORITY:</span>
-                                        <span class="font-semibold text-[#0A1B2E] dark:text-white">@(profile.VerificationAudit?.Authority ?? "Nexus Admin SecOps")</span>
+                                        <span class="font-semibold text-[#0A1B2E] dark:text-white">@(profile.VerificationAudit?.Authority ?? "CommunityLink SecOps")</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span>STATUS:</span>
@@ -1113,6 +1157,41 @@
             </div>
 
             <div class="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
+                <!-- Avatar Upload Section in Edit Modal -->
+                <div class="p-3 bg-[#F1F5F9] dark:bg-[#0A1B2E] rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full overflow-hidden shadow-sm bg-[#1B3B5A] ring-2 ring-white dark:ring-[#112A46] shrink-0">
+                            @if (!string.IsNullOrWhiteSpace(editModel.AvatarUrl ?? profile?.AvatarUrl))
+                            {
+                                <img src="@(editModel.AvatarUrl ?? profile?.AvatarUrl)" alt="Avatar" class="w-full h-full object-cover" />
+                            }
+                            else
+                            {
+                                <div class="w-full h-full bg-gradient-to-br from-[#0A1B2E] to-[#2563EB] text-white flex items-center justify-center font-bold text-sm font-mono">
+                                    @(string.IsNullOrWhiteSpace(editModel.DisplayName) ? "U" : (string.IsNullOrWhiteSpace(profile?.DisplayName) ? "U" : profile.DisplayName[..1].ToUpper()))
+                                </div>
+                            }
+                        </div>
+                        <div>
+                            <span class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">PROFILE PICTURE</span>
+                            <span class="text-xs text-[#475569] dark:text-[#C4D2E1]">JPG, PNG or WebP (max 5 MB)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="modalAvatarUpload" class="btn-exec-secondary text-xs py-1.5 px-3 cursor-pointer @(isUploadingAvatar ? "opacity-50 pointer-events-none" : "")">
+                            @if (isUploadingAvatar)
+                            {
+                                <span>Uploading...</span>
+                            }
+                            else
+                            {
+                                <span>Upload New</span>
+                            }
+                        </label>
+                        <InputFile id="modalAvatarUpload" OnChange="HandleAvatarUploadAsync" accept=".jpg,.jpeg,.png,.webp" class="hidden" disabled="@isUploadingAvatar" />
+                    </div>
+                </div>
+
                 <div>
                     <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">Display Name *</label>
                     <input type="text" @bind="editModel.DisplayName" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
@@ -1298,6 +1377,7 @@
     // Edit Profile Modal
     private bool showEditModal;
     private bool isSavingProfile;
+    private bool isUploadingAvatar;
     private string? editErrorMessage;
     private UpdateUserProfileRequestDto editModel = new();
 
@@ -1551,7 +1631,8 @@
             Pronouns = profile.Pronouns,
             Location = profile.Location,
             AvailabilityStatus = profile.AvailabilityStatus,
-            Bio = profile.Bio
+            Bio = profile.Bio,
+            AvatarUrl = profile.AvatarUrl
         };
         editErrorMessage = null;
         showEditModal = true;
@@ -1560,6 +1641,84 @@
     private void CloseEditModal()
     {
         showEditModal = false;
+    }
+
+    private async Task HandleAvatarUploadAsync(InputFileChangeEventArgs e)
+    {
+        if (profile == null || !isOwner) return;
+        var file = e.File;
+        if (file == null) return;
+
+        if (file.Size > 5 * 1024 * 1024)
+        {
+            Toast.Error("Avatar image file cannot exceed 5 MB.");
+            return;
+        }
+
+        try
+        {
+            isUploadingAvatar = true;
+            var webRoot = Environment.WebRootPath;
+            if (string.IsNullOrWhiteSpace(webRoot))
+            {
+                webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            }
+            var uploadsDir = Path.Combine(webRoot, "uploads", "avatars");
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            var extension = Path.GetExtension(file.Name)?.ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(extension) || !(extension == ".jpg" || extension == ".jpeg" || extension == ".png" || extension == ".webp"))
+            {
+                extension = ".jpg";
+            }
+
+            var uniqueFileName = $"avatar_{profile.UserId}_{DateTime.UtcNow.Ticks}{extension}";
+            var localFullPath = Path.Combine(uploadsDir, uniqueFileName);
+
+            using (var inStream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024))
+            using (var outStream = new FileStream(localFullPath, FileMode.Create))
+            {
+                await inStream.CopyToAsync(outStream);
+            }
+
+            var newAvatarUrl = $"/uploads/avatars/{uniqueFileName}";
+
+            var updateReq = new UpdateUserProfileRequestDto
+            {
+                DisplayName = profile.DisplayName,
+                UserName = profile.UserName,
+                Headline = profile.Headline,
+                Pronouns = profile.Pronouns,
+                Location = profile.Location,
+                AvailabilityStatus = profile.AvailabilityStatus,
+                Bio = profile.Bio,
+                AvatarUrl = newAvatarUrl
+            };
+
+            var updateRes = await ProfileApi.UpdateProfileAsync(updateReq, _cts.Token);
+            if (updateRes.IsSuccess && updateRes.Data != null)
+            {
+                profile = updateRes.Data;
+            }
+            else
+            {
+                profile.AvatarUrl = newAvatarUrl;
+            }
+
+            editModel.AvatarUrl = newAvatarUrl;
+            Toast.Success("Profile picture updated successfully!");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to upload avatar: {ex.Message}");
+        }
+        finally
+        {
+            isUploadingAvatar = false;
+        }
     }
 
     private async Task SaveProfileAsync()

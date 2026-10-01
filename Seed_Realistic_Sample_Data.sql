@@ -44,8 +44,8 @@ BEGIN TRY
     DELETE FROM dbo.TblChatGroupPaymentTransaction;
     DELETE FROM dbo.TblChatGroup;
 
-    DELETE FROM dbo.TblGroupChatMessage;
-    DELETE FROM dbo.TblGroupChatRoom;
+    IF OBJECT_ID('dbo.TblGroupChatMessage', 'U') IS NOT NULL DELETE FROM dbo.TblGroupChatMessage;
+    IF OBJECT_ID('dbo.TblGroupChatRoom', 'U') IS NOT NULL DELETE FROM dbo.TblGroupChatRoom;
 
     DELETE FROM dbo.TblCreatorPayoutRequest;
     DELETE FROM dbo.TblCreatorChatSetting;
@@ -77,7 +77,7 @@ BEGIN TRY
     DELETE FROM dbo.TblCommunityRating;
     DELETE FROM dbo.TblCommunityJoinRequest;
     DELETE FROM dbo.TblCommunityMember;
-    DELETE FROM dbo.TblCommunityAuditLog;
+    IF OBJECT_ID('dbo.TblCommunityAuditLog', 'U') IS NOT NULL DELETE FROM dbo.TblCommunityAuditLog;
     DELETE FROM dbo.TblCommunity;
 
     DELETE FROM dbo.TblUserActivity;

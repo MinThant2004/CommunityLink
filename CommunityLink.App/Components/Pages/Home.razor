@@ -42,8 +42,36 @@
         -webkit-font-smoothing: antialiased;
     }
 
-    /* Sovereign Obsidian & Gold Theme System Variables */
-    :root, .dark {
+    /* Executive Dual Theme System (Light & Dark Mode) */
+    :root {
+        --bg-background: #F8FAFC;
+        --bg-surface: #FFFFFF;
+        --bg-surface-dim: #F1F5F9;
+        --bg-surface-bright: #FFFFFF;
+        --bg-surface-variant: #E2E8F0;
+        --bg-surface-container-lowest: #FFFFFF;
+        --bg-surface-container-low: #F8FAFC;
+        --bg-surface-container: #F1F5F9;
+        --bg-surface-container-high: #E2E8F0;
+        --bg-surface-container-highest: #CBD5E1;
+        --primary: #B38F24;
+        --primary-container: #D4AF37;
+        --primary-fixed: #FFE088;
+        --on-primary: #FFFFFF;
+        --on-primary-container: #241A00;
+        --secondary: #4F46E5;
+        --secondary-container: #EEF2FF;
+        --tertiary: #0F766E;
+        --tertiary-container: #CCFBF1;
+        --on-surface: #0A1B2E;
+        --on-surface-variant: #557392;
+        --outline: #94A3B8;
+        --outline-variant: #E2E8F0;
+        --error: #BE1A1A;
+        --card-border: rgba(10, 27, 46, 0.08);
+    }
+
+    html.dark, :root.dark {
         --bg-background: #10131a;
         --bg-surface: #10131a;
         --bg-surface-dim: #10131a;
@@ -68,7 +96,10 @@
         --outline: #99907c;
         --outline-variant: #4d4635;
         --error: #ffb4ab;
+        --card-border: rgba(255, 255, 255, 0.05);
     }
+
+    .border-white\/5, .border-white\/10 { border-color: var(--card-border) !important; }
 
     .bg-background { background-color: var(--bg-background) !important; }
     .bg-surface { background-color: var(--bg-surface) !important; }
@@ -142,8 +173,8 @@
 
     .exec-home {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        color: #e1e2ec;
-        background-color: #10131a;
+        color: var(--on-surface);
+        background-color: var(--bg-background);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
@@ -520,8 +551,8 @@
 
     /* Nocturne Executive Dark Mode Rules */
     .dark .exec-home {
-        color: #E1E8F0;
-        background-color: #0A1B2E;
+        color: var(--on-surface);
+        background-color: var(--bg-background);
     }
 
     .dark .exec-card {
@@ -698,7 +729,7 @@
     .dark .exec-home .bg-\[\#0A1B2E\]:not(button):not(.exec-badge-active) { background-color: #1B3B5A; color: #E1E8F0; }
 </style>
 
-<div class="-m-6 min-h-[calc(100vh-4rem)] bg-background text-on-surface font-body-md antialiased overflow-hidden">
+<div class="-m-6 min-h-[calc(100vh-4rem)] exec-home bg-background text-on-surface font-body-md antialiased overflow-hidden">
 @if (isCheckingAuth || (isLoading && dashboard == null))
 {
     <div class="bg-surface-container-low p-16 text-center my-8 max-w-xl mx-auto rounded-xl shadow-xl border border-white/5">
@@ -870,7 +901,7 @@ else if (dashboard != null)
                                         <span class="text-on-surface font-semibold">@poll.AuthorName</span>
                                     </div>
                                     <span>•</span>
-                                    <span>Allocating 250,000 $LNK Treasury Pool</span>
+                                    <span>@(poll.TotalVotes) ballots cast</span>
                                     <span>•</span>
                                     <span class="text-primary font-medium">@(poll.IsExpired ? "Ballot Closed" : "Active Voting")</span>
                                 </div>
@@ -1247,24 +1278,18 @@ else if (dashboard != null)
                                         </div>
 
                                         <!-- Skill Pills -->
-                                        <div class="flex items-center gap-1.5 flex-wrap">
-                                            @if (person.Skills != null && person.Skills.Any())
-                                            {
+                                        @if (person.Skills != null && person.Skills.Any())
+                                        {
+                                            <div class="flex items-center gap-1.5 flex-wrap">
                                                 @foreach (var sk in person.Skills.Take(3))
                                                 {
                                                     <span class="px-2 py-0.5 rounded-full bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm">@sk</span>
                                                 }
-                                            }
-                                            else
-                                            {
-                                                <span class="px-2 py-0.5 rounded-full bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm">zk-SNARKs</span>
-                                                <span class="px-2 py-0.5 rounded-full bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm">Blazor Core</span>
-                                                <span class="px-2 py-0.5 rounded-full bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm">Consensus</span>
-                                            }
-                                        </div>
+                                            </div>
+                                        }
 
                                         <div class="flex items-center justify-between pt-1">
-                                            <span class="text-outline font-label-sm text-label-sm">@(person.IsVerified ? "Sovereign Tier I Member" : "Sovereign Tier II Luminary")</span>
+                                            <span class="text-outline font-label-sm text-label-sm">@(person.IsVerified ? "Sovereign Tier I Member" : "Sovereign Tier II Member")</span>
                                             <a href="u/@person.UserName" class="px-space-md py-1 rounded-lg bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface font-label-md text-label-md font-semibold transition-colors">
                                                 Connect
                                             </a>
@@ -1296,14 +1321,14 @@ else if (dashboard != null)
                                         <div class="absolute left-0 inset-y-0 w-1 bg-primary"></div>
                                         <div class="flex items-center gap-space-sm pl-2 min-w-0">
                                             <div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary flex-shrink-0 font-bold">
-                                                <span class="material-symbols-outlined text-[20px]">shield</span>
+                                                <span class="material-symbols-outlined text-[20px]">@GetGroupIcon(g)</span>
                                             </div>
                                             <div class="flex flex-col min-w-0">
                                                 <span class="font-title-md text-body-md text-on-surface font-semibold truncate group-hover:text-primary transition-colors">@g.Name</span>
-                                                <span class="font-body-sm text-body-sm text-outline truncate">@(g.MemberCount) members • Sovereign Guild</span>
+                                                <span class="font-body-sm text-body-sm text-outline truncate">@(g.MemberCount) members • @g.PostCount dispatches</span>
                                             </div>
                                         </div>
-                                        <a href="groups/@g.GroupId" class="px-space-sm py-1 rounded bg-surface-container-lowest text-primary font-label-sm text-label-sm font-bold flex items-center gap-0.5 hover:bg-primary hover:text-on-primary transition-colors flex-shrink-0">
+                                        <a href="group/@g.GroupId" class="px-space-sm py-1 rounded bg-surface-container-lowest text-primary font-label-sm text-label-sm font-bold flex items-center gap-0.5 hover:bg-primary hover:text-on-primary transition-colors flex-shrink-0">
                                             <span>Enter</span>
                                             <span class="text-[12px]">→</span>
                                         </a>
@@ -1312,22 +1337,7 @@ else if (dashboard != null)
                             }
                             else
                             {
-                                <div class="p-space-sm rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors flex items-center justify-between gap-space-sm relative overflow-hidden group border border-white/5">
-                                    <div class="absolute left-0 inset-y-0 w-1 bg-primary"></div>
-                                    <div class="flex items-center gap-space-sm pl-2">
-                                        <div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary flex-shrink-0 font-bold">
-                                            <span class="material-symbols-outlined text-[20px]">shield</span>
-                                        </div>
-                                        <div class="flex flex-col min-w-0">
-                                            <span class="font-title-md text-body-md text-on-surface font-semibold truncate group-hover:text-primary transition-colors">Core Protocol WG</span>
-                                            <span class="font-body-sm text-body-sm text-outline truncate">1,420 members • 86 weekly posts</span>
-                                        </div>
-                                    </div>
-                                    <button type="button" @onclick='() => SetFeedTab("groups")' class="px-space-sm py-1 rounded bg-surface-container-lowest text-primary font-label-sm text-label-sm font-bold flex items-center gap-0.5 hover:bg-primary hover:text-on-primary transition-colors flex-shrink-0">
-                                        <span>Enter</span>
-                                        <span class="text-[12px]">→</span>
-                                    </button>
-                                </div>
+                                <p class="font-body-sm text-outline p-space-sm text-center">No collaborative groups joined yet.</p>
                             }
                         </div>
                     </div>
@@ -1340,32 +1350,32 @@ else if (dashboard != null)
                         </div>
                         <div class="flex items-baseline justify-between">
                             <div>
-                                <span class="font-display-md text-display-md text-on-surface font-bold tracking-tight">14.8M</span>
+                                <span class="font-display-md text-display-md text-on-surface font-bold tracking-tight">@((userLinkDropBalance + (dashboard?.People?.Count ?? 0) * 500).ToString("N0"))</span>
                                 <span class="font-body-sm text-body-sm text-outline ml-1">$LNK Pooled</span>
                             </div>
                             <div class="flex items-center text-primary font-label-sm text-label-sm font-bold gap-0.5">
-                                <span class="material-symbols-outlined text-[14px]">trending_up</span>
-                                +14.2% YoY
+                                <span class="material-symbols-outlined text-[14px]">account_balance_wallet</span>
+                                @userLinkDropBalance.ToString("N0") Balance
                             </div>
                         </div>
                         <!-- Inline Progress Sparkline Visualization -->
-                        <div class="w-full bg-surface-container-lowest rounded-full h-2 overflow-hidden flex">
-                            <div class="bg-primary h-full rounded-full" style="width: 65%;"></div>
+                        <div class="w-full bg-surface-container-lowest rounded-full h-2 overflow-hidden flex border border-white/5">
+                            <div class="bg-primary h-full rounded-full" style="width: 60%;"></div>
                             <div class="bg-secondary h-full" style="width: 25%;"></div>
-                            <div class="bg-surface-variant h-full" style="width: 10%;"></div>
+                            <div class="bg-tertiary h-full" style="width: 15%;"></div>
                         </div>
                         <div class="flex items-center justify-between text-outline font-label-sm text-label-sm pt-1">
                             <div class="flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full bg-primary"></span>
-                                <span>Validators (65%)</span>
+                                <span>Peers (60%)</span>
                             </div>
                             <div class="flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full bg-secondary"></span>
-                                <span>Guild Grants (25%)</span>
+                                <span>Guilds (25%)</span>
                             </div>
                             <div class="flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-surface-variant"></span>
-                                <span>Reserve (10%)</span>
+                                <span class="w-2 h-2 rounded-full bg-tertiary"></span>
+                                <span>Vault (15%)</span>
                             </div>
                         </div>
                     </div>
@@ -1483,8 +1493,11 @@ else if (dashboard != null)
                                             </span>
                                             <span class="font-label-md text-label-md text-primary mt-1 flex items-center gap-0.5">
                                                 <span class="material-symbols-outlined text-[14px]">star</span>
-                                                @((spotlight.AverageRating ?? 4.98m).ToString("F2"))
-                                                <span class="text-outline text-[11px]">(@(spotlight.RatingCount > 0 ? spotlight.RatingCount : 142))</span>
+                                                @((spotlight.AverageRating ?? 5.0m).ToString("F2"))
+                                                @if (spotlight.RatingCount > 0)
+                                                {
+                                                    <span class="text-outline text-[11px]">(@spotlight.RatingCount)</span>
+                                                }
                                             </span>
                                         </div>
                                     </div>
@@ -1495,23 +1508,17 @@ else if (dashboard != null)
                                     </a>
                                     <p class="font-body-sm text-body-sm text-outline mb-1">@@@spotlight.UserName @(!string.IsNullOrWhiteSpace(spotlight.Headline) ? $"· {spotlight.Headline}" : "")</p>
                                     <p class="font-body-md text-body-md text-on-surface-variant line-clamp-2 mb-space-md">
-                                        @(string.IsNullOrWhiteSpace(spotlight.Bio) ? (spotlight.Headline ?? "Pioneering asynchronous protocols and verified consensus across sovereign nodes.") : spotlight.Bio)
+                                        @(string.IsNullOrWhiteSpace(spotlight.Bio) ? (spotlight.Headline ?? GetRoleBadgeText(spotlight)) : spotlight.Bio)
                                     </p>
-                                    <div class="flex flex-wrap gap-1.5 mb-space-md">
-                                        @if (spotlight.Skills != null && spotlight.Skills.Any())
-                                        {
+                                    @if (spotlight.Skills != null && spotlight.Skills.Any())
+                                    {
+                                        <div class="flex flex-wrap gap-1.5 mb-space-md">
                                             @foreach (var sk in spotlight.Skills.Take(3))
                                             {
                                                 <span class="px-2 py-0.5 bg-surface-container-lowest text-tertiary font-label-sm text-label-sm rounded border border-white/5">@sk</span>
                                             }
-                                        }
-                                        else
-                                        {
-                                            <span class="px-2 py-0.5 bg-surface-container-lowest text-tertiary font-label-sm text-label-sm rounded border border-white/5">Consensus</span>
-                                            <span class="px-2 py-0.5 bg-surface-container-lowest text-tertiary font-label-sm text-label-sm rounded border border-white/5">Architecture</span>
-                                            <span class="px-2 py-0.5 bg-surface-container-lowest text-tertiary font-label-sm text-label-sm rounded border border-white/5">Verified Node</span>
-                                        }
-                                    </div>
+                                        </div>
+                                    }
                                 </div>
                                 <div class="pt-space-md mt-space-sm border-t border-white/5 bg-surface-container-lowest/60 -mx-space-lg -mb-space-lg p-space-md rounded-b-xl flex items-center justify-between">
                                     <div class="flex flex-col">
@@ -1595,12 +1602,15 @@ else if (dashboard != null)
                                         <div class="flex items-center gap-space-md mb-space-md text-on-surface-variant font-body-sm text-body-sm">
                                             <div class="flex items-center gap-1 text-primary">
                                                 <span class="material-symbols-outlined text-[14px]">star</span>
-                                                <span class="font-semibold">@((person.AverageRating ?? 4.9m).ToString("F2"))</span>
-                                                <span class="text-outline">(@(person.RatingCount > 0 ? person.RatingCount : 12))</span>
+                                                <span class="font-semibold">@((person.AverageRating ?? 5.0m).ToString("F2"))</span>
+                                                @if (person.RatingCount > 0)
+                                                {
+                                                    <span class="text-outline">(@person.RatingCount)</span>
+                                                }
                                             </div>
                                             <div class="flex items-center gap-1">
                                                 <span class="material-symbols-outlined text-[14px] text-outline">timer</span>
-                                                <span>@(string.IsNullOrWhiteSpace(person.ResponseSlaText) ? "< 2 hrs" : person.ResponseSlaText)</span>
+                                                <span>@(string.IsNullOrWhiteSpace(person.ResponseSlaText) ? "Active" : person.ResponseSlaText)</span>
                                             </div>
                                             <span class="@(person.AvailabilityStatus?.ToLower().Contains("busy") == true ? "text-amber-400" : "text-emerald-400") font-label-sm text-label-sm uppercase font-semibold">
                                                 @(string.IsNullOrWhiteSpace(person.AvailabilityStatus) ? "Available" : person.AvailabilityStatus)
@@ -1631,7 +1641,7 @@ else if (dashboard != null)
                                             </div>
                                             <div class="w-px h-6 bg-surface-container-high"></div>
                                             <div class="text-center flex-1">
-                                                <span class="block font-title-md text-title-md text-primary font-semibold">@(Math.Max(12, person.PostsCount * 2 + 15))</span>
+                                                <span class="block font-title-md text-title-md text-primary font-semibold">@person.PostsCount</span>
                                                 <span class="font-label-sm text-label-sm uppercase">Signals</span>
                                             </div>
                                         </div>
@@ -1755,11 +1765,11 @@ else if (dashboard != null)
                                                     @(string.IsNullOrWhiteSpace(leader.DisplayName) ? leader.UserName : leader.DisplayName)
                                                 </a>
                                                 <span class="font-body-sm text-body-sm text-outline truncate block">
-                                                    @(leader.Headline ?? $"@{leader.UserName}") · @(string.IsNullOrWhiteSpace(leader.ResponseSlaText) ? $"< {rank * 40} mins" : leader.ResponseSlaText)
+                                                    @(leader.Headline ?? $"@{leader.UserName}")@(!string.IsNullOrWhiteSpace(leader.ResponseSlaText) ? $" · {leader.ResponseSlaText}" : "")
                                                 </span>
                                             </div>
                                         </div>
-                                        <span class="font-label-md text-label-md @(rank == 1 ? "text-primary" : rank == 2 ? "text-secondary" : "text-on-surface-variant") font-bold shrink-0 ml-2">@((99.9 - (rank - 1) * 0.2).ToString("F1"))%</span>
+                                        <span class="font-label-md text-label-md @(rank == 1 ? "text-primary" : rank == 2 ? "text-secondary" : "text-on-surface-variant") font-bold shrink-0 ml-2">@((leader.AverageRating ?? 5.0m).ToString("F1")) ★</span>
                                     </div>
                                     rank++;
                                 }
@@ -1885,11 +1895,11 @@ else if (dashboard != null)
                                     </span>
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm border border-white/5">
                                         <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-                                        @(string.IsNullOrWhiteSpace(PremierGroup.SubCommunityName) ? "Core Infrastructure" : PremierGroup.SubCommunityName)
+                                        @(string.IsNullOrWhiteSpace(PremierGroup.SubCommunityName) ? "Active Working Group" : PremierGroup.SubCommunityName)
                                     </span>
                                     <span class="inline-flex items-center gap-1 text-primary font-label-sm text-label-sm font-semibold">
                                         <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">grade</span>
-                                        @((PremierGroup.AverageRating.HasValue && PremierGroup.AverageRating.Value > 0 ? PremierGroup.AverageRating.Value.ToString("F2") : "4.96")) Quorum Score
+                                        @((PremierGroup.AverageRating.HasValue && PremierGroup.AverageRating.Value > 0 ? PremierGroup.AverageRating.Value.ToString("F2") : "5.00")) Quorum Score
                                     </span>
                                 </div>
                                 <!-- Title & Narrative -->
@@ -1898,7 +1908,7 @@ else if (dashboard != null)
                                         <a href="group/@PremierGroup.GroupId" class="hover:text-primary transition-colors">@PremierGroup.Name</a>
                                     </h2>
                                     <p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-relaxed">
-                                        @(string.IsNullOrWhiteSpace(PremierGroup.Description) ? "Consensus architects, cryptography engineers, and settlement validators engineering LinkDrop v3 specifications, state transitions, and zero-knowledge liquidity proofs." : PremierGroup.Description)
+                                        @(string.IsNullOrWhiteSpace(PremierGroup.Description) ? "Collaborative working group and sovereign research circle." : PremierGroup.Description)
                                     </p>
                                 </div>
                                 <!-- Guild Metadata Chips & Stewards Preview -->
@@ -1915,14 +1925,14 @@ else if (dashboard != null)
                                     </div>
                                     <div class="flex items-center gap-2 font-body-sm text-body-sm text-on-surface">
                                         <span class="material-symbols-outlined text-[18px] text-primary">how_to_vote</span>
-                                        <span class="font-semibold text-primary">@(Math.Max(1, PremierGroup.PostCount / 10 + 1)) Active RFC Ballots</span>
+                                        <span class="font-semibold text-primary">@PremierGroup.PostCount Active Dispatches</span>
                                     </div>
                                     <!-- Lead Stewards Overlap Pile -->
-                                    <div class="flex items-center gap-2 pl-2">
-                                        <span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Lead Stewards:</span>
-                                        <div class="flex -space-x-2">
-                                            @if (dashboard?.People != null && dashboard.People.Any())
-                                            {
+                                    @if (dashboard?.People != null && dashboard.People.Any())
+                                    {
+                                        <div class="flex items-center gap-2 pl-2">
+                                            <span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Lead Stewards:</span>
+                                            <div class="flex -space-x-2">
                                                 @foreach (var lead in dashboard.People.Take(3))
                                                 {
                                                     @if (!string.IsNullOrWhiteSpace(lead.AvatarUrl))
@@ -1936,15 +1946,9 @@ else if (dashboard != null)
                                                         </div>
                                                     }
                                                 }
-                                            }
-                                            else
-                                            {
-                                                <div class="w-7 h-7 rounded-full bg-surface-container-highest text-primary font-bold text-[10px] flex items-center justify-center ring-2 ring-surface-container">A</div>
-                                                <div class="w-7 h-7 rounded-full bg-surface-container-highest text-secondary font-bold text-[10px] flex items-center justify-center ring-2 ring-surface-container">E</div>
-                                                <div class="w-7 h-7 rounded-full bg-surface-container-highest text-tertiary font-bold text-[10px] flex items-center justify-center ring-2 ring-surface-container">J</div>
-                                            }
+                                            </div>
                                         </div>
-                                    </div>
+                                    }
                                 </div>
                             </div>
                             <!-- Banner Action Module -->
@@ -2052,15 +2056,15 @@ else if (dashboard != null)
 
                                         <!-- Content -->
                                         <div class="flex items-center gap-1.5 text-outline font-label-sm text-label-sm uppercase tracking-wide">
-                                            <span>@(string.IsNullOrWhiteSpace(grp.SubCommunityName) ? "Domain Guild" : grp.SubCommunityName)</span>
+                                            <span>@(string.IsNullOrWhiteSpace(grp.SubCommunityName) ? "Domain Group" : grp.SubCommunityName)</span>
                                             <span>•</span>
-                                            <span class="text-primary font-semibold">★ @(grp.AverageRating.HasValue && grp.AverageRating.Value > 0 ? grp.AverageRating.Value.ToString("F2") : "4.90") (@(grp.RatingCount > 0 ? grp.RatingCount : Math.Max(24, grp.MemberCount * 3)))</span>
+                                            <span class="text-primary font-semibold">★ @((grp.AverageRating.HasValue && grp.AverageRating.Value > 0 ? grp.AverageRating.Value.ToString("F2") : "5.00")) @(grp.RatingCount > 0 ? $"({grp.RatingCount})" : "")</span>
                                         </div>
                                         <h3 class="font-title-lg text-title-lg text-on-surface font-bold mt-1 group-hover:text-primary transition-colors">
                                             <a href="group/@grp.GroupId">@grp.Name</a>
                                         </h3>
                                         <p class="font-body-sm text-body-sm text-on-surface-variant mt-1.5 line-clamp-2 leading-relaxed">
-                                            @(string.IsNullOrWhiteSpace(grp.Description) ? "Consensus design, zero-knowledge verification, and EVM compatibility standards for the link layer." : grp.Description)
+                                            @(string.IsNullOrWhiteSpace(grp.Description) ? "Collaborative working group." : grp.Description)
                                         </p>
                                     </div>
 
@@ -2068,7 +2072,7 @@ else if (dashboard != null)
                                     <div class="pt-space-sm flex items-center justify-between gap-2 border-t border-white/5">
                                         <div class="flex flex-col">
                                             <span class="font-label-sm text-label-sm text-outline uppercase">Network Scale</span>
-                                            <span class="font-body-sm text-body-sm text-on-surface font-semibold">@grp.MemberCount mem • @grp.PostCount/wk</span>
+                                            <span class="font-body-sm text-body-sm text-on-surface font-semibold">@grp.MemberCount members • @grp.PostCount dispatches</span>
                                         </div>
                                         @if (grp.IsJoined)
                                         {
@@ -2151,20 +2155,26 @@ else if (dashboard != null)
                             <span class="font-label-sm text-label-sm text-outline">Q2 2025</span>
                         </div>
                         <div>
-                            <div class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">350,000 $LNK</div>
+                            <div class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">@(((dashboard?.Groups?.Count ?? 0) * 15000 + userLinkDropBalance).ToString("N0")) $LNK</div>
                             <p class="font-body-sm text-body-sm text-outline mt-0.5">Pool allocated exclusively for guild research grants and tooling bounties.</p>
                         </div>
-                        <!-- Inline Treasury Distribution Bar Chart -->
+                        <!-- Dynamic Treasury Distribution Bar Chart -->
+                        @{
+                            int totalGrps = GroupCountAll > 0 ? GroupCountAll : 1;
+                            int techPct = Math.Clamp((int)Math.Round((double)GroupCountTechnical / totalGrps * 100), 10, 80);
+                            int synPct = Math.Clamp((int)Math.Round((double)GroupCountSyndicate / totalGrps * 100), 10, 80 - techPct);
+                            int govPct = Math.Max(5, 100 - techPct - synPct);
+                        }
                         <div class="w-full flex flex-col gap-1.5 py-2">
                             <div class="w-full h-2 rounded-full bg-surface-container-lowest overflow-hidden flex border border-white/5">
-                                <div class="h-full bg-primary" style="width: 58%;"></div>
-                                <div class="h-full bg-secondary" style="width: 26%;"></div>
-                                <div class="h-full bg-tertiary" style="width: 16%;"></div>
+                                <div class="h-full bg-primary" style="width: @(techPct)%;"></div>
+                                <div class="h-full bg-secondary" style="width: @(synPct)%;"></div>
+                                <div class="h-full bg-tertiary" style="width: @(govPct)%;"></div>
                             </div>
                             <div class="flex items-center justify-between font-label-sm text-label-sm text-outline">
-                                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span>Protocol (58%)</span>
-                                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Zero-Knowledge (26%)</span>
-                                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>Treasury (16%)</span>
+                                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span>Tech (@techPct%)</span>
+                                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Syndicates (@synPct%)</span>
+                                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>Gov (@govPct%)</span>
                             </div>
                         </div>
                         <a href="linkdrops" class="w-full mt-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-md text-label-md font-semibold transition-all border border-white/5">
@@ -2183,57 +2193,39 @@ else if (dashboard != null)
                             <span class="font-label-sm text-label-sm text-outline">UTC Format</span>
                         </div>
                         <div class="flex flex-col gap-space-sm">
-                            <!-- Event Item 1 -->
-                            <div class="p-3 rounded-lg bg-surface-container-low flex items-start gap-3 hover:bg-surface-container-high transition-colors border border-white/5">
-                                <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-surface-container-highest text-primary font-bold border border-white/5">
-                                    <span class="font-label-sm text-[10px] leading-tight uppercase">TOM</span>
-                                    <span class="font-title-md text-title-md leading-tight">14</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-label-md text-label-md text-on-surface font-semibold truncate">Core Protocol Bi-Weekly Sync</div>
-                                    <div class="font-body-sm text-body-sm text-outline flex items-center gap-1 mt-0.5">
-                                        <span class="material-symbols-outlined text-[14px]">schedule</span>
-                                        <span>15:00 UTC • WG-01 Live Bridge</span>
+                            @if (dashboard?.Groups != null && dashboard.Groups.Any())
+                            {
+                                int qIdx = 0;
+                                foreach (var qGroup in dashboard.Groups.Take(3))
+                                {
+                                    var dayLabel = qIdx == 0 ? "TOM" : qIdx == 1 ? "FRI" : "MON";
+                                    var dayNum = (DateTime.UtcNow.Day + qIdx + 1).ToString();
+                                    var timeHour = 14 + qIdx * 2;
+                                    <div class="p-3 rounded-lg bg-surface-container-low flex items-start gap-3 hover:bg-surface-container-high transition-colors border border-white/5">
+                                        <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-surface-container-highest text-primary font-bold border border-white/5 shrink-0">
+                                            <span class="font-label-sm text-[10px] leading-tight uppercase">@dayLabel</span>
+                                            <span class="font-title-md text-title-md leading-tight">@dayNum</span>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <a href="group/@qGroup.GroupId" class="font-label-md text-label-md text-on-surface font-semibold truncate hover:text-primary transition-colors block">
+                                                @qGroup.Name Quorum
+                                            </a>
+                                            <div class="font-body-sm text-body-sm text-outline flex items-center gap-1 mt-0.5">
+                                                <span class="material-symbols-outlined text-[14px]">schedule</span>
+                                                <span>@(timeHour):00 UTC • @qGroup.MemberCount Members</span>
+                                            </div>
+                                        </div>
+                                        <a href="group/@qGroup.GroupId" aria-label="View group" class="text-outline hover:text-primary transition-colors p-1">
+                                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                        </a>
                                     </div>
-                                </div>
-                                <button aria-label="Add to calendar" class="text-outline hover:text-primary transition-colors p-1 cursor-pointer">
-                                    <span class="material-symbols-outlined text-[18px]">bookmark_add</span>
-                                </button>
-                            </div>
-                            <!-- Event Item 2 -->
-                            <div class="p-3 rounded-lg bg-surface-container-low flex items-start gap-3 hover:bg-surface-container-high transition-colors border border-white/5">
-                                <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-surface-container-highest text-secondary font-bold border border-white/5">
-                                    <span class="font-label-sm text-[10px] leading-tight uppercase">FRI</span>
-                                    <span class="font-title-md text-title-md leading-tight">18</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-label-md text-label-md text-on-surface font-semibold truncate">ZK Research Paper Review</div>
-                                    <div class="font-body-sm text-body-sm text-outline flex items-center gap-1 mt-0.5">
-                                        <span class="material-symbols-outlined text-[14px]">schedule</span>
-                                        <span>18:30 UTC • Virtual Quorum</span>
-                                    </div>
-                                </div>
-                                <button aria-label="Add to calendar" class="text-outline hover:text-primary transition-colors p-1 cursor-pointer">
-                                    <span class="material-symbols-outlined text-[18px]">bookmark_add</span>
-                                </button>
-                            </div>
-                            <!-- Event Item 3 -->
-                            <div class="p-3 rounded-lg bg-surface-container-low flex items-start gap-3 hover:bg-surface-container-high transition-colors border border-white/5">
-                                <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-surface-container-highest text-tertiary font-bold border border-white/5">
-                                    <span class="font-label-sm text-[10px] leading-tight uppercase">MON</span>
-                                    <span class="font-title-md text-title-md leading-tight">21</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-label-md text-label-md text-on-surface font-semibold truncate">Liquidity Syndicate Closed Call</div>
-                                    <div class="font-body-sm text-body-sm text-outline flex items-center gap-1 mt-0.5">
-                                        <span class="material-symbols-outlined text-[14px]">lock</span>
-                                        <span>20:00 UTC • Encrypted Huddle</span>
-                                    </div>
-                                </div>
-                                <button aria-label="Add to calendar" class="text-outline hover:text-primary transition-colors p-1 cursor-pointer">
-                                    <span class="material-symbols-outlined text-[18px]">bookmark_add</span>
-                                </button>
-                            </div>
+                                    qIdx++;
+                                }
+                            }
+                            else
+                            {
+                                <p class="font-body-sm text-outline p-space-sm text-center">No upcoming quorums scheduled.</p>
+                            }
                         </div>
                     </div>
 
@@ -2301,22 +2293,22 @@ else if (dashboard != null)
 @if (showEditModal)
 {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-        <div class="bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl border border-[#C4D2E1] space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-[#E1E8F0]">
-                <h3 class="exec-display font-bold text-[#0A1B2E] text-base flex items-center gap-2">
-                    <svg class="w-4 h-4 text-[#1B3B5A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+        <div class="bg-white dark:bg-[#112A46] rounded-xl max-w-lg w-full p-6 shadow-2xl border border-[#C4D2E1] dark:border-[rgba(196,210,225,0.15)] space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                <h3 class="exec-display font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-base flex items-center gap-2">
+                    <svg class="w-4 h-4 text-[#1B3B5A] dark:text-[#C4D2E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     <span>Edit Post Description</span>
                 </h3>
-                <button type="button" @onclick="CloseEditModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] text-lg font-bold">&times;</button>
+                <button type="button" @onclick="CloseEditModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-lg font-bold">&times;</button>
             </div>
 
             <div class="space-y-1.5">
-                <label class="exec-mono text-xs text-[#557392]">POST CONTENT</label>
+                <label class="exec-mono text-xs text-[#557392] dark:text-[#C4D2E1]">POST CONTENT</label>
                 <textarea @bind="editingPostContent" rows="5" class="exec-input w-full resize-none leading-relaxed" placeholder="Update your post description..."></textarea>
                 <p class="text-[11px] text-[#7A8CA6]">Note: Post image attachments cannot be modified.</p>
             </div>
 
-            <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E1E8F0]">
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <button type="button" @onclick="CloseEditModal" class="exec-btn-secondary text-xs">
                     Cancel
                 </button>
@@ -2340,20 +2332,20 @@ else if (dashboard != null)
 @if (showRecycleModal)
 {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-[#C4D2E1] space-y-4">
+        <div class="bg-white dark:bg-[#112A46] rounded-xl max-w-md w-full p-6 shadow-2xl border border-[#C4D2E1] dark:border-[rgba(196,210,225,0.15)] space-y-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
+                <div class="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                 </div>
                 <div>
-                    <h3 class="exec-display font-bold text-[#0A1B2E] text-base">Move Post to Recycle Bin?</h3>
-                    <p class="text-xs text-[#557392] mt-0.5">You can restore this post anytime within 10 days from your profile.</p>
+                    <h3 class="exec-display font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-base">Move Post to Recycle Bin?</h3>
+                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-0.5">You can restore this post anytime within 10 days from your profile.</p>
                 </div>
             </div>
 
-            <p class="text-xs text-[#557392] bg-[#F2F6FB] p-3 rounded-lg border border-[#E1E8F0] leading-relaxed">
+            <p class="text-xs text-[#557392] dark:text-[#C4D2E1] bg-[#F2F6FB] dark:bg-[#0A1B2E] p-3 rounded-lg border border-[#E1E8F0] dark:border-[rgba(196,210,225,0.15)] leading-relaxed">
                 This post will be hidden from the feed and community stream immediately. Posts kept in the Recycle Bin for more than 10 days will be permanently erased.
             </p>
 
