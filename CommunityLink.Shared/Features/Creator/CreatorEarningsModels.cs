@@ -18,6 +18,16 @@ public sealed record CreatorGroupEarningsModel(
     int TransactionCount
 );
 
+public sealed record CreatorUserEarningsModel(
+    int BuyerUserId,
+    string BuyerName,
+    string? BuyerAvatarUrl,
+    long TotalLinkDrops,
+    long NetLinkDrops,
+    int TransactionCount,
+    DateTime LastPaidAt
+);
+
 public sealed record CreatorEarningsTransactionModel(
     long PaymentTransactionId,
     DateTime Date,
@@ -34,5 +44,6 @@ public sealed record CreatorEarningsTransactionModel(
 public sealed record CreatorEarningsDashboardModel(
     CreatorEarningsSummaryModel Summary,
     IReadOnlyList<CreatorGroupEarningsModel> GroupBreakdown,
+    IReadOnlyList<CreatorUserEarningsModel> UserBreakdown,
     IReadOnlyList<CreatorEarningsTransactionModel> Transactions
 );

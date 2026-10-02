@@ -46,6 +46,7 @@ public partial class AppDbContext
             entity.HasIndex(e => e.CreatorUserId, "IX_TblCreatorChatSetting_CreatorUserId").IsUnique();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.RowVersion)
+                .IsRowVersion()
                 .IsConcurrencyToken();
 
             entity.HasOne(d => d.CreatorUser).WithMany()
@@ -65,6 +66,7 @@ public partial class AppDbContext
                 .IsUnicode(false)
                 .HasDefaultValue("COMPLETED");
             entity.Property(e => e.RowVersion)
+                .IsRowVersion()
                 .IsConcurrencyToken();
 
             entity.HasIndex(e => e.ConversationId, "IX_TblPrivateChatPaymentTransaction_ConversationId");

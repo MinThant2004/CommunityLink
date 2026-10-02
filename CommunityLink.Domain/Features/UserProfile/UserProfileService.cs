@@ -288,6 +288,7 @@ public class UserProfileService : IUserProfileService
                 .Include(p => p.TblPostImages)
                 .Include(p => p.TblPostLikes)
                 .Include(p => p.TblComments)
+                .Include(p => p.TblPostShares)
                 .Include(p => p.TblPolls)
                     .ThenInclude(poll => poll.TblPollOptions)
                 .Include(p => p.TblPolls)
@@ -297,7 +298,127 @@ public class UserProfileService : IUserProfileService
                 .ToListAsync(cancellationToken);
 
             var list = rawPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
-            return Result<List<UserPostItemDto>>.Success(list);
+
+            // Collect root post IDs for any SHARED posts
+            var rootPostIdsToFetch = new HashSet<int>();
+            foreach (var p in rawPosts)
+            {
+                if (p.PostType == "SHARED" && !string.IsNullOrWhiteSpace(p.Subtitle) && p.Subtitle.StartsWith("ROOT:", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (int.TryParse(p.Subtitle["ROOT:".Length..], out int rId))
+                    {
+                        rootPostIdsToFetch.Add(rId);
+                    }
+                }
+            }
+
+            var rootPostsDict = new Dictionary<int, OriginalPostSummaryDto>();
+            if (rootPostIdsToFetch.Count > 0)
+            {
+                var fetchedRoots = await _dbContext.TblPosts
+                    .Include(p => p.Author)
+                    .Include(p => p.Community)
+                    .Include(p => p.Group)
+                    .Include(p => p.TblPostImages)
+                    .Where(p => rootPostIdsToFetch.Contains(p.PostId) && !p.IsDeleted)
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                foreach (var r in fetchedRoots)
+                {
+                    rootPostsDict[r.PostId] = new OriginalPostSummaryDto
+                    {
+                        PostId = r.PostId,
+                        AuthorUserId = r.AuthorId,
+                        AuthorUserName = r.Author?.UserName ?? "unknown",
+                        AuthorDisplayName = r.Author?.DisplayName ?? r.Author?.UserName ?? "Unknown",
+                        AuthorAvatarUrl = r.Author?.AvatarUrl,
+                        Content = r.Content,
+                        CreatedAt = r.CreatedAt,
+                        CommunityName = r.Community?.Name,
+                        GroupName = r.Group?.Name,
+                        ImageUrls = r.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
+                        CodeSnippet = r.CodeSnippet,
+                        CodeFileName = r.CodeFileName,
+                        CodeLanguage = r.CodeLanguage
+                    };
+                }
+            }
+
+            foreach (var dto in list)
+            {
+                if (dto.PostType == "SHARED" && !string.IsNullOrWhiteSpace(dto.Subtitle) && dto.Subtitle.StartsWith("ROOT:", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (int.TryParse(dto.Subtitle["ROOT:".Length..], out int rId) && rootPostsDict.TryGetValue(rId, out var rootDto))
+                    {
+                        dto.OriginalPost = rootDto;
+                    }
+                }
+            }
+
+            // Also load posts shared by this user via TblPostShares (legacy shares)
+            // Exclude any posts that already exist as a SHARED post on this user's wall to avoid duplicate display
+            var sharedPosts = await _dbContext.TblPostShares
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Include(s => s.User)
+                .Include(s => s.Post)
+                    .ThenInclude(p => p.Author)
+                .Include(s => s.Post)
+                    .ThenInclude(p => p.Community)
+                .Include(s => s.Post)
+                    .ThenInclude(p => p.Group)
+                .Include(s => s.Post)
+                    .ThenInclude(p => p.TblPostImages)
+                .Include(s => s.Post)
+                    .ThenInclude(p => p.TblPostLikes)
+                .Include(s => s.Post)
+                    .ThenInclude(p => p.TblComments)
+                .Include(s => s.Post)
+                    .ThenInclude(p => p.TblPolls)
+                        .ThenInclude(poll => poll.TblPollOptions)
+                .Include(s => s.Post)
+                    .ThenInclude(p => p.TblPolls)
+                        .ThenInclude(poll => poll.TblPollVotes)
+                .Where(s => s.UserId == targetUserId && !s.IsDeleted && !s.Post.IsDeleted && !rootPostIdsToFetch.Contains(s.PostId))
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+            var sharedList = sharedPosts.Select(s =>
+            {
+                var dto = MapPostToDto(s.Post, currentUserId);
+                dto.SharedByUserName = s.User.UserName;
+                dto.SharedByDisplayName = s.User.DisplayName;
+                dto.SharedAt = s.CreatedAt;
+                dto.OriginalPost = new OriginalPostSummaryDto
+                {
+                    PostId = s.Post.PostId,
+                    AuthorUserId = s.Post.AuthorId,
+                    AuthorUserName = s.Post.Author?.UserName ?? "unknown",
+                    AuthorDisplayName = s.Post.Author?.DisplayName ?? s.Post.Author?.UserName ?? "Unknown",
+                    AuthorAvatarUrl = s.Post.Author?.AvatarUrl,
+                    Content = s.Post.Content,
+                    CreatedAt = s.Post.CreatedAt,
+                    CommunityName = s.Post.Community?.Name,
+                    GroupName = s.Post.Group?.Name,
+                    ImageUrls = s.Post.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
+                    CodeSnippet = s.Post.CodeSnippet,
+                    CodeFileName = s.Post.CodeFileName,
+                    CodeLanguage = s.Post.CodeLanguage
+                };
+                if (!string.IsNullOrWhiteSpace(s.ShareNote))
+                {
+                    dto.Content = s.ShareNote;
+                }
+                return dto;
+            }).ToList();
+
+            var combinedList = list
+                .Concat(sharedList)
+                .OrderByDescending(p => p.SharedAt ?? p.CreatedAt)
+                .ToList();
+
+            return Result<List<UserPostItemDto>>.Success(combinedList);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -954,9 +1075,11 @@ public class UserProfileService : IUserProfileService
             AuthorUserName = p.Author.UserName,
             AuthorDisplayName = p.Author.DisplayName,
             AuthorAvatarUrl = p.Author.AvatarUrl,
-            LikeCount = p.TblPostLikes.Count(l => !l.IsDeleted),
-            CommentCount = p.TblComments.Count(c => !c.IsDeleted),
-            ImageUrls = p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
+            LikeCount = p.TblPostLikes != null ? p.TblPostLikes.Count(l => !l.IsDeleted) : p.LikeCount,
+            CommentCount = p.TblComments != null ? p.TblComments.Count(c => !c.IsDeleted) : p.CommentCount,
+            ShareCount = p.TblPostShares != null ? p.TblPostShares.Count(s => !s.IsDeleted) : p.ShareCount,
+            IsLikedByCurrentUser = currentUserId.HasValue && p.TblPostLikes != null && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
+            ImageUrls = p.TblPostImages != null ? p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList() : new List<string>(),
             CreatedAt = p.CreatedAt,
             DeletedAt = p.DeletedAt
         };

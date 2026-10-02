@@ -116,4 +116,10 @@ public sealed class LinkDropApiService(IHttpClientFactory clientFactory, IHttpCo
 
     public Task<Result<bool>> TogglePaymentMethodStatusAsync(int paymentMethodId, CancellationToken cancellationToken = default) =>
         PostAsync<bool, object>($"api/admin/linkdrops/payment-methods/{paymentMethodId}/toggle", new { }, cancellationToken);
+
+    public Task<Result<LinkDropExchangeRateSettingDto>> GetExchangeRatesAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<LinkDropExchangeRateSettingDto>("api/linkdrops/rates", cancellationToken);
+
+    public Task<Result<LinkDropExchangeRateSettingDto>> UpdateExchangeRatesAsync(UpdateExchangeRateSettingRequestDto request, CancellationToken cancellationToken = default) =>
+        PutAsync<LinkDropExchangeRateSettingDto, UpdateExchangeRateSettingRequestDto>("api/admin/linkdrops/rates", request, cancellationToken);
 }

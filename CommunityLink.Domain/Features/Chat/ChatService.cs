@@ -756,11 +756,15 @@ public sealed class ChatService(
             return null;
         }
 
-        // Check if COMPLETED payment transaction exists
+        // Check if COMPLETED payment transaction exists in either direction:
+        // 1. Sender previously paid Recipient (Sender is the buyer)
+        // 2. Recipient previously paid Sender to initiate/unlock this chat (Sender is the creator replying back for free!)
+        // 3. Or this conversation already has a completed unlock transaction
         bool isUnlocked = await dbContext.TblPrivateChatPaymentTransactions
             .AsNoTracking()
             .AnyAsync(t => (t.BuyerUserId == senderId && t.CreatorUserId == recipientId && t.Status == "COMPLETED") ||
-                           (conversationId.HasValue && t.ConversationId == conversationId.Value && t.BuyerUserId == senderId && t.Status == "COMPLETED"), cancellationToken);
+                           (t.BuyerUserId == recipientId && t.CreatorUserId == senderId && t.Status == "COMPLETED") ||
+                           (conversationId.HasValue && t.ConversationId == conversationId.Value && t.Status == "COMPLETED"), cancellationToken);
 
         if (!isUnlocked)
         {

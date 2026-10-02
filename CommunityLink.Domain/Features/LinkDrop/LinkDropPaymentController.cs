@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using CommunityLink.Domain.Features.Admin;
 using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
+using CommunityLink.Shared.Features.Admin;
 using CommunityLink.Shared.Features.LinkDrop;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -15,11 +17,16 @@ namespace CommunityLink.Domain.Features.LinkDrop;
 public class LinkDropPaymentController : BaseController
 {
     private readonly ILinkDropPaymentService _linkDropService;
+    private readonly IPlatformSettingService _platformSettingService;
     private readonly ICurrentUserContext _currentUser;
 
-    public LinkDropPaymentController(ILinkDropPaymentService linkDropService, ICurrentUserContext currentUser)
+    public LinkDropPaymentController(
+        ILinkDropPaymentService linkDropService,
+        IPlatformSettingService platformSettingService,
+        ICurrentUserContext currentUser)
     {
         _linkDropService = linkDropService;
+        _platformSettingService = platformSettingService;
         _currentUser = currentUser;
     }
 
@@ -37,9 +44,22 @@ public class LinkDropPaymentController : BaseController
 
     [HttpGet("rate")]
     [AllowAnonymous]
-    public IActionResult GetConversionRate()
+    public async Task<IActionResult> GetConversionRate()
     {
+        var rateResult = await _platformSettingService.GetLinkDropExchangeRateAsync();
+        if (rateResult.IsSuccess && rateResult.Data != null)
+        {
+            return ToActionResult(Result<decimal>.Success(rateResult.Data.MmkPerLinkDrop));
+        }
         return ToActionResult(Result<decimal>.Success(LinkDropPricing.MmkPerDrop));
+    }
+
+    [HttpGet("rates")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAllExchangeRates()
+    {
+        var rates = await _platformSettingService.GetLinkDropExchangeRateAsync();
+        return ToActionResult(rates);
     }
 
     [HttpGet("payment-methods")]
@@ -301,5 +321,16 @@ public class LinkDropPaymentController : BaseController
 
         var isActive = await _linkDropService.TogglePaymentMethodStatusAsync(_currentUser.UserId.Value, id);
         return ToActionResult(Result<bool>.Success(isActive));
+    }
+
+    [HttpPut("/api/admin/linkdrops/rates")]
+    [Authorize]
+    public async Task<IActionResult> UpdateExchangeRates([FromBody] UpdateExchangeRateSettingRequestDto request)
+    {
+        if (!_currentUser.IsAdmin || !_currentUser.UserId.HasValue)
+            return ToActionResult(Result.Failure("Administrator privileges required.", ResultStatus.Forbidden));
+
+        var result = await _platformSettingService.UpdateLinkDropExchangeRateAsync(request);
+        return ToActionResult(result);
     }
 }

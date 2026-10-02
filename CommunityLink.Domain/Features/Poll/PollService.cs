@@ -160,7 +160,8 @@ public sealed class PollService(
                     p.CommentCount,
                     p.ShareCount,
                     p.IsLiked,
-                    p.CreatedAt
+                    p.CreatedAt,
+                    p.AuthorUserName
                 );
             }).ToList();
 

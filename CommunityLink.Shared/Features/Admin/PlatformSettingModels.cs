@@ -11,3 +11,5 @@ public class UpdateCommissionSettingRequestDto
 {
     public decimal CommissionPercentage { get; set; }
 }
+
+

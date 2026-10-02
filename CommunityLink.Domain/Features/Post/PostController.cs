@@ -11,8 +11,8 @@ public sealed class PostController(IPostService postService) : BaseController
 {
     [HttpGet("feed")]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PostView)]
-    public async Task<IActionResult> GetFeed([FromQuery] int? communityId, [FromQuery] int? groupId, CancellationToken cancellationToken) =>
-        ToActionResult(await postService.GetFeedPostsAsync(communityId, groupId, cancellationToken));
+    public async Task<IActionResult> GetFeed([FromQuery] int? communityId, [FromQuery] int? groupId, [FromQuery] int page = 1, [FromQuery] int pageSize = 15, CancellationToken cancellationToken = default) =>
+        ToActionResult(await postService.GetFeedPostsAsync(communityId, groupId, page, pageSize, cancellationToken));
 
     [HttpPost]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PostCreate)]

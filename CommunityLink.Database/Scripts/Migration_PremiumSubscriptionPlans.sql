@@ -122,7 +122,7 @@ BEGIN
             30,
             119.00,
             1190,
-            '["Discovery shelf Priority Guaranteed top placement","Unlimited Sovereign Communities","0% Platform Fees on Advisory (first $10,000/yr)","Dedicated Admin Concierge Direct Slack/Signal channel","Government ID & Identity Card Verified"]',
+            '["Discovery shelf Priority Guaranteed top placement","Unlimited Sovereign Communities","0% Platform Fees on Advisory (first 10,000,000 MMK/yr)","Dedicated Admin Concierge Direct Slack/Signal channel","Government ID & Identity Card Verified"]',
             1,
             SYSUTCDATETIME()
         ),
@@ -133,7 +133,7 @@ BEGIN
             365,
             1190.00,
             11900,
-            '["All Public Figure VIP Monthly Perks","Save $238 (2 Months Free)","Priority Expedited SecOps Review","VIP Platinum Profile Crest"]',
+            '["All Public Figure VIP Monthly Perks","Save 238,000 MMK (2 Months Free)","Priority Expedited SecOps Review","VIP Platinum Profile Crest"]',
             1,
             SYSUTCDATETIME()
         );

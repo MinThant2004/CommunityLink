@@ -7,9 +7,14 @@ namespace CommunityLink.App.Apis;
 public sealed class PostApiService(IHttpClientFactory clientFactory, IHttpContextAccessor httpContextAccessor)
     : ApiService(clientFactory, httpContextAccessor)
 {
-    public Task<Result<IReadOnlyList<PostModel>>> GetFeedAsync(int? communityId = null, int? groupId = null, CancellationToken cancellationToken = default)
+    public Task<Result<IReadOnlyList<PostModel>>> GetFeedAsync(int? communityId = null, int? groupId = null, int page = 1, int pageSize = 15, CancellationToken cancellationToken = default)
     {
-        var url = groupId.HasValue ? $"api/posts/feed?groupId={groupId.Value}" : (communityId.HasValue ? $"api/posts/feed?communityId={communityId.Value}" : "api/posts/feed");
+        var query = new List<string>();
+        if (groupId.HasValue) query.Add($"groupId={groupId.Value}");
+        if (communityId.HasValue) query.Add($"communityId={communityId.Value}");
+        query.Add($"page={page}");
+        query.Add($"pageSize={pageSize}");
+        var url = $"api/posts/feed?{string.Join("&", query)}";
         return GetAsync<IReadOnlyList<PostModel>>(url, cancellationToken);
     }
 
