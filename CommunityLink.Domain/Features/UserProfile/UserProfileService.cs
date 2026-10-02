@@ -280,6 +280,51 @@ public class UserProfileService : IUserProfileService
         return Result<UserProfileDto>.Success(profile, "Rating submitted successfully.");
     }
 
+    public async Task<Result<UserProfileDto>> DeleteRatingAsync(int currentUserId, int targetUserId, CancellationToken cancellationToken = default)
+    {
+        if (currentUserId == targetUserId)
+            return Result<UserProfileDto>.Failure("Users cannot rate their own profile.", ResultStatus.ValidationError);
+
+        var targetUser = await _dbContext.TblUsers
+            .Include(u => u.TblUserRoles)
+                .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.UserId == targetUserId && !u.IsDeleted, cancellationToken);
+
+        if (targetUser == null)
+            return Result<UserProfileDto>.Failure("Target user not found.", ResultStatus.NotFound);
+
+        var existingRating = await _dbContext.TblUserRatings
+            .FirstOrDefaultAsync(r => r.RaterUserId == currentUserId && r.TargetUserId == targetUserId && !r.IsDeleted, cancellationToken);
+
+        if (existingRating != null)
+        {
+            _dbContext.TblUserRatings.Remove(existingRating);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        // Recalculate AverageRating & RatingCount for target user
+        var ratings = await _dbContext.TblUserRatings
+            .Where(r => r.TargetUserId == targetUserId && !r.IsDeleted)
+            .Select(r => r.Score)
+            .ToListAsync(cancellationToken);
+
+        if (ratings.Any())
+        {
+            targetUser.AverageRating = Math.Round((decimal)ratings.Average(), 2);
+            targetUser.RatingCount = ratings.Count;
+        }
+        else
+        {
+            targetUser.AverageRating = null;
+            targetUser.RatingCount = 0;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        var profile = await BuildProfileDtoAsync(targetUser, currentUserId, isOwnerView: false, cancellationToken);
+        return Result<UserProfileDto>.Success(profile, "Review removed successfully.");
+    }
+
     public async Task<Result<List<UserPostItemDto>>> GetUserPostsAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default)
     {
         try

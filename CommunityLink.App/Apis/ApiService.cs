@@ -134,6 +134,20 @@ public class ApiService(IHttpClientFactory clientFactory, IHttpContextAccessor h
         }
     }
 
+    protected async Task<Result<T>> DeleteAsync<T>(string url, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = CreateClient();
+            var response = await client.DeleteAsync(url, cancellationToken);
+            return await ReadResultAsync<T>(response, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            return Result<T>.Failure($"API request failed: {ex.Message}", ResultStatus.SystemError);
+        }
+    }
+
     protected async Task<Result<T>> ReadResultAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken = default)
     {
         try

@@ -54,6 +54,9 @@ public sealed class UserProfileApiService(IHttpClientFactory clientFactory, IHtt
     public Task<Result<UserProfileDto>> RateUserAsync(int targetUserId, RateUserRequestDto dto, CancellationToken cancellationToken = default) =>
         PostAsync<UserProfileDto, RateUserRequestDto>($"api/users/{targetUserId}/rate", dto, cancellationToken);
 
+    public Task<Result<UserProfileDto>> DeleteRatingAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        DeleteAsync<UserProfileDto>($"api/users/{targetUserId}/rate", cancellationToken);
+
     public Task<Result<List<UserPostItemDto>>> GetUserPostsAsync(int targetUserId, CancellationToken cancellationToken = default) =>
         GetAsync<List<UserPostItemDto>>($"api/users/{targetUserId}/posts", cancellationToken);
 

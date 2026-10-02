@@ -405,6 +405,11 @@
                             <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                                 @if (!isOwner)
                                 {
+                                    <button type="button" @onclick="ToggleFollowUserAsync" disabled="@isTogglingFollow" class="btn-exec-secondary @(profile.Relationship.IsFollowedByMe ? "border-primary text-primary dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40" : "")">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="@(profile.Relationship.IsFollowedByMe ? "M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" : "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z")"></path></svg>
+                                        <span>@(profile.Relationship.IsFollowedByMe ? "Following" : "Follow")</span>
+                                    </button>
+
                                     <button type="button" @onclick="HandleProfileMessageClick" class="btn-exec-primary">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                                         @if (isPaidChatEnabled && privateChatFeeLinkDrops > 0)
@@ -428,7 +433,7 @@
 
                                     <button @onclick="OpenRatingModal" class="btn-exec-secondary text-amber-600 dark:text-amber-400">
                                         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                        <span>Rate</span>
+                                        <span>@(profile.Relationship.HasRated ? "Edit Review" : "Rate")</span>
                                     </button>
                                 }
                                 else
@@ -986,8 +991,23 @@
                                         {
                                             <p class="font-body text-xs text-[#475569] dark:text-[#C4D2E1] leading-relaxed pt-1">@review.ReviewText</p>
                                         }
-                                        <div class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] text-right">
-                                            @review.CreatedAt.ToString("g")
+                                        <div class="flex items-center justify-between font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] pt-1">
+                                            <div>
+                                                @if (!isOwner && profile?.Relationship?.HasRated == true && profile?.Relationship?.MyRatingScore == review.Score && (review.ReviewText == profile?.Relationship?.MyReviewText || (string.IsNullOrWhiteSpace(review.ReviewText) && string.IsNullOrWhiteSpace(profile?.Relationship?.MyReviewText))))
+                                                {
+                                                    <div class="flex items-center gap-3">
+                                                        <button type="button" @onclick="OpenRatingModal" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                            <span>Edit</span>
+                                                        </button>
+                                                        <button type="button" @onclick="DeleteRatingAsync" disabled="@isDeletingRating" class="text-rose-600 dark:text-rose-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                            <span>Delete</span>
+                                                        </button>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <span>@review.CreatedAt.ToString("g")</span>
                                         </div>
                                     </div>
                                 }
@@ -1072,24 +1092,258 @@
                             @if (!savedPostsList.Any())
                             {
                                 <div class="card-executive py-12 text-center text-xs text-[#64748B] dark:text-[#7A8CA6]">
-                                    <p class="font-display font-bold">No saved posts recorded</p>
+                                    <svg class="w-8 h-8 text-slate-400 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                                    <p class="font-display font-bold mt-2 text-[#0A1B2E] dark:text-white">No saved posts recorded</p>
+                                    <p class="text-[11px] text-[#64748B] dark:text-[#7A8CA6] mt-0.5">Posts you bookmark will appear here for easy reference.</p>
                                 </div>
                             }
                             else
                             {
-                                @foreach (var sp in savedPostsList)
+                                @foreach (var post in savedPostsList)
                                 {
-                                    <div class="card-executive p-4 space-y-1.5">
-                                        <div class="flex items-center justify-between font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
-                                            <span class="font-semibold text-blue-600 dark:text-blue-400">@sp.CommunityName</span>
-                                            <span>@sp.CreatedAt.ToString("g")</span>
-                                        </div>
-                                        @if (!string.IsNullOrWhiteSpace(sp.Title))
+                                    <article class="card-executive p-4 sm:p-5 space-y-3">
+                                        @if (!string.IsNullOrWhiteSpace(post.SharedByUserName))
                                         {
-                                            <h4 class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white">@sp.Title</h4>
+                                            <div class="flex items-center gap-1.5 text-xs text-[#64748B] dark:text-[#7A8CA6] font-medium pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
+                                                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                                <span>Shared by <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@(post.SharedByDisplayName ?? post.SharedByUserName)</span></span>
+                                                @if (post.SharedAt.HasValue)
+                                                {
+                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.SharedAt.Value.ToString("g")</span>
+                                                }
+                                            </div>
                                         }
-                                        <p class="font-body text-xs text-[#475569] dark:text-[#C4D2E1] leading-relaxed">@sp.Content</p>
-                                    </div>
+                                        <!-- Post Meta Header with Clickable Profile -->
+                                        <div class="flex items-center justify-between pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                                            <div class="flex items-center gap-2.5">
+                                                <a href="u/@post.AuthorUserName" class="shrink-0 hover:opacity-90 transition">
+                                                    @if (!string.IsNullOrWhiteSpace(post.AuthorAvatarUrl))
+                                                    {
+                                                        <img alt="@post.AuthorDisplayName" class="w-8 h-8 rounded-full object-cover" src="@post.AuthorAvatarUrl" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="w-8 h-8 rounded-full bg-[#0A1B2E] text-white flex items-center justify-center font-bold text-xs font-mono">
+                                                            @(string.IsNullOrWhiteSpace(post.AuthorDisplayName) ? "U" : post.AuthorDisplayName.Substring(0, 1).ToUpper())
+                                                        </div>
+                                                    }
+                                                </a>
+                                                <div>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <a href="u/@post.AuthorUserName" class="text-xs font-bold text-[#0A1B2E] dark:text-white hover:underline">@post.AuthorDisplayName</a>
+                                                        <a href="u/@post.AuthorUserName" class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] hover:underline">@@@post.AuthorUserName</a>
+                                                    </div>
+                                                    <div class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
+                                                        @if (!string.IsNullOrWhiteSpace(post.CommunityName))
+                                                        {
+                                                            <span>@post.CommunityName • </span>
+                                                        }
+                                                        <span>@post.CreatedAt.ToString("g")</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            @if (post.HasPoll)
+                                            {
+                                                <span class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-[0.25rem] bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                                                    POLL
+                                                </span>
+                                            }
+                                        </div>
+
+                                        <!-- Title & Body -->
+                                        <div>
+                                            @if (!string.IsNullOrWhiteSpace(post.Title))
+                                            {
+                                                <h3 class="font-display text-sm sm:text-base font-bold text-[#0A1B2E] dark:text-white">
+                                                    @post.Title
+                                                </h3>
+                                            }
+                                            <p class="font-body text-xs text-[#475569] dark:text-[#C4D2E1] mt-1 whitespace-pre-line leading-relaxed">
+                                                @post.Content
+                                            </p>
+                                        </div>
+
+                                        <!-- Interactive Poll -->
+                                        @if (post.HasPoll && post.Poll != null && post.Poll.Options.Any())
+                                        {
+                                            <div class="space-y-1.5 pt-1">
+                                                <div class="font-mono text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                                                    QUESTION: @post.Poll.Question
+                                                </div>
+                                                <div class="space-y-1.5">
+                                                    @foreach (var opt in post.Poll.Options)
+                                                    {
+                                                        <button type="button" @onclick="() => VotePollAsync(post.Poll.PollId, opt.OptionId)" class="w-full relative flex items-center justify-between p-2.5 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/50 hover:bg-[#E2E8F0] dark:hover:bg-[#1B3B5A] cursor-pointer transition text-left border @(opt.IsSelectedByMe ? "border-blue-500" : "border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]") overflow-hidden">
+                                                            <div class="absolute inset-y-0 left-0 bg-blue-100 dark:bg-blue-900/30 transition-all" style="width: @(opt.VotePercentage)%;"></div>
+                                                            <span class="relative z-10 text-xs font-semibold text-[#0A1B2E] dark:text-white flex items-center gap-1.5">
+                                                                @if (opt.IsSelectedByMe) { <span class="text-blue-600 font-bold">✓</span> }
+                                                                <span>@opt.OptionText</span>
+                                                            </span>
+                                                            <span class="relative z-10 font-mono text-[11px] font-bold text-blue-700 dark:text-blue-300">
+                                                                @opt.VotePercentage% (@opt.VoteCount)
+                                                            </span>
+                                                        </button>
+                                                    }
+                                                </div>
+                                                <div class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] pt-0.5">
+                                                    TOTAL VOTES: @post.Poll.TotalVotes • @(post.Poll.HasVoted ? "PARTICIPATED" : "CLICK OPTION TO VOTE")
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <!-- Code Snippet / Text Files -->
+                                        @if (!string.IsNullOrWhiteSpace(post.CodeSnippet))
+                                        {
+                                            var textFiles = ParseProfileTextFiles(post.CodeSnippet, post.CodeFileName);
+                                            if (textFiles.Count > 1)
+                                            {
+                                                <div class="mt-2 space-y-1.5">
+                                                    <div class="text-[11px] font-semibold text-[#64748B] dark:text-[#7A8CA6] flex items-center gap-1">
+                                                        <span>📎 Attached Text Files (@textFiles.Count):</span>
+                                                    </div>
+                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                        @foreach (var tf in textFiles)
+                                                        {
+                                                            <button type="button" @onclick="() => OpenProfileTextFileModal(tf.FileName, tf.Content)"
+                                                                    class="flex items-center justify-between p-3 rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] bg-[#F8FAFC] dark:bg-[#0A1B2E] hover:border-[#0A1B2E] dark:hover:border-white transition text-left cursor-pointer group shadow-2xs">
+                                                                <div class="flex items-center gap-2.5 min-w-0">
+                                                                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm shrink-0">
+                                                                        📄
+                                                                    </div>
+                                                                    <div class="min-w-0">
+                                                                        <p class="font-mono text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0] truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400">@tf.FileName</p>
+                                                                        <p class="font-mono text-[10px] text-[#7A8CA6]">@(tf.Content.Length) chars • Click to read</p>
+                                                                    </div>
+                                                                </div>
+                                                                <span class="text-xs text-[#7A8CA6] group-hover:translate-x-0.5 transition font-bold ml-2">↗</span>
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                var single = textFiles.FirstOrDefault() ?? new AttachedTextFileItem(post.CodeFileName ?? "attachment.txt", post.CodeSnippet);
+                                                <div class="prof-code-block p-3 space-y-1.5 mt-2">
+                                                    <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
+                                                        <button type="button" @onclick="() => OpenProfileTextFileModal(single.FileName, single.Content)"
+                                                                class="font-bold text-emerald-400 font-mono hover:underline flex items-center gap-1 cursor-pointer">
+                                                            <span>📄 @single.FileName</span>
+                                                            <span class="text-gray-400 font-normal text-[9px]">(Click to expand)</span>
+                                                        </button>
+                                                        <span class="font-mono">TEXT</span>
+                                                    </div>
+                                                    <div class="overflow-x-auto overflow-y-auto max-h-72 text-[11px] leading-relaxed">
+                                                        <pre class="whitespace-pre font-mono"><code>@single.Content</code></pre>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+
+                                        <!-- Post Images -->
+                                        @if (post.ImageUrls != null && post.ImageUrls.Any())
+                                        {
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                                @foreach (var imgUrl in post.ImageUrls)
+                                                {
+                                                    <div class="rounded-xl overflow-hidden border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] bg-slate-950 flex items-center justify-center max-h-72">
+                                                        <img src="@imgUrl" alt="Post attachment" class="w-full h-full object-contain max-h-72" />
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+
+                                        <!-- Diagram Image -->
+                                        @if (!string.IsNullOrWhiteSpace(post.DiagramImageUrl))
+                                        {
+                                            <div class="rounded-[0.375rem] overflow-hidden border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-slate-950 mt-2">
+                                                <img class="w-full h-auto max-h-64 object-contain" src="@post.DiagramImageUrl" alt="Topology Spec" />
+                                                @if (!string.IsNullOrWhiteSpace(post.DiagramCaption))
+                                                {
+                                                    <div class="p-2 bg-slate-900 text-slate-300 font-mono text-[10px] text-center">
+                                                        @post.DiagramCaption
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+
+                                        <!-- Footer Engagement Counts Strip -->
+                                        <div class="px-1 py-1 flex items-center justify-between text-xs text-[#7A8CA6] font-mono border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pt-2 pb-1">
+                                            <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-rose-500 fill-rose-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>@post.LikeCount @(post.LikeCount == 1 ? "Like" : "Likes")</span>
+                                            <span>@post.CommentCount comments • @post.ShareCount shares</span>
+                                        </div>
+
+                                        <!-- Post Action Buttons: Like, Comment, Share -->
+                                        <div class="flex items-center justify-between pt-1 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] text-xs">
+                                            <div class="flex items-center gap-5 w-full">
+                                                <!-- Like -->
+                                                <button type="button" @onclick="() => ToggleProfilePostLikeAsync(post.PostId)" class="flex items-center gap-1.5 font-medium transition cursor-pointer @(post.IsLikedByCurrentUser ? "text-rose-600 font-semibold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white")">
+                                                    <svg class="w-4 h-4 @(post.IsLikedByCurrentUser ? "fill-rose-500 stroke-rose-500" : "fill-none stroke-currentColor")" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                                    </svg>
+                                                    <span>Like</span>
+                                                </button>
+
+                                                <!-- Comment Toggle -->
+                                                <button type="button" @onclick="() => ToggleProfileCommentBox(post.PostId)" class="flex items-center gap-1.5 font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer @(openProfileCommentPostIds.Contains(post.PostId) ? "!text-[#0A1B2E] dark:!text-white font-bold" : "")">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                                    <span>Comment</span>
+                                                </button>
+
+                                                <!-- Share -->
+                                                <button type="button" @onclick="() => OpenProfileShareModal(post.PostId)" class="flex items-center gap-1.5 font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                                    <span>Share</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Inline Comment Drawer -->
+                                        @if (openProfileCommentPostIds.Contains(post.PostId))
+                                        {
+                                            <div class="border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)] pt-3 mt-2 space-y-3">
+                                                <div class="flex items-center gap-2">
+                                                    <input type="text" @bind="profileCommentInputs[post.PostId]"
+                                                           @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitProfileCommentAsync(post.PostId); })"
+                                                           placeholder="Write a comment..."
+                                                           class="flex-1 text-xs bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20" />
+                                                    <button type="button" @onclick="() => SubmitProfileCommentAsync(post.PostId)"
+                                                            class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] rounded-xl text-xs font-semibold hover:opacity-90 transition cursor-pointer">
+                                                        Post
+                                                    </button>
+                                                </div>
+
+                                                @if (profileCommentsByPost.TryGetValue(post.PostId, out var commentList) && commentList != null)
+                                                {
+                                                    @if (commentList.Count == 0)
+                                                    {
+                                                        <p class="text-xs text-[#7A8CA6] text-center py-2 font-mono">No comments yet. Be the first!</p>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="space-y-2 pt-1 max-h-60 overflow-y-auto">
+                                                            @foreach (var c in commentList)
+                                                            {
+                                                                <div class="flex items-start gap-2 text-xs bg-[#F8FAFC] dark:bg-[#0A1B2E] p-2.5 rounded-xl border border-[#E1E8F0] dark:border-[rgba(196,210,225,0.08)]">
+                                                                    <div class="w-6 h-6 rounded-full bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center font-bold text-[10px] shrink-0 font-mono">
+                                                                        @(string.IsNullOrWhiteSpace(c.AuthorName) ? "U" : c.AuthorName.Substring(0, 1).ToUpper())
+                                                                    </div>
+                                                                    <div class="flex-1 min-w-0">
+                                                                        <div class="flex items-center justify-between mb-0.5">
+                                                                            <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@c.AuthorName</span>
+                                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@c.CreatedAt.ToString("g")</span>
+                                                                        </div>
+                                                                        <p class="text-[#557392] dark:text-[#C4D2E1] leading-relaxed whitespace-pre-wrap">@c.Content</p>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    }
+                                                }
+                                            </div>
+                                        }
+                                    </article>
                                 }
                             }
                         }
@@ -1277,7 +1531,7 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 backdrop-blur-sm">
         <div class="w-full max-w-md bg-white dark:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] rounded-[0.75rem] p-5 shadow-2xl space-y-4 text-[#0A1B2E] dark:text-white">
             <div class="flex items-center justify-between pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                <h3 class="font-display text-sm font-bold">Rate @(profile?.DisplayName ?? profile?.UserName)</h3>
+                <h3 class="font-display text-sm font-bold">@(profile?.Relationship?.HasRated == true ? "Edit Review for " : "Rate ")@(profile?.DisplayName ?? profile?.UserName)</h3>
                 <button @onclick="CloseRatingModal" class="text-lg leading-none text-[#64748B] hover:text-[#0A1B2E] dark:hover:text-white font-bold">&times;</button>
             </div>
             <p class="font-body text-xs text-[#64748B] dark:text-[#7A8CA6]">
@@ -1307,13 +1561,24 @@
                 </div>
             }
 
-            <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                <button @onclick="CloseRatingModal" class="btn-exec-secondary text-xs">
-                    Cancel
-                </button>
-                <button @onclick="SubmitRatingAsync" disabled="@isSubmittingRating" class="btn-exec-primary text-xs">
-                    @(isSubmittingRating ? "Submitting..." : "Submit Review")
-                </button>
+            <div class="flex items-center justify-between gap-2 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                <div>
+                    @if (profile?.Relationship?.HasRated == true)
+                    {
+                        <button type="button" @onclick="DeleteRatingAsync" disabled="@(isSubmittingRating || isDeletingRating)" class="text-xs text-rose-600 dark:text-rose-400 hover:underline font-semibold flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            <span>@(isDeletingRating ? "Deleting..." : "Delete Review")</span>
+                        </button>
+                    }
+                </div>
+                <div class="flex items-center gap-2">
+                    <button @onclick="CloseRatingModal" class="btn-exec-secondary text-xs">
+                        Cancel
+                    </button>
+                    <button @onclick="SubmitRatingAsync" disabled="@(isSubmittingRating || isDeletingRating)" class="btn-exec-primary text-xs">
+                        @(isSubmittingRating ? "Saving..." : (profile?.Relationship?.HasRated == true ? "Save Changes" : "Submit Review"))
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1681,9 +1946,13 @@
     // Save Account Action
     private bool isSavingAccount;
 
+    // Follow Action
+    private bool isTogglingFollow;
+
     // Rating Modal
     private bool showRatingModal;
     private bool isSubmittingRating;
+    private bool isDeletingRating;
     private string? ratingErrorMessage;
     private RateUserRequestDto ratingModel = new() { Score = 5 };
 
@@ -1904,6 +2173,39 @@
         }
     }
 
+    private async Task ToggleFollowUserAsync()
+    {
+        if (profile == null || isOwner) return;
+        isTogglingFollow = true;
+        try
+        {
+            var res = await ProfileApi.ToggleFollowUserAsync(profile.UserId, _cts.Token);
+            if (res.IsSuccess)
+            {
+                profile.Relationship.IsFollowedByMe = res.Data;
+                profile.Metrics.FollowersCount += res.Data ? 1 : -1;
+                if (profile.Metrics.FollowersCount < 0) profile.Metrics.FollowersCount = 0;
+                Toast.Success(res.Data ? $"Following @{profile.UserName}" : $"Unfollowed @{profile.UserName}");
+                if (activeTab == "followers")
+                {
+                    await SetTab("followers");
+                }
+            }
+            else
+            {
+                Toast.Error(res.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+        finally
+        {
+            isTogglingFollow = false;
+        }
+    }
+
     private async Task ShareProfile()
     {
         try
@@ -2097,6 +2399,39 @@
         }
     }
 
+    private async Task DeleteRatingAsync()
+    {
+        if (profile == null) return;
+        isDeletingRating = true;
+        ratingErrorMessage = null;
+        try
+        {
+            var res = await ProfileApi.DeleteRatingAsync(profile.UserId, _cts.Token);
+            if (res.IsSuccess && res.Data != null)
+            {
+                profile = res.Data;
+                Toast.Success("Review and rating removed.");
+                showRatingModal = false;
+                if (activeTab == "reviews")
+                {
+                    await SetTab("reviews");
+                }
+            }
+            else
+            {
+                ratingErrorMessage = res.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            ratingErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isDeletingRating = false;
+        }
+    }
+
     // Recycle Bin Actions
     private int? postToDeletePermanentlyId;
     private bool showPermanentDeleteModal;
@@ -2237,7 +2572,7 @@
             var res = await PostApi.LikePostAsync(postId, _cts.Token);
             if (res.IsSuccess)
             {
-                var targetPost = postsList.FirstOrDefault(p => p.PostId == postId);
+                var targetPost = postsList.FirstOrDefault(p => p.PostId == postId) ?? savedPostsList.FirstOrDefault(p => p.PostId == postId);
                 if (targetPost != null)
                 {
                     targetPost.IsLikedByCurrentUser = !targetPost.IsLikedByCurrentUser;
@@ -2304,7 +2639,7 @@
                 {
                     profileCommentsByPost[postId] = commentsRes.Data;
                 }
-                var targetPost = postsList.FirstOrDefault(p => p.PostId == postId);
+                var targetPost = postsList.FirstOrDefault(p => p.PostId == postId) ?? savedPostsList.FirstOrDefault(p => p.PostId == postId);
                 if (targetPost != null)
                 {
                     targetPost.CommentCount += 1;
@@ -2352,7 +2687,7 @@
             var res = await PostApi.SharePostAsync(profileSharingPostId.Value, req, _cts.Token);
             if (res.IsSuccess)
             {
-                var targetPost = postsList.FirstOrDefault(p => p.PostId == profileSharingPostId.Value);
+                var targetPost = postsList.FirstOrDefault(p => p.PostId == profileSharingPostId.Value) ?? savedPostsList.FirstOrDefault(p => p.PostId == profileSharingPostId.Value);
                 if (targetPost != null)
                 {
                     targetPost.ShareCount += 1;
@@ -2363,6 +2698,11 @@
                 {
                     var pRes = await ProfileApi.GetUserPostsAsync(profile.UserId, _cts.Token);
                     if (pRes.IsSuccess && pRes.Data != null) postsList = pRes.Data;
+                    if (isOwner)
+                    {
+                        var spRes = await ProfileApi.GetSavedPostsAsync(_cts.Token);
+                        if (spRes.IsSuccess && spRes.Data != null) savedPostsList = spRes.Data;
+                    }
                 }
                 StateHasChanged();
             }

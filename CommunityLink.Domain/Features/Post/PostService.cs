@@ -454,6 +454,16 @@ public sealed class PostService(
         var community = communityId.HasValue ? await dbContext.TblCommunities.FindAsync([communityId.Value], cancellationToken) : null;
         var group = request.GroupId.HasValue ? await dbContext.TblGroups.FindAsync([request.GroupId.Value], cancellationToken) : null;
 
+        // Record User Activity for creating a post
+        var targetContextName = group?.Name ?? community?.Name ?? "public feed";
+        await userActivityService.RecordActivityAsync(
+            currentUser.UserId.Value,
+            "POST",
+            $"You published a new post to {targetContextName}",
+            "POST",
+            post.PostId,
+            cancellationToken);
+
         var response = new PostModel(
             post.PostId,
             post.CommunityId,

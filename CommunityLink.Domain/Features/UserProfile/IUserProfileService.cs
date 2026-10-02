@@ -14,6 +14,7 @@ public interface IUserProfileService
     Task<Result<UploadAvatarResponseDto>> UploadAvatarAsync(int currentUserId, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default);
     Task<Result<bool>> ToggleSaveAccountAsync(int currentUserId, int targetUserId, CancellationToken cancellationToken = default);
     Task<Result<UserProfileDto>> RateUserAsync(int currentUserId, int targetUserId, RateUserRequestDto dto, CancellationToken cancellationToken = default);
+    Task<Result<UserProfileDto>> DeleteRatingAsync(int currentUserId, int targetUserId, CancellationToken cancellationToken = default);
     Task<Result<List<UserPostItemDto>>> GetUserPostsAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default);
     Task<Result<List<UserPostItemDto>>> GetSavedPostsAsync(int currentUserId, CancellationToken cancellationToken = default);
     Task<Result<List<UserPostItemDto>>> GetRecycledPostsAsync(int currentUserId, CancellationToken cancellationToken = default);

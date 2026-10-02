@@ -96,6 +96,18 @@ public class UsersController : BaseController
         return ToActionResult(result);
     }
 
+    [Authorize]
+    [HttpDelete("{targetUserId}/rate")]
+    public async Task<IActionResult> DeleteRating(int targetUserId, CancellationToken cancellationToken)
+    {
+        var userId = CurrentUserId;
+        if (userId == null)
+            return Unauthorized(Result.Failure("Authentication required.", ResultStatus.Unauthorized));
+
+        var result = await _userProfileService.DeleteRatingAsync(userId.Value, targetUserId, cancellationToken);
+        return ToActionResult(result);
+    }
+
     [HttpGet("{targetUserId}/posts")]
     public async Task<IActionResult> GetUserPosts(int targetUserId, CancellationToken cancellationToken)
     {
