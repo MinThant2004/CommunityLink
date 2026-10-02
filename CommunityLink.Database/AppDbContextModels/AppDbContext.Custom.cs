@@ -26,6 +26,21 @@ public partial class AppDbContext
 
             entity.Property(e => e.IsMuted).HasDefaultValue(false);
         });
+
+
+
+        // Per-member admin permission matrix. One membership row is already exactly one
+        // (group, user) pair, so the matrix lives on it rather than in a side table. Every flag
+        // defaults to false, so an admin row that predates this feature holds no powers until the
+        // owner grants them.
+        modelBuilder.Entity<TblChatGroupMember>(entity =>
+        {
+            entity.Property(e => e.CanDeleteMessages).HasDefaultValue(false, "DF_TblChatGroupMember_CanDeleteMessages");
+            entity.Property(e => e.CanRemoveMembers).HasDefaultValue(false, "DF_TblChatGroupMember_CanRemoveMembers");
+            entity.Property(e => e.CanBanMembers).HasDefaultValue(false, "DF_TblChatGroupMember_CanBanMembers");
+            entity.Property(e => e.CanManageInviteLinks).HasDefaultValue(false, "DF_TblChatGroupMember_CanManageInviteLinks");
+            entity.Property(e => e.CanPinMessages).HasDefaultValue(false, "DF_TblChatGroupMember_CanPinMessages");
+        });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

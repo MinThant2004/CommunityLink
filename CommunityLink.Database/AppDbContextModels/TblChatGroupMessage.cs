@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -42,6 +42,8 @@ public partial class TblChatGroupMessage
     public virtual TblChatGroup ChatGroup { get; set; } = null!;
 
     public virtual ICollection<TblChatGroupMessage> InverseReplyToChatGroupMessage { get; set; } = new List<TblChatGroupMessage>();
+
+    public virtual TblUser? PinnedByUser { get; set; }
 
     public virtual TblChatGroupMessage? ReplyToChatGroupMessage { get; set; }
 

@@ -62,7 +62,9 @@ public static class FeatureManager
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<IPollService, PollService>();
         services.AddScoped<IChatService, ChatService>();
+        services.AddSingleton<PresenceTracker>();
         services.AddSingleton<IChatAttachmentStorage, ChatAttachmentStorage>();
+        services.AddSingleton<IChatGroupImageStorage, ChatGroupImageStorage>();
         services.AddScoped<ICreatorChatSettingService, CreatorChatSettingService>();
         services.AddScoped<IPrivateChatPaymentService, PrivateChatPaymentService>();
         services.AddScoped<IAdministrationService, AdministrationService>();

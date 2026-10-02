@@ -63,13 +63,29 @@ public partial class TblUser
 
     public DateTime? LastActiveAt { get; set; }
 
+    public virtual ICollection<TblChatGroupBan> TblChatGroupBanBannedByUsers { get; set; } = new List<TblChatGroupBan>();
+
+    public virtual ICollection<TblChatGroupBan> TblChatGroupBanRevokedByUsers { get; set; } = new List<TblChatGroupBan>();
+
+    public virtual ICollection<TblChatGroupBan> TblChatGroupBanUsers { get; set; } = new List<TblChatGroupBan>();
+
+    public virtual ICollection<TblChatGroupInvite> TblChatGroupInviteDeletedByNavigations { get; set; } = new List<TblChatGroupInvite>();
+
+    public virtual ICollection<TblChatGroupInvite> TblChatGroupInviteInvitedByUsers { get; set; } = new List<TblChatGroupInvite>();
+
+    public virtual ICollection<TblChatGroupInviteLink> TblChatGroupInviteLinks { get; set; } = new List<TblChatGroupInviteLink>();
+
+    public virtual ICollection<TblChatGroupInvite> TblChatGroupInviteUsers { get; set; } = new List<TblChatGroupInvite>();
+
     public virtual ICollection<TblChatGroupMember> TblChatGroupMembers { get; set; } = new List<TblChatGroupMember>();
+
+    public virtual ICollection<TblChatGroupMessage> TblChatGroupMessagePinnedByUsers { get; set; } = new List<TblChatGroupMessage>();
 
     public virtual ICollection<TblChatGroupMessageReaction> TblChatGroupMessageReactions { get; set; } = new List<TblChatGroupMessageReaction>();
 
-    public virtual ICollection<TblChatGroupMessageUserState> TblChatGroupMessageUserStates { get; set; } = new List<TblChatGroupMessageUserState>();
+    public virtual ICollection<TblChatGroupMessage> TblChatGroupMessageSenders { get; set; } = new List<TblChatGroupMessage>();
 
-    public virtual ICollection<TblChatGroupMessage> TblChatGroupMessages { get; set; } = new List<TblChatGroupMessage>();
+    public virtual ICollection<TblChatGroupMessageUserState> TblChatGroupMessageUserStates { get; set; } = new List<TblChatGroupMessageUserState>();
 
     public virtual ICollection<TblChatGroupPaymentTransaction> TblChatGroupPaymentTransactionCreatorUsers { get; set; } = new List<TblChatGroupPaymentTransaction>();
 
@@ -146,6 +162,10 @@ public partial class TblUser
     public virtual ICollection<TblSkillEndorsement> TblSkillEndorsements { get; set; } = new List<TblSkillEndorsement>();
 
     public virtual ICollection<TblUserActivity> TblUserActivities { get; set; } = new List<TblUserActivity>();
+
+    public virtual ICollection<TblUserBlock> TblUserBlockBlockedUsers { get; set; } = new List<TblUserBlock>();
+
+    public virtual ICollection<TblUserBlock> TblUserBlockBlockerUsers { get; set; } = new List<TblUserBlock>();
 
     public virtual ICollection<TblUserFollow> TblUserFollowFollowees { get; set; } = new List<TblUserFollow>();
 

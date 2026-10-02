@@ -20,11 +20,13 @@ public class ChatGroupHub : Hub
 
     public async Task JoinChatGroup(int chatGroupId)
     {
+        // The identity itself is still validated here so a connection without a parseable
+        // claim fails fast, before any service call is made on its behalf.
         var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? Context.User?.FindFirst("sub")?.Value
             ?? Context.User?.FindFirst("nameid")?.Value;
 
-        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out _))
         {
             throw new HubException("Unauthorized connection context.");
         }
@@ -32,8 +34,10 @@ public class ChatGroupHub : Hub
         using var scope = _serviceProvider.CreateScope();
         var chatGroupService = scope.ServiceProvider.GetRequiredService<IChatGroupService>();
 
-        var memberRes = await chatGroupService.GetMembersAsync(chatGroupId);
-        if (!memberRes.IsSuccess || memberRes.Data == null || !memberRes.Data.Any(m => m.UserId == userId))
+        // Tests one membership row rather than loading the full roster. GetMembersAsync is
+        // now member-gated, so using it here would reject every join, including valid members.
+        var memberRes = await chatGroupService.IsActiveMemberAsync(chatGroupId);
+        if (!memberRes.IsSuccess)
         {
             throw new HubException("User is not an active member of this Chat Group.");
         }

@@ -56,21 +56,30 @@
     [Parameter] public EventCallback OnClose { get; set; }
 
     private ElementReference _panel;
+    private bool _wasOpen;
+    private bool _focusPending;
 
     private string PanelClass => $"{MaxWidth}";
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    // Focus moves into the panel only on the closed -> open transition. Re-focusing on every
+    // parameter set would steal focus from controls inside the panel: the panel content
+    // re-renders on every keystroke (e.g. the add-member search), so the user could only ever
+    // type a single character before focus was pulled back to the dialog shell.
+    protected override void OnParametersSet()
     {
-        if (firstRender && IsOpen)
+        if (IsOpen && !_wasOpen)
         {
-            await FocusPanelAsync();
+            _focusPending = true;
         }
+
+        _wasOpen = IsOpen;
     }
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (IsOpen)
+        if (_focusPending)
         {
+            _focusPending = false;
             await FocusPanelAsync();
         }
     }
@@ -79,11 +88,13 @@
     {
         try
         {
-            await _panel.FocusAsync();
+            // focusDialog skips the call when focus already sits inside the panel, so a
+            // re-render triggered by typing never blurs the field the user is editing.
+            await JS.InvokeVoidAsync("communityLinkChat.focusDialog", _panel);
         }
         catch
         {
-            // Element may not be rendered yet; focus will be applied on the next render.
+            // Focus management is an enhancement; the dialog still traps via aria-modal.
         }
     }
 

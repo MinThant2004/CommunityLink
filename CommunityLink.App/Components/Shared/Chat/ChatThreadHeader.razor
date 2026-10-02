@@ -1,10 +1,12 @@
 @using CommunityLink.App.Components.Shared.Chat
+@using CommunityLink.Shared.Features.ChatGroup
 
 @*
     Thread header for both 1:1 conversations and chat groups.
 *@
 
-<div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-3 sm:px-4">
+<div class="shrink-0 border-b border-slate-200 bg-white">
+<div class="flex items-center justify-between gap-3 px-3 py-3 sm:px-4">
     <div class="flex min-w-0 items-center gap-2.5">
         @if (ShowBackButton)
         {
@@ -24,7 +26,8 @@
             <span class="shrink-0">
                 @if (!string.IsNullOrWhiteSpace(Thread.AvatarUrl))
                 {
-                    <img src="@Thread.AvatarUrl" alt="" class="h-10 w-10 rounded-full object-cover" />
+                    <img src="@Thread.AvatarUrl" alt="" class="h-10 w-10 rounded-full object-cover" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
+                    <span class="hidden h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600">@Thread.Initials</span>
                 }
                 else
                 {
@@ -54,6 +57,17 @@
                             @TypingText
                         </span>
                     }
+                    else if (Thread.IsDirect)
+                    {
+                        @if (Thread.IsOnline)
+                        {
+                            <span class="font-medium text-emerald-600">online</span>
+                        }
+                        else
+                        {
+                            <span class="truncate text-slate-500">@ChatThreadMapper.FormatPresenceText(false, Thread.OtherUserLastActiveAt)</span>
+                        }
+                    }
                     else if (Thread.IsGroup)
                     {
                         <span>@Thread.Subtitle</span>
@@ -73,11 +87,6 @@
     </div>
 
     <div class="flex shrink-0 items-center gap-2">
-        <span class="hidden items-center gap-1.5 rounded-lg border px-2 py-1 text-xs font-medium sm:inline-flex @StatusChipClass" title="Realtime connection status">
-            <span class="h-1.5 w-1.5 rounded-full @StatusDotClass" aria-hidden="true"></span>
-            @Status
-        </span>
-
         <button type="button"
                 @onclick="OnToggleInfo"
                 title="@InfoButtonTitle"
@@ -90,28 +99,62 @@
     </div>
 </div>
 
+    @* Pinned banner: part of reading the group, so it sits above the conversation for every member
+       and is not tied to whether the pin happens to be inside the loaded page of history. *@
+    @if (PinnedMessage is not null)
+    {
+        <div class="flex items-start gap-2 border-t border-amber-100 bg-amber-50 px-3 py-2 sm:px-4 cursor-pointer hover:bg-amber-100/70 transition"
+             @onclick="HandlePinnedClick">
+            <svg class="mt-0.5 h-4 w-4 shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M16 3l5 5-4 1-2.5 2.5L15 15l-2 2-4-4-4.5 4.5L4 17l4.5-4.5-4-4 2-2 3.5.5L12.5 4.5 13 3z" />
+            </svg>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-semibold text-amber-900">Pinned message</p>
+                <p class="truncate text-sm text-amber-800">
+                    <span class="font-medium">@PinnedMessage.SenderDisplayName:</span>
+                    @(string.IsNullOrWhiteSpace(PinnedMessage.Content) ? "Attachment" : PinnedMessage.Content)
+                </p>
+            </div>
+            @if (CanUnpin)
+            {
+                <button type="button"
+                        @onclick="OnUnpin"
+                        @onclick:stopPropagation="true"
+                        title="Unpin message"
+                        aria-label="Unpin message"
+                        class="shrink-0 rounded-lg p-1.5 text-amber-600 transition hover:bg-amber-100 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            }
+        </div>
+    }
+</div>
+
 @code {
     [Parameter, EditorRequired] public ChatThreadViewModel Thread { get; set; } = default!;
-    [Parameter] public string Status { get; set; } = "Live";
     [Parameter] public string? TypingText { get; set; }
     [Parameter] public bool ShowBackButton { get; set; }
 
+    /// <summary>The group's pinned message, or null. Only rendered for group threads.</summary>
+    [Parameter] public ChatGroupPinnedMessageModel? PinnedMessage { get; set; }
+
+    /// <summary>Whether the viewer may clear the pin, i.e. sent it or holds CanPinMessages.</summary>
+    [Parameter] public bool CanUnpin { get; set; }
+
     [Parameter] public EventCallback OnToggleInfo { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
+    [Parameter] public EventCallback OnUnpin { get; set; }
+    [Parameter] public EventCallback<int> OnSelectPinnedMessage { get; set; }
+
+    private async Task HandlePinnedClick()
+    {
+        if (PinnedMessage is not null)
+        {
+            await OnSelectPinnedMessage.InvokeAsync(PinnedMessage.ChatGroupMessageId);
+        }
+    }
 
     private string InfoButtonTitle => Thread.IsGroup ? "Group info and members" : "Conversation details";
-
-    private string StatusChipClass => Status switch
-    {
-        "Live" => "border-emerald-200 bg-emerald-50 text-emerald-700",
-        "Reconnecting…" => "border-amber-200 bg-amber-50 text-amber-700",
-        _ => "border-rose-200 bg-rose-50 text-rose-700"
-    };
-
-    private string StatusDotClass => Status switch
-    {
-        "Live" => "bg-emerald-500",
-        "Reconnecting…" => "bg-amber-500 animate-pulse",
-        _ => "bg-rose-500"
-    };
 }

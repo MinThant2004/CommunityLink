@@ -1,0 +1,293 @@
+@page "/invite/{Token}"
+@using CommunityLink.App.Apis
+@using CommunityLink.App.Components.Shared.Chat
+@using CommunityLink.Shared.Features.ChatGroup
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ChatGroupApiService ChatGroupApi
+@inject LinkDropApiService LinkDropApi
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Join Group - CommunityLink</PageTitle>
+
+<div class="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-slate-900 px-4 py-12 sm:px-6 lg:px-8">
+    <div class="w-full max-w-md space-y-6 rounded-2xl border border-slate-800 bg-slate-950 p-8 shadow-2xl backdrop-blur-xl">
+        @if (isLoading)
+        {
+            <div class="flex flex-col items-center justify-center py-12 space-y-4">
+                <div class="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+                <p class="text-sm font-medium text-slate-400">Loading invite details…</p>
+            </div>
+        }
+        else if (error != null)
+        {
+            <div class="text-center space-y-4 py-6">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
+                    <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold text-white">Invalid Invite Link</h2>
+                <p class="text-sm text-slate-400">@error</p>
+                <div class="pt-4">
+                    <a href="/chat" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700">
+                        Go to Chat
+                    </a>
+                </div>
+            </div>
+        }
+        else if (preview != null)
+        {
+            <div class="flex flex-col items-center text-center space-y-5">
+                <!-- Group Avatar -->
+                <div class="relative">
+                    @if (!string.IsNullOrWhiteSpace(preview.GroupAvatar))
+                    {
+                        <img src="@preview.GroupAvatar" alt="@preview.GroupName" class="h-24 w-24 rounded-full object-cover shadow-lg ring-4 ring-slate-800" />
+                    }
+                    else
+                    {
+                        <div class="flex h-24 w-24 items-center justify-center rounded-full bg-indigo-600 text-3xl font-bold text-white shadow-lg ring-4 ring-slate-800">
+                            @(string.IsNullOrWhiteSpace(preview.GroupName) ? "?" : preview.GroupName[0].ToString().ToUpper())
+                        </div>
+                    }
+                </div>
+
+                <!-- Group Info -->
+                <div class="space-y-1">
+                    <h2 class="text-2xl font-bold tracking-tight text-white">@preview.GroupName</h2>
+                    <div class="flex items-center justify-center gap-2 text-xs font-medium text-slate-400">
+                        <span>@preview.MemberCount member@(preview.MemberCount == 1 ? "" : "s")</span>
+                        <span>•</span>
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold @(preview.ChatType == "PAID" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20")">
+                            @(preview.ChatType == "PAID" ? $"{preview.JoinFeeLinkDrops} Drops" : "Free Group")
+                        </span>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(preview.GroupDescription))
+                {
+                    <p class="text-xs text-slate-400 leading-relaxed max-w-xs line-clamp-3">
+                        @preview.GroupDescription
+                    </p>
+                }
+
+                <!-- Status Alerts / Action Buttons -->
+                <div class="w-full pt-4 space-y-3">
+                    @if (!preview.IsValid)
+                    {
+                        <div class="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3.5 text-xs text-rose-300">
+                            @(preview.InvalidReason ?? "This invite link is no longer valid.")
+                        </div>
+                        <a href="/chat" class="w-full inline-flex items-center justify-center rounded-xl bg-slate-800 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
+                            Go to Chat
+                        </a>
+                    }
+                    else if (!isAuthenticated)
+                    {
+                        <div class="space-y-3">
+                            <div class="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs font-medium text-amber-300">
+                                Please log in to join this group.
+                            </div>
+                            <a href="@($"/login?returnUrl={Uri.EscapeDataString($"/invite/{Token}")}")"
+                               class="w-full flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-500">
+                                Log In
+                            </a>
+                        </div>
+                    }
+                    else if (preview.IsAlreadyMember)
+                    {
+                        <div class="rounded-xl border border-indigo-500/20 bg-indigo-500/10 p-3.5 text-xs text-indigo-300">
+                            You are already a member of this group.
+                        </div>
+                        <button type="button" @onclick="GoToChat" class="w-full inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-500">
+                            Open Chat
+                        </button>
+                    }
+                    else if (preview.IsBanned)
+                    {
+                        <div class="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-left space-y-1.5 select-none">
+                            <p class="flex items-center gap-2 text-sm font-semibold text-rose-300">
+                                <span class="text-base">🚫</span>
+                                You are banned from this group.
+                            </p>
+                            <p class="text-xs text-rose-200/90 leading-relaxed">
+                                You cannot access or send messages in this group.
+                            </p>
+                            <p class="text-xs text-slate-400 leading-relaxed pt-1">
+                                Please contact a group administrator if you believe this was a mistake.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        @if (!string.IsNullOrEmpty(actionError))
+                        {
+                            <div class="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-300">
+                                @actionError
+                            </div>
+                        }
+
+                        <button type="button"
+                                @onclick="OnJoinButtonClickedAsync"
+                                disabled="@isJoining"
+                                class="w-full inline-flex items-center justify-center rounded-xl @(preview.ChatType == "PAID" ? "bg-amber-600 hover:bg-amber-500 shadow-amber-600/20" : "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20") px-5 py-3 text-sm font-semibold text-white shadow-lg transition disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            @if (isJoining)
+                            {
+                                <span class="flex items-center gap-2">
+                                    <span class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                                    Joining group…
+                                </span>
+                            }
+                            else
+                            {
+                                <span>@(preview.ChatType == "PAID" ? $"Pay {preview.JoinFeeLinkDrops} Drops & Join" : "Join Group")</span>
+                            }
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Paid Group Unlock Payment Modal -->
+@if (preview != null && preview.ChatType == "PAID")
+{
+    <UnlockChatModal IsOpen="showUnlockModal"
+                     IsGroupUnlock="true"
+                     SubjectName="@preview.GroupName"
+                     SubjectSubtitle="@($"{preview.MemberCount} members · Paid Group")"
+                     AvatarUrl="@preview.GroupAvatar"
+                     FeeLinkDrops="@preview.JoinFeeLinkDrops"
+                     Balance="@walletBalance"
+                     IsSubmitting="@isProcessingPayment"
+                     errorMessage="@paymentError"
+                     OnConfirm="ConfirmPaidJoinAsync"
+                     OnClose="() => showUnlockModal = false" />
+}
+
+@code {
+    [Parameter] public string Token { get; set; } = "";
+
+    private bool isLoading = true;
+    private bool isAuthenticated;
+    private bool isJoining;
+    private bool showUnlockModal;
+    private bool isProcessingPayment;
+    private long walletBalance;
+    private string? error;
+    private string? actionError;
+    private string? paymentError;
+    private InviteLinkPreviewModel? preview;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthenticationStateAsync();
+        await LoadPreviewAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await CheckAuthenticationStateAsync();
+        await LoadPreviewAsync();
+    }
+
+    private async Task CheckAuthenticationStateAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+        }
+        catch
+        {
+            isAuthenticated = false;
+        }
+    }
+
+    private async Task LoadPreviewAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Token))
+        {
+            error = "No invite token was supplied.";
+            isLoading = false;
+            return;
+        }
+
+        isLoading = true;
+        error = null;
+
+        var res = await ChatGroupApi.GetInviteLinkPreviewAsync(Token);
+        isLoading = false;
+
+        if (res.IsSuccess && res.Data != null)
+        {
+            preview = res.Data;
+        }
+        else
+        {
+            error = res.Error ?? "Could not load invite link details.";
+        }
+    }
+
+    private async Task OnJoinButtonClickedAsync()
+    {
+        if (isJoining || preview == null || !preview.IsValid) return;
+
+        if (preview.ChatType == "PAID")
+        {
+            paymentError = null;
+            // Fetch current wallet balance
+            var walletRes = await LinkDropApi.GetUserWalletAsync();
+            if (walletRes.IsSuccess && walletRes.Data != null)
+            {
+                walletBalance = walletRes.Data.Balance;
+            }
+            showUnlockModal = true;
+            return;
+        }
+
+        // Free Group Join
+        isJoining = true;
+        actionError = null;
+
+        var result = await ChatGroupApi.JoinViaInviteLinkAsync(Token);
+        isJoining = false;
+
+        if (result.IsSuccess)
+        {
+            Navigation.NavigateTo("/chat");
+        }
+        else
+        {
+            actionError = result.Error ?? "Failed to join group.";
+        }
+    }
+
+    private async Task ConfirmPaidJoinAsync()
+    {
+        if (preview == null || isProcessingPayment) return;
+
+        isProcessingPayment = true;
+        paymentError = null;
+
+        var result = await ChatGroupApi.JoinPaidChatGroupAsync(preview.ChatGroupId);
+        isProcessingPayment = false;
+
+        if (result.IsSuccess)
+        {
+            showUnlockModal = false;
+            Navigation.NavigateTo("/chat");
+        }
+        else
+        {
+            paymentError = result.Error ?? "Payment failed. Please check your LinkDrop balance.";
+        }
+    }
+
+    private void GoToChat()
+    {
+        Navigation.NavigateTo("/chat");
+    }
+}

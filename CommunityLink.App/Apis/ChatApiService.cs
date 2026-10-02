@@ -91,4 +91,19 @@ public sealed class ChatApiService(IHttpClientFactory clientFactory, IHttpContex
 
     public Task<Result<CreatorChatSettingModel>> SaveCreatorChatSettingsAsync(SaveCreatorChatSettingRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync<CreatorChatSettingModel, SaveCreatorChatSettingRequestModel>("api/creator/chat/settings", request, cancellationToken);
+
+    public Task<Result> DeleteConversationForSelfAsync(int conversationId, CancellationToken cancellationToken = default) =>
+        DeleteAsync($"api/chat/conversations/{conversationId}", cancellationToken);
+
+    public Task<Result> BlockUserAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/chat/block/{targetUserId}", new { }, cancellationToken);
+
+    public Task<Result> UnblockUserAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        DeleteAsync($"api/chat/block/{targetUserId}", cancellationToken);
+
+    public Task<Result<UserBlockStatusModel>> GetUserBlockStatusAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        GetAsync<UserBlockStatusModel>($"api/chat/block/status/{targetUserId}", cancellationToken);
+
+    public Task<Result<IReadOnlyList<int>>> GetBlockedUserIdsAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<int>>("api/chat/block/list", cancellationToken);
 }

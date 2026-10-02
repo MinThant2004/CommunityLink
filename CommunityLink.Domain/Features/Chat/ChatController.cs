@@ -84,4 +84,29 @@ public sealed class ChatController(
 
         return ToActionResult(Result<PrivateChatStatusModel>.Success(status));
     }
+
+    [HttpDelete("conversations/{conversationId:int}")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> DeleteConversationForSelf(int conversationId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatService.DeleteConversationForSelfAsync(conversationId, cancellationToken));
+
+    [HttpPost("block/{targetUserId:int}")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> BlockUser(int targetUserId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatService.BlockUserAsync(targetUserId, cancellationToken));
+
+    [HttpDelete("block/{targetUserId:int}")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> UnblockUser(int targetUserId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatService.UnblockUserAsync(targetUserId, cancellationToken));
+
+    [HttpGet("block/status/{targetUserId:int}")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> GetUserBlockStatus(int targetUserId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatService.GetUserBlockStatusAsync(targetUserId, cancellationToken));
+
+    [HttpGet("block/list")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> GetBlockedUserIds(CancellationToken cancellationToken) =>
+        ToActionResult(await chatService.GetBlockedUserIdsAsync(cancellationToken));
 }

@@ -1,0 +1,88 @@
+================================================================================
+                    COMMUNITYLINK PROJECT - DAILY PROGRESS REPORT
+================================================================================
+Date: September 30, 2026
+Author: Engineering Team
+Module: Chat & Chat Group Features (Telegram-style Enhancements & Shareable Invite Links)
+
+--------------------------------------------------------------------------------
+1. EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+Today's development focused on enhancing user experience, group management, 
+and growth mechanics within the CommunityLink Chat module. Key accomplishments 
+include implementing Telegram-style shareable invite links (with primary link auto-
+generation, copy/share capabilities, and custom expiry/limit link creation), 
+introducing modal dialog confirmation workflows for group departure/deletion, 
+integrating system activity messages, and enabling seamless paid group joins via 
+invite links.
+
+--------------------------------------------------------------------------------
+2. DETAILED FEATURE BACKLOG & WORK COMPLETED
+--------------------------------------------------------------------------------
+
+[FEATURE 1] Telegram-Style Shareable Invite Links System
+--------------------------------------------------------------------------------
+- Database Layer:
+  * Created `TblChatGroupInviteLink` entity & DDL migration script with indexes 
+    for unique URL tokens (`UQ_TblChatGroupInviteLink_Token`) and single active 
+    primary links per group (`UQ_TblChatGroupInviteLink_Primary`).
+  * Implemented `ChatGroupInviteLinkDatabaseSeeder.cs` for automated setup.
+
+- Backend & Domain Service:
+  * Added `GetOrCreatePrimaryInviteLinkAsync`: Auto-generates a primary invite link 
+    for every chat group.
+  * Added `GetInviteLinksAsync`: Fetches all active invite links for Group Owners & Admins.
+  * Added `CreateInviteLinkAsync`: Allows creation of custom invite links with optional 
+    link names, expiration dates, and usage caps.
+  * Added `RevokeInviteLinkAsync`: Enables revoking active invite links.
+  * Added `GetInviteLinkPreviewAsync`: Public unauthenticated preview endpoint for group metadata.
+  * Added `JoinViaInviteLinkAsync`: Authenticated join handler with ban checking, 
+    duplicate join guards, and system message dispatch.
+
+- API & Client Layer:
+  * Exposed REST endpoints in `ChatGroupController.cs` under `/api/chat-groups/...`.
+  * Added client methods in `ChatGroupApiService.cs`.
+
+- Frontend & UI (Blazor App):
+  * Integrated "Invite link" quick action button and "Invite links" settings row with 
+    active link count badge in `ChatThreadInfoPanel.razor`.
+  * Designed Telegram-style "Invite links" Modal Box featuring:
+    - Primary link card displaying full URL.
+    - "Copy Link" & "Share Link" action buttons with clipboard feedback.
+    - "+ Create a New Link" section for custom named invite links.
+    - List of active custom links with usage counts and revoke controls.
+  * Created Public Invite Landing Page (`InviteJoin.razor` at `/invite/{Token}`):
+    - Displays Group Avatar, Name, Description, Member Count, and Free/Paid badge.
+    - Paid Group Join: Integrates `<UnlockChatModal>` with wallet balance check 
+      (`LinkDropApiService`), allowing users to confirm payment and join seamlessly.
+
+[FEATURE 2] Dedicated Confirmation Modal Boxes
+--------------------------------------------------------------------------------
+- Leave Group Confirmation: Replaced inline buttons with a dedicated `<ChatModal>` 
+  confirmation dialog ("Are you sure you want to leave this group?").
+- Delete Group Confirmation: Fixed owner delete button disabled state and replaced it 
+  with a dedicated `<ChatModal>` confirmation dialog for safety.
+
+[FEATURE 3] Telegram-Style Activity System Messages
+--------------------------------------------------------------------------------
+- Added real-time broadcast system notifications for key group events:
+  * "[User Name] joined the group"
+  * "[User Name] left the group"
+  * "[Target Name] was removed from the group"
+  * "[User Name] joined the group via invite link"
+- Rendered system messages as centered pill banners in `ChatMessageBubble.razor`.
+
+[FEATURE 4] Group Management & UI Optimizations
+--------------------------------------------------------------------------------
+- Fixed search input focus loss in member add panel by using debounced binding.
+- Simplified paid group modal by hiding internal platform commission details from 
+  regular end-users.
+- Fixed SignalR hub exception on unjoined group thread selection.
+
+--------------------------------------------------------------------------------
+3. QUALITY ASSURANCE & TESTING RESULTS
+--------------------------------------------------------------------------------
+- Build Status: SUCCESS (0 Warnings, 0 Errors)
+- Unit Test Suite: 226 / 226 PASSED (100% Pass Rate)
+
+================================================================================

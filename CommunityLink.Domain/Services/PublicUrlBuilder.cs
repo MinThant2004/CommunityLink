@@ -13,6 +13,13 @@ namespace CommunityLink.Domain.Services;
 public interface IPublicUrlBuilder
 {
     string Build(string relativePath);
+
+    /// <summary>
+    /// Inverse of <see cref="Build"/>: strips the configured public base URL back to a
+    /// wwwroot-relative path so a stored file can be located on disk again. Returns null for
+    /// input that is not one of our URLs (an empty string, a data: URL, a foreign origin).
+    /// </summary>
+    string? ToRelativePath(string publicUrl);
 }
 
 public sealed class PublicUrlBuilder(IConfiguration configuration) : IPublicUrlBuilder
@@ -27,5 +34,24 @@ public sealed class PublicUrlBuilder(IConfiguration configuration) : IPublicUrlB
         if (Uri.TryCreate(relativePath, UriKind.Absolute, out _)) return relativePath;
 
         return $"{_publicBaseUrl}/{relativePath.TrimStart('/')}";
+    }
+
+    public string? ToRelativePath(string publicUrl)
+    {
+        if (string.IsNullOrWhiteSpace(publicUrl)) return null;
+        if (Uri.TryCreate(publicUrl, UriKind.Absolute, out var uri))
+        {
+            if (uri.Scheme is not ("http" or "https")) return null;
+        }
+        else if (!publicUrl.StartsWith('/'))
+        {
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(_publicBaseUrl)) return publicUrl;
+
+        return publicUrl.StartsWith(_publicBaseUrl + "/", StringComparison.OrdinalIgnoreCase)
+            ? publicUrl[_publicBaseUrl.Length..]
+            : null;
     }
 }

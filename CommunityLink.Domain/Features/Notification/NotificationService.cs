@@ -235,6 +235,12 @@ public sealed class NotificationService(AppDbContext dbContext, ICurrentUserCont
                 case "GROUP":
                     return $"/group/{targetEntityId.Value}";
 
+                // Chat Groups live on the chat surface, not the /groups feed. Without this case
+                // every group-chat and group-invite notification fell through to /groups, which
+                // is a different feature, so the click landed nowhere useful.
+                case "TBLCHATGROUP":
+                    return $"/chat?type=group&thread={targetEntityId.Value}";
+
                 case "GROUP_JOIN_REQUEST":
                     // Navigate directly to the members tab where the owner can review requests
                     return $"/group/{targetEntityId.Value}?tab=members";

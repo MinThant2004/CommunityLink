@@ -7,7 +7,11 @@ public sealed record ConversationModel(
     string OtherDisplayName,
     string? OtherAvatarUrl,
     string? LastMessagePreview,
-    DateTime? LastMessageAt);
+    DateTime? LastMessageAt,
+    bool IsBlockedByMe = false,
+    bool IsBlockedByTarget = false,
+    bool IsOnline = false,
+    DateTime? LastActiveAt = null);
 
 public sealed record ChatMessageModel(
     int MessageId,
@@ -77,3 +81,8 @@ public sealed record PrivateChatStatusModel(
     bool IsPaidChat,
     bool IsUnlocked,
     long FeeLinkDrops);
+
+public sealed record UserBlockStatusModel(
+    int TargetUserId,
+    bool IsBlockedByMe,
+    bool IsBlockedByTarget);
