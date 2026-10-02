@@ -7,7 +7,8 @@ public sealed record CreateChatGroupRequestModel(
     string? Description,
     string? AvatarUrl,
     string ChatType = "FREE", // FREE | PAID
-    long JoinFeeLinkDrops = 0
+    long JoinFeeLinkDrops = 0,
+    string AccessMode = "PUBLIC" // PUBLIC | PRIVATE
 );
 
 /// <summary>
@@ -28,7 +29,8 @@ public sealed record UpdateChatGroupRequestModel(
     string Name,
     string? Description,
     string ChatType = "FREE", // FREE | PAID
-    long JoinFeeLinkDrops = 0
+    long JoinFeeLinkDrops = 0,
+    string AccessMode = "PUBLIC" // PUBLIC | PRIVATE
 );
 
 public sealed record ChatGroupModel(
@@ -57,7 +59,8 @@ public sealed record ChatGroupModel(
     // uses it to decide which controls to render, so the viewer is never offered an action the
     // server would reject. An owner always holds every permission regardless of this value.
     ChatGroupPermissionSet? ViewerPermissions = null,
-    bool IsBanned = false
+    bool IsBanned = false,
+    string AccessMode = "PUBLIC" // PUBLIC | PRIVATE
 );
 
 public sealed record ChatGroupMemberModel(
@@ -241,6 +244,26 @@ public sealed record InviteLinkPreviewModel(
     string? InvalidReason,
     // When the caller is authenticated:
     bool IsAlreadyMember = false,
-    bool IsBanned = false
+    bool IsBanned = false,
+    string AccessMode = "PUBLIC", // PUBLIC | PRIVATE
+    string? RequestStatus = null // PENDING_APPROVAL | APPROVED_WAITING_PAYMENT | REJECTED | JOINED
+);
+
+public sealed record ChatGroupJoinRequestModel(
+    int ChatGroupJoinRequestId,
+    int ChatGroupId,
+    int UserId,
+    string UserName,
+    string UserDisplayName,
+    string? UserAvatar,
+    string Status, // PENDING_APPROVAL | APPROVED_WAITING_PAYMENT | REJECTED | JOINED
+    DateTime RequestedAt,
+    DateTime? ReviewedAt = null,
+    string? ReviewedByUserName = null,
+    bool IsOnline = false
+);
+
+public sealed record SubmitJoinRequestModel(
+    string? RequestNote = null
 );
 

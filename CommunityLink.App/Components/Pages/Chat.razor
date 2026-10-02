@@ -358,6 +358,8 @@
     private string? unlockError;
     private string? _handledRoute;
     private bool _eventsWired;
+    private int? _deletingGroupId;
+    private int? _leavingGroupId;
 
     private string? TypingSenderName => typingSenderName ?? (typingSenderId.HasValue ? "Someone" : null);
 
@@ -564,7 +566,12 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             }
 
             allThreads.Clear();
-            allThreads.AddRange(SortByActivity(threads));
+            var deduplicatedThreads = threads
+                .GroupBy(t => t.IsGroup ? $"G_{t.Id}" : $"D_{t.DirectUserId}")
+                .Select(g => g.OrderByDescending(t => t.LastActivityAt ?? DateTime.MinValue).First())
+                .ToList();
+
+            allThreads.AddRange(SortByActivity(deduplicatedThreads));
             threadsFailed = false;
         }
         catch
@@ -1476,6 +1483,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         // Captured before the thread is cleared, because leaving the room still needs it.
         var chatGroupId = activeThread.Id;
+        _deletingGroupId = chatGroupId;
 
         isActionSubmitting = true;
         StateHasChanged();
@@ -2141,7 +2149,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         }
 
         await LoadThreadsAsync();
-        Toast.Error("This Chat Group was deleted by its owner.");
+        Toast.Info("This Chat Group was deleted by its owner.");
     }
 
     private async Task OnGroupMemberRemoved(int chatGroupId, int userId)
@@ -2158,7 +2166,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
                 messages = Array.Empty<ChatMessageViewModel>();
                 pinnedMessage = null;
                 await Realtime.LeaveGroupRoomAsync(chatGroupId);
-                Toast.Error("You were removed from this Chat Group.");
+                Toast.Info("You were removed from this Chat Group.");
             }
             else
             {

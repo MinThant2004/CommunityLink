@@ -45,6 +45,8 @@ public sealed class ChatThreadViewModel
 
     public bool IsBanned { get; set; }
 
+    public string AccessMode { get; set; } = "PUBLIC";
+
     // True when the viewer holds a PENDING invite into a PAID group. An invite is an offer, not
     // access, so IsJoined stays false and the paywall still applies until the viewer pays. Used
     // only for the "X invited you" copy; it never grants read access on its own.

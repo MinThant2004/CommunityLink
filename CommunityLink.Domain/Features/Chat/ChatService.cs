@@ -69,6 +69,11 @@ public sealed class ChatService(
             .OrderByDescending(c => c.LastMessageAt ?? c.CreatedAt)
             .ToListAsync(cancellationToken);
 
+        rawConversations = rawConversations
+            .GroupBy(c => c.UserOneId == currentUserId ? c.UserTwoId : c.UserOneId)
+            .Select(g => g.First())
+            .ToList();
+
         var resultList = new List<ConversationModel>();
 
         foreach (var c in rawConversations)

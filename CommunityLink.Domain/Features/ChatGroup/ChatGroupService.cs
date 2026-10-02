@@ -62,6 +62,7 @@ public sealed class ChatGroupService(
 
         var chatType = string.Equals(request.ChatType, "PAID", StringComparison.OrdinalIgnoreCase) ? "PAID" : "FREE";
         var joinFee = chatType == "PAID" ? Math.Max(0, request.JoinFeeLinkDrops) : 0;
+        var accessMode = string.Equals(request.AccessMode, "PRIVATE", StringComparison.OrdinalIgnoreCase) ? "PRIVATE" : "PUBLIC";
 
         var commissionRes = await platformSettingService.GetPlatformCommissionAsync(cancellationToken);
         var commissionSnapshot = commissionRes.IsSuccess && commissionRes.Data != null ? commissionRes.Data.CommissionPercentage : 10.00m;
@@ -74,6 +75,7 @@ public sealed class ChatGroupService(
             CreatorId = currentUser.UserId.Value,
             ChatType = chatType,
             JoinFeeLinkDrops = joinFee,
+            AccessMode = accessMode,
             CommissionPercentageSnapshot = commissionSnapshot,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
@@ -114,7 +116,8 @@ public sealed class ChatGroupService(
             1,
             chatGroup.CreatedAt,
             IsJoined: true,
-            UserRole: "OWNER"
+            UserRole: "OWNER",
+            AccessMode: chatGroup.AccessMode
         );
 
         return Result<ChatGroupModel>.Success(model);
@@ -160,7 +163,8 @@ public sealed class ChatGroupService(
             x.MemberCount,
             x.Group.CreatedAt,
             IsJoined: x.UserMembership != null,
-            UserRole: x.UserMembership?.Role ?? "NONE"
+            UserRole: x.UserMembership?.Role ?? "NONE",
+            AccessMode: x.Group.AccessMode
         )).ToList();
 
         return Result<IReadOnlyList<ChatGroupModel>>.Success(result);
@@ -205,7 +209,8 @@ public sealed class ChatGroupService(
             x.Group.CreatedAt,
             IsJoined: x.UserMembership != null,
             UserRole: x.UserMembership?.Role ?? "NONE",
-            IsBanned: x.IsBanned
+            IsBanned: x.IsBanned,
+            AccessMode: x.Group.AccessMode
         )).ToList();
 
         return Result<IReadOnlyList<ChatGroupModel>>.Success(result);
@@ -275,7 +280,8 @@ public sealed class ChatGroupService(
             // The quoted price wins over the group's current fee so an open invite cannot be
             // repriced if the owner changes the fee after inviting.
             InviteFeeLinkDrops: pendingInvite?.FeeAtInviteLinkDrops,
-            InvitedByName: pendingInvite?.InviterName
+            InvitedByName: pendingInvite?.InviterName,
+            AccessMode: groupData.Group.AccessMode
         );
 
         return Result<ChatGroupModel>.Success(model);
@@ -316,6 +322,11 @@ public sealed class ChatGroupService(
         if (await IsBannedAsync(chatGroupId, userId, cancellationToken))
         {
             return Result.Failure("You are banned from this Chat Group.", ResultStatus.Forbidden);
+        }
+
+        if (string.Equals(chatGroup.AccessMode, "PRIVATE", StringComparison.OrdinalIgnoreCase))
+        {
+            return Result.Failure("This is a private group. Please submit a request to join.", ResultStatus.ValidationError);
         }
 
         if (string.Equals(chatGroup.ChatType, "PAID", StringComparison.OrdinalIgnoreCase))
@@ -586,6 +597,7 @@ public sealed class ChatGroupService(
             })
             .ToListAsync(cancellationToken);
 
+        memberGroups = memberGroups.GroupBy(x => x.Group.ChatGroupId).Select(g => g.First()).ToList();
         var memberGroupIds = memberGroups.Select(x => x.Group.ChatGroupId).ToHashSet();
         var allGroups = memberGroups.Concat(bannedGroups.Where(b => !memberGroupIds.Contains(b.Group.ChatGroupId))).ToList();
 
@@ -603,7 +615,8 @@ public sealed class ChatGroupService(
             x.Group.CreatedAt,
             IsJoined: !x.IsBanned,
             UserRole: x.UserRole,
-            IsBanned: x.IsBanned
+            IsBanned: x.IsBanned,
+            AccessMode: x.Group.AccessMode
         )).ToList();
 
         return Result<IReadOnlyList<ChatGroupModel>>.Success(result);
@@ -634,6 +647,21 @@ public sealed class ChatGroupService(
         if (!string.Equals(chatGroup.ChatType, "PAID", StringComparison.OrdinalIgnoreCase))
         {
             return Result.Failure("This Chat Group is free. Use standard join.", ResultStatus.ValidationError);
+        }
+
+        // For PRIVATE groups, direct payment requires an approved join request or direct invitation.
+        if (string.Equals(chatGroup.AccessMode, "PRIVATE", StringComparison.OrdinalIgnoreCase))
+        {
+            var approvedReq = await dbContext.TblChatGroupJoinRequests
+                .FirstOrDefaultAsync(r => r.ChatGroupId == chatGroupId && r.UserId == userId && r.Status == "APPROVED_WAITING_PAYMENT" && !r.IsDeleted, cancellationToken);
+
+            var existingInvite = await dbContext.TblChatGroupInvites
+                .FirstOrDefaultAsync(i => i.ChatGroupId == chatGroupId && i.UserId == userId && i.Status == InviteStatusPending && !i.IsDeleted, cancellationToken);
+
+            if (approvedReq == null && existingInvite == null)
+            {
+                return Result.Failure("This is a private group. You must submit a join request and wait for owner or admin approval before paying.", ResultStatus.ValidationError);
+            }
         }
 
         // A ban blocks the paid path too, and is checked before the wallet is touched so a
@@ -2098,6 +2126,7 @@ return Result.Success("Message deleted for you.");
 
         var chatType = string.Equals(request.ChatType, "PAID", StringComparison.OrdinalIgnoreCase) ? "PAID" : "FREE";
         var joinFee = chatType == "PAID" ? Math.Max(0, request.JoinFeeLinkDrops) : 0;
+        var accessMode = string.Equals(request.AccessMode, "PRIVATE", StringComparison.OrdinalIgnoreCase) ? "PRIVATE" : "PUBLIC";
 
         if (joinFee < 0)
         {
@@ -2110,6 +2139,7 @@ return Result.Success("Message deleted for you.");
         chatGroup.Description = description;
         chatGroup.ChatType = chatType;
         chatGroup.JoinFeeLinkDrops = joinFee;
+        chatGroup.AccessMode = accessMode;
         chatGroup.UpdatedAt = DateTime.UtcNow;
         chatGroup.UpdatedBy = currentUserId;
 
@@ -2216,6 +2246,29 @@ return Result.Success("Message deleted for you.");
         // force every connected client to refetch an identical member list.
         if (added > 0)
         {
+            var inviterName = await dbContext.TblUsers
+                .AsNoTracking()
+                .Where(u => u.UserId == currentUserId)
+                .Select(u => u.DisplayName ?? u.UserName)
+                .FirstOrDefaultAsync(cancellationToken) ?? currentUser.UserName ?? "The group owner";
+
+            var newlyAddedIds = targetIds
+                .Where(id => !bannedIds.Contains(id) && (existing.FirstOrDefault(m => m.UserId == id)?.IsDeleted ?? true))
+                .ToList();
+
+            if (newlyAddedIds.Count > 0)
+            {
+                await notificationService.CreateBulkNotificationsAsync(
+                    newlyAddedIds,
+                    currentUserId,
+                    "CHAT_GROUP_ADDED",
+                    chatGroup.Name,
+                    $"You were added to {chatGroup.Name} by {inviterName}.",
+                    "TBLCHATGROUP",
+                    chatGroupId,
+                    cancellationToken);
+            }
+
             await BroadcastAsync(chatGroupId, "GroupMemberUpdated", [chatGroupId], cancellationToken);
         }
 
@@ -2364,7 +2417,8 @@ return Result.Success("Message deleted for you.");
             UserRole: "NONE",
             IsInvited: true,
             InviteFeeLinkDrops: x.FeeAtInviteLinkDrops,
-            InvitedByName: x.InviterName
+            InvitedByName: x.InviterName,
+            AccessMode: x.Group.AccessMode
         )).ToList();
 
         return Result<IReadOnlyList<ChatGroupModel>>.Success(result);
@@ -2828,7 +2882,8 @@ return Result.Success("Message deleted for you.");
             chatGroup.CreatedAt,
             isJoined,
             role,
-            ViewerPermissions: viewerPermissions));
+            ViewerPermissions: viewerPermissions,
+            AccessMode: chatGroup.AccessMode));
     }
 
     public async Task<Result<IReadOnlyList<ChatGroupBannedMemberModel>>> GetBannedMembersAsync(
@@ -3119,12 +3174,21 @@ return Result.Success("Message deleted for you.");
         // Check caller context (may be unauthenticated).
         bool isAlreadyMember = false;
         bool isBanned = false;
+        string? requestStatus = null;
         if (currentUser.IsAuthenticated && currentUser.UserId.HasValue)
         {
             var uid = currentUser.UserId.Value;
             isAlreadyMember = await dbContext.TblChatGroupMembers
                 .AnyAsync(m => m.ChatGroupId == group.ChatGroupId && m.UserId == uid && !m.IsDeleted, cancellationToken);
             isBanned = await IsBannedAsync(group.ChatGroupId, uid, cancellationToken);
+
+            var joinReq = await dbContext.TblChatGroupJoinRequests
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.ChatGroupId == group.ChatGroupId && r.UserId == uid && !r.IsDeleted, cancellationToken);
+            if (joinReq != null)
+            {
+                requestStatus = joinReq.Status;
+            }
         }
 
         return Result<InviteLinkPreviewModel>.Success(new InviteLinkPreviewModel(
@@ -3138,7 +3202,9 @@ return Result.Success("Message deleted for you.");
             IsValid: invalidReason == null,
             InvalidReason: invalidReason,
             IsAlreadyMember: isAlreadyMember,
-            IsBanned: isBanned));
+            IsBanned: isBanned,
+            AccessMode: group.AccessMode,
+            RequestStatus: requestStatus));
     }
 
     public async Task<Result> JoinViaInviteLinkAsync(string token, CancellationToken cancellationToken = default)
@@ -3267,5 +3333,472 @@ return Result.Success("Message deleted for you.");
         await BroadcastAsync(group.ChatGroupId, "GroupMemberUpdated", new object[] { group.ChatGroupId }, cancellationToken);
 
         return Result.Success("Joined Chat Group successfully via invite link.");
+    }
+
+    // ------------------------------------------------------------------
+    // Join Requests (Private Group Access Control)
+    // ------------------------------------------------------------------
+
+    public async Task<Result<ChatGroupJoinRequestModel>> SubmitJoinRequestAsync(
+        int chatGroupId, SubmitJoinRequestModel? request = null, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result<ChatGroupJoinRequestModel>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var userId = currentUser.UserId.Value;
+
+        var chatGroup = await dbContext.TblChatGroups
+            .AsNoTracking()
+            .FirstOrDefaultAsync(cg => cg.ChatGroupId == chatGroupId && !cg.IsDeleted, cancellationToken);
+
+        if (chatGroup == null)
+        {
+            return Result<ChatGroupJoinRequestModel>.Failure("Chat Group not found.", ResultStatus.NotFound);
+        }
+
+        if (!chatGroup.IsActive)
+        {
+            return Result<ChatGroupJoinRequestModel>.Failure("Chat Group is not active.", ResultStatus.ValidationError);
+        }
+
+        if (!string.Equals(chatGroup.AccessMode, "PRIVATE", StringComparison.OrdinalIgnoreCase))
+        {
+            return Result<ChatGroupJoinRequestModel>.Failure("This Chat Group is public. Request to join is not required.", ResultStatus.ValidationError);
+        }
+
+        var isMember = await dbContext.TblChatGroupMembers
+            .AnyAsync(m => m.ChatGroupId == chatGroupId && m.UserId == userId && !m.IsDeleted, cancellationToken);
+
+        if (isMember)
+        {
+            return Result<ChatGroupJoinRequestModel>.Failure("You are already a member of this Chat Group.", ResultStatus.Conflict);
+        }
+
+        if (await IsBannedAsync(chatGroupId, userId, cancellationToken))
+        {
+            return Result<ChatGroupJoinRequestModel>.Failure("You are banned from this Chat Group.", ResultStatus.Forbidden);
+        }
+
+        var existingRequest = await dbContext.TblChatGroupJoinRequests
+            .Include(r => r.User)
+            .Include(r => r.ReviewedByNavigation)
+            .FirstOrDefaultAsync(r => r.ChatGroupId == chatGroupId && r.UserId == userId && !r.IsDeleted, cancellationToken);
+
+        var now = DateTime.UtcNow;
+
+        if (existingRequest != null)
+        {
+            if (existingRequest.Status == "PENDING_APPROVAL" || existingRequest.Status == "APPROVED_WAITING_PAYMENT")
+            {
+                return Result<ChatGroupJoinRequestModel>.Failure("You already have an active join request for this group.", ResultStatus.Conflict);
+            }
+
+            existingRequest.Status = "PENDING_APPROVAL";
+            existingRequest.RequestNote = request?.RequestNote?.Trim();
+            existingRequest.ReviewedBy = null;
+            existingRequest.ReviewedAt = null;
+            existingRequest.UpdatedAt = now;
+            existingRequest.UpdatedBy = userId;
+        }
+        else
+        {
+            existingRequest = new TblChatGroupJoinRequest
+            {
+                ChatGroupId = chatGroupId,
+                UserId = userId,
+                Status = "PENDING_APPROVAL",
+                RequestNote = request?.RequestNote?.Trim(),
+                CreatedAt = now,
+                CreatedBy = userId
+            };
+            dbContext.TblChatGroupJoinRequests.Add(existingRequest);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var adminUserIds = await dbContext.TblChatGroupMembers
+            .AsNoTracking()
+            .Where(m => m.ChatGroupId == chatGroupId && !m.IsDeleted && (m.Role == "OWNER" || m.Role == "ADMIN"))
+            .Select(m => m.UserId)
+            .ToListAsync(cancellationToken);
+
+        var applicantUser = await dbContext.TblUsers.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+        var applicantName = applicantUser?.DisplayName ?? applicantUser?.UserName ?? "Someone";
+
+        await notificationService.CreateBulkNotificationsAsync(
+            adminUserIds,
+            userId,
+            "CHAT_GROUP_JOIN_REQUEST",
+            chatGroup.Name,
+            $"{applicantName} requested to join {chatGroup.Name}.",
+            "TblChatGroup",
+            chatGroupId,
+            cancellationToken);
+
+        await BroadcastAsync(chatGroupId, "JoinRequestCreated", [chatGroupId, userId], cancellationToken);
+
+        var model = new ChatGroupJoinRequestModel(
+            existingRequest.ChatGroupJoinRequestId,
+            existingRequest.ChatGroupId,
+            existingRequest.UserId,
+            applicantUser?.UserName ?? "User",
+            applicantUser?.DisplayName ?? applicantUser?.UserName ?? "User",
+            applicantUser?.AvatarUrl,
+            existingRequest.Status,
+            existingRequest.CreatedAt,
+            existingRequest.ReviewedAt,
+            null,
+            presenceTracker.IsUserOnline(userId)
+        );
+
+        return Result<ChatGroupJoinRequestModel>.Success(model, "Join request submitted successfully.");
+    }
+
+    public async Task<Result<ChatGroupJoinRequestModel?>> GetMyJoinRequestStatusAsync(
+        int chatGroupId, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result<ChatGroupJoinRequestModel?>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var userId = currentUser.UserId.Value;
+
+        var req = await dbContext.TblChatGroupJoinRequests
+            .AsNoTracking()
+            .Include(r => r.User)
+            .Include(r => r.ReviewedByNavigation)
+            .FirstOrDefaultAsync(r => r.ChatGroupId == chatGroupId && r.UserId == userId && !r.IsDeleted, cancellationToken);
+
+        if (req == null)
+        {
+            return Result<ChatGroupJoinRequestModel?>.Success(null);
+        }
+
+        var reviewerName = req.ReviewedByNavigation?.DisplayName ?? req.ReviewedByNavigation?.UserName;
+
+        var model = new ChatGroupJoinRequestModel(
+            req.ChatGroupJoinRequestId,
+            req.ChatGroupId,
+            req.UserId,
+            req.User.UserName,
+            req.User.DisplayName ?? req.User.UserName,
+            req.User.AvatarUrl,
+            req.Status,
+            req.CreatedAt,
+            req.ReviewedAt,
+            reviewerName,
+            presenceTracker.IsUserOnline(req.UserId)
+        );
+
+        return Result<ChatGroupJoinRequestModel?>.Success(model);
+    }
+
+    public async Task<Result<IReadOnlyList<ChatGroupJoinRequestModel>>> GetJoinRequestsAsync(
+        int chatGroupId, string? status = null, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result<IReadOnlyList<ChatGroupJoinRequestModel>>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var userId = currentUser.UserId.Value;
+
+        var isOwnerOrAdmin = await dbContext.TblChatGroupMembers
+            .AsNoTracking()
+            .AnyAsync(m => m.ChatGroupId == chatGroupId && m.UserId == userId && !m.IsDeleted && (m.Role == "OWNER" || m.Role == "ADMIN"), cancellationToken);
+
+        if (!isOwnerOrAdmin)
+        {
+            return Result<IReadOnlyList<ChatGroupJoinRequestModel>>.Failure("You do not have permission to view join requests.", ResultStatus.Forbidden);
+        }
+
+        var query = dbContext.TblChatGroupJoinRequests
+            .AsNoTracking()
+            .Include(r => r.User)
+            .Include(r => r.ReviewedByNavigation)
+            .Where(r => r.ChatGroupId == chatGroupId && !r.IsDeleted);
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            var st = status.Trim().ToUpperInvariant();
+            query = query.Where(r => r.Status == st);
+        }
+
+        var list = await query
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        var models = list.Select(req => new ChatGroupJoinRequestModel(
+            req.ChatGroupJoinRequestId,
+            req.ChatGroupId,
+            req.UserId,
+            req.User.UserName,
+            req.User.DisplayName ?? req.User.UserName,
+            req.User.AvatarUrl,
+            req.Status,
+            req.CreatedAt,
+            req.ReviewedAt,
+            req.ReviewedByNavigation?.DisplayName ?? req.ReviewedByNavigation?.UserName,
+            presenceTracker.IsUserOnline(req.UserId)
+        )).ToList();
+
+        return Result<IReadOnlyList<ChatGroupJoinRequestModel>>.Success(models);
+    }
+
+    public async Task<Result> ApproveJoinRequestAsync(
+        int chatGroupId, int requestId, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var reviewerId = currentUser.UserId.Value;
+
+        var isOwnerOrAdmin = await dbContext.TblChatGroupMembers
+            .AsNoTracking()
+            .AnyAsync(m => m.ChatGroupId == chatGroupId && m.UserId == reviewerId && !m.IsDeleted && (m.Role == "OWNER" || m.Role == "ADMIN"), cancellationToken);
+
+        if (!isOwnerOrAdmin)
+        {
+            return Result.Failure("You do not have permission to approve join requests.", ResultStatus.Forbidden);
+        }
+
+        var joinReq = await dbContext.TblChatGroupJoinRequests
+            .FirstOrDefaultAsync(r => r.ChatGroupJoinRequestId == requestId && r.ChatGroupId == chatGroupId && !r.IsDeleted, cancellationToken);
+
+        if (joinReq == null)
+        {
+            return Result.Failure("Join request not found.", ResultStatus.NotFound);
+        }
+
+        if (joinReq.Status != "PENDING_APPROVAL")
+        {
+            return Result.Failure("Join request is not pending approval.", ResultStatus.ValidationError);
+        }
+
+        var group = await dbContext.TblChatGroups
+            .AsNoTracking()
+            .FirstOrDefaultAsync(cg => cg.ChatGroupId == chatGroupId && !cg.IsDeleted, cancellationToken);
+
+        if (group == null)
+        {
+            return Result.Failure("Chat Group not found.", ResultStatus.NotFound);
+        }
+
+        var isPaidGroup = string.Equals(group.ChatType, "PAID", StringComparison.OrdinalIgnoreCase) && group.JoinFeeLinkDrops > 0;
+        var now = DateTime.UtcNow;
+
+        if (isPaidGroup)
+        {
+            joinReq.Status = "APPROVED_WAITING_PAYMENT";
+            joinReq.ReviewedBy = reviewerId;
+            joinReq.ReviewedAt = now;
+            joinReq.UpdatedAt = now;
+            joinReq.UpdatedBy = reviewerId;
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            await notificationService.CreateNotificationAsync(
+                joinReq.UserId,
+                reviewerId,
+                "CHAT_GROUP_JOIN_APPROVED",
+                group.Name,
+                $"Your join request for {group.Name} was approved! Click to pay {group.JoinFeeLinkDrops} LinkDrops and complete join.",
+                "TblChatGroup",
+                chatGroupId,
+                cancellationToken);
+
+            await BroadcastAsync(chatGroupId, "JoinRequestApproved", [chatGroupId, joinReq.UserId, "APPROVED_WAITING_PAYMENT"], cancellationToken);
+
+            return Result.Success("Join request approved. Applicant needs to pay join fee to enter.");
+        }
+        else
+        {
+            joinReq.Status = "JOINED";
+            joinReq.ReviewedBy = reviewerId;
+            joinReq.ReviewedAt = now;
+            joinReq.UpdatedAt = now;
+            joinReq.UpdatedBy = reviewerId;
+
+            var existingMember = await dbContext.TblChatGroupMembers
+                .FirstOrDefaultAsync(m => m.ChatGroupId == chatGroupId && m.UserId == joinReq.UserId, cancellationToken);
+
+            if (existingMember != null)
+            {
+                existingMember.IsDeleted = false;
+                existingMember.JoinedAt = now;
+                existingMember.Role = "MEMBER";
+                existingMember.UpdatedAt = now;
+                existingMember.UpdatedBy = reviewerId;
+            }
+            else
+            {
+                var newMember = new TblChatGroupMember
+                {
+                    ChatGroupId = chatGroupId,
+                    UserId = joinReq.UserId,
+                    Role = "MEMBER",
+                    JoinedAt = now,
+                    CreatedAt = now,
+                    CreatedBy = reviewerId
+                };
+                dbContext.TblChatGroupMembers.Add(newMember);
+            }
+
+            var applicantUser = await dbContext.TblUsers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == joinReq.UserId, cancellationToken);
+            var userName = !string.IsNullOrWhiteSpace(applicantUser?.DisplayName) ? applicantUser.DisplayName : (applicantUser?.UserName ?? "User");
+
+            var systemMsg = new TblChatGroupMessage
+            {
+                ChatGroupId = chatGroupId,
+                SenderId = joinReq.UserId,
+                Content = $"{userName} joined the group",
+                MessageType = "SYSTEM",
+                CreatedAt = now,
+                CreatedBy = reviewerId
+            };
+            dbContext.TblChatGroupMessages.Add(systemMsg);
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            var msgModel = new ChatGroupMessageModel(
+                ChatGroupMessageId: systemMsg.ChatGroupMessageId,
+                ChatGroupId: chatGroupId,
+                SenderId: joinReq.UserId,
+                SenderName: userName,
+                SenderDisplayName: userName,
+                SenderAvatar: applicantUser?.AvatarUrl,
+                Content: systemMsg.Content,
+                CreatedAt: systemMsg.CreatedAt,
+                MessageType: "SYSTEM");
+
+            await BroadcastAsync(chatGroupId, "ReceiveChatGroupMessage", new object[] { msgModel }, cancellationToken);
+            await BroadcastAsync(chatGroupId, "GroupMemberUpdated", [chatGroupId], cancellationToken);
+            await BroadcastAsync(chatGroupId, "JoinRequestApproved", [chatGroupId, joinReq.UserId, "JOINED"], cancellationToken);
+
+            await notificationService.CreateNotificationAsync(
+                joinReq.UserId,
+                reviewerId,
+                "CHAT_GROUP_JOIN_APPROVED",
+                group.Name,
+                $"Your request to join {group.Name} has been approved!",
+                "TblChatGroup",
+                chatGroupId,
+                cancellationToken);
+
+            return Result.Success("Join request approved and member added successfully.");
+        }
+    }
+
+    public async Task<Result> RejectJoinRequestAsync(
+        int chatGroupId, int requestId, string? reason = null, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var reviewerId = currentUser.UserId.Value;
+
+        var isOwnerOrAdmin = await dbContext.TblChatGroupMembers
+            .AsNoTracking()
+            .AnyAsync(m => m.ChatGroupId == chatGroupId && m.UserId == reviewerId && !m.IsDeleted && (m.Role == "OWNER" || m.Role == "ADMIN"), cancellationToken);
+
+        if (!isOwnerOrAdmin)
+        {
+            return Result.Failure("You do not have permission to reject join requests.", ResultStatus.Forbidden);
+        }
+
+        var joinReq = await dbContext.TblChatGroupJoinRequests
+            .FirstOrDefaultAsync(r => r.ChatGroupJoinRequestId == requestId && r.ChatGroupId == chatGroupId && !r.IsDeleted, cancellationToken);
+
+        if (joinReq == null)
+        {
+            return Result.Failure("Join request not found.", ResultStatus.NotFound);
+        }
+
+        if (joinReq.Status != "PENDING_APPROVAL" && joinReq.Status != "APPROVED_WAITING_PAYMENT")
+        {
+            return Result.Failure("Join request cannot be rejected from its current state.", ResultStatus.ValidationError);
+        }
+
+        var now = DateTime.UtcNow;
+        joinReq.Status = "REJECTED";
+        joinReq.ReviewedBy = reviewerId;
+        joinReq.ReviewedAt = now;
+        joinReq.UpdatedAt = now;
+        joinReq.UpdatedBy = reviewerId;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var group = await dbContext.TblChatGroups
+            .AsNoTracking()
+            .FirstOrDefaultAsync(cg => cg.ChatGroupId == chatGroupId, cancellationToken);
+
+        await notificationService.CreateNotificationAsync(
+            joinReq.UserId,
+            reviewerId,
+            "CHAT_GROUP_JOIN_REJECTED",
+            group?.Name ?? "Chat Group",
+            $"Your request to join {group?.Name ?? "the group"} was declined.",
+            "TblChatGroup",
+            chatGroupId,
+            cancellationToken);
+
+        await BroadcastAsync(chatGroupId, "JoinRequestRejected", [chatGroupId, joinReq.UserId], cancellationToken);
+
+        return Result.Success("Join request rejected.");
+    }
+
+    public async Task<Result> PayAndJoinApprovedRequestAsync(
+        int chatGroupId, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var userId = currentUser.UserId.Value;
+
+        var chatGroup = await dbContext.TblChatGroups
+            .FirstOrDefaultAsync(cg => cg.ChatGroupId == chatGroupId && !cg.IsDeleted, cancellationToken);
+
+        if (chatGroup == null)
+        {
+            return Result.Failure("Chat Group not found.", ResultStatus.NotFound);
+        }
+
+        if (!chatGroup.IsActive)
+        {
+            return Result.Failure("Chat Group is not active.", ResultStatus.ValidationError);
+        }
+
+        var joinReq = await dbContext.TblChatGroupJoinRequests
+            .FirstOrDefaultAsync(r => r.ChatGroupId == chatGroupId && r.UserId == userId && !r.IsDeleted, cancellationToken);
+
+        if (joinReq == null || joinReq.Status != "APPROVED_WAITING_PAYMENT")
+        {
+            return Result.Failure("You do not have an approved request waiting for payment for this Chat Group.", ResultStatus.ValidationError);
+        }
+
+        var result = await JoinPaidChatGroupAsync(chatGroupId, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            joinReq.Status = "JOINED";
+            joinReq.UpdatedAt = DateTime.UtcNow;
+            joinReq.UpdatedBy = userId;
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            await BroadcastAsync(chatGroupId, "PaymentCompleted", [chatGroupId, userId], cancellationToken);
+        }
+
+        return result;
     }
 }

@@ -186,4 +186,12 @@ public interface IChatGroupService
 
     /// <summary>Authenticated. Joins the group via a valid invite link token.</summary>
     Task<Result> JoinViaInviteLinkAsync(string token, CancellationToken cancellationToken = default);
+
+    // ---- Private Group Join Requests ----
+    Task<Result<ChatGroupJoinRequestModel>> SubmitJoinRequestAsync(int chatGroupId, SubmitJoinRequestModel? request = null, CancellationToken cancellationToken = default);
+    Task<Result<ChatGroupJoinRequestModel?>> GetMyJoinRequestStatusAsync(int chatGroupId, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ChatGroupJoinRequestModel>>> GetJoinRequestsAsync(int chatGroupId, string? status = null, CancellationToken cancellationToken = default);
+    Task<Result> ApproveJoinRequestAsync(int chatGroupId, int requestId, CancellationToken cancellationToken = default);
+    Task<Result> RejectJoinRequestAsync(int chatGroupId, int requestId, string? reason = null, CancellationToken cancellationToken = default);
+    Task<Result> PayAndJoinApprovedRequestAsync(int chatGroupId, CancellationToken cancellationToken = default);
 }

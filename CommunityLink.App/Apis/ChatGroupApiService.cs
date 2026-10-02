@@ -254,4 +254,33 @@ public sealed class ChatGroupApiService(IHttpClientFactory clientFactory, IHttpC
 
     public Task<Result> JoinViaInviteLinkAsync(string token, CancellationToken cancellationToken = default) =>
         PostAsync($"api/chat-groups/invite/{Uri.EscapeDataString(token)}/join", new { }, cancellationToken);
+
+    // ---- Private Group Join Requests ----
+
+    public Task<Result<ChatGroupJoinRequestModel>> SubmitJoinRequestAsync(int chatGroupId, SubmitJoinRequestModel? request = null, CancellationToken cancellationToken = default) =>
+        PostAsync<ChatGroupJoinRequestModel, SubmitJoinRequestModel?>($"api/chat-groups/{chatGroupId}/join-requests", request, cancellationToken);
+
+    public Task<Result<ChatGroupJoinRequestModel?>> GetMyJoinRequestStatusAsync(int chatGroupId, CancellationToken cancellationToken = default) =>
+        GetAsync<ChatGroupJoinRequestModel?>($"api/chat-groups/{chatGroupId}/join-requests/my", cancellationToken);
+
+    public Task<Result<IReadOnlyList<ChatGroupJoinRequestModel>>> GetJoinRequestsAsync(int chatGroupId, string? status = null, CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<ChatGroupJoinRequestModel>>(
+            string.IsNullOrWhiteSpace(status)
+                ? $"api/chat-groups/{chatGroupId}/join-requests"
+                : $"api/chat-groups/{chatGroupId}/join-requests?status={Uri.EscapeDataString(status.Trim())}",
+            cancellationToken);
+
+    public Task<Result> ApproveJoinRequestAsync(int chatGroupId, int requestId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/chat-groups/{chatGroupId}/join-requests/{requestId}/approve", new { }, cancellationToken);
+
+    public Task<Result> RejectJoinRequestAsync(int chatGroupId, int requestId, string? reason = null, CancellationToken cancellationToken = default) =>
+        PostAsync(
+            string.IsNullOrWhiteSpace(reason)
+                ? $"api/chat-groups/{chatGroupId}/join-requests/{requestId}/reject"
+                : $"api/chat-groups/{chatGroupId}/join-requests/{requestId}/reject?reason={Uri.EscapeDataString(reason.Trim())}",
+            new { },
+            cancellationToken);
+
+    public Task<Result> PayAndJoinApprovedRequestAsync(int chatGroupId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/chat-groups/{chatGroupId}/pay-and-join", new { }, cancellationToken);
 }

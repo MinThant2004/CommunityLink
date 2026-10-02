@@ -93,6 +93,7 @@ public static class ChatThreadMapper
             ? model.InviteFeeLinkDrops.Value
             : model.JoinFeeLinkDrops,
         IsUnlocked = model.IsJoined && !model.IsBanned,
+        AccessMode = model.AccessMode ?? "PUBLIC",
         Badge = model.IsBanned ? "Banned" : (string.Equals(model.ChatType, "PAID", StringComparison.OrdinalIgnoreCase) ? "Paid" : "Free")
     };
 

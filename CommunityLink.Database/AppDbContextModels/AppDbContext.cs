@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +26,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<TblChatGroupInvite> TblChatGroupInvites { get; set; }
 
     public virtual DbSet<TblChatGroupInviteLink> TblChatGroupInviteLinks { get; set; }
+
+    public virtual DbSet<TblChatGroupJoinRequest> TblChatGroupJoinRequests { get; set; }
 
     public virtual DbSet<TblChatGroupMember> TblChatGroupMembers { get; set; }
 
@@ -225,6 +227,10 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasDefaultValue("FREE", "DF_TblChatGroup_ChatType");
+            entity.Property(e => e.AccessMode)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PUBLIC", "DF_TblChatGroup_AccessMode");
             entity.Property(e => e.CommissionPercentageSnapshot).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroup_CreatedAt");
             entity.Property(e => e.Description).HasMaxLength(1000);
@@ -238,6 +244,42 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.CreatorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblChatGroup_TblUser_Creator");
+        });
+
+        modelBuilder.Entity<TblChatGroupJoinRequest>(entity =>
+        {
+            entity.HasKey(e => e.ChatGroupJoinRequestId);
+
+            entity.ToTable("TblChatGroupJoinRequest");
+
+            entity.HasIndex(e => new { e.UserId, e.Status }, "IX_TblChatGroupJoinRequest_User_Status");
+
+            entity.HasIndex(e => new { e.ChatGroupId, e.UserId }, "UQ_TblChatGroupJoinRequest_Group_User")
+                .IsUnique()
+                .HasFilter("([Status]='PENDING_APPROVAL' OR [Status]='APPROVED_WAITING_PAYMENT')");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupJoinRequest_CreatedAt");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING_APPROVAL");
+
+            entity.HasOne(d => d.ChatGroup).WithMany(p => p.TblChatGroupJoinRequests)
+                .HasForeignKey(d => d.ChatGroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupJoinRequest_ChatGroup");
+
+            entity.HasOne(d => d.ReviewedByNavigation).WithMany(p => p.TblChatGroupJoinRequestReviewedByNavigations)
+                .HasForeignKey(d => d.ReviewedBy)
+                .HasConstraintName("FK_TblChatGroupJoinRequest_Reviewer");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatGroupJoinRequestUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupJoinRequest_User");
         });
 
         modelBuilder.Entity<TblChatGroupBan>(entity =>

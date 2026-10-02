@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -118,6 +118,10 @@ public partial class TblUser
     public virtual TblCreatorChatSetting? TblCreatorChatSetting { get; set; }
 
     public virtual ICollection<TblCreatorPayoutRequest> TblCreatorPayoutRequests { get; set; } = new List<TblCreatorPayoutRequest>();
+
+    public virtual ICollection<TblChatGroupJoinRequest> TblChatGroupJoinRequestReviewedByNavigations { get; set; } = new List<TblChatGroupJoinRequest>();
+
+    public virtual ICollection<TblChatGroupJoinRequest> TblChatGroupJoinRequestUsers { get; set; } = new List<TblChatGroupJoinRequest>();
 
     public virtual ICollection<TblGroupJoinRequest> TblGroupJoinRequestReviewedByNavigations { get; set; } = new List<TblGroupJoinRequest>();
 

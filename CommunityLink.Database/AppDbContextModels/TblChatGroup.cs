@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -18,6 +18,8 @@ public partial class TblChatGroup
     public int CreatorId { get; set; }
 
     public string ChatType { get; set; } = null!;
+
+    public string AccessMode { get; set; } = "PUBLIC";
 
     public long JoinFeeLinkDrops { get; set; }
 
@@ -48,6 +50,8 @@ public partial class TblChatGroup
     public virtual TblChatGroupInviteLink? TblChatGroupInviteLink { get; set; }
 
     public virtual ICollection<TblChatGroupInvite> TblChatGroupInvites { get; set; } = new List<TblChatGroupInvite>();
+
+    public virtual ICollection<TblChatGroupJoinRequest> TblChatGroupJoinRequests { get; set; } = new List<TblChatGroupJoinRequest>();
 
     public virtual ICollection<TblChatGroupMember> TblChatGroupMembers { get; set; } = new List<TblChatGroupMember>();
 

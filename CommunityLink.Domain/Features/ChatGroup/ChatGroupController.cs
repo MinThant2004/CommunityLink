@@ -352,6 +352,46 @@ public sealed class ChatGroupController(IChatGroupService chatGroupService) : Ba
     public async Task<IActionResult> RevokeInviteLink(int chatGroupId, int linkId, CancellationToken cancellationToken) =>
         ToActionResult(await chatGroupService.RevokeInviteLinkAsync(chatGroupId, linkId, cancellationToken));
 
+    // ------------------------------------------------------------------
+    // Join Requests (Private Group Access Control)
+    // ------------------------------------------------------------------
+
+    [HttpPost("{chatGroupId:int}/join-requests")]
+    [Authorize]
+    public async Task<IActionResult> SubmitJoinRequest(int chatGroupId, [FromBody] SubmitJoinRequestModel? request, CancellationToken cancellationToken) =>
+        ToActionResult(await chatGroupService.SubmitJoinRequestAsync(chatGroupId, request, cancellationToken));
+
+    [HttpGet("{chatGroupId:int}/join-requests/my")]
+    [Authorize]
+    public async Task<IActionResult> GetMyJoinRequestStatus(int chatGroupId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatGroupService.GetMyJoinRequestStatusAsync(chatGroupId, cancellationToken));
+
+    [HttpGet("{chatGroupId:int}/join-requests")]
+    [Authorize]
+    public async Task<IActionResult> GetJoinRequests(int chatGroupId, [FromQuery] string? status, CancellationToken cancellationToken) =>
+        ToActionResult(await chatGroupService.GetJoinRequestsAsync(chatGroupId, status, cancellationToken));
+
+    [HttpPost("{chatGroupId:int}/join-requests/{requestId:int}/approve")]
+    [Authorize]
+    public async Task<IActionResult> ApproveJoinRequest(int chatGroupId, int requestId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatGroupService.ApproveJoinRequestAsync(chatGroupId, requestId, cancellationToken));
+
+    [HttpPost("{chatGroupId:int}/join-requests/{requestId:int}/reject")]
+    [Authorize]
+    public async Task<IActionResult> RejectJoinRequest(int chatGroupId, int requestId, [FromQuery] string? reason, CancellationToken cancellationToken) =>
+        ToActionResult(await chatGroupService.RejectJoinRequestAsync(chatGroupId, requestId, reason, cancellationToken));
+
+    [HttpPost("{chatGroupId:int}/pay-and-join")]
+    [Authorize]
+    public async Task<IActionResult> PayAndJoinApprovedRequest(int chatGroupId, CancellationToken cancellationToken)
+    {
+        var result = await chatGroupService.PayAndJoinApprovedRequestAsync(chatGroupId, cancellationToken);
+        if (result.IsSuccess)
+        {
+            await BroadcastAsync(chatGroupId, "GroupMemberUpdated", cancellationToken, chatGroupId);
+        }
+        return ToActionResult(result);
+    }
 
     private async Task BroadcastAsync(
         int chatGroupId,

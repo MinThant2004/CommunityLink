@@ -51,6 +51,7 @@
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public string Title { get; set; } = string.Empty;
     [Parameter] public string MaxWidth { get; set; } = "max-w-lg";
+    [Parameter] public string MaxHeight { get; set; } = "max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)]";
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public RenderFragment? FooterContent { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
@@ -59,7 +60,7 @@
     private bool _wasOpen;
     private bool _focusPending;
 
-    private string PanelClass => $"{MaxWidth}";
+    private string PanelClass => $"{MaxWidth} {MaxHeight}";
 
     // Focus moves into the panel only on the closed -> open transition. Re-focusing on every
     // parameter set would steal focus from controls inside the panel: the panel content

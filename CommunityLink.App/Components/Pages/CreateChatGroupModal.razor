@@ -51,6 +51,31 @@
             }
         </div>
 
+        <fieldset class="mt-3">
+            <legend class="mb-2 text-xs font-semibold text-slate-700">Access Mode</legend>
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <button type="button" @onclick='() => accessMode = "PUBLIC"' aria-pressed="@(accessMode == "PUBLIC")"
+                        class="flex items-center gap-3 rounded-lg border p-3.5 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500
+                               @(accessMode == "PUBLIC" ? "border-indigo-300 bg-indigo-50" : "border-slate-200 bg-slate-50 hover:border-slate-300")">
+                    <span class="text-lg">🌐</span>
+                    <span>
+                        <span class="block text-xs font-semibold text-slate-900">Public Group</span>
+                        <span class="block text-xs text-slate-500">Anyone can find and join</span>
+                    </span>
+                </button>
+
+                <button type="button" @onclick='() => accessMode = "PRIVATE"' aria-pressed="@(accessMode == "PRIVATE")"
+                        class="flex items-center gap-3 rounded-lg border p-3.5 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500
+                               @(accessMode == "PRIVATE" ? "border-indigo-300 bg-indigo-50" : "border-slate-200 bg-slate-50 hover:border-slate-300")">
+                    <span class="text-lg">🔒</span>
+                    <span>
+                        <span class="block text-xs font-semibold text-slate-900">Private Group</span>
+                        <span class="block text-xs text-slate-500">Requires admin approval to join</span>
+                    </span>
+                </button>
+            </div>
+        </fieldset>
+
         <fieldset>
             <legend class="mb-2 text-xs font-semibold text-slate-700">Group type</legend>
             <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -62,7 +87,7 @@
                     </svg>
                     <span>
                         <span class="block text-xs font-semibold text-slate-900">Free group</span>
-                        <span class="block text-xs text-slate-500">Anyone can join instantly</span>
+                        <span class="block text-xs text-slate-500">No join fee</span>
                     </span>
                 </button>
 
@@ -121,6 +146,7 @@
     private string name = "";
     private string description = "";
     private string chatType = "FREE";
+    private string accessMode = "PUBLIC";
     private long joinFeeLinkDrops = 50;
 
     private IBrowserFile? imageFile;
@@ -226,7 +252,8 @@
             string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
             null,
             chatType,
-            chatType == "PAID" ? joinFeeLinkDrops : 0);
+            chatType == "PAID" ? joinFeeLinkDrops : 0,
+            accessMode);
 
         var res = await ChatGroupApi.CreateChatGroupAsync(request);
 

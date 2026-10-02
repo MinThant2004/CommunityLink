@@ -10,13 +10,13 @@
                 {
                     <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 font-bold text-sm">✓</span>
                 }
-                else if (toast.Message.Level == ToastLevel.Warning || toast.Message.Level == ToastLevel.Error)
+                else if (toast.Message.Level == ToastLevel.Warning)
                 {
-                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-100 text-rose-600 font-bold text-sm">⚠</span>
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-600 font-bold text-sm">ℹ</span>
                 }
                 else
                 {
-                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 font-bold text-sm">ℹ</span>
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold text-sm">ℹ</span>
                 }
             </div>
             <div class="flex-1 min-w-0">
@@ -51,6 +51,12 @@
 
     private void HandleToast(ToastMessage message)
     {
+        // Prevent duplicate toast messages from showing simultaneously
+        if (toasts.Any(t => string.Equals(t.Message.Message, message.Message, StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
+        }
+
         var item = new ToastItem { Message = message };
         toasts.Insert(0, item);
         InvokeAsync(StateHasChanged);
@@ -70,8 +76,8 @@
     private string GetToastClasses(ToastLevel level) => level switch
     {
         ToastLevel.Success => "bg-white dark:bg-[#112A46] border-emerald-500/30 dark:border-emerald-500/40 ring-1 ring-emerald-500/20 text-slate-800 dark:text-[#E1E8F0]",
-        ToastLevel.Warning => "bg-white dark:bg-[#112A46] border-rose-500/40 dark:border-rose-500/50 ring-1 ring-rose-500/20 text-slate-800 dark:text-[#E1E8F0]",
-        ToastLevel.Error => "bg-white dark:bg-[#112A46] border-rose-600/40 dark:border-rose-600/50 ring-1 ring-rose-600/20 text-slate-800 dark:text-[#E1E8F0]",
+        ToastLevel.Warning => "bg-white dark:bg-[#112A46] border-amber-500/40 dark:border-amber-500/50 ring-1 ring-amber-500/20 text-slate-800 dark:text-[#E1E8F0]",
+        ToastLevel.Error => "bg-white dark:bg-[#112A46] border-slate-300 dark:border-slate-700 ring-1 ring-slate-400/20 text-slate-800 dark:text-[#E1E8F0]",
         _ => "bg-white dark:bg-[#112A46] border-blue-500/30 dark:border-blue-500/40 ring-1 ring-blue-500/20 text-slate-800 dark:text-[#E1E8F0]"
     };
 
