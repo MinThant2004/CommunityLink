@@ -83,15 +83,36 @@ public sealed class DashboardService(
                     u.TblCommunityMembers.Count(m => !m.IsDeleted),
                     u.TblPosts.Count(p => !p.IsDeleted),
                     u.AverageRating,
-                    followedUserIds.Contains(u.UserId)))
+                    followedUserIds.Contains(u.UserId),
+                    u.Headline,
+                    u.AvailabilityStatus,
+                    u.ResponseSlaText,
+                    u.PercentileBadgeText,
+                    u.RatingCount,
+                    null))
                 .ToListAsync(cancellationToken);
 
             // Followed people first, then other users by rating / verification
-            var people = rawPeople
+            var topPeople = rawPeople
                 .OrderByDescending(u => u.IsFollowedByCurrentUser)
                 .ThenByDescending(u => u.AverageRating ?? 0)
                 .ThenBy(u => u.DisplayName)
                 .Take(20)
+                .ToList();
+
+            var topPersonIds = topPeople.Select(p => p.UserId).ToList();
+            var rawSkills = await dbContext.TblUserSkills
+                .Where(s => topPersonIds.Contains(s.UserId) && !s.IsDeleted)
+                .OrderBy(s => s.DisplayOrder)
+                .Select(s => new { s.UserId, s.SkillName })
+                .ToListAsync(cancellationToken);
+
+            var skillsMap = rawSkills
+                .GroupBy(s => s.UserId)
+                .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(s => s.SkillName).Take(4).ToList());
+
+            var people = topPeople
+                .Select(p => p with { Skills = skillsMap.TryGetValue(p.UserId, out var sk) ? sk : [] })
                 .ToList();
 
             // Groups: Joined first, then pending/not joined

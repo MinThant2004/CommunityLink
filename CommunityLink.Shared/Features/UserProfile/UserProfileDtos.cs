@@ -101,6 +101,7 @@ public class UpdateUserProfileRequestDto
     public string? Location { get; set; }
     public string? AvailabilityStatus { get; set; }
     public string? Bio { get; set; }
+    public string? AvatarUrl { get; set; }
 }
 
 public class RateUserRequestDto
