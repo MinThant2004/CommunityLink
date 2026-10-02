@@ -844,52 +844,6 @@
         activeTab = tab;
     }
 
-    private void ChangeCurrency(string currency)
-    {
-        if (currency == "USD" || currency == "CNY")
-        {
-            Toast.Warning("This feature is currently unavailable");
-            return;
-        }
-
-        selectedCurrency = currency;
-        if (isCustomPurchase)
-        {
-            customMoneyAmount = 1000m;
-        }
-        Recalculate();
-    }
-
-    private decimal GetPackagePriceInSelectedCurrency(long drops)
-    {
-        return selectedCurrency switch
-        {
-            "USD" => drops * exchangeRates.UsdPerLinkDrop,
-            "CNY" => drops * exchangeRates.CnyPerLinkDrop,
-            _ => drops * exchangeRates.MmkPerLinkDrop
-        };
-    }
-
-    private string FormatCurrencyAmount(decimal amount)
-    {
-        return selectedCurrency switch
-        {
-            "USD" => $"${amount:N2} USD",
-            "CNY" => $"¥{amount:N2} CNY",
-            _ => $"{amount:N0} MMK"
-        };
-    }
-
-    private string GetCurrencySymbol()
-    {
-        return selectedCurrency switch
-        {
-            "USD" => "$",
-            "CNY" => "¥",
-            _ => "Ks"
-        };
-    }
-
     private void SelectPackage(LinkDropPackageDto pkg)
     {
         selectedPackage = pkg;

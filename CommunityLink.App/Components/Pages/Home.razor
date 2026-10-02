@@ -951,7 +951,7 @@ else if (dashboard != null)
 
                     <!-- 4. EXECUTIVE BROADCAST STREAM (POSTS FEED) -->
                     <div class="flex flex-col gap-3.5" id="feed-stream">
-                        @if (!dashboard.RecentPosts.Any())
+                        @if (!feedPosts.Any())
                         {
                             <div class="bg-surface-container-low p-6 sm:p-8 rounded-xl text-center flex flex-col items-center gap-2 shadow-xs border border-white/5">
                                 <span class="w-10 h-10 rounded-lg bg-surface-container text-primary flex items-center justify-center">
@@ -963,7 +963,7 @@ else if (dashboard != null)
                         }
                         else
                         {
-                            @foreach (var post in dashboard.RecentPosts)
+                            @foreach (var post in feedPosts)
                             {
                                 <article class="bg-surface-container-low p-3.5 sm:p-4 rounded-xl shadow-xs flex flex-col gap-2.5 border border-white/5 relative">
                                     <!-- Post Header -->
@@ -1212,6 +1212,24 @@ else if (dashboard != null)
                                     }
                                 </article>
                             }
+
+                            <!-- Infinite Scroll Loading Indicator & Sentinel -->
+                            @if (isLoadingMoreFeed)
+                            {
+                                <div class="py-4 flex items-center justify-center gap-2 text-on-surface-variant text-xs font-medium">
+                                    <div class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                    <span>Loading more posts...</span>
+                                </div>
+                            }
+                            else if (!hasMoreFeedPosts && feedPosts.Count > 0)
+                            {
+                                <div class="py-4 text-center">
+                                    <span class="font-mono text-[11px] text-outline">You've reached the end of the feed</span>
+                                </div>
+                            }
+
+                            <!-- Invisible Sentinel Element Observed for Infinite Scroll -->
+                            <div id="feed-infinite-sentinel" class="h-2 w-full"></div>
                         }
                     </div>
                 </div>
@@ -2672,7 +2690,7 @@ else if (dashboard != null)
     // Top Feed Tabs: "posts" | "people" | "groups"
     private string activeFeedTab = "posts";
 
-    private int FeedPostCount => dashboard?.RecentPosts?.Count ?? 0;
+    private int FeedPostCount => feedPosts.Count;
     private int FeedPeopleCount => dashboard?.People?.Count ?? 0;
     private int FeedGroupCount => dashboard?.Groups?.Count ?? 0;
 
@@ -3606,6 +3624,101 @@ else if (dashboard != null)
             "MODERATOR" => "Moderator",
             _ => person.IsVerified ? "Verified Member" : "Active Member"
         };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotNetRef = DotNetObjectReference.Create(this);
+            try
+            {
+                await JS.InvokeVoidAsync("eval", @"
+                    window.clInitHomeFeedObserver = function(dotNetHelper) {
+                        var topBtn = document.getElementById('btn-scroll-to-top');
+                        window.addEventListener('scroll', function() {
+                            if (!topBtn) topBtn = document.getElementById('btn-scroll-to-top');
+                            if (topBtn) {
+                                if (window.scrollY > 350) {
+                                    topBtn.classList.remove('opacity-0', 'pointer-events-none');
+                                    topBtn.classList.add('opacity-100', 'pointer-events-auto');
+                                } else {
+                                    topBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                                    topBtn.classList.add('opacity-0', 'pointer-events-none');
+                                }
+                            }
+                        });
+
+                        var observer = new IntersectionObserver(function(entries) {
+                            if (entries[0] && entries[0].isIntersecting) {
+                                dotNetHelper.invokeMethodAsync('TriggerLoadMoreFeedPosts');
+                            }
+                        }, { rootMargin: '400px' });
+
+                        var sentinel = document.getElementById('feed-infinite-sentinel');
+                        if (sentinel) observer.observe(sentinel);
+                    };
+                ");
+
+                await JS.InvokeVoidAsync("clInitHomeFeedObserver", dotNetRef);
+            }
+            catch { }
+        }
+    }
+
+    [JSInvokable]
+    public async Task TriggerLoadMoreFeedPosts()
+    {
+        if (isLoadingMoreFeed || !hasMoreFeedPosts || isLoading) return;
+
+        isLoadingMoreFeed = true;
+        StateHasChanged();
+
+        try
+        {
+            var nextPage = currentFeedPage + 1;
+            var res = await PostApi.GetFeedAsync(page: nextPage, pageSize: FeedPageSize, cancellationToken: _cts.Token);
+            if (res.IsSuccess && res.Data != null)
+            {
+                var newItems = res.Data;
+                if (newItems.Count > 0)
+                {
+                    // Deduplicate against existing feed
+                    var existingIds = new HashSet<int>(feedPosts.Select(p => p.PostId));
+                    var toAdd = newItems.Where(p => !existingIds.Contains(p.PostId)).ToList();
+                    feedPosts.AddRange(toAdd);
+                    currentFeedPage = nextPage;
+                    hasMoreFeedPosts = newItems.Count >= FeedPageSize;
+                }
+                else
+                {
+                    hasMoreFeedPosts = false;
+                }
+            }
+            else
+            {
+                hasMoreFeedPosts = false;
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception)
+        {
+            hasMoreFeedPosts = false;
+        }
+        finally
+        {
+            isLoadingMoreFeed = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ScrollToTopAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("eval", "window.scrollTo({ top: 0, behavior: 'smooth' })");
+        }
+        catch { }
     }
 
     public void Dispose()
