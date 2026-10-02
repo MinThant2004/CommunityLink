@@ -217,26 +217,25 @@
                                 <div class="absolute inset-x-0 top-0 h-1 @glowGradient opacity-80"></div>
 
                                 <div class="p-space-md flex flex-col gap-space-sm">
-                                    <!-- Header Image / Badge Strip -->
-                                    <div class="relative h-32 rounded-lg overflow-hidden bg-surface-container-lowest">
+                                    <!-- Header Image / Badge Strip (without gradient shadow overlay) -->
+                                    <div class="relative h-36 rounded-lg overflow-hidden bg-surface-container-lowest border border-slate-200 dark:border-surface-container-high/30">
                                         <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                              src="@banner"
                                              alt="@sub.Name" />
-                                        <div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/60 to-transparent"></div>
 
                                         <!-- Category Pill Badge -->
                                         <div class="absolute top-3 left-3 flex items-center gap-2">
-                                            <span class="px-2.5 py-1 rounded-md bg-surface-container-lowest/90 backdrop-blur-md text-primary font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1 border border-primary/20">
-                                                <span class="material-symbols-outlined text-xs">@GetCategoryIconForIndex(cardIndex)</span>
+                                            <span class="px-2.5 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-[#0A1B2E] dark:text-primary font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1 border border-slate-300/80 dark:border-primary/20 font-semibold shadow-xs">
+                                                <span class="material-symbols-outlined text-xs text-primary">@GetCategoryIconForIndex(cardIndex)</span>
                                                 <span>@(sub.CategoryName ?? "Capital & Syndicate")</span>
                                             </span>
                                         </div>
 
                                         <!-- Bottom-Left Title & Bottom-Right Avatar Pile -->
-                                        <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between">
-                                            <div>
-                                                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">@tierTitle</span>
-                                                <div class="font-title-lg text-title-lg text-on-surface font-semibold tracking-tight truncate">
+                                        <div class="absolute bottom-2 left-2 right-2 p-2 rounded-lg bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md border border-slate-200/80 dark:border-surface-container-high/30 flex items-center justify-between gap-2 shadow-xs">
+                                            <div class="min-w-0">
+                                                <span class="font-label-sm text-[10px] text-slate-500 dark:text-on-surface-variant uppercase tracking-wider font-semibold truncate block">@tierTitle</span>
+                                                <div class="font-title-md text-sm text-slate-900 dark:text-on-surface font-bold tracking-tight truncate">
                                                     @sub.Name
                                                 </div>
                                             </div>
@@ -247,21 +246,21 @@
                                                 {
                                                     @foreach (var avatar in sub.MemberAvatarUrls.Take(2))
                                                     {
-                                                        <div class="w-7 h-7 rounded-full bg-surface-container-high overflow-hidden border-2 border-surface-container-lowest">
+                                                        <div class="w-7 h-7 rounded-full bg-surface-container-high overflow-hidden border-2 border-white dark:border-surface-container-lowest shadow-xs">
                                                             <img class="w-full h-full object-cover" src="@avatar" alt="Member Avatar" />
                                                         </div>
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    <div class="w-7 h-7 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm flex items-center justify-center font-bold border-2 border-surface-container-lowest">
+                                                    <div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-surface-container-highest text-slate-800 dark:text-on-surface-variant font-label-sm text-xs flex items-center justify-center font-bold border-2 border-white dark:border-surface-container-lowest shadow-xs">
                                                         @InitialOf(sub.Name)
                                                     </div>
                                                 }
 
                                                 @if (sub.ExtraMemberCount > 0)
                                                 {
-                                                    <div class="w-7 h-7 rounded-full bg-primary text-on-primary font-label-sm text-label-sm flex items-center justify-center font-bold border-2 border-surface-container-lowest">
+                                                    <div class="w-7 h-7 rounded-full bg-primary text-on-primary font-label-sm text-[10px] flex items-center justify-center font-bold border-2 border-white dark:border-surface-container-lowest shadow-xs">
                                                         +@sub.ExtraMemberCount
                                                     </div>
                                                 }
@@ -366,27 +365,6 @@
                         }
                     </div>
                 }
-            </div>
-
-            <!-- Institutional Bottom Callout -->
-            <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-lg w-full">
-                <div class="p-space-md rounded-xl bg-surface-container-lowest flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md border border-surface-container-high/30">
-                    <div class="flex items-center gap-space-md">
-                        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary shrink-0 border border-primary/20">
-                            <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">verified</span>
-                        </div>
-                        <div>
-                            <div class="font-title-md text-title-md text-on-surface font-bold">Sub-Community Proposal &amp; Escrow Governance</div>
-                            <p class="font-body-sm text-body-sm text-on-surface-variant">Qualified council members with &gt;500 staked reputation points may charter specialized sub-nodes.</p>
-                        </div>
-                    </div>
-                    <button class="px-space-md py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-label-lg text-label-lg flex items-center gap-1.5 shrink-0 transition-colors border border-surface-container-high/40 cursor-pointer"
-                            type="button"
-                            @onclick="OpenCreateSubModal">
-                        <span class="material-symbols-outlined text-sm text-primary">add_circle</span>
-                        <span>Propose New Working Hub</span>
-                    </button>
-                </div>
             </div>
         </div>
     </div>

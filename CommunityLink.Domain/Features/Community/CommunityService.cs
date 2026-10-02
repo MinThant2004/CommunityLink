@@ -18,6 +18,7 @@ public interface ICommunityService
     Task<Result<CommunityModel>> UpdateCommunityAsync(int communityId, EditCommunityRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityAuditModel>>> GetCommunityAuditsAsync(int communityId, CancellationToken cancellationToken = default);
     Task<Result> JoinCommunityAsync(int communityId, CancellationToken cancellationToken = default);
+    Task<Result> LeaveCommunityAsync(int communityId, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityModel>>> GetJoinedCommunitiesAsync(int userId, int take = 10, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityModel>>> GetRecommendedCommunitiesAsync(int userId, int take = 6, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityModel>>> GetCommunityDirectoryAsync(CancellationToken cancellationToken = default);
@@ -451,6 +452,32 @@ public sealed class CommunityService(
         return Result.Success("Joined community successfully.");
     }
 
+    public async Task<Result> LeaveCommunityAsync(int communityId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
+
+        var existing = await dbContext.TblCommunityMembers
+            .FirstOrDefaultAsync(m => m.CommunityId == communityId && m.UserId == currentUser.UserId.Value && !m.IsDeleted, cancellationToken);
+
+        if (existing is null)
+        {
+            return Result.Failure("You are not a member of this community.", ResultStatus.NotFound);
+        }
+
+        existing.IsDeleted = true;
+        existing.DeletedAt = DateTime.UtcNow;
+        existing.DeletedBy = currentUser.UserId.Value;
+
+        var community = await dbContext.TblCommunities.FindAsync([communityId], cancellationToken);
+        if (community is not null && community.MemberCount > 0)
+        {
+            community.MemberCount = Math.Max(0, community.MemberCount - 1);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success("Left community successfully.");
+    }
+
     public async Task<Result<CommunityModel>> UpdateCommunityAsync(int communityId, EditCommunityRequestModel request, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
@@ -687,9 +714,9 @@ public sealed class CommunityService(
                 c.BannerUrl,
                 c.Visibility,
                 c.JoinPolicy,
-                MemberCount = c.TblCommunityMembers.Count(m => !m.IsDeleted),
-                PostCount = c.TblPosts.Count(p => !p.IsDeleted),
-                AverageRating = c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
+                MemberCount = c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                PostCount = c.PostCount > 0 ? c.PostCount : c.TblPosts.Count(p => !p.IsDeleted),
+                AverageRating = (double)(c.AverageRating ?? 5.0m),
                 c.OwnerId,
                 OwnerName = c.Owner != null ? c.Owner.DisplayName : "Admin",
                 c.CreatedAt,
