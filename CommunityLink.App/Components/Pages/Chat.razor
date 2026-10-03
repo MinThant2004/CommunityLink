@@ -8,6 +8,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
 @inject ToastService Toast
+@inject IJSRuntime JS
 @implements IAsyncDisposable
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
 
@@ -269,7 +270,8 @@
                      OnGroupImageChanged="ApplyGroupImageAsync"
                      OnDeleteGroup="DeleteGroupAsync"
                      OnToggleBlockUser="ToggleBlockUserAsync"
-                     OnDeleteConversation="DeleteConversationAsync" />
+                     OnDeleteConversation="DeleteConversationAsync"
+                     OnViewInChat="ViewMessageInChatAsync" />
 
 @if (showDiscover)
 {
@@ -1965,6 +1967,31 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         {
             isActionSubmitting = false;
             StateHasChanged();
+        }
+    }
+
+    private async Task ViewMessageInChatAsync(int messageId)
+    {
+        showInfo = false;
+        await Task.Delay(100);
+        try
+        {
+            await JS.InvokeVoidAsync("eval", $@"
+                (function() {{
+                    const el = document.getElementById('msg-{messageId}');
+                    if (el) {{
+                        el.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                        el.classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50', 'rounded-lg');
+                        setTimeout(() => {{
+                            el.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50', 'rounded-lg');
+                        }}, 2500);
+                    }}
+                }})();
+            ");
+        }
+        catch
+        {
+            // Ignore JS scroll errors
         }
     }
 

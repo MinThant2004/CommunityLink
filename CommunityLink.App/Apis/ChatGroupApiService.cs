@@ -283,4 +283,10 @@ public sealed class ChatGroupApiService(IHttpClientFactory clientFactory, IHttpC
 
     public Task<Result> PayAndJoinApprovedRequestAsync(int chatGroupId, CancellationToken cancellationToken = default) =>
         PostAsync($"api/chat-groups/{chatGroupId}/pay-and-join", new { }, cancellationToken);
+
+    public Task<Result<SharedMediaCountsModel>> GetSharedMediaCountsAsync(int chatGroupId, CancellationToken cancellationToken = default) =>
+        GetAsync<SharedMediaCountsModel>($"api/chat-groups/{chatGroupId}/media/counts", cancellationToken);
+
+    public Task<Result<SharedMediaPagedResultModel>> GetSharedMediaAsync(int chatGroupId, string category, int page = 1, int pageSize = 30, CancellationToken cancellationToken = default) =>
+        GetAsync<SharedMediaPagedResultModel>($"api/chat-groups/{chatGroupId}/media/{category}?page={page}&pageSize={pageSize}", cancellationToken);
 }
