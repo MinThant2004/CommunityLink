@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -33,7 +33,7 @@ public partial class TblChatGroupPaymentTransaction
 
     public virtual TblChatGroup ChatGroup { get; set; } = null!;
 
-    public virtual TblUser User { get; set; } = null!;
-
     public virtual TblUser CreatorUser { get; set; } = null!;
+
+    public virtual TblUser User { get; set; } = null!;
 }

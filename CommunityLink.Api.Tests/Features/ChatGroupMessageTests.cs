@@ -104,8 +104,9 @@ public class ChatGroupMessageTests : IClassFixture<CommunityApiFactory>
         var getResult = await getResp.Content.ReadFromJsonAsync<Result<IReadOnlyList<ChatGroupMessageModel>>>();
         Assert.True(getResult?.IsSuccess);
         Assert.NotNull(getResult?.Data);
-        Assert.Single(getResult.Data);
-        Assert.Equal("Hello everyone!", getResult.Data[0].Content);
+        var userMessages = getResult.Data.Where(m => m.MessageType != "SYSTEM").ToList();
+        Assert.Single(userMessages);
+        Assert.Equal("Hello everyone!", userMessages[0].Content);
     }
 
     [Fact]
@@ -158,6 +159,7 @@ public class ChatGroupMessageTests : IClassFixture<CommunityApiFactory>
         var getResp = await _client.GetAsync($"/api/chat-groups/{groupId}/messages");
         var getResult = await getResp.Content.ReadFromJsonAsync<Result<IReadOnlyList<ChatGroupMessageModel>>>();
         Assert.NotNull(getResult?.Data);
-        Assert.Empty(getResult.Data);
+        var remainingUserMessages = getResult.Data.Where(m => m.MessageType != "SYSTEM").ToList();
+        Assert.Empty(remainingUserMessages);
     }
 }

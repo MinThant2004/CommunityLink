@@ -234,6 +234,16 @@ public class FollowUserItemDto
     public DateTime FollowedAt { get; set; }
 }
 
+public class UserSearchResultDto
+{
+    public int UserId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
+    public string? Headline { get; set; }
+    public bool IsVerified { get; set; }
+}
+
 public class UserSharedPostItemDto
 {
     public int ShareId { get; set; }

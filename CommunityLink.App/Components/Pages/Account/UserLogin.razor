@@ -25,6 +25,10 @@
         </div>
 
         <form method="post" action="/account/login" class="space-y-4">
+            @if (!string.IsNullOrWhiteSpace(ReturnUrl))
+            {
+                <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+            }
 
             @if (!string.IsNullOrEmpty(errorMessage))
             {
@@ -77,6 +81,9 @@
 </AuthSplitScreen>
 
 @code {
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
     private bool showForgotPasswordModal;
     private string? errorMessage;
 
@@ -87,6 +94,10 @@
         {
             var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
             errorMessage = query["error"];
+            if (string.IsNullOrWhiteSpace(ReturnUrl))
+            {
+                ReturnUrl = query["returnUrl"];
+            }
         }
     }
 

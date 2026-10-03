@@ -2,6 +2,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Security;
+using CommunityLink.Domain.Services;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Community;
 
@@ -28,7 +29,8 @@ public interface ICommunityService
 public sealed class CommunityService(
     AppDbContext dbContext,
     ICurrentUserContext currentUser,
-    IPermissionEvaluator permissionEvaluator) : ICommunityService
+    IPermissionEvaluator permissionEvaluator,
+    IPublicUrlBuilder publicUrlBuilder) : ICommunityService
 {
     public async Task<Result<IReadOnlyList<CommunityModel>>> GetCommunitiesAsync(string? search, CancellationToken cancellationToken = default)
     {
@@ -313,7 +315,7 @@ public sealed class CommunityService(
             await fileStream.CopyToAsync(destStream, cancellationToken);
         }
 
-        var bannerUrl = $"/uploads/communities/banners/{uniqueFileName}";
+        var bannerUrl = publicUrlBuilder.Build($"/uploads/communities/banners/{uniqueFileName}");
         return Result<string>.Success(bannerUrl, "Banner uploaded successfully.");
     }
 

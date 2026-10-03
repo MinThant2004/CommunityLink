@@ -28,34 +28,110 @@ public interface IChatService
     /// </summary>
     Task<Result<IReadOnlyList<MessageReactionModel>>> SetReactionAsync(
         int conversationId, int messageId, string? emoji, CancellationToken cancellationToken = default);
+
+    /// <summary>Hides all messages in the conversation for the caller.</summary>
+    Task<Result> DeleteConversationForSelfAsync(int conversationId, CancellationToken cancellationToken = default);
+
+    Task<Result> BlockUserAsync(int targetUserId, CancellationToken cancellationToken = default);
+    Task<Result> UnblockUserAsync(int targetUserId, CancellationToken cancellationToken = default);
+    Task<Result<UserBlockStatusModel>> GetUserBlockStatusAsync(int targetUserId, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<int>>> GetBlockedUserIdsAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed class ChatService(
     AppDbContext dbContext,
     ICurrentUserContext currentUser,
-    IHubContext<ChatHub> hubContext) : IChatService
+    IHubContext<ChatHub> hubContext,
+    PresenceTracker presenceTracker) : IChatService
 {
     public async Task<Result<IReadOnlyList<ConversationModel>>> GetConversationsAsync(CancellationToken cancellationToken = default)
     {
         if (currentUser.UserId is null) return Result<IReadOnlyList<ConversationModel>>.Failure("Unauthorized", ResultStatus.Unauthorized);
 
         var currentUserId = currentUser.UserId.Value;
-        var list = await dbContext.TblConversations
+
+        var blockedByMeSet = await dbContext.TblUserBlocks
+            .AsNoTracking()
+            .Where(b => b.BlockerUserId == currentUserId && !b.IsDeleted)
+            .Select(b => b.BlockedUserId)
+            .ToHashSetAsync(cancellationToken);
+
+        var blockedTargetSet = await dbContext.TblUserBlocks
+            .AsNoTracking()
+            .Where(b => b.BlockedUserId == currentUserId && !b.IsDeleted)
+            .Select(b => b.BlockerUserId)
+            .ToHashSetAsync(cancellationToken);
+
+        var rawConversations = await dbContext.TblConversations
             .Include(c => c.UserOne)
             .Include(c => c.UserTwo)
             .Where(c => (c.UserOneId == currentUserId || c.UserTwoId == currentUserId) && !c.IsDeleted)
             .OrderByDescending(c => c.LastMessageAt ?? c.CreatedAt)
-            .Select(c => new ConversationModel(
-                c.ConversationId,
-                c.UserOneId == currentUserId ? c.UserTwoId : c.UserOneId,
-                c.UserOneId == currentUserId ? c.UserTwo.UserName : c.UserOne.UserName,
-                c.UserOneId == currentUserId ? c.UserTwo.DisplayName : c.UserOne.DisplayName,
-                c.UserOneId == currentUserId ? c.UserTwo.AvatarUrl : c.UserOne.AvatarUrl,
-                c.LastMessagePreview,
-                c.LastMessageAt))
             .ToListAsync(cancellationToken);
 
-        return Result<IReadOnlyList<ConversationModel>>.Success(list);
+        rawConversations = rawConversations
+            .GroupBy(c => c.UserOneId == currentUserId ? c.UserTwoId : c.UserOneId)
+            .Select(g => g.First())
+            .ToList();
+
+        var resultList = new List<ConversationModel>();
+
+        foreach (var c in rawConversations)
+        {
+            var otherUserId = c.UserOneId == currentUserId ? c.UserTwoId : c.UserOneId;
+            var otherUser = c.UserOneId == currentUserId ? c.UserTwo : c.UserOne;
+
+            var totalMessageCount = await dbContext.TblChatMessages
+                .AsNoTracking()
+                .CountAsync(m => m.ConversationId == c.ConversationId && !m.IsDeleted, cancellationToken);
+
+            if (totalMessageCount > 0)
+            {
+                var visibleMessages = await dbContext.TblChatMessages
+                    .AsNoTracking()
+                    .Where(m => m.ConversationId == c.ConversationId &&
+                                !m.IsDeleted &&
+                                !dbContext.TblChatMessageUserStates.Any(s => s.ChatMessageId == m.ChatMessageId && s.UserId == currentUserId && s.IsHidden))
+                    .OrderByDescending(m => m.CreatedAt)
+                    .Select(m => new { m.MessageText, m.CreatedAt })
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (visibleMessages is null)
+                {
+                    continue;
+                }
+
+                resultList.Add(new ConversationModel(
+                    c.ConversationId,
+                    otherUserId,
+                    otherUser.UserName,
+                    otherUser.DisplayName,
+                    otherUser.AvatarUrl,
+                    visibleMessages.MessageText,
+                    visibleMessages.CreatedAt,
+                    IsBlockedByMe: blockedByMeSet.Contains(otherUserId),
+                    IsBlockedByTarget: blockedTargetSet.Contains(otherUserId),
+                    IsOnline: presenceTracker.IsUserOnline(otherUserId),
+                    LastActiveAt: otherUser.LastActiveAt));
+            }
+            else
+            {
+                resultList.Add(new ConversationModel(
+                    c.ConversationId,
+                    otherUserId,
+                    otherUser.UserName,
+                    otherUser.DisplayName,
+                    otherUser.AvatarUrl,
+                    c.LastMessagePreview,
+                    c.LastMessageAt,
+                    IsBlockedByMe: blockedByMeSet.Contains(otherUserId),
+                    IsBlockedByTarget: blockedTargetSet.Contains(otherUserId),
+                    IsOnline: presenceTracker.IsUserOnline(otherUserId),
+                    LastActiveAt: otherUser.LastActiveAt));
+            }
+        }
+
+        return Result<IReadOnlyList<ConversationModel>>.Success(resultList);
     }
 
     public async Task<Result<IReadOnlyList<ChatMessageModel>>> GetMessagesAsync(int conversationId, CancellationToken cancellationToken = default)
@@ -97,6 +173,10 @@ public sealed class ChatService(
                 SenderName = m.Sender.DisplayName,
                 SenderAvatar = m.Sender.AvatarUrl,
                 m.MessageText,
+                m.MessageType,
+                m.AttachmentUrl,
+                m.FileName,
+                m.FileSizeByte,
                 m.IsRead,
                 m.CreatedAt,
                 m.ReplyToMessageId
@@ -127,6 +207,11 @@ public sealed class ChatService(
                 m.MessageText,
                 m.IsRead,
                 m.CreatedAt,
+                m.MessageType ?? "TEXT",
+                m.AttachmentUrl,
+                m.FileName,
+                m.FileSizeByte,
+                CommunityLink.Shared.Utils.FileSizeFormatter.FormatFileSize(m.FileSizeByte),
                 m.ReplyToMessageId,
                 hasReply ? reply.SenderName : null,
                 hasReply ? reply.Preview : null,
@@ -251,6 +336,22 @@ public sealed class ChatService(
         // STEP 10D: Private Chat Authorization check
         if (recipientId != 0 && recipientId != currentUserId)
         {
+            var isBlockedByMe = await dbContext.TblUserBlocks
+                .AsNoTracking()
+                .AnyAsync(b => b.BlockerUserId == currentUserId && b.BlockedUserId == recipientId && !b.IsDeleted, cancellationToken);
+            if (isBlockedByMe)
+            {
+                return Result<ChatMessageModel>.Failure("You have blocked this user. Unblock to send messages.", ResultStatus.ValidationError);
+            }
+
+            var isBlockedByRecipient = await dbContext.TblUserBlocks
+                .AsNoTracking()
+                .AnyAsync(b => b.BlockerUserId == recipientId && b.BlockedUserId == currentUserId && !b.IsDeleted, cancellationToken);
+            if (isBlockedByRecipient)
+            {
+                return Result<ChatMessageModel>.Failure("You cannot send messages to this user.", ResultStatus.Forbidden);
+            }
+
             var accessCheck = await ValidatePrivateChatAccessAsync(currentUserId, recipientId, conversation?.ConversationId, cancellationToken);
             if (accessCheck != null && !accessCheck.IsSuccess)
             {
@@ -291,11 +392,16 @@ public sealed class ChatService(
             }
         }
 
+        var msgType = string.IsNullOrWhiteSpace(request.MessageType) ? "TEXT" : request.MessageType;
         var message = new TblChatMessage
         {
             ConversationId = conversation.ConversationId,
             SenderId = currentUserId,
-            MessageText = request.MessageText.Trim(),
+            MessageText = request.MessageText?.Trim() ?? string.Empty,
+            MessageType = msgType,
+            AttachmentUrl = request.AttachmentUrl,
+            FileName = request.FileName,
+            FileSizeByte = request.FileSizeByte,
             IsRead = false,
             CreatedAt = DateTime.UtcNow,
             ReplyToMessageId = request.ReplyToMessageId
@@ -303,7 +409,10 @@ public sealed class ChatService(
 
         dbContext.TblChatMessages.Add(message);
 
-        conversation.LastMessagePreview = message.MessageText;
+        var previewText = !string.IsNullOrWhiteSpace(message.MessageText)
+            ? message.MessageText
+            : $"[{msgType}] {message.FileName ?? "Attachment"}";
+        conversation.LastMessagePreview = previewText;
         conversation.LastMessageAt = message.CreatedAt;
         conversation.UpdatedAt = DateTime.UtcNow;
 
@@ -324,6 +433,11 @@ public sealed class ChatService(
             message.MessageText,
             message.IsRead,
             message.CreatedAt,
+            message.MessageType,
+            message.AttachmentUrl,
+            message.FileName,
+            message.FileSizeByte,
+            CommunityLink.Shared.Utils.FileSizeFormatter.FormatFileSize(message.FileSizeByte),
             message.ReplyToMessageId,
             hasReply ? replyStub.SenderName : null,
             hasReply ? replyStub.Preview : null,
@@ -772,5 +886,141 @@ public sealed class ChatService(
         }
 
         return null;
+    }
+
+    public async Task<Result> DeleteConversationForSelfAsync(int conversationId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
+
+        var currentUserId = currentUser.UserId.Value;
+
+        var isParticipant = await dbContext.TblConversations
+            .AsNoTracking()
+            .AnyAsync(c => c.ConversationId == conversationId && !c.IsDeleted &&
+                          (c.UserOneId == currentUserId || c.UserTwoId == currentUserId), cancellationToken);
+
+        if (!isParticipant) return Result.Failure("Conversation not found.", ResultStatus.NotFound);
+
+        var messageIds = await dbContext.TblChatMessages
+            .AsNoTracking()
+            .Where(m => m.ConversationId == conversationId && !m.IsDeleted)
+            .Select(m => m.ChatMessageId)
+            .ToListAsync(cancellationToken);
+
+        if (messageIds.Count > 0)
+        {
+            var existingStates = await dbContext.TblChatMessageUserStates
+                .Where(s => messageIds.Contains(s.ChatMessageId) && s.UserId == currentUserId)
+                .ToDictionaryAsync(s => s.ChatMessageId, cancellationToken);
+
+            var utcNow = DateTime.UtcNow;
+            foreach (var msgId in messageIds)
+            {
+                if (existingStates.TryGetValue(msgId, out var state))
+                {
+                    state.IsHidden = true;
+                    state.UpdatedAt = utcNow;
+                }
+                else
+                {
+                    dbContext.TblChatMessageUserStates.Add(new TblChatMessageUserState
+                    {
+                        ChatMessageId = msgId,
+                        UserId = currentUserId,
+                        IsHidden = true,
+                        CreatedAt = utcNow
+                    });
+                }
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return Result.Success("Conversation cleared.");
+    }
+
+    public async Task<Result> BlockUserAsync(int targetUserId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
+        var currentUserId = currentUser.UserId.Value;
+
+        if (currentUserId == targetUserId) return Result.Failure("You cannot block yourself.", ResultStatus.ValidationError);
+
+        var targetExists = await dbContext.TblUsers.AnyAsync(u => u.UserId == targetUserId && !u.IsDeleted, cancellationToken);
+        if (!targetExists) return Result.Failure("User not found.", ResultStatus.NotFound);
+
+        var existing = await dbContext.TblUserBlocks
+            .FirstOrDefaultAsync(b => b.BlockerUserId == currentUserId && b.BlockedUserId == targetUserId, cancellationToken);
+
+        if (existing != null)
+        {
+            if (existing.IsDeleted)
+            {
+                existing.IsDeleted = false;
+                existing.CreatedAt = DateTime.UtcNow;
+                existing.DeletedAt = null;
+            }
+        }
+        else
+        {
+            dbContext.TblUserBlocks.Add(new TblUserBlock
+            {
+                BlockerUserId = currentUserId,
+                BlockedUserId = targetUserId,
+                CreatedAt = DateTime.UtcNow,
+                IsDeleted = false
+            });
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success("User blocked successfully.");
+    }
+
+    public async Task<Result> UnblockUserAsync(int targetUserId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
+        var currentUserId = currentUser.UserId.Value;
+
+        var existing = await dbContext.TblUserBlocks
+            .FirstOrDefaultAsync(b => b.BlockerUserId == currentUserId && b.BlockedUserId == targetUserId && !b.IsDeleted, cancellationToken);
+
+        if (existing != null)
+        {
+            existing.IsDeleted = true;
+            existing.DeletedAt = DateTime.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return Result.Success("User unblocked successfully.");
+    }
+
+    public async Task<Result<UserBlockStatusModel>> GetUserBlockStatusAsync(int targetUserId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result<UserBlockStatusModel>.Failure("Unauthorized", ResultStatus.Unauthorized);
+        var currentUserId = currentUser.UserId.Value;
+
+        var isBlockedByMe = await dbContext.TblUserBlocks
+            .AsNoTracking()
+            .AnyAsync(b => b.BlockerUserId == currentUserId && b.BlockedUserId == targetUserId && !b.IsDeleted, cancellationToken);
+
+        var isBlockedByTarget = await dbContext.TblUserBlocks
+            .AsNoTracking()
+            .AnyAsync(b => b.BlockerUserId == targetUserId && b.BlockedUserId == currentUserId && !b.IsDeleted, cancellationToken);
+
+        return Result<UserBlockStatusModel>.Success(new UserBlockStatusModel(targetUserId, isBlockedByMe, isBlockedByTarget));
+    }
+
+    public async Task<Result<IReadOnlyList<int>>> GetBlockedUserIdsAsync(CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result<IReadOnlyList<int>>.Failure("Unauthorized", ResultStatus.Unauthorized);
+        var currentUserId = currentUser.UserId.Value;
+
+        var list = await dbContext.TblUserBlocks
+            .AsNoTracking()
+            .Where(b => b.BlockerUserId == currentUserId && !b.IsDeleted)
+            .Select(b => b.BlockedUserId)
+            .ToListAsync(cancellationToken);
+
+        return Result<IReadOnlyList<int>>.Success(list);
     }
 }

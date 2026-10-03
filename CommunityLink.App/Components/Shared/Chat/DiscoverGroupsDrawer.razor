@@ -40,8 +40,9 @@
                 </svg>
                 <input id="discover-group-search"
                        type="search"
-                       value="@searchText"
-                       @oninput="HandleSearchInput"
+                       @bind="searchText"
+                       @bind:event="oninput"
+                       @bind:after="NotifySearchChanged"
                        placeholder="Search groups"
                        class="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 transition focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-600" />
             </div>
@@ -184,8 +185,8 @@
         }
     }
 
-    private async Task HandleSearchInput(ChangeEventArgs e) =>
-        await SearchChanged.InvokeAsync(e.Value?.ToString());
+    private Task NotifySearchChanged() =>
+        SearchChanged.InvokeAsync(searchText);
 
     [Parameter] public EventCallback<string?> SearchChanged { get; set; }
 

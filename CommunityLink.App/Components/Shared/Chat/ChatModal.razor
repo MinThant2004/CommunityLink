@@ -51,26 +51,36 @@
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public string Title { get; set; } = string.Empty;
     [Parameter] public string MaxWidth { get; set; } = "max-w-lg";
+    [Parameter] public string MaxHeight { get; set; } = "max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)]";
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public RenderFragment? FooterContent { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
     private ElementReference _panel;
+    private bool _wasOpen;
+    private bool _focusPending;
 
-    private string PanelClass => $"{MaxWidth}";
+    private string PanelClass => $"{MaxWidth} {MaxHeight}";
+
+    // Focus moves into the panel only on the closed -> open transition. Re-focusing on every
+    // parameter set would steal focus from controls inside the panel: the panel content
+    // re-renders on every keystroke (e.g. the add-member search), so the user could only ever
+    // type a single character before focus was pulled back to the dialog shell.
+    protected override void OnParametersSet()
+    {
+        if (IsOpen && !_wasOpen)
+        {
+            _focusPending = true;
+        }
+
+        _wasOpen = IsOpen;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && IsOpen)
+        if (_focusPending)
         {
-            await FocusPanelAsync();
-        }
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if (IsOpen)
-        {
+            _focusPending = false;
             await FocusPanelAsync();
         }
     }
@@ -79,11 +89,13 @@
     {
         try
         {
-            await _panel.FocusAsync();
+            // focusDialog skips the call when focus already sits inside the panel, so a
+            // re-render triggered by typing never blurs the field the user is editing.
+            await JS.InvokeVoidAsync("communityLinkChat.focusDialog", _panel);
         }
         catch
         {
-            // Element may not be rendered yet; focus will be applied on the next render.
+            // Focus management is an enhancement; the dialog still traps via aria-modal.
         }
     }
 

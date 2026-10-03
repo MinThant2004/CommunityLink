@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -11,7 +11,7 @@ public partial class TblCreatorPayoutRequest
 
     public long AmountLinkDrops { get; set; }
 
-    public decimal AmountMMK { get; set; }
+    public decimal AmountMmk { get; set; }
 
     public string PaymentMethod { get; set; } = null!;
 

@@ -1,6 +1,8 @@
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Chat;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
+using System.Net.Http.Headers;
 
 namespace CommunityLink.App.Apis;
 
@@ -15,6 +17,51 @@ public sealed class ChatApiService(IHttpClientFactory clientFactory, IHttpContex
 
     public Task<Result<ChatMessageModel>> SendMessageAsync(SendMessageRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync<ChatMessageModel, SendMessageRequestModel>("api/chat/messages", request, cancellationToken);
+
+    /// <summary>
+    /// Uploads an attachment and returns the public URL to send along with the message.
+    /// The file is streamed from the browser file handle, so nothing is buffered whole in
+    /// memory on the way out.
+    /// </summary>
+    public async Task<Result<ChatAttachmentUploadResponse>> UploadAttachmentAsync(
+        IBrowserFile file,
+        CancellationToken cancellationToken = default)
+    {
+        if (file.Size > ChatAttachmentPolicy.MaxBytes)
+        {
+            return Result<ChatAttachmentUploadResponse>.Failure(
+                $"File is too large. The maximum is 25 MB.",
+                ResultStatus.ValidationError);
+        }
+
+        if (!ChatAttachmentPolicy.IsAllowed(file.Name))
+        {
+            return Result<ChatAttachmentUploadResponse>.Failure(
+                $"Unsupported file type. Allowed: {ChatAttachmentPolicy.AllowedExtensionsDisplay}.",
+                ResultStatus.ValidationError);
+        }
+
+        try
+        {
+            using var stream = file.OpenReadStream(ChatAttachmentPolicy.MaxBytes, cancellationToken);
+            using var content = new MultipartFormDataContent();
+
+            var fileContent = new StreamContent(stream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(
+                string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType);
+            content.Add(fileContent, "file", file.Name);
+
+            var client = CreateUploadClient();
+            var response = await client.PostAsync("api/chat/attachments", content, cancellationToken);
+            return await ReadResultAsync<ChatAttachmentUploadResponse>(response, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            return Result<ChatAttachmentUploadResponse>.Failure(
+                $"The file could not be uploaded: {ex.Message}",
+                ResultStatus.SystemError);
+        }
+    }
 
     public Task<Result<int>> MarkConversationReadAsync(int conversationId, CancellationToken cancellationToken = default) =>
         PostAsync<int, object>($"api/chat/conversations/{conversationId}/read", new { }, cancellationToken);
@@ -44,4 +91,19 @@ public sealed class ChatApiService(IHttpClientFactory clientFactory, IHttpContex
 
     public Task<Result<CreatorChatSettingModel>> SaveCreatorChatSettingsAsync(SaveCreatorChatSettingRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync<CreatorChatSettingModel, SaveCreatorChatSettingRequestModel>("api/creator/chat/settings", request, cancellationToken);
+
+    public Task<Result> DeleteConversationForSelfAsync(int conversationId, CancellationToken cancellationToken = default) =>
+        DeleteAsync($"api/chat/conversations/{conversationId}", cancellationToken);
+
+    public Task<Result> BlockUserAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/chat/block/{targetUserId}", new { }, cancellationToken);
+
+    public Task<Result> UnblockUserAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        DeleteAsync($"api/chat/block/{targetUserId}", cancellationToken);
+
+    public Task<Result<UserBlockStatusModel>> GetUserBlockStatusAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        GetAsync<UserBlockStatusModel>($"api/chat/block/status/{targetUserId}", cancellationToken);
+
+    public Task<Result<IReadOnlyList<int>>> GetBlockedUserIdsAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<int>>("api/chat/block/list", cancellationToken);
 }

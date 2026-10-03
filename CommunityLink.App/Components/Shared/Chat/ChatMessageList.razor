@@ -68,13 +68,16 @@
                     </div>
                 }
 
-                <div class="py-0.5">
+                <div id="@($"msg-{message.Id}")" class="py-0.5 transition-all">
                     <ChatMessageBubble Message="message"
                                        ShowHeader="showHeader"
                                        OnReply="OnReply"
+                                       OnSelectReplyMessage="ScrollToAndHighlightMessageAsync"
                                        OnDeleteForSelf="OnDeleteForSelf"
                                        OnDeleteForEveryone="OnDeleteForEveryone"
-                                       OnToggleReaction="OnToggleReaction" />
+                                       OnToggleReaction="OnToggleReaction"
+                                       OnPin="OnPin"
+                                       OnUnpin="OnUnpin" />
                 </div>
 
                 lastDate = messageDate;
@@ -94,6 +97,20 @@
     [Parameter] public EventCallback<ChatMessageViewModel> OnDeleteForSelf { get; set; }
     [Parameter] public EventCallback<ChatMessageViewModel> OnDeleteForEveryone { get; set; }
     [Parameter] public EventCallback<(ChatMessageViewModel Message, string Emoji)> OnToggleReaction { get; set; }
+    [Parameter] public EventCallback<ChatMessageViewModel> OnPin { get; set; }
+    [Parameter] public EventCallback OnUnpin { get; set; }
+
+    public async Task ScrollToAndHighlightMessageAsync(int messageId)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("communityLinkChat.scrollToAndHighlightMessage", messageId);
+        }
+        catch
+        {
+            // Cosmetic animation; ignore JS interop failure
+        }
+    }
 
     private ElementReference _scrollContainer;
     private int? _lastMessageId;

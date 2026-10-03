@@ -39,5 +39,7 @@ public partial class TblAdmin
 
     public virtual ICollection<TblAdminRole> TblAdminRoles { get; set; } = new List<TblAdminRole>();
 
+    public virtual ICollection<TblIdentityVerification> TblIdentityVerifications { get; set; } = new List<TblIdentityVerification>();
+
     public virtual ICollection<TblLinkDropPurchase> TblLinkDropPurchases { get; set; } = new List<TblLinkDropPurchase>();
 }

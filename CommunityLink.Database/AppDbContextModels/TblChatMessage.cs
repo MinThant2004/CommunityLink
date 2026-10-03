@@ -35,7 +35,23 @@ public partial class TblChatMessage
 
     public byte[] RowVersion { get; set; } = null!;
 
+    public int? ReplyToMessageId { get; set; }
+
+    public string MessageType { get; set; } = null!;
+
+    public string? FileName { get; set; }
+
+    public long? FileSizeByte { get; set; }
+
     public virtual TblConversation Conversation { get; set; } = null!;
 
+    public virtual ICollection<TblChatMessage> InverseReplyToMessage { get; set; } = new List<TblChatMessage>();
+
+    public virtual TblChatMessage? ReplyToMessage { get; set; }
+
     public virtual TblUser Sender { get; set; } = null!;
+
+    public virtual ICollection<TblChatMessageReaction> TblChatMessageReactions { get; set; } = new List<TblChatMessageReaction>();
+
+    public virtual ICollection<TblChatMessageUserState> TblChatMessageUserStates { get; set; } = new List<TblChatMessageUserState>();
 }

@@ -16,6 +16,8 @@ public class UsersController : BaseController
 {
     private readonly IUserProfileService _userProfileService;
 
+    private const int DefaultUserSearchLimit = 10;
+
     public UsersController(IUserProfileService userProfileService)
     {
         _userProfileService = userProfileService;
@@ -30,6 +32,18 @@ public class UsersController : BaseController
             return Unauthorized(Result.Failure("Authentication required.", ResultStatus.Unauthorized));
 
         var result = await _userProfileService.GetOwnerProfileAsync(userId.Value, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [Authorize]
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchUsers([FromQuery] string? search, [FromQuery] int? limit, CancellationToken cancellationToken)
+    {
+        var userId = CurrentUserId;
+        if (userId == null)
+            return Unauthorized(Result.Failure("Authentication required.", ResultStatus.Unauthorized));
+
+        var result = await _userProfileService.SearchUsersAsync(search, userId.Value, limit ?? DefaultUserSearchLimit, cancellationToken);
         return ToActionResult(result);
     }
 

@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
 
@@ -16,7 +17,7 @@ public partial class TblCreatorChatSetting
 
     public DateTime? UpdatedAt { get; set; }
 
-    public byte[]? RowVersion { get; set; }
+    public byte[] RowVersion { get; set; } = null!;
 
     public virtual TblUser CreatorUser { get; set; } = null!;
 }

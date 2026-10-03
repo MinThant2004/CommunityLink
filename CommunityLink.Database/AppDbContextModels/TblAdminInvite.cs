@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
 
@@ -12,8 +13,6 @@ public partial class TblAdminInvite
 
     public int RoleId { get; set; }
 
-    public bool IsSuperAdmin { get; set; }
-
     public DateTime ExpiresAtUtc { get; set; }
 
     public bool IsUsed { get; set; }
@@ -23,6 +22,8 @@ public partial class TblAdminInvite
     public DateTime CreatedAtUtc { get; set; }
 
     public DateTime? UsedAtUtc { get; set; }
+
+    public bool IsSuperAdmin { get; set; }
 
     public virtual TblRole Role { get; set; } = null!;
 }

@@ -41,11 +41,21 @@ builder.Services.AddAuthorization(options =>
 
 var apiBaseUrl = builder.Configuration["CommunityApi:BaseUrl"] ?? "http://localhost:5000";
 var timeoutSec = builder.Configuration.GetValue<int>("CommunityApi:TimeoutSeconds", 30);
+var uploadTimeoutSec = builder.Configuration.GetValue<int>("CommunityApi:UploadTimeoutSeconds", 120);
 
 builder.Services.AddHttpClient("CommunityApi", client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(timeoutSec);
+});
+
+// Attachment uploads move up to 25 MB over a browser connection, so they get a longer
+// budget than the JSON calls. Registered as a separate named client so a slow upload
+// cannot slow down ordinary requests.
+builder.Services.AddHttpClient("CommunityApiUpload", client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(uploadTimeoutSec);
 });
 
 // Register App Services & API Clients

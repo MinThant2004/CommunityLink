@@ -9,14 +9,6 @@ namespace CommunityLink.Database.AppDbContextModels;
 public partial class AppDbContext
 {
     public virtual DbSet<TblCommunityAuditLog> TblCommunityAuditLogs { get; set; }
-    public virtual DbSet<TblCreatorPayoutRequest> TblCreatorPayoutRequests { get; set; }
-    public virtual DbSet<TblCreatorChatSetting> TblCreatorChatSettings { get; set; }
-    public virtual DbSet<TblPrivateChatPaymentTransaction> TblPrivateChatPaymentTransactions { get; set; }
-    public virtual DbSet<TblChatMessageUserState> TblChatMessageUserStates { get; set; }
-    public virtual DbSet<TblChatGroupMessageUserState> TblChatGroupMessageUserStates { get; set; }
-    public virtual DbSet<TblChatMessageReaction> TblChatMessageReactions { get; set; }
-    public virtual DbSet<TblChatGroupMessageReaction> TblChatGroupMessageReactions { get; set; }
-    public virtual DbSet<TblUserActivity> TblUserActivities { get; set; }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
@@ -116,42 +108,13 @@ public partial class AppDbContext
             entity.ToTable("TblCommunityAuditLog");
         });
 
-        modelBuilder.Entity<TblChatGroup>(entity =>
-        {
-            entity.Property(e => e.AvatarUrl).HasColumnType("nvarchar(max)");
-            entity.Property(e => e.BannerUrl).HasColumnType("nvarchar(max)");
-        });
-
-        modelBuilder.Entity<TblGroupRating>(entity =>
-        {
-            entity.HasKey(e => e.GroupRatingId);
-            entity.ToTable("TblGroupRating");
-
-            entity.Property(e => e.ReviewText).HasMaxLength(1000);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
-
-            entity.Property(e => e.RowVersion)
-                .IsRowVersion()
-                .IsConcurrencyToken();
-
-            entity.HasOne(d => d.Group)
-                .WithMany()
-                .HasForeignKey(d => d.GroupId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-
-            entity.HasOne(d => d.User)
-                .WithMany()
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-        });
-
         modelBuilder.Entity<TblChatGroupMember>(entity =>
         {
             entity.HasIndex(e => new { e.ChatGroupId, e.UserId })
                 .IsUnique()
                 .HasDatabaseName("UQ_TblChatGroupMember_Group_User");
-        });
 
+            entity.Property(e => e.IsMuted).HasDefaultValue(false);
         modelBuilder.Entity<TblChatGroupPaymentTransaction>(entity =>
         {
             entity.HasKey(e => e.PaymentTransactionId);
@@ -290,14 +253,18 @@ public partial class AppDbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_TblChatMessageReaction_TblChatMessage");
 
-            entity.HasOne(d => d.User).WithMany()
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.NoAction)
-                .HasConstraintName("FK_TblChatMessageReaction_TblUser");
-        });
 
-        modelBuilder.Entity<TblChatGroupMessageReaction>(entity =>
+        // Per-member admin permission matrix. One membership row is already exactly one
+        // (group, user) pair, so the matrix lives on it rather than in a side table. Every flag
+        // defaults to false, so an admin row that predates this feature holds no powers until the
+        // owner grants them.
+        modelBuilder.Entity<TblChatGroupMember>(entity =>
         {
+            entity.Property(e => e.CanDeleteMessages).HasDefaultValue(false, "DF_TblChatGroupMember_CanDeleteMessages");
+            entity.Property(e => e.CanRemoveMembers).HasDefaultValue(false, "DF_TblChatGroupMember_CanRemoveMembers");
+            entity.Property(e => e.CanBanMembers).HasDefaultValue(false, "DF_TblChatGroupMember_CanBanMembers");
+            entity.Property(e => e.CanManageInviteLinks).HasDefaultValue(false, "DF_TblChatGroupMember_CanManageInviteLinks");
+            entity.Property(e => e.CanPinMessages).HasDefaultValue(false, "DF_TblChatGroupMember_CanPinMessages");
             entity.HasKey(e => e.ChatGroupMessageReactionId);
             entity.ToTable("TblChatGroupMessageReaction");
 

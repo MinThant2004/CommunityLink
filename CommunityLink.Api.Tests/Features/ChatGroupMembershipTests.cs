@@ -229,8 +229,13 @@ public class ChatGroupMembershipTests : IClassFixture<CommunityApiFactory>
         Assert.False(getResult.Data.IsJoined);
     }
 
+    /// <summary>
+    /// Ownership is not transferable and there is no co-owner tier, so an owner leaving takes the
+    /// whole group with them rather than orphaning it. This is the counterpart of the previous
+    /// rule, which rejected the owner's leave outright.
+    /// </summary>
     [Fact]
-    public async Task Owner_CannotLeave_OwnChatGroup()
+    public async Task OwnerLeave_DeletesTheGroup()
     {
         var creatorToken = await GetTokenForRoleAsync("DOMAIN_PROFESSIONAL", "creator_own1", "creator_own1@test.com", "Password@123");
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", creatorToken);
@@ -240,13 +245,46 @@ public class ChatGroupMembershipTests : IClassFixture<CommunityApiFactory>
         Assert.NotNull(createResult?.Data);
         var groupId = createResult.Data.ChatGroupId;
 
-        // Owner attempts to leave
+        // A second member, so the cascade has more than the owner to end.
+        var memberToken = await GetTokenForRoleAsync("MEMBER", "joiner_own1", "joiner_own1@test.com", "Password@123");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", memberToken);
+        await _client.PostAsJsonAsync($"/api/chat-groups/{groupId}/join", "");
+
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", creatorToken);
         var leaveResp = await _client.PostAsJsonAsync($"/api/chat-groups/{groupId}/leave", "");
-        Assert.Equal(HttpStatusCode.BadRequest, leaveResp.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, leaveResp.StatusCode);
         var leaveResult = await leaveResp.Content.ReadFromJsonAsync<Result>();
         Assert.NotNull(leaveResult);
-        Assert.False(leaveResult.IsSuccess);
-        Assert.Contains("Owner cannot leave their own Chat Group.", leaveResult.Message);
+        Assert.True(leaveResult.IsSuccess);
+
+        // The group is gone: no detail, no listing, and nobody can still call it a membership.
+        var getResp = await _client.GetAsync($"/api/chat-groups/{groupId}");
+        var getResult = await getResp.Content.ReadFromJsonAsync<Result<ChatGroupModel>>();
+        Assert.False(getResult?.IsSuccess);
+        Assert.Null(getResult?.Data);
+
+        // Every membership was soft-deleted, including the member who never asked to leave.
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var activeMembers = db.TblChatGroupMembers
+                .Count(m => m.ChatGroupId == groupId && !m.IsDeleted);
+            Assert.Equal(0, activeMembers);
+
+            var groupRow = db.TblChatGroups.First(g => g.ChatGroupId == groupId);
+            Assert.True(groupRow.IsDeleted);
+            Assert.False(groupRow.IsActive);
+
+            // Messages survive the cascade: they are the moderation audit trail, exactly as
+            // they do for an explicit owner delete.
+            Assert.Contains(db.TblChatGroupMessages, m => m.ChatGroupId == groupId);
+        }
+
+        // A former member can no longer rejoin a group that no longer exists.
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", memberToken);
+        var rejoinResp = await _client.PostAsJsonAsync($"/api/chat-groups/{groupId}/join", "");
+        var rejoinResult = await rejoinResp.Content.ReadFromJsonAsync<Result>();
+        Assert.False(rejoinResult?.IsSuccess);
     }
 
     [Fact]

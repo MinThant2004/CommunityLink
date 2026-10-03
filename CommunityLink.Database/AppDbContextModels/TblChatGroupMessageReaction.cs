@@ -1,9 +1,8 @@
+﻿using System;
+using System.Collections.Generic;
+
 namespace CommunityLink.Database.AppDbContextModels;
 
-/// <summary>
-/// An emoji reaction on a chat group message. Group counterpart of
-/// <see cref="TblChatMessageReaction"/>, with the same one-reaction-per-user rule.
-/// </summary>
 public partial class TblChatGroupMessageReaction
 {
     public int ChatGroupMessageReactionId { get; set; }
