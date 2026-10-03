@@ -106,4 +106,10 @@ public sealed class ChatApiService(IHttpClientFactory clientFactory, IHttpContex
 
     public Task<Result<IReadOnlyList<int>>> GetBlockedUserIdsAsync(CancellationToken cancellationToken = default) =>
         GetAsync<IReadOnlyList<int>>("api/chat/block/list", cancellationToken);
+
+    public Task<Result<SharedMediaCountsModel>> GetSharedMediaCountsAsync(int conversationId, CancellationToken cancellationToken = default) =>
+        GetAsync<SharedMediaCountsModel>($"api/chat/conversations/{conversationId}/media/counts", cancellationToken);
+
+    public Task<Result<SharedMediaPagedResultModel>> GetSharedMediaAsync(int conversationId, string category, int page = 1, int pageSize = 30, CancellationToken cancellationToken = default) =>
+        GetAsync<SharedMediaPagedResultModel>($"api/chat/conversations/{conversationId}/media/{category}?page={page}&pageSize={pageSize}", cancellationToken);
 }

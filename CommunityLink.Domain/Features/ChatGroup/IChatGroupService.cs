@@ -194,4 +194,7 @@ public interface IChatGroupService
     Task<Result> ApproveJoinRequestAsync(int chatGroupId, int requestId, CancellationToken cancellationToken = default);
     Task<Result> RejectJoinRequestAsync(int chatGroupId, int requestId, string? reason = null, CancellationToken cancellationToken = default);
     Task<Result> PayAndJoinApprovedRequestAsync(int chatGroupId, CancellationToken cancellationToken = default);
+
+    Task<Result<SharedMediaCountsModel>> GetSharedMediaCountsAsync(int chatGroupId, CancellationToken cancellationToken = default);
+    Task<Result<SharedMediaPagedResultModel>> GetSharedMediaAsync(int chatGroupId, string category, int page = 1, int pageSize = 30, CancellationToken cancellationToken = default);
 }

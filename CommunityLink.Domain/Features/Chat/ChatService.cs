@@ -36,6 +36,8 @@ public interface IChatService
     Task<Result> UnblockUserAsync(int targetUserId, CancellationToken cancellationToken = default);
     Task<Result<UserBlockStatusModel>> GetUserBlockStatusAsync(int targetUserId, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<int>>> GetBlockedUserIdsAsync(CancellationToken cancellationToken = default);
+    Task<Result<SharedMediaCountsModel>> GetSharedMediaCountsAsync(int conversationId, CancellationToken cancellationToken = default);
+    Task<Result<SharedMediaPagedResultModel>> GetSharedMediaAsync(int conversationId, string category, int page = 1, int pageSize = 30, CancellationToken cancellationToken = default);
 }
 
 public sealed class ChatService(
@@ -1018,5 +1020,86 @@ public sealed class ChatService(
             .ToListAsync(cancellationToken);
 
         return Result<IReadOnlyList<int>>.Success(list);
+    }
+
+    public async Task<Result<SharedMediaCountsModel>> GetSharedMediaCountsAsync(int conversationId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result<SharedMediaCountsModel>.Failure("Unauthorized", ResultStatus.Unauthorized);
+        var currentUserId = currentUser.UserId.Value;
+
+        var conversation = await dbContext.TblConversations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.ConversationId == conversationId && !c.IsDeleted && (c.UserOneId == currentUserId || c.UserTwoId == currentUserId), cancellationToken);
+
+        if (conversation == null)
+        {
+            return Result<SharedMediaCountsModel>.Failure("Conversation not found or access denied.", ResultStatus.Forbidden);
+        }
+
+        var messagesQuery = dbContext.TblChatMessages
+            .AsNoTracking()
+            .Where(m => m.ConversationId == conversationId && !m.IsDeleted && m.AttachmentUrl != null && m.AttachmentUrl != "");
+
+        messagesQuery = messagesQuery.Where(m => !dbContext.TblChatMessageUserStates.Any(s => s.ChatMessageId == m.ChatMessageId && s.UserId == currentUserId && s.IsHidden));
+
+        var photosCount = await messagesQuery.CountAsync(m => m.MessageType == "IMAGE", cancellationToken);
+        var videosCount = await messagesQuery.CountAsync(m => m.MessageType == "VIDEO", cancellationToken);
+        var filesCount = await messagesQuery.CountAsync(m => m.MessageType == "FILE", cancellationToken);
+
+        return Result<SharedMediaCountsModel>.Success(new SharedMediaCountsModel(photosCount, videosCount, filesCount));
+    }
+
+    public async Task<Result<SharedMediaPagedResultModel>> GetSharedMediaAsync(int conversationId, string category, int page = 1, int pageSize = 30, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result<SharedMediaPagedResultModel>.Failure("Unauthorized", ResultStatus.Unauthorized);
+        var currentUserId = currentUser.UserId.Value;
+
+        var conversation = await dbContext.TblConversations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.ConversationId == conversationId && !c.IsDeleted && (c.UserOneId == currentUserId || c.UserTwoId == currentUserId), cancellationToken);
+
+        if (conversation == null)
+        {
+            return Result<SharedMediaPagedResultModel>.Failure("Conversation not found or access denied.", ResultStatus.Forbidden);
+        }
+
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var query = dbContext.TblChatMessages
+            .AsNoTracking()
+            .Where(m => m.ConversationId == conversationId && !m.IsDeleted && m.AttachmentUrl != null && m.AttachmentUrl != "")
+            .Where(m => !dbContext.TblChatMessageUserStates.Any(s => s.ChatMessageId == m.ChatMessageId && s.UserId == currentUserId && s.IsHidden));
+
+        var targetType = category.ToLowerInvariant() switch
+        {
+            "photos" or "image" => "IMAGE",
+            "videos" or "video" => "VIDEO",
+            "files" or "file" => "FILE",
+            _ => "FILE"
+        };
+
+        query = query.Where(m => m.MessageType == targetType);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(m => m.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(m => new SharedMediaItemModel(
+                m.ChatMessageId,
+                m.MessageType,
+                m.AttachmentUrl!,
+                m.FileName,
+                m.FileSizeByte,
+                m.CreatedAt,
+                m.SenderId,
+                m.Sender.DisplayName ?? m.Sender.UserName,
+                m.Sender.AvatarUrl
+            ))
+            .ToListAsync(cancellationToken);
+
+        return Result<SharedMediaPagedResultModel>.Success(new SharedMediaPagedResultModel(items, totalCount, page, pageSize));
     }
 }

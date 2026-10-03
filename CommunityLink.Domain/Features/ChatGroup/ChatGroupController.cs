@@ -393,6 +393,21 @@ public sealed class ChatGroupController(IChatGroupService chatGroupService) : Ba
         return ToActionResult(result);
     }
 
+    [HttpGet("{chatGroupId:int}/media/counts")]
+    [Authorize]
+    public async Task<IActionResult> GetSharedMediaCounts(int chatGroupId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatGroupService.GetSharedMediaCountsAsync(chatGroupId, cancellationToken));
+
+    [HttpGet("{chatGroupId:int}/media/{category}")]
+    [Authorize]
+    public async Task<IActionResult> GetSharedMedia(
+        int chatGroupId,
+        string category,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 30,
+        CancellationToken cancellationToken = default) =>
+        ToActionResult(await chatGroupService.GetSharedMediaAsync(chatGroupId, category, page, pageSize, cancellationToken));
+
     private async Task BroadcastAsync(
         int chatGroupId,
         string method,

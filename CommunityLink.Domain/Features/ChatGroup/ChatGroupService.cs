@@ -3801,4 +3801,107 @@ return Result.Success("Message deleted for you.");
 
         return result;
     }
+
+    public async Task<Result<SharedMediaCountsModel>> GetSharedMediaCountsAsync(int chatGroupId, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result<SharedMediaCountsModel>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var userId = currentUser.UserId.Value;
+
+        var isMember = await dbContext.TblChatGroupMembers
+            .AsNoTracking()
+            .AnyAsync(m => m.ChatGroupId == chatGroupId && m.UserId == userId && !m.IsDeleted, cancellationToken);
+
+        if (!isMember)
+        {
+            return Result<SharedMediaCountsModel>.Failure("You must be a group member to access shared media.", ResultStatus.Forbidden);
+        }
+
+        var isBanned = await dbContext.TblChatGroupBans
+            .AsNoTracking()
+            .AnyAsync(b => b.ChatGroupId == chatGroupId && b.UserId == userId && !b.IsDeleted, cancellationToken);
+
+        if (isBanned)
+        {
+            return Result<SharedMediaCountsModel>.Failure("Banned users cannot access shared media.", ResultStatus.Forbidden);
+        }
+
+        var messagesQuery = dbContext.TblChatGroupMessages
+            .AsNoTracking()
+            .Where(m => m.ChatGroupId == chatGroupId && !m.IsDeleted && m.AttachmentUrl != null && m.AttachmentUrl != "");
+
+        var photosCount = await messagesQuery.CountAsync(m => m.MessageType == "IMAGE", cancellationToken);
+        var videosCount = await messagesQuery.CountAsync(m => m.MessageType == "VIDEO", cancellationToken);
+        var filesCount = await messagesQuery.CountAsync(m => m.MessageType == "FILE", cancellationToken);
+
+        return Result<SharedMediaCountsModel>.Success(new SharedMediaCountsModel(photosCount, videosCount, filesCount));
+    }
+
+    public async Task<Result<SharedMediaPagedResultModel>> GetSharedMediaAsync(int chatGroupId, string category, int page = 1, int pageSize = 30, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result<SharedMediaPagedResultModel>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        var userId = currentUser.UserId.Value;
+
+        var isMember = await dbContext.TblChatGroupMembers
+            .AsNoTracking()
+            .AnyAsync(m => m.ChatGroupId == chatGroupId && m.UserId == userId && !m.IsDeleted, cancellationToken);
+
+        if (!isMember)
+        {
+            return Result<SharedMediaPagedResultModel>.Failure("You must be a group member to access shared media.", ResultStatus.Forbidden);
+        }
+
+        var isBanned = await dbContext.TblChatGroupBans
+            .AsNoTracking()
+            .AnyAsync(b => b.ChatGroupId == chatGroupId && b.UserId == userId && !b.IsDeleted, cancellationToken);
+
+        if (isBanned)
+        {
+            return Result<SharedMediaPagedResultModel>.Failure("Banned users cannot access shared media.", ResultStatus.Forbidden);
+        }
+
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var targetType = category.ToLowerInvariant() switch
+        {
+            "photos" or "image" => "IMAGE",
+            "videos" or "video" => "VIDEO",
+            "files" or "file" => "FILE",
+            _ => "FILE"
+        };
+
+        var query = dbContext.TblChatGroupMessages
+            .AsNoTracking()
+            .Where(m => m.ChatGroupId == chatGroupId && !m.IsDeleted && m.AttachmentUrl != null && m.AttachmentUrl != "")
+            .Where(m => m.MessageType == targetType);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(m => m.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(m => new SharedMediaItemModel(
+                m.ChatGroupMessageId,
+                m.MessageType,
+                m.AttachmentUrl!,
+                m.FileName,
+                m.FileSizeByte,
+                m.CreatedAt,
+                m.SenderId,
+                m.Sender.DisplayName ?? m.Sender.UserName,
+                m.Sender.AvatarUrl
+            ))
+            .ToListAsync(cancellationToken);
+
+        return Result<SharedMediaPagedResultModel>.Success(new SharedMediaPagedResultModel(items, totalCount, page, pageSize));
+    }
 }

@@ -109,4 +109,19 @@ public sealed class ChatController(
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
     public async Task<IActionResult> GetBlockedUserIds(CancellationToken cancellationToken) =>
         ToActionResult(await chatService.GetBlockedUserIdsAsync(cancellationToken));
+
+    [HttpGet("conversations/{conversationId:int}/media/counts")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> GetSharedMediaCounts(int conversationId, CancellationToken cancellationToken) =>
+        ToActionResult(await chatService.GetSharedMediaCountsAsync(conversationId, cancellationToken));
+
+    [HttpGet("conversations/{conversationId:int}/media/{category}")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
+    public async Task<IActionResult> GetSharedMedia(
+        int conversationId,
+        string category,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 30,
+        CancellationToken cancellationToken = default) =>
+        ToActionResult(await chatService.GetSharedMediaAsync(conversationId, category, page, pageSize, cancellationToken));
 }
