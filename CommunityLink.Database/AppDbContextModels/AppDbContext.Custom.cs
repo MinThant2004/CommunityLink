@@ -30,22 +30,6 @@ public partial class AppDbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblUserActivity_TblUser");
         });
-        modelBuilder.Entity<TblCreatorChatSetting>(entity =>
-        {
-            entity.HasKey(e => e.CreatorChatSettingId);
-            entity.ToTable("TblCreatorChatSetting");
-
-            entity.HasIndex(e => e.CreatorUserId, "IX_TblCreatorChatSetting_CreatorUserId").IsUnique();
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
-            entity.Property(e => e.RowVersion)
-                .IsRowVersion()
-                .IsConcurrencyToken();
-
-            entity.HasOne(d => d.CreatorUser).WithMany()
-                .HasForeignKey(d => d.CreatorUserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TblCreatorChatSetting_TblUser_Creator");
-        });
 
         modelBuilder.Entity<TblPrivateChatPaymentTransaction>(entity =>
         {
@@ -86,7 +70,7 @@ public partial class AppDbContext
             entity.HasKey(e => e.CreatorPayoutRequestId);
             entity.ToTable("TblCreatorPayoutRequest");
 
-            entity.Property(e => e.AmountMMK).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.AmountMmk).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
@@ -115,6 +99,8 @@ public partial class AppDbContext
                 .HasDatabaseName("UQ_TblChatGroupMember_Group_User");
 
             entity.Property(e => e.IsMuted).HasDefaultValue(false);
+        });
+
         modelBuilder.Entity<TblChatGroupPaymentTransaction>(entity =>
         {
             entity.HasKey(e => e.PaymentTransactionId);
@@ -253,6 +239,11 @@ public partial class AppDbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_TblChatMessageReaction_TblChatMessage");
 
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_TblChatMessageReaction_TblUser");
+        });
 
         // Per-member admin permission matrix. One membership row is already exactly one
         // (group, user) pair, so the matrix lives on it rather than in a side table. Every flag
@@ -265,6 +256,10 @@ public partial class AppDbContext
             entity.Property(e => e.CanBanMembers).HasDefaultValue(false, "DF_TblChatGroupMember_CanBanMembers");
             entity.Property(e => e.CanManageInviteLinks).HasDefaultValue(false, "DF_TblChatGroupMember_CanManageInviteLinks");
             entity.Property(e => e.CanPinMessages).HasDefaultValue(false, "DF_TblChatGroupMember_CanPinMessages");
+        });
+
+        modelBuilder.Entity<TblChatGroupMessageReaction>(entity =>
+        {
             entity.HasKey(e => e.ChatGroupMessageReactionId);
             entity.ToTable("TblChatGroupMessageReaction");
 

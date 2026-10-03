@@ -373,21 +373,6 @@ public class UserProfileService : IUserProfileService
 
     public async Task<Result<List<UserPostItemDto>>> GetUserPostsAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default)
     {
-        var rawPosts = await _dbContext.TblPosts
-            .AsNoTracking()
-            .AsSplitQuery()
-            .Include(p => p.Author)
-            .Include(p => p.Community)
-            .Include(p => p.TblPostImages)
-            .Include(p => p.TblPostLikes)
-            .Include(p => p.TblComments)
-            .Include(p => p.TblPolls)
-                .ThenInclude(poll => poll.TblPollOptions)
-            .Include(p => p.TblPolls)
-                .ThenInclude(poll => poll.TblPollVotes)
-            .Where(p => p.AuthorId == targetUserId && !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync(cancellationToken);
         try
         {
             var rawPosts = await _dbContext.TblPosts
@@ -538,29 +523,6 @@ public class UserProfileService : IUserProfileService
 
     public async Task<Result<List<UserPostItemDto>>> GetSavedPostsAsync(int currentUserId, CancellationToken cancellationToken = default)
     {
-        var rawPosts = await _dbContext.TblSavedPosts
-            .AsNoTracking()
-            .AsSplitQuery()
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.Author)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.Community)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.TblPostImages)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.TblPostLikes)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.TblComments)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.TblPolls)
-                    .ThenInclude(poll => poll.TblPollOptions)
-            .Include(sp => sp.Post)
-                .ThenInclude(p => p.TblPolls)
-                    .ThenInclude(poll => poll.TblPollVotes)
-            .Where(sp => sp.UserId == currentUserId && !sp.IsDeleted && sp.Post != null && !sp.Post.IsDeleted)
-            .OrderByDescending(sp => sp.CreatedAt)
-            .Select(sp => sp.Post)
-            .ToListAsync(cancellationToken);
         try
         {
             var rawPosts = await _dbContext.TblSavedPosts
@@ -613,21 +575,6 @@ public class UserProfileService : IUserProfileService
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
 
-        var recycledPosts = await _dbContext.TblPosts
-            .AsNoTracking()
-            .AsSplitQuery()
-            .Include(p => p.Author)
-            .Include(p => p.Community)
-            .Include(p => p.TblPostImages)
-            .Include(p => p.TblPostLikes)
-            .Include(p => p.TblComments)
-            .Include(p => p.TblPolls)
-                .ThenInclude(poll => poll.TblPollOptions)
-            .Include(p => p.TblPolls)
-                .ThenInclude(poll => poll.TblPollVotes)
-            .Where(p => p.AuthorId == currentUserId && p.IsDeleted && (!p.DeletedAt.HasValue || p.DeletedAt.Value >= tenDaysAgo))
-            .OrderByDescending(p => p.DeletedAt ?? p.CreatedAt)
-            .ToListAsync(cancellationToken);
             var recycledPosts = await _dbContext.TblPosts
                 .AsNoTracking()
                 .AsSplitQuery()
