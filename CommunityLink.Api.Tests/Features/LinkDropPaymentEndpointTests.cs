@@ -116,8 +116,8 @@ public class LinkDropPaymentEndpointTests(CommunityApiFactory factory) : IClassF
         var walletRes = await _client.GetAsync("/api/linkdrops/wallet");
         var walletData = await walletRes.Content.ReadFromJsonAsync<Result<LinkDropWalletDto>>();
         Assert.NotNull(walletData?.Data);
-        Assert.Equal(150, walletData.Data.Balance); // 1500 MMK / 10 = 150 drops
-        Assert.Equal(150, walletData.Data.PurchasedBalance);
+        Assert.Equal(1500, walletData.Data.Balance); // 1500 MMK / 1 = 1500 drops
+        Assert.Equal(1500, walletData.Data.PurchasedBalance);
         Assert.Equal(0, walletData.Data.EarnedBalance);
         Assert.Equal(walletData.Data.Balance, walletData.Data.PurchasedBalance + walletData.Data.EarnedBalance);
 
@@ -125,6 +125,6 @@ public class LinkDropPaymentEndpointTests(CommunityApiFactory factory) : IClassF
         var txRes = await _client.GetAsync("/api/linkdrops/transactions");
         var txData = await txRes.Content.ReadFromJsonAsync<Result<List<LinkDropTransactionDto>>>();
         Assert.NotNull(txData?.Data);
-        Assert.Contains(txData.Data, t => t.ReferenceId == purchaseId && t.TransactionType == "PURCHASE" && t.Amount == 150);
+        Assert.Contains(txData.Data, t => t.ReferenceId == purchaseId && t.TransactionType == "PURCHASE" && t.Amount == 1500);
     }
 }

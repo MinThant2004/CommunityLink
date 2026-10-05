@@ -25,7 +25,7 @@ public partial class AppDbContext
             entity.HasIndex(e => e.UserId, "IX_TblUserActivity_UserId");
             entity.HasIndex(e => new { e.UserId, e.IsDeleted, e.CreatedAt }, "IX_TblUserActivity_User_Status");
 
-            entity.HasOne(d => d.User).WithMany()
+            entity.HasOne(d => d.User).WithMany(p => p.TblUserActivities)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblUserActivity_TblUser");
@@ -49,17 +49,17 @@ public partial class AppDbContext
             entity.HasIndex(e => e.BuyerUserId, "IX_TblPrivateChatPaymentTransaction_BuyerUserId");
             entity.HasIndex(e => e.CreatorUserId, "IX_TblPrivateChatPaymentTransaction_CreatorUserId");
 
-            entity.HasOne(d => d.Conversation).WithMany()
+            entity.HasOne(d => d.Conversation).WithMany(p => p.TblPrivateChatPaymentTransactions)
                 .HasForeignKey(d => d.ConversationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblPrivateChatPaymentTransaction_TblConversation");
 
-            entity.HasOne(d => d.BuyerUser).WithMany()
+            entity.HasOne(d => d.BuyerUser).WithMany(p => p.TblPrivateChatPaymentTransactionBuyerUsers)
                 .HasForeignKey(d => d.BuyerUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblPrivateChatPaymentTransaction_TblUser_Buyer");
 
-            entity.HasOne(d => d.CreatorUser).WithMany()
+            entity.HasOne(d => d.CreatorUser).WithMany(p => p.TblPrivateChatPaymentTransactionCreatorUsers)
                 .HasForeignKey(d => d.CreatorUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblPrivateChatPaymentTransaction_TblUser_Creator");
@@ -80,7 +80,7 @@ public partial class AppDbContext
             entity.HasIndex(e => e.CreatorUserId, "IX_TblCreatorPayoutRequest_CreatorUserId");
             entity.HasIndex(e => e.Status, "IX_TblCreatorPayoutRequest_Status");
 
-            entity.HasOne(d => d.CreatorUser).WithMany()
+            entity.HasOne(d => d.CreatorUser).WithMany(p => p.TblCreatorPayoutRequests)
                 .HasForeignKey(d => d.CreatorUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblCreatorPayoutRequest_TblUser");
@@ -116,17 +116,17 @@ public partial class AppDbContext
             entity.Property(e => e.RowVersion)
                 .IsConcurrencyToken();
 
-            entity.HasOne(d => d.ChatGroup).WithMany()
+            entity.HasOne(d => d.ChatGroup).WithMany(p => p.TblChatGroupPaymentTransactions)
                 .HasForeignKey(d => d.ChatGroupId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblChatGroupPaymentTransaction_TblChatGroup");
 
-            entity.HasOne(d => d.User).WithMany()
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatGroupPaymentTransactionUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblChatGroupPaymentTransaction_TblUser");
 
-            entity.HasOne(d => d.CreatorUser).WithMany()
+            entity.HasOne(d => d.CreatorUser).WithMany(p => p.TblChatGroupPaymentTransactionCreatorUsers)
                 .HasForeignKey(d => d.CreatorUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblChatGroupPaymentTransaction_TblUser_Creator");
@@ -155,7 +155,7 @@ public partial class AppDbContext
 
         modelBuilder.Entity<TblChatMessage>(entity =>
         {
-            entity.HasOne(d => d.ReplyToMessage).WithMany()
+            entity.HasOne(d => d.ReplyToMessage).WithMany(p => p.InverseReplyToMessage)
                 .HasForeignKey(d => d.ReplyToMessageId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_TblChatMessage_ReplyTo");
@@ -163,7 +163,7 @@ public partial class AppDbContext
 
         modelBuilder.Entity<TblChatGroupMessage>(entity =>
         {
-            entity.HasOne(d => d.ReplyToChatGroupMessage).WithMany()
+            entity.HasOne(d => d.ReplyToChatGroupMessage).WithMany(p => p.InverseReplyToChatGroupMessage)
                 .HasForeignKey(d => d.ReplyToChatGroupMessageId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_TblChatGroupMessage_ReplyTo");
@@ -185,12 +185,12 @@ public partial class AppDbContext
             entity.HasIndex(e => new { e.ChatMessageId, e.UserId }).IsUnique();
             entity.HasIndex(e => new { e.UserId, e.IsHidden });
 
-            entity.HasOne(d => d.ChatMessage).WithMany()
+            entity.HasOne(d => d.ChatMessage).WithMany(p => p.TblChatMessageUserStates)
                 .HasForeignKey(d => d.ChatMessageId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_TblChatMessageUserState_TblChatMessage");
 
-            entity.HasOne(d => d.User).WithMany()
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatMessageUserStates)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_TblChatMessageUserState_TblUser");
@@ -209,12 +209,12 @@ public partial class AppDbContext
             entity.HasIndex(e => new { e.ChatGroupMessageId, e.UserId }).IsUnique();
             entity.HasIndex(e => new { e.UserId, e.IsHidden });
 
-            entity.HasOne(d => d.ChatGroupMessage).WithMany()
+            entity.HasOne(d => d.ChatGroupMessage).WithMany(p => p.TblChatGroupMessageUserStates)
                 .HasForeignKey(d => d.ChatGroupMessageId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_TblChatGroupMessageUserState_TblChatGroupMessage");
 
-            entity.HasOne(d => d.User).WithMany()
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatGroupMessageUserStates)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_TblChatGroupMessageUserState_TblUser");
@@ -234,12 +234,12 @@ public partial class AppDbContext
             // One reaction per person per message: choosing a different emoji updates the row.
             entity.HasIndex(e => new { e.ChatMessageId, e.UserId }).IsUnique();
 
-            entity.HasOne(d => d.ChatMessage).WithMany()
+            entity.HasOne(d => d.ChatMessage).WithMany(p => p.TblChatMessageReactions)
                 .HasForeignKey(d => d.ChatMessageId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_TblChatMessageReaction_TblChatMessage");
 
-            entity.HasOne(d => d.User).WithMany()
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatMessageReactions)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_TblChatMessageReaction_TblUser");
@@ -271,12 +271,12 @@ public partial class AppDbContext
 
             entity.HasIndex(e => new { e.ChatGroupMessageId, e.UserId }).IsUnique();
 
-            entity.HasOne(d => d.ChatGroupMessage).WithMany()
+            entity.HasOne(d => d.ChatGroupMessage).WithMany(p => p.TblChatGroupMessageReactions)
                 .HasForeignKey(d => d.ChatGroupMessageId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_TblChatGroupMessageReaction_TblChatGroupMessage");
 
-            entity.HasOne(d => d.User).WithMany()
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatGroupMessageReactions)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_TblChatGroupMessageReaction_TblUser");
