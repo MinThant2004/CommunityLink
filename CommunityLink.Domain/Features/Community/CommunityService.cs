@@ -627,6 +627,7 @@ public sealed class CommunityService(
     public async Task<Result<IReadOnlyList<CommunityModel>>> GetJoinedCommunitiesAsync(int userId, int take = 10, CancellationToken cancellationToken = default)
     {
         var joinedCommunityIds = await dbContext.TblCommunityMembers
+            .AsNoTracking()
             .Where(m => m.UserId == userId && !m.IsDeleted)
             .Select(m => m.CommunityId)
             .ToListAsync(cancellationToken);
@@ -634,6 +635,7 @@ public sealed class CommunityService(
         if (!joinedCommunityIds.Any()) return Result<IReadOnlyList<CommunityModel>>.Success([]);
 
         var list = await dbContext.TblCommunities
+            .AsNoTracking()
             .Where(c => joinedCommunityIds.Contains(c.CommunityId) && !c.IsDeleted)
             .Take(take)
             .Select(c => new CommunityModel(
@@ -645,9 +647,9 @@ public sealed class CommunityService(
                 c.BannerUrl,
                 c.Visibility,
                 c.JoinPolicy,
-                c.TblCommunityMembers.Count(m => !m.IsDeleted),
-                c.TblPosts.Count(p => !p.IsDeleted),
-                c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
+                c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                c.PostCount > 0 ? c.PostCount : c.TblPosts.Count(p => !p.IsDeleted),
+                c.AverageRating.HasValue ? (double)c.AverageRating.Value : (c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0),
                 c.OwnerId,
                 c.Owner != null ? c.Owner.DisplayName : "Admin",
                 c.CreatedAt,
@@ -662,13 +664,15 @@ public sealed class CommunityService(
     public async Task<Result<IReadOnlyList<CommunityModel>>> GetRecommendedCommunitiesAsync(int userId, int take = 6, CancellationToken cancellationToken = default)
     {
         var joinedCommunityIds = await dbContext.TblCommunityMembers
+            .AsNoTracking()
             .Where(m => m.UserId == userId && !m.IsDeleted)
             .Select(m => m.CommunityId)
             .ToListAsync(cancellationToken);
 
         var list = await dbContext.TblCommunities
+            .AsNoTracking()
             .Where(c => !joinedCommunityIds.Contains(c.CommunityId) && c.Visibility == "PUBLIC" && !c.IsDeleted)
-            .OrderByDescending(c => c.TblCommunityMembers.Count(m => !m.IsDeleted))
+            .OrderByDescending(c => c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted))
             .Take(take)
             .Select(c => new CommunityModel(
                 c.CommunityId,
@@ -679,9 +683,9 @@ public sealed class CommunityService(
                 c.BannerUrl,
                 c.Visibility,
                 c.JoinPolicy,
-                c.TblCommunityMembers.Count(m => !m.IsDeleted),
-                c.TblPosts.Count(p => !p.IsDeleted),
-                c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
+                c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                c.PostCount > 0 ? c.PostCount : c.TblPosts.Count(p => !p.IsDeleted),
+                c.AverageRating.HasValue ? (double)c.AverageRating.Value : (c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0),
                 c.OwnerId,
                 c.Owner != null ? c.Owner.DisplayName : "Admin",
                 c.CreatedAt,
