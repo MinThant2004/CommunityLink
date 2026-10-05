@@ -1289,42 +1289,42 @@ else if (dashboard != null)
         else if (activeFeedTab == "people")
         {
             <!-- Search & Filter Controls Matrix -->
-            <section class="w-full bg-surface-container-low rounded-xl p-3 sm:p-3.5 mb-3.5 shadow-xs border border-white/5">
+            <section class="w-full bg-[#0B1524] rounded-xl p-3 sm:p-3.5 mb-3.5 shadow-md border border-slate-800">
                 <div class="flex flex-col md:flex-row items-center gap-2.5">
                     <!-- Search Input -->
                     <div class="relative flex-1 w-full">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">manage_search</span>
-                        <input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs pl-9 pr-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-white/20 transition-all border border-white/5"
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">manage_search</span>
+                        <input class="w-full bg-[#070D18] text-white placeholder:text-slate-500 text-xs pl-9 pr-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400/50 transition-all border border-slate-700/60"
                                id="member-search"
                                placeholder="Search members..."
                                type="text"
                                @bind="peopleSearchQuery"
                                @bind:event="oninput" />
-                        <span class="hidden sm:inline-block absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-outline px-1.5 py-0.2 bg-surface-container rounded border border-white/5">⌘K</span>
+                        <span class="hidden sm:inline-block absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 px-1.5 py-0.5 bg-[#132238] rounded border border-slate-700/60">⌘K</span>
                     </div>
                     <!-- Sort Control -->
                     <div class="relative w-full md:w-56 flex-shrink-0">
                         <select @bind="peopleSortOption"
-                                class="w-full appearance-none bg-surface-container-lowest text-on-surface text-xs pl-3 pr-8 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-white/20 cursor-pointer transition-all border border-white/5">
+                                class="w-full appearance-none bg-[#070D18] text-slate-200 text-xs pl-3 pr-8 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400/50 cursor-pointer transition-all border border-slate-700/60">
                             <option value="all">All</option>
                             <option value="followed">People you followed</option>
                             <option value="active">Active Now</option>
                         </select>
-                        <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[16px]">unfold_more</span>
+                        <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[16px]">unfold_more</span>
                     </div>
                 </div>
                 <!-- Filter Pills Row -->
                 <div class="flex items-center gap-1.5 mt-2.5 overflow-x-auto pb-0.5 scrollbar-none">
                     <button type="button" @onclick='() => SetPeopleRoleFilter("ALL")'
-                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "ALL" ? "bg-amber-400 text-neutral-950 font-bold shadow-xs" : "bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high font-medium") transition-all flex-shrink-0 cursor-pointer">
+                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "ALL" ? "bg-amber-400 text-neutral-950 font-bold shadow-sm" : "bg-[#132238] text-slate-300 hover:text-white hover:bg-[#1A2E4C] border border-slate-700/50 font-medium") transition-all flex-shrink-0 cursor-pointer">
                         ALL (@PeopleCountAll)
                     </button>
                     <button type="button" @onclick='() => SetPeopleRoleFilter("DOMAIN_PROFESSIONAL")'
-                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "DOMAIN_PROFESSIONAL" ? "bg-amber-400 text-neutral-950 font-bold shadow-xs" : "bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high font-medium") transition-all flex-shrink-0 cursor-pointer">
+                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "DOMAIN_PROFESSIONAL" ? "bg-amber-400 text-neutral-950 font-bold shadow-sm" : "bg-[#132238] text-slate-300 hover:text-white hover:bg-[#1A2E4C] border border-slate-700/50 font-medium") transition-all flex-shrink-0 cursor-pointer">
                         DOMAIN PROFESSIONALS (@PeopleCountDomainPro)
                     </button>
                     <button type="button" @onclick='() => SetPeopleRoleFilter("PUBLIC_FIGURE")'
-                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "PUBLIC_FIGURE" ? "bg-amber-400 text-neutral-950 font-bold shadow-xs" : "bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high font-medium") transition-all flex-shrink-0 cursor-pointer">
+                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "PUBLIC_FIGURE" ? "bg-amber-400 text-neutral-950 font-bold shadow-sm" : "bg-[#132238] text-slate-300 hover:text-white hover:bg-[#1A2E4C] border border-slate-700/50 font-medium") transition-all flex-shrink-0 cursor-pointer">
                         PUBLIC FIGURES (@PeopleCountPublicFigure)
                     </button>
                 </div>
@@ -1334,11 +1334,11 @@ else if (dashboard != null)
             <div class="w-full flex flex-col gap-3.5">
                 @if (!FilteredPeople.Any())
                 {
-                    <div class="bg-surface-container-low rounded-xl p-8 text-center border border-white/5 space-y-2">
-                        <span class="material-symbols-outlined text-3xl text-outline">search_off</span>
-                        <p class="text-sm font-semibold text-on-surface">No members found matching your filters.</p>
-                        <p class="text-xs text-outline">Try clearing the search query or selecting "All".</p>
-                        <button type="button" @onclick='() => { peopleSearchQuery = string.Empty; selectedPeopleRoleFilter = "ALL"; peopleSortOption = "all"; }' class="px-3 py-1 bg-surface-container-highest hover:bg-surface-container-high text-on-surface rounded-md text-xs font-semibold transition-colors cursor-pointer border border-white/10">
+                    <div class="bg-[#0B1524] rounded-xl p-8 text-center border border-slate-800 space-y-2">
+                        <span class="material-symbols-outlined text-3xl text-slate-400">search_off</span>
+                        <p class="text-sm font-semibold text-white">No members found matching your filters.</p>
+                        <p class="text-xs text-slate-400">Try clearing the search query or selecting "All".</p>
+                        <button type="button" @onclick='() => { peopleSearchQuery = string.Empty; selectedPeopleRoleFilter = "ALL"; peopleSortOption = "all"; }' class="px-3 py-1 bg-[#132238] hover:bg-[#1A2E4C] text-slate-200 rounded-md text-xs font-semibold transition-colors cursor-pointer border border-slate-700/60">
                             Clear Filters
                         </button>
                     </div>
@@ -1348,17 +1348,17 @@ else if (dashboard != null)
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="directory-grid-container">
                         @foreach (var person in VisiblePeople)
                         {
-                            <div class="bg-surface-container-low hover:bg-surface-container rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between border border-white/5 shadow-xs hover:shadow-md transition-all group">
+                            <div class="bg-[#0B1524] hover:bg-[#0E1A2D] rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between border border-slate-800 hover:border-slate-700 shadow-md hover:shadow-xl transition-all group">
                                 <div>
                                     <!-- Top Badge & Availability Ribbon -->
                                     <div class="flex items-center justify-between gap-2 mb-3.5">
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold border border-white/10 bg-surface-container text-on-surface-variant">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold border border-amber-500/25 bg-amber-500/10 text-amber-400">
                                             <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                                             @(person.RoleCode == "PUBLIC_FIGURE" ? "PUBLIC FIGURE" : person.RoleCode == "DOMAIN_PROFESSIONAL" ? "DOMAIN PRO" : "VERIFIED MEMBER")
                                         </span>
-                                        <div class="flex items-center gap-1.5 font-mono text-[10px] text-outline">
+                                        <div class="flex items-center gap-1.5 font-mono text-[10px] text-slate-400">
                                             <span class="w-2 h-2 rounded-full @(person.AvailabilityStatus?.ToLower().Contains("busy") == true ? "bg-amber-400" : "bg-emerald-400")"></span>
-                                            <span class="truncate">@(string.IsNullOrWhiteSpace(person.AvailabilityStatus) ? "Online / Available" : person.AvailabilityStatus)</span>
+                                            <span class="truncate text-slate-300">@(string.IsNullOrWhiteSpace(person.AvailabilityStatus) ? "Online / Available" : person.AvailabilityStatus)</span>
                                         </div>
                                     </div>
 
@@ -1368,13 +1368,13 @@ else if (dashboard != null)
                                             <a href="u/@person.UserName" class="block">
                                                 @if (!string.IsNullOrWhiteSpace(person.AvatarUrl))
                                                 {
-                                                    <img class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover ring-1 ring-white/10 shadow-md group-hover:ring-white/20 transition-all"
+                                                    <img class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover ring-1 ring-slate-700 shadow-md group-hover:ring-amber-400/50 transition-all"
                                                          src="@person.AvatarUrl"
                                                          alt="@person.DisplayName" />
                                                 }
                                                 else
                                                 {
-                                                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-surface-container-highest text-on-surface font-bold text-lg sm:text-xl flex items-center justify-center ring-1 ring-white/10 shadow-md">
+                                                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-[#132238] text-white font-bold text-lg sm:text-xl flex items-center justify-center ring-1 ring-slate-700 shadow-md">
                                                         @GetPersonInitials(person)
                                                     </div>
                                                 }
@@ -1387,35 +1387,35 @@ else if (dashboard != null)
                                             }
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <a href="u/@person.UserName" class="text-sm sm:text-base font-bold text-on-surface group-hover:text-white transition-colors truncate block">
+                                            <a href="u/@person.UserName" class="text-sm sm:text-base font-bold text-white group-hover:text-amber-400 transition-colors truncate block">
                                                 @(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)
                                             </a>
-                                            <p class="text-xs text-on-surface-variant font-medium truncate mt-0.5">
+                                            <p class="text-xs text-slate-300 font-medium truncate mt-0.5">
                                                 @(string.IsNullOrWhiteSpace(person.Headline) ? $"@{person.UserName}" : person.Headline)
                                             </p>
-                                            <p class="text-[11px] text-outline line-clamp-2 leading-relaxed mt-1">
+                                            <p class="text-[11px] text-slate-400 line-clamp-2 leading-relaxed mt-1">
                                                 @(string.IsNullOrWhiteSpace(person.Bio) ? "Active ecosystem contributor and domain specialist in the verified network." : person.Bio)
                                             </p>
                                         </div>
                                     </div>
 
                                     <!-- Metrics Strip -->
-                                    <div class="bg-surface-container-lowest/80 rounded-xl p-2.5 mb-3 border border-white/5 grid grid-cols-2 gap-2 text-xs">
+                                    <div class="bg-[#070D18] rounded-xl p-2.5 mb-3 border border-slate-800 grid grid-cols-2 gap-2 text-xs">
                                         <div class="flex flex-col">
-                                            <span class="font-mono text-[9px] uppercase tracking-wider text-outline font-semibold">Community Rating</span>
+                                            <span class="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Community Rating</span>
                                             <div class="flex items-center gap-1 mt-0.5">
                                                 <span class="text-amber-400 font-bold flex items-center gap-0.5">
-                                                    <span class="material-symbols-outlined text-[14px]">star</span>
+                                                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
                                                     <span>@((person.AverageRating.HasValue && person.AverageRating.Value > 0 ? person.AverageRating.Value.ToString("F1") : "5.0"))</span>
                                                 </span>
-                                                <span class="text-outline text-[10px]">
+                                                <span class="text-slate-400 text-[10px]">
                                                     (@(person.RatingCount > 0 ? $"{person.RatingCount} ratings" : "Verified"))
                                                 </span>
                                             </div>
                                         </div>
-                                        <div class="flex flex-col border-l border-white/5 pl-2.5">
-                                            <span class="font-mono text-[9px] uppercase tracking-wider text-outline font-semibold">Contributions</span>
-                                            <span class="text-on-surface font-semibold mt-0.5 truncate">
+                                        <div class="flex flex-col border-l border-slate-800 pl-2.5">
+                                            <span class="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Contributions</span>
+                                            <span class="text-slate-200 font-semibold mt-0.5 truncate">
                                                 @person.PostsCount Posts Published
                                             </span>
                                         </div>
@@ -1423,23 +1423,23 @@ else if (dashboard != null)
 
                                     <!-- Specialties & Skills -->
                                     <div class="mb-3">
-                                        <span class="font-mono text-[9px] uppercase tracking-wider text-outline block mb-1.5 font-semibold">Specialties &amp; Skills</span>
+                                        <span class="font-mono text-[9px] uppercase tracking-wider text-slate-400 block mb-1.5 font-semibold">Specialties &amp; Skills</span>
                                         <div class="flex flex-wrap gap-1.5">
                                             @if (person.Skills != null && person.Skills.Any())
                                             {
                                                 @foreach (var skill in person.Skills.Take(4))
                                                 {
-                                                    <span class="px-2 py-0.5 bg-surface-container-lowest text-on-surface-variant text-[10px] rounded-md border border-white/5 truncate max-w-[150px]">
+                                                    <span class="px-2 py-0.5 bg-[#132238] text-slate-200 text-[10px] rounded-md border border-slate-700/60 truncate max-w-[150px]">
                                                         @skill
                                                     </span>
                                                 }
                                             }
                                             else
                                             {
-                                                <span class="px-2 py-0.5 bg-surface-container-lowest text-on-surface-variant text-[10px] rounded-md border border-white/5">
+                                                <span class="px-2 py-0.5 bg-[#132238] text-slate-200 text-[10px] rounded-md border border-slate-700/60">
                                                     General Discussion
                                                 </span>
-                                                <span class="px-2 py-0.5 bg-surface-container-lowest text-on-surface-variant text-[10px] rounded-md border border-white/5">
+                                                <span class="px-2 py-0.5 bg-[#132238] text-slate-200 text-[10px] rounded-md border border-slate-700/60">
                                                     Verified Fellow
                                                 </span>
                                             }
@@ -1448,10 +1448,10 @@ else if (dashboard != null)
 
                                     <!-- Direct Communication -->
                                     <div class="mb-3.5">
-                                        <span class="font-mono text-[9px] uppercase tracking-wider text-outline block mb-1.5 font-semibold">Direct Communication</span>
-                                        <div class="bg-surface-container-lowest/80 rounded-xl p-2.5 border border-white/5 flex items-center justify-between">
-                                            <div class="flex items-center gap-1.5 text-xs text-on-surface font-medium">
-                                                <span class="material-symbols-outlined text-[16px] text-outline">chat</span>
+                                        <span class="font-mono text-[9px] uppercase tracking-wider text-slate-400 block mb-1.5 font-semibold">Direct Communication</span>
+                                        <div class="bg-[#070D18] rounded-xl p-2.5 border border-slate-800 flex items-center justify-between">
+                                            <div class="flex items-center gap-1.5 text-xs text-slate-200 font-medium">
+                                                <span class="material-symbols-outlined text-[16px] text-slate-400">chat</span>
                                                 <span>Direct 1:1 Message</span>
                                             </div>
                                             <span class="text-amber-400 font-bold text-xs">
@@ -1462,21 +1462,21 @@ else if (dashboard != null)
                                 </div>
 
                                 <!-- Action Buttons -->
-                                <div class="flex items-center gap-2 pt-2 border-t border-white/5 mt-auto">
+                                <div class="flex items-center gap-2 pt-2 border-t border-slate-800 mt-auto">
                                     <button type="button" @onclick="() => ToggleFollowPersonAsync(person.UserId)"
-                                            class="px-3.5 py-1.5 rounded-lg @(person.IsFollowedByCurrentUser ? "bg-surface-container-highest text-white border border-white/15" : "bg-surface-container-highest hover:bg-white/10 text-on-surface-variant border border-white/5") text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer shrink-0">
+                                            class="px-3.5 py-1.5 rounded-lg @(person.IsFollowedByCurrentUser ? "bg-[#1A2E4C] text-white border border-slate-600/80" : "bg-[#132238] hover:bg-[#1A2E4C] text-slate-200 border border-slate-700/60") text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer shrink-0">
                                         @if (person.IsFollowedByCurrentUser)
                                         {
-                                            <span class="material-symbols-outlined text-[15px]">check</span>
+                                            <span class="material-symbols-outlined text-[15px] text-amber-400">check</span>
                                             <span>Following</span>
                                         }
                                         else
                                         {
-                                            <span class="material-symbols-outlined text-[15px]">person_add</span>
+                                            <span class="material-symbols-outlined text-[15px] text-slate-400">person_add</span>
                                             <span>Follow</span>
                                         }
                                     </button>
-                                    <a href="u/@person.UserName" class="flex-1 py-1.5 bg-surface-container-highest hover:bg-white/10 text-on-surface text-xs font-semibold rounded-lg flex items-center justify-center gap-1 border border-white/5 transition-colors">
+                                    <a href="u/@person.UserName" class="flex-1 py-1.5 bg-[#132238] hover:bg-[#1A2E4C] text-slate-200 hover:text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-1 border border-slate-700/60 transition-colors">
                                         <span>View Full Profile</span>
                                         <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
                                     </a>
@@ -1490,9 +1490,9 @@ else if (dashboard != null)
                     {
                         <div class="flex justify-center pt-3 pb-2">
                             <button type="button" @onclick="LoadMorePeople"
-                                    class="px-5 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold flex items-center gap-2 border border-white/5 transition-all cursor-pointer shadow-xs hover:shadow-sm group">
+                                    class="px-5 py-2.5 rounded-xl bg-[#0B1524] hover:bg-[#132238] text-slate-200 hover:text-white text-xs font-semibold flex items-center gap-2 border border-slate-700/60 transition-all cursor-pointer shadow-md hover:shadow-lg group">
                                 <span>See More</span>
-                                <span class="material-symbols-outlined text-[18px] group-hover:translate-y-0.5 transition-transform text-outline">expand_more</span>
+                                <span class="material-symbols-outlined text-[18px] group-hover:translate-y-0.5 transition-transform text-slate-400">expand_more</span>
                             </button>
                         </div>
                     }
