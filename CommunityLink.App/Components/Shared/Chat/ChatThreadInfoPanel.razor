@@ -120,15 +120,15 @@
                 {
                     <!-- Sub-view for Shared Media Category -->
                     <div class="pt-1 space-y-3">
-                        <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+                        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-[rgba(196,210,225,0.12)] pb-2">
                             <button type="button" @onclick="BackToMediaSummary"
-                                    class="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
+                                    class="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                                 </svg>
                                 <span>Back</span>
                             </button>
-                            <span class="text-xs font-bold text-slate-800 capitalize">
+                            <span class="text-xs font-bold text-slate-800 dark:text-[#E1E8F0] capitalize">
                                 Shared @selectedMediaCategory (@(mediaResult?.TotalCount ?? 0))
                             </span>
                         </div>
@@ -142,7 +142,7 @@
                         }
                         else if (mediaResult == null || mediaResult.Items.Count == 0)
                         {
-                            <p class="py-6 text-center text-xs text-slate-500">No shared @selectedMediaCategory found.</p>
+                            <p class="py-6 text-center text-xs text-slate-500 dark:text-[#C4D2E1]">No shared @selectedMediaCategory found.</p>
                         }
                         else
                         {
@@ -152,7 +152,7 @@
                                     @foreach (var item in mediaResult.Items)
                                     {
                                         <button type="button" @onclick="() => selectedPhotoItem = item"
-                                                class="group relative aspect-square overflow-hidden rounded-lg bg-slate-100 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                class="group relative aspect-square overflow-hidden rounded-lg bg-slate-100 dark:bg-[#0A1B2E] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                             <img src="@item.AttachmentUrl" alt="" class="h-full w-full object-cover transition group-hover:scale-105" />
                                             <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-end p-1">
                                                 <span class="text-[9px] font-medium text-white truncate">@item.SenderDisplayName</span>
@@ -166,25 +166,25 @@
                                 <div class="space-y-2">
                                     @foreach (var item in mediaResult.Items)
                                     {
-                                        <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl border border-slate-100 bg-white hover:bg-slate-50">
+                                        <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl border border-slate-100 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E] hover:bg-slate-50 dark:hover:bg-[#1B3B5A]">
                                             <div class="flex min-w-0 items-center gap-3">
-                                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
                                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25z" />
                                                     </svg>
                                                 </div>
                                                 <div class="min-w-0">
-                                                    <p class="truncate text-xs font-semibold text-slate-800">@(string.IsNullOrWhiteSpace(item.FileName) ? "Video file" : item.FileName)</p>
-                                                    <p class="text-[10px] text-slate-500">@item.SenderDisplayName • @item.CreatedAt.ToLocalTime().ToString("MMM d, yyyy HH:mm")</p>
+                                                    <p class="truncate text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">@(string.IsNullOrWhiteSpace(item.FileName) ? "Video file" : item.FileName)</p>
+                                                    <p class="text-[10px] text-slate-500 dark:text-[#C4D2E1]">@item.SenderDisplayName • @item.CreatedAt.ToLocalTime().ToString("MMM d, yyyy HH:mm")</p>
                                                 </div>
                                             </div>
                                             <div class="flex items-center gap-1.5 shrink-0">
                                                 <a href="@item.AttachmentUrl" target="_blank" download
-                                                   class="rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-200 transition">
+                                                   class="rounded-lg bg-slate-100 dark:bg-[#1B3B5A] px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-[#E1E8F0] hover:bg-slate-200 dark:hover:bg-slate-700 transition">
                                                     Open
                                                 </a>
                                                 <button type="button" @onclick="() => TriggerViewInChat(item.MessageId)"
-                                                        class="rounded-lg bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100 transition">
+                                                        class="rounded-lg bg-indigo-50 dark:bg-indigo-950/50 px-2 py-1 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition">
                                                     View in chat
                                                 </button>
                                             </div>
@@ -197,27 +197,27 @@
                                 <div class="space-y-2">
                                     @foreach (var item in mediaResult.Items)
                                     {
-                                        <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl border border-slate-100 bg-white hover:bg-slate-50">
+                                        <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl border border-slate-100 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E] hover:bg-slate-50 dark:hover:bg-[#1B3B5A]">
                                             <div class="flex min-w-0 items-center gap-3">
-                                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
                                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
                                                     </svg>
                                                 </div>
                                                 <div class="min-w-0">
-                                                    <p class="truncate text-xs font-semibold text-slate-800">@(string.IsNullOrWhiteSpace(item.FileName) ? "Attachment" : item.FileName)</p>
-                                                    <p class="text-[10px] text-slate-500">
+                                                    <p class="truncate text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">@(string.IsNullOrWhiteSpace(item.FileName) ? "Attachment" : item.FileName)</p>
+                                                    <p class="text-[10px] text-slate-500 dark:text-[#C4D2E1]">
                                                         @FormatFileSize(item.FileSizeByte) • @item.SenderDisplayName • @item.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")
                                                     </p>
                                                 </div>
                                             </div>
                                             <div class="flex items-center gap-1.5 shrink-0">
                                                 <a href="@item.AttachmentUrl" target="_blank" download
-                                                   class="rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-200 transition">
+                                                   class="rounded-lg bg-slate-100 dark:bg-[#1B3B5A] px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-[#E1E8F0] hover:bg-slate-200 dark:hover:bg-slate-700 transition">
                                                     Download
                                                 </a>
                                                 <button type="button" @onclick="() => TriggerViewInChat(item.MessageId)"
-                                                        class="rounded-lg bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100 transition">
+                                                        class="rounded-lg bg-indigo-50 dark:bg-indigo-950/50 px-2 py-1 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition">
                                                     View in chat
                                                 </button>
                                             </div>
@@ -230,7 +230,7 @@
                             {
                                 <div class="pt-2 text-center">
                                     <button type="button" @onclick="LoadMoreMediaAsync" disabled="@isLoadingSharedMedia"
-                                            class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+                                            class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] disabled:opacity-50">
                                         @(isLoadingSharedMedia ? "Loading..." : "Load more")
                                     </button>
                                 </div>
@@ -244,8 +244,8 @@
                 @if (Thread.IsGroup)
                 {
                     <div class="pt-1">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">About</h3>
-                        <p class="mt-1.5 whitespace-pre-wrap text-sm text-slate-700 leading-relaxed">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-[#C4D2E1]">About</h3>
+                        <p class="mt-1.5 whitespace-pre-wrap text-sm text-slate-700 dark:text-[#E1E8F0] leading-relaxed">
                             @(string.IsNullOrWhiteSpace(Thread.Description) ? "No description provided." : Thread.Description)
                         </p>
                     </div>
@@ -255,9 +255,9 @@
                 @if (IsAdminOrOwner && Thread.IsGroup && showManageSection)
                 {
                     <div class="pt-4 space-y-4">
-                        <div class="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
-                                <svg class="h-3.5 w-3.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <div class="rounded-xl border border-indigo-100 dark:border-[rgba(196,210,225,0.12)] bg-indigo-50/40 dark:bg-[#0A1B2E]/60 p-4">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+                                <svg class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                                 </svg>
                                 Group Settings & Administration
@@ -265,25 +265,25 @@
 
                             @if (actionError is not null)
                             {
-                                <p class="mt-2.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700" role="alert">@actionError</p>
+                                <p class="mt-2.5 rounded-lg border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-950/40 px-3 py-2 text-xs font-medium text-rose-700 dark:text-rose-300" role="alert">@actionError</p>
                             }
 
                             <!-- Edit Name & Description (Owner) -->
                             @if (IsOwner)
                             {
-                                <div class="mt-3 border-t border-indigo-100 pt-3">
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
                                     @if (isEditing)
                                     {
                                         <div class="space-y-2.5">
                                             <div>
-                                                <label for="mg-name" class="mb-1 block text-xs font-semibold text-slate-700">Group name</label>
+                                                <label for="mg-name" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-[#E1E8F0]">Group name</label>
                                                 <input id="mg-name" type="text" @bind="editName"
-                                                       class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
+                                                       class="w-full rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-sm text-slate-900 dark:text-[#E1E8F0] focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
                                             </div>
                                             <div>
-                                                <label for="mg-desc" class="mb-1 block text-xs font-semibold text-slate-700">Description</label>
+                                                <label for="mg-desc" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-[#E1E8F0]">Description</label>
                                                 <textarea id="mg-desc" @bind="editDescription" rows="2"
-                                                          class="w-full resize-none rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"></textarea>
+                                                          class="w-full resize-none rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-sm text-slate-900 dark:text-[#E1E8F0] focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"></textarea>
                                             </div>
                                             <div class="flex items-center gap-2 pt-1">
                                                 <button type="button" @onclick="SaveInfoAsync" disabled="@IsSubmitting"
@@ -291,7 +291,7 @@
                                                     @(IsSubmitting ? "Saving…" : "Save changes")
                                                 </button>
                                                 <button type="button" @onclick="CancelEdit" disabled="@IsSubmitting"
-                                                        class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50">
+                                                        class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50">
                                                     Cancel
                                                 </button>
                                             </div>
@@ -300,8 +300,8 @@
                                     else
                                     {
                                         <button type="button" @onclick="BeginEdit" disabled="@IsSubmitting"
-                                                class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 flex items-center justify-center gap-1.5">
-                                            <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-center gap-1.5">
+                                            <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#C4D2E1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                                             </svg>
                                             Edit group name & description
@@ -310,16 +310,16 @@
                                 </div>
 
                                 <!-- Invite Links Row (Owner / Admin) -->
-                                <div class="mt-3 border-t border-indigo-100 pt-3">
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
                                     <button type="button" @onclick="OpenInviteLinksModalAsync" disabled="@IsSubmitting"
-                                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 flex items-center justify-between">
+                                            class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-between">
                                         <div class="flex items-center gap-1.5">
-                                            <svg class="h-3.5 w-3.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <svg class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
                                             </svg>
                                             <span>Invite links</span>
                                         </div>
-                                        <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                                        <span class="rounded-full bg-slate-100 dark:bg-[#112A46] px-2 py-0.5 text-[11px] font-bold text-slate-600 dark:text-[#C4D2E1]">
                                             @(inviteLinks.Count > 0 ? inviteLinks.Count : (primaryInviteLink != null ? 1 : 1))
                                         </span>
                                     </button>
@@ -329,21 +329,21 @@
                             <!-- Join Fee (Owner) -->
                             @if (IsOwner)
                             {
-                                <div class="mt-3 border-t border-indigo-100 pt-3">
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
                                     @if (isEditingFee)
                                     {
                                         <div class="space-y-2.5">
-                                            <label for="mg-fee" class="block text-xs font-semibold text-slate-700">Join fee (LinkDrops)</label>
+                                            <label for="mg-fee" class="block text-xs font-semibold text-slate-700 dark:text-[#E1E8F0]">Join fee (LinkDrops)</label>
                                             <input id="mg-fee" type="number" min="0" @bind="editFeeLinkDrops"
-                                                   class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
-                                            <p class="text-[11px] text-slate-500">A fee of 0 makes the group free.</p>
+                                                   class="w-full rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-sm font-semibold text-slate-900 dark:text-[#E1E8F0] focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
+                                            <p class="text-[11px] text-slate-500 dark:text-[#C4D2E1]">A fee of 0 makes the group free.</p>
                                             <div class="flex items-center gap-2 pt-1">
                                                 <button type="button" @onclick="SaveFeeAsync" disabled="@IsSubmitting"
                                                         class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
                                                     @(IsSubmitting ? "Saving…" : "Update fee")
                                                 </button>
                                                 <button type="button" @onclick="CancelEditFee" disabled="@IsSubmitting"
-                                                        class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50">
+                                                        class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50">
                                                     Cancel
                                                 </button>
                                             </div>
@@ -352,8 +352,8 @@
                                     else
                                     {
                                         <button type="button" @onclick="BeginEditFee" disabled="@IsSubmitting"
-                                                class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 flex items-center justify-center gap-1.5">
-                                            <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-center gap-1.5">
+                                            <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#C4D2E1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33" />
                                             </svg>
                                             Change join fee (@Thread.FeeLinkDrops LinkDrops)
@@ -365,24 +365,24 @@
                             <!-- Access Mode (Owner) -->
                             @if (IsOwner)
                             {
-                                <div class="mt-3 border-t border-indigo-100 pt-3">
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
                                     @if (isEditingAccessMode)
                                     {
                                         <div class="space-y-2.5">
-                                            <label class="block text-xs font-semibold text-slate-700">Access Mode</label>
+                                            <label class="block text-xs font-semibold text-slate-700 dark:text-[#E1E8F0]">Access Mode</label>
                                             <div class="grid grid-cols-2 gap-2">
                                                 <button type="button" @onclick='() => editAccessMode = "PUBLIC"'
-                                                        class="flex items-center justify-center gap-1.5 rounded-lg border p-2 text-xs font-semibold transition @(editAccessMode == "PUBLIC" ? "border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")">
+                                                        class="flex items-center justify-center gap-1.5 rounded-lg border p-2 text-xs font-semibold transition @(editAccessMode == "PUBLIC" ? "border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/60 dark:text-indigo-300 ring-1 ring-indigo-600" : "border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-50 dark:hover:bg-[#244b72]")">
                                                     <span>🌐</span>
                                                     <span>Public</span>
                                                 </button>
                                                 <button type="button" @onclick='() => editAccessMode = "PRIVATE"'
-                                                        class="flex items-center justify-center gap-1.5 rounded-lg border p-2 text-xs font-semibold transition @(editAccessMode == "PRIVATE" ? "border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")">
+                                                        class="flex items-center justify-center gap-1.5 rounded-lg border p-2 text-xs font-semibold transition @(editAccessMode == "PRIVATE" ? "border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/60 dark:text-indigo-300 ring-1 ring-indigo-600" : "border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-50 dark:hover:bg-[#244b72]")">
                                                     <span>🔒</span>
                                                     <span>Private</span>
                                                 </button>
                                             </div>
-                                            <p class="text-[11px] text-slate-500">
+                                            <p class="text-[11px] text-slate-500 dark:text-[#C4D2E1]">
                                                 @(editAccessMode == "PRIVATE" ? "Private groups require approval before new members can join." : "Public groups allow anyone to join immediately.")
                                             </p>
                                             <div class="flex items-center gap-2 pt-1">
@@ -391,7 +391,7 @@
                                                     @(IsSubmitting ? "Saving…" : "Save Access Mode")
                                                 </button>
                                                 <button type="button" @onclick="CancelEditAccessMode" disabled="@IsSubmitting"
-                                                        class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50">
+                                                        class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50">
                                                     Cancel
                                                 </button>
                                             </div>
@@ -400,7 +400,7 @@
                                     else
                                     {
                                         <button type="button" @onclick="BeginEditAccessMode" disabled="@IsSubmitting"
-                                                class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 flex items-center justify-center gap-1.5">
+                                                class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-center gap-1.5">
                                             <span class="text-sm">@(Thread.AccessMode == "PRIVATE" ? "🔒" : "🌐")</span>
                                             Change access mode (@(Thread.AccessMode == "PRIVATE" ? "Private 🔒" : "Public 🌐"))
                                         </button>
@@ -411,11 +411,11 @@
                             <!-- Pending Join Requests (Admin or Owner) -->
                             @if (IsAdminOrOwner)
                             {
-                                <div class="mt-3 border-t border-indigo-100 pt-3">
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
                                     <button type="button" @onclick="ToggleJoinRequestsAsync" disabled="@IsSubmitting"
-                                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 flex items-center justify-between">
+                                            class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-between">
                                         <div class="flex items-center gap-1.5">
-                                            <svg class="h-3.5 w-3.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <svg class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
                                             </svg>
                                             <span>Join Requests</span>
@@ -433,18 +433,18 @@
                                         <div class="mt-2 space-y-2">
                                             @if (isLoadingJoinRequests)
                                             {
-                                                <p class="py-2 text-center text-xs text-slate-500">Loading join requests…</p>
+                                                <p class="py-2 text-center text-xs text-slate-500 dark:text-[#C4D2E1]">Loading join requests…</p>
                                             }
                                             else if (joinRequests.Count == 0)
                                             {
-                                                <p class="py-2 text-center text-xs text-slate-500">No pending join requests.</p>
+                                                <p class="py-2 text-center text-xs text-slate-500 dark:text-[#C4D2E1]">No pending join requests.</p>
                                             }
                                             else
                                             {
                                                 <ul class="max-h-48 space-y-1.5 overflow-y-auto" role="list">
                                                     @foreach (var req in joinRequests)
                                                     {
-                                                        <li class="flex items-center justify-between gap-2 rounded-lg bg-white p-2.5 shadow-sm border border-slate-100">
+                                                        <li class="flex items-center justify-between gap-2 rounded-lg bg-white dark:bg-[#1B3B5A] p-2.5 shadow-sm border border-slate-100 dark:border-[rgba(196,210,225,0.12)]">
                                                             <div class="flex min-w-0 items-center gap-2">
                                                                 @if (!string.IsNullOrWhiteSpace(req.UserAvatar))
                                                                 {
@@ -452,17 +452,17 @@
                                                                 }
                                                                 else
                                                                 {
-                                                                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-[10px] font-bold text-indigo-600">@Initial(req.UserDisplayName)</span>
+                                                                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">@Initial(req.UserDisplayName)</span>
                                                                 }
                                                                 <div class="min-w-0">
                                                                     <div class="flex items-center gap-1.5">
-                                                                        <p class="truncate text-xs font-semibold text-slate-800">@(string.IsNullOrWhiteSpace(req.UserDisplayName) ? req.UserName : req.UserDisplayName)</p>
+                                                                        <p class="truncate text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">@(string.IsNullOrWhiteSpace(req.UserDisplayName) ? req.UserName : req.UserDisplayName)</p>
                                                                         @if (req.IsOnline)
                                                                         {
                                                                             <span class="h-2 w-2 rounded-full bg-emerald-500" title="Online"></span>
                                                                         }
                                                                     </div>
-                                                                    <p class="text-[10px] text-slate-400">@req.RequestedAt.ToLocalTime().ToString("MMM d, HH:mm")</p>
+                                                                    <p class="text-[10px] text-slate-400 dark:text-[#C4D2E1]">@req.RequestedAt.ToLocalTime().ToString("MMM d, HH:mm")</p>
                                                                 </div>
                                                             </div>
                                                             <div class="flex items-center gap-1 shrink-0">
@@ -473,25 +473,25 @@
                                                                         Approve
                                                                     </button>
                                                                     <button type="button" @onclick="() => RejectJoinRequestAsync(req.ChatGroupJoinRequestId)" disabled="@IsSubmitting"
-                                                                            class="rounded border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50">
+                                                                            class="rounded border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#112A46] px-2 py-1 text-[10px] font-semibold text-slate-600 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] disabled:opacity-50">
                                                                         Reject
                                                                     </button>
                                                                 }
                                                                 else if (req.Status == "APPROVED_WAITING_PAYMENT")
                                                                 {
-                                                                    <span class="rounded bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 border border-amber-200">
+                                                                    <span class="rounded bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
                                                                         Approved (Waiting Payment)
                                                                     </span>
                                                                 }
                                                                 else if (req.Status == "REJECTED")
                                                                 {
-                                                                    <span class="rounded bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-600">
+                                                                    <span class="rounded bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 text-[10px] font-semibold text-rose-600 dark:text-rose-400">
                                                                         Rejected
                                                                     </span>
                                                                 }
                                                                 else if (req.Status == "JOINED")
                                                                 {
-                                                                    <span class="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-600">
+                                                                    <span class="rounded bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                                                                         Joined
                                                                     </span>
                                                                 }
@@ -511,10 +511,10 @@
                                issues an invite instead of a membership. *@
                             @if (IsOwner)
                             {
-                            <div class="mt-3 border-t border-indigo-100 pt-3">
+                            <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
                                 @if (isAdding)
                                 {
-                                    <label for="mg-add-user" class="block text-xs font-semibold text-slate-700">
+                                    <label for="mg-add-user" class="block text-xs font-semibold text-slate-700 dark:text-[#E1E8F0]">
                                         @(IsPaidGroup ? "Invite members" : "Add members directly")
                                     </label>
                                     <input @key="addInputKey"
@@ -524,22 +524,22 @@
                                            @bind:after="OnAddSearchInputAsync"
                                            @onkeydown="OnAddSearchKeyDownAsync"
                                            placeholder="Search user name..."
-                                           class="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
+                                           class="mt-1.5 w-full rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-xs text-slate-900 dark:text-[#E1E8F0] placeholder:text-slate-400 dark:placeholder:text-[#C4D2E1]/60 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
 
                                     @if (isSearching)
                                     {
-                                        <p class="mt-2 text-xs text-slate-500">Searching…</p>
+                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#C4D2E1]">Searching…</p>
                                     }
                                     else if (addCandidates.Count == 0 && addSearch.Trim().Length > 0)
                                     {
-                                        <p class="mt-2 text-xs text-slate-500">No matching users found.</p>
+                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#C4D2E1]">No matching users found.</p>
                                     }
                                     else
                                     {
                                         <ul class="mt-2 max-h-36 space-y-1 overflow-y-auto" role="list">
                                             @foreach (var candidate in addCandidates)
                                             {
-                                                <li class="flex items-center justify-between gap-2 rounded-lg bg-white px-2.5 py-1.5 shadow-sm">
+                                                <li class="flex items-center justify-between gap-2 rounded-lg bg-white dark:bg-[#1B3B5A] px-2.5 py-1.5 shadow-sm">
                                                     <div class="flex min-w-0 items-center gap-2">
                                                         @if (!string.IsNullOrWhiteSpace(candidate.AvatarUrl))
                                                         {
@@ -547,9 +547,9 @@
                                                         }
                                                         else
                                                         {
-                                                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600">@Initial(candidate.DisplayName)</span>
+                                                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#112A46] text-[10px] font-semibold text-slate-600 dark:text-[#E1E8F0]">@Initial(candidate.DisplayName)</span>
                                                         }
-                                                        <span class="min-w-0 truncate text-xs text-slate-800">@(string.IsNullOrWhiteSpace(candidate.DisplayName) ? candidate.UserName : candidate.DisplayName)</span>
+                                                        <span class="min-w-0 truncate text-xs text-slate-800 dark:text-[#E1E8F0]">@(string.IsNullOrWhiteSpace(candidate.DisplayName) ? candidate.UserName : candidate.DisplayName)</span>
                                                     </div>
                                                     <button type="button" @onclick="() => AddUserAsync(candidate.UserId)" disabled="@IsSubmitting"
                                                             class="shrink-0 rounded bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
@@ -561,22 +561,22 @@
                                     }
 
                                     <button type="button" @onclick="CancelAdd" disabled="@IsSubmitting"
-                                            class="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50">
+                                            class="mt-2 rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50">
                                         Close
                                     </button>
                                 }
                                 else
                                 {
                                     <button type="button" @onclick="BeginAdd" disabled="@IsSubmitting"
-                                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 flex items-center justify-center gap-1.5">
-                                        <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-center gap-1.5">
+                                        <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#C4D2E1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
                                         </svg>
                                         @(IsPaidGroup ? "Invite members" : "Add members directly")
                                     </button>
                                     @if (IsPaidGroup)
                                     {
-                                        <p class="mt-1.5 text-[11px] leading-relaxed text-slate-500">
+                                        <p class="mt-1.5 text-[11px] leading-relaxed text-slate-500 dark:text-[#C4D2E1]">
                                             Invited people are not members yet. They appear under pending invitations and must
                                             pay the @Thread.FeeLinkDrops LinkDrops join fee to take part.
                                         </p>
@@ -590,23 +590,23 @@
                                are tracked separately until they pay, decline, or are revoked. *@
                             @if (IsPaidGroup)
                             {
-                                <div class="mt-3 border-t border-indigo-100 pt-3">
-                                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pending invitations</h4>
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
+                                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-[#C4D2E1]">Pending invitations</h4>
 
                                     @if (IsLoadingInvitations)
                                     {
-                                        <p class="mt-2 text-xs text-slate-500">Loading…</p>
+                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#C4D2E1]">Loading…</p>
                                     }
                                     else if (Invitations.Count == 0)
                                     {
-                                        <p class="mt-1.5 text-xs text-slate-500">No pending invitations.</p>
+                                        <p class="mt-1.5 text-xs text-slate-500 dark:text-[#C4D2E1]">No pending invitations.</p>
                                     }
                                     else
                                     {
                                         <ul class="mt-2 max-h-36 space-y-1 overflow-y-auto" role="list">
                                             @foreach (var invite in Invitations)
                                             {
-                                                <li class="flex items-center justify-between gap-2.5 rounded-lg bg-white px-2.5 py-1.5 shadow-sm">
+                                                <li class="flex items-center justify-between gap-2.5 rounded-lg bg-white dark:bg-[#1B3B5A] px-2.5 py-1.5 shadow-sm">
                                                     <div class="flex min-w-0 items-center gap-2">
                                                         @if (!string.IsNullOrWhiteSpace(invite.InvitedUserAvatar))
                                                         {
@@ -614,15 +614,15 @@
                                                         }
                                                         else
                                                         {
-                                                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-[10px] font-semibold text-indigo-700">@Initial(InviteeName(invite))</span>
+                                                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-[10px] font-semibold text-indigo-700 dark:text-indigo-300">@Initial(InviteeName(invite))</span>
                                                         }
                                                         <div class="min-w-0">
-                                                            <p class="min-w-0 truncate text-xs text-slate-800">@InviteeName(invite)</p>
-                                                            <p class="text-[11px] text-slate-500">Quoted @invite.FeeAtInviteLinkDrops LinkDrops · @invite.InvitedAt.ToLocalTime().ToString("MMM d, HH:mm")</p>
+                                                            <p class="min-w-0 truncate text-xs text-slate-800 dark:text-[#E1E8F0]">@InviteeName(invite)</p>
+                                                            <p class="text-[11px] text-slate-500 dark:text-[#C4D2E1]">Quoted @invite.FeeAtInviteLinkDrops LinkDrops · @invite.InvitedAt.ToLocalTime().ToString("MMM d, HH:mm")</p>
                                                         </div>
                                                     </div>
                                                     <button type="button" @onclick="() => RevokeAsync(invite.InvitedUserId)" disabled="@IsSubmitting"
-                                                            class="shrink-0 rounded bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50">
+                                                            class="shrink-0 rounded bg-white dark:bg-[#112A46] px-2.5 py-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400 transition hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-50">
                                                         Revoke
                                                     </button>
                                                 </li>
@@ -633,10 +633,10 @@
                             }
 
                             <!-- Banned Members -->
-                            <div class="mt-3 border-t border-indigo-100 pt-3">
+                            <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
                                 <button type="button" @onclick="ToggleBanningAsync" disabled="@IsSubmitting"
-                                        class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 flex items-center justify-center gap-1.5">
-                                    <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-center gap-1.5">
+                                    <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#C4D2E1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
                                     </svg>
                                     @(isBanning ? "Hide banned list" : "Banned members list")
@@ -647,16 +647,16 @@
                                     <ul class="mt-2 max-h-36 space-y-1 overflow-y-auto" role="list">
                                         @if (bannedMembers.Count == 0)
                                         {
-                                            <li class="py-2 text-center text-xs text-slate-500">No banned members.</li>
+                                            <li class="py-2 text-center text-xs text-slate-500 dark:text-[#C4D2E1]">No banned members.</li>
                                         }
                                         else
                                         {
                                             @foreach (var banned in bannedMembers)
                                             {
-                                                <li class="flex items-center justify-between gap-2.5 rounded-lg bg-white px-2.5 py-1.5 shadow-sm">
-                                                    <span class="min-w-0 truncate text-xs text-slate-800">@banned.BannedUserName</span>
+                                                <li class="flex items-center justify-between gap-2.5 rounded-lg bg-white dark:bg-[#1B3B5A] px-2.5 py-1.5 shadow-sm">
+                                                    <span class="min-w-0 truncate text-xs text-slate-800 dark:text-[#E1E8F0]">@banned.BannedUserName</span>
                                                     <button type="button" @onclick="() => UnbanUserAsync(banned.BannedUserId)" disabled="@IsSubmitting"
-                                                            class="shrink-0 rounded bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50">
+                                                            class="shrink-0 rounded bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 transition hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-50">
                                                         Unban
                                                     </button>
                                                 </li>
@@ -674,13 +674,13 @@
                 {
                     <div class="pt-4">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">@Thread.MemberCount MEMBERS</h3>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[#C4D2E1]">@Thread.MemberCount MEMBERS</h3>
                             @if (IsAdminOrOwner)
                             {
                                 <button type="button"
                                         @onclick="() => { showManageSection = true; isAdding = true; }"
                                         title="Add Member"
-                                        class="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
+                                        class="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
                                     </svg>
@@ -701,36 +701,46 @@
                             }
                             else if (Members.Count == 0)
                             {
-                                <li class="py-4 text-center text-xs text-slate-500">No members to display.</li>
+                                <li class="py-4 text-center text-xs text-slate-500 dark:text-[#C4D2E1]">No members to display.</li>
                             }
                             else
                             {
                                 @foreach (var member in Members)
                                 {
-                                    <li class="rounded-xl transition hover:bg-slate-50">
+                                    <li class="rounded-xl transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A]">
                                         <div class="flex items-center justify-between gap-3 p-2">
                                         <div class="flex min-w-0 items-center gap-3">
                                             <div class="relative shrink-0">
                                                 @if (!string.IsNullOrWhiteSpace(member.UserAvatar))
                                                 {
                                                     <img src="@member.UserAvatar" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover shadow-sm" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
-                                                    <span class="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">@Initial(member.DisplayName)</span>
+                                                    <span class="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1B3B5A] text-xs font-semibold text-slate-600 dark:text-[#E1E8F0]">@Initial(member.DisplayName)</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">@Initial(member.DisplayName)</span>
+                                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1B3B5A] text-xs font-semibold text-slate-600 dark:text-[#E1E8F0]">@Initial(member.DisplayName)</span>
                                                 }
                                                 @if (member.IsOnline)
                                                 {
-                                                    <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" title="Online"></span>
+                                                    <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-[#112A46] bg-emerald-500" title="Online"></span>
                                                 }
                                             </div>
                                             <div class="flex flex-col min-w-0">
-                                                <span class="truncate text-sm font-semibold text-slate-800">@(string.IsNullOrWhiteSpace(member.DisplayName) ? member.UserName : member.DisplayName)</span>
-                                                <span class="text-[11px] text-slate-400">
+                                                <div class="flex items-center gap-1.5 min-w-0">
+                                                    <span class="truncate text-sm font-semibold text-slate-800 dark:text-[#E1E8F0]">@(string.IsNullOrWhiteSpace(member.DisplayName) ? member.UserName : member.DisplayName)</span>
+                                                    @if (member.Role is "OWNER" or "ADMIN")
+                                                    {
+                                                        <span class="shrink-0 rounded-md border @(member.Role == "OWNER" ? "border-amber-200 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "border-indigo-200 dark:border-indigo-800/40 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300") px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider">@member.Role</span>
+                                                    }
+                                                    @if (member.IsMuted)
+                                                    {
+                                                        <span class="shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.5 text-[9px] font-semibold text-rose-600 dark:text-rose-400" title="Muted">🔕</span>
+                                                    }
+                                                </div>
+                                                <span class="truncate text-[11px] text-slate-400 dark:text-[#C4D2E1]">
                                                     @if (member.IsOnline)
                                                     {
-                                                        <span class="font-medium text-emerald-600">online</span>
+                                                        <span class="font-medium text-emerald-600 dark:text-emerald-400">online</span>
                                                     }
                                                     else
                                                     {
@@ -740,89 +750,87 @@
                                             </div>
                                         </div>
 
-                                        <div class="flex items-center gap-1.5 shrink-0">
-                                            @if (member.Role is "OWNER" or "ADMIN")
-                                            {
-                                                <span class="rounded-full border @(member.Role == "OWNER" ? "border-amber-200 bg-amber-50 text-amber-700" : "border-indigo-200 bg-indigo-50 text-indigo-700") px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">@member.Role</span>
-                                            }
-                                            @if (member.IsMuted)
-                                            {
-                                                <span class="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-600" title="Muted">🔕 Muted</span>
-                                            }
+                                        @if (CanManageMember(member))
+                                        {
+                                            <div class="relative shrink-0">
+                                                <button type="button"
+                                                        @onclick="() => ToggleMemberMenu(member.UserId)"
+                                                        class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:text-[#C4D2E1] dark:hover:bg-[#1B3B5A] dark:hover:text-white transition"
+                                                        title="Member options">
+                                                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                                                    </svg>
+                                                </button>
 
-                                            @if (CanManageMember(member))
-                                            {
-                                                @if (Thread.UserRole == "OWNER")
+                                                @if (activeMemberMenuUserId == member.UserId)
                                                 {
-                                                    @if (member.Role == "MEMBER")
-                                                    {
-                                                        <button type="button"
-                                                                @onclick="() => OnPromoteMember.InvokeAsync(member)"
-                                                                disabled="@IsSubmitting"
-                                                                title="Promote to Admin"
-                                                                class="rounded-lg bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100 transition">
-                                                            Promote
-                                                        </button>
-                                                    }
-                                                    else if (member.Role == "ADMIN")
-                                                    {
-                                                        <button type="button"
-                                                                @onclick="() => OnDemoteMember.InvokeAsync(member)"
-                                                                disabled="@IsSubmitting"
-                                                                title="Demote to Member"
-                                                                class="rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-200 transition">
-                                                            Demote
-                                                        </button>
-                                                    }
-                                                }
+                                                    <div class="fixed inset-0 z-20" @onclick="() => activeMemberMenuUserId = null"></div>
+                                                    <div class="absolute right-0 top-9 z-30 w-48 rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E] p-1.5 shadow-xl">
+                                                        @if (Thread.UserRole == "OWNER")
+                                                        {
+                                                            @if (member.Role == "MEMBER")
+                                                            {
+                                                                <button type="button"
+                                                                        @onclick="() => { activeMemberMenuUserId = null; OnPromoteMember.InvokeAsync(member); }"
+                                                                        disabled="@IsSubmitting"
+                                                                        class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-[#E1E8F0] hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
+                                                                    <span>👑</span>
+                                                                    <span>Promote to Admin</span>
+                                                                </button>
+                                                            }
+                                                            else if (member.Role == "ADMIN")
+                                                            {
+                                                                <button type="button"
+                                                                        @onclick="() => { activeMemberMenuUserId = null; OnDemoteMember.InvokeAsync(member); }"
+                                                                        disabled="@IsSubmitting"
+                                                                        class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-[#E1E8F0] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition">
+                                                                    <span>🔽</span>
+                                                                    <span>Demote to Member</span>
+                                                                </button>
+                                                            }
+                                                        }
 
-                                                @if (CanRemoveMember(member))
-                                                {
-                                                    <button type="button"
-                                                            @onclick="() => OnRemoveMember.InvokeAsync(member)"
-                                                            disabled="@IsSubmitting"
-                                                            title="Remove member"
-                                                            class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
-                                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                    </button>
-                                                }
+                                                        @if (IsOwner && member.Role == "ADMIN")
+                                                        {
+                                                            <button type="button"
+                                                                    @onclick="() => { activeMemberMenuUserId = null; OpenPermissionEditor(member); }"
+                                                                    disabled="@IsSubmitting"
+                                                                    class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-[#E1E8F0] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition">
+                                                                <span>⚙️</span>
+                                                                <span>Edit Permissions</span>
+                                                            </button>
+                                                        }
 
-                                                @* Ban is a separate control from Remove because the two
-                                                   differ in consequence: Remove lets the user rejoin
-                                                   freely, Ban blocks the join and add paths entirely.
-                                                   Both hierarchy and the owner-granted flag are encoded,
-                                                   matching what the server enforces. *@
-                                                @if (CanBanMember(member))
-                                                {
-                                                    <button type="button"
-                                                            @onclick="() => OnBanMember.InvokeAsync(member)"
-                                                            disabled="@IsSubmitting"
-                                                            title="Ban member"
-                                                            class="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition">
-                                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
-                                                        </svg>
-                                                    </button>
-                                                }
+                                                        @if (CanRemoveMember(member))
+                                                        {
+                                                            <button type="button"
+                                                                    @onclick="() => { activeMemberMenuUserId = null; OnRemoveMember.InvokeAsync(member); }"
+                                                                    disabled="@IsSubmitting"
+                                                                    class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+                                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                                <span>Remove member</span>
+                                                            </button>
+                                                        }
 
-                                                @* The permission matrix only applies to an admin and is
-                                                   owner-only: an admin must not be able to grant powers
-                                                   to themselves or a peer. *@
-                                                @if (IsOwner && member.Role == "ADMIN")
-                                                {
-                                                    <button type="button"
-                                                            @onclick="() => OpenPermissionEditor(member)"
-                                                            disabled="@IsSubmitting"
-                                                            title="Edit admin permissions"
-                                                            class="rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-200 transition">
-                                                        Permissions
-                                                    </button>
+                                                        @if (CanBanMember(member))
+                                                        {
+                                                            <button type="button"
+                                                                    @onclick="() => { activeMemberMenuUserId = null; OnBanMember.InvokeAsync(member); }"
+                                                                    disabled="@IsSubmitting"
+                                                                    class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+                                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                                                                </svg>
+                                                                <span>Ban member</span>
+                                                            </button>
+                                                        }
+                                                    </div>
                                                 }
-                                            }
-                                        </div>
-                                        </div>
+                                            </div>
+                                        }
+                                    </div>
 
                                         @if (editingPermissionsUserId == member.UserId)
                                         {
@@ -879,20 +887,20 @@
 
                 <!-- Shared Media Summary Section -->
                 <div class="pt-4">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">SHARED MEDIA</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[#C4D2E1] mb-2">SHARED MEDIA</h3>
                     <div class="space-y-1">
                         <button type="button" @onclick='() => OpenMediaCategory("photos")'
-                                class="w-full flex items-center justify-between p-2.5 rounded-xl transition hover:bg-slate-50 border border-slate-100">
+                                class="w-full flex items-center justify-between p-2.5 rounded-xl transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] border border-slate-100 dark:border-[rgba(196,210,225,0.12)]">
                             <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-semibold text-slate-800">Photos</span>
+                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">Photos</span>
                             </div>
-                            <div class="flex items-center gap-1.5 text-slate-400">
-                                <span class="text-xs font-medium text-slate-500">@sharedMediaCounts.PhotoCount</span>
+                            <div class="flex items-center gap-1.5 text-slate-400 dark:text-[#C4D2E1]">
+                                <span class="text-xs font-medium text-slate-500 dark:text-[#C4D2E1]">@sharedMediaCounts.PhotoCount</span>
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                                 </svg>
@@ -900,17 +908,17 @@
                         </button>
 
                         <button type="button" @onclick='() => OpenMediaCategory("videos")'
-                                class="w-full flex items-center justify-between p-2.5 rounded-xl transition hover:bg-slate-50 border border-slate-100">
+                                class="w-full flex items-center justify-between p-2.5 rounded-xl transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] border border-slate-100 dark:border-[rgba(196,210,225,0.12)]">
                             <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25z" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-semibold text-slate-800">Videos</span>
+                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">Videos</span>
                             </div>
-                            <div class="flex items-center gap-1.5 text-slate-400">
-                                <span class="text-xs font-medium text-slate-500">@sharedMediaCounts.VideoCount</span>
+                            <div class="flex items-center gap-1.5 text-slate-400 dark:text-[#C4D2E1]">
+                                <span class="text-xs font-medium text-slate-500 dark:text-[#C4D2E1]">@sharedMediaCounts.VideoCount</span>
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                                 </svg>
@@ -918,17 +926,17 @@
                         </button>
 
                         <button type="button" @onclick='() => OpenMediaCategory("files")'
-                                class="w-full flex items-center justify-between p-2.5 rounded-xl transition hover:bg-slate-50 border border-slate-100">
+                                class="w-full flex items-center justify-between p-2.5 rounded-xl transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] border border-slate-100 dark:border-[rgba(196,210,225,0.12)]">
                             <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-semibold text-slate-800">Files</span>
+                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">Files</span>
                             </div>
-                            <div class="flex items-center gap-1.5 text-slate-400">
-                                <span class="text-xs font-medium text-slate-500">@sharedMediaCounts.FileCount</span>
+                            <div class="flex items-center gap-1.5 text-slate-400 dark:text-[#C4D2E1]">
+                                <span class="text-xs font-medium text-slate-500 dark:text-[#C4D2E1]">@sharedMediaCounts.FileCount</span>
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                                 </svg>
@@ -1218,6 +1226,9 @@
 }
 
 @code {
+    private int? activeMemberMenuUserId;
+    private void ToggleMemberMenu(int userId) => activeMemberMenuUserId = activeMemberMenuUserId == userId ? null : userId;
+
     // Invite links state
     private bool showInviteLinksModal;
     private bool isLoadingInviteLinks;
