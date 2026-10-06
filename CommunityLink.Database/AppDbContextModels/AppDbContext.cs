@@ -1191,6 +1191,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.MethodName).HasMaxLength(100);
             entity.Property(e => e.QrCodeImageUrl).HasMaxLength(500);
+            entity.Property(e => e.PaymentLogoUrl).HasMaxLength(500);
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();

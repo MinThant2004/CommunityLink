@@ -286,18 +286,30 @@
                                 var isSelected = selectedPaymentMethod?.PaymentMethodId == method.PaymentMethodId;
                                 <div @onclick="() => SelectPaymentMethod(method)"
                                      class="p-3 rounded-lg border-2 transition-all cursor-pointer flex items-center justify-between @(isSelected ? "bg-primary/5 border-primary shadow-xs" : "bg-surface-container-low border-surface-container-high/40 hover:border-surface-container-high")">
-                                    <div class="space-y-0.5">
-                                        <div class="text-xs font-black text-on-surface flex items-center gap-1.5">
-                                            <span>@method.MethodName</span>
-                                        </div>
-                                        <div class="text-xs font-mono text-primary font-bold">
-                                            @method.AccountName
-                                        </div>
-                                        <div class="text-[11px] font-mono text-on-surface-variant">
-                                            @method.AccountNumber
+                                    <div class="flex items-center gap-3">
+                                        @if (!string.IsNullOrWhiteSpace(method.PaymentLogoUrl))
+                                        {
+                                            <img src="@method.PaymentLogoUrl" alt="@method.MethodName" class="w-9 h-9 object-contain rounded-lg bg-white border border-surface-container-high/50 p-1 shrink-0 shadow-2xs" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-9 h-9 rounded-lg bg-primary/10 text-primary font-black flex items-center justify-center text-xs shrink-0 border border-primary/20">
+                                                @(string.IsNullOrWhiteSpace(method.MethodName) ? "PAY" : method.MethodName.Substring(0, Math.Min(2, method.MethodName.Length)).ToUpper())
+                                            </div>
+                                        }
+                                        <div class="space-y-0.5">
+                                            <div class="text-xs font-black text-on-surface flex items-center gap-1.5">
+                                                <span>@method.MethodName</span>
+                                            </div>
+                                            <div class="text-xs font-mono text-primary font-bold">
+                                                @method.AccountName
+                                            </div>
+                                            <div class="text-[11px] font-mono text-on-surface-variant">
+                                                @method.AccountNumber
+                                            </div>
                                         </div>
                                     </div>
-                                    <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center @(isSelected ? "border-primary bg-primary text-on-primary text-[9px] font-bold" : "border-surface-container-high")">
+                                    <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 @(isSelected ? "border-primary bg-primary text-on-primary text-[9px] font-bold" : "border-surface-container-high")">
                                         @if (isSelected) { <span>✓</span> }
                                     </span>
                                 </div>

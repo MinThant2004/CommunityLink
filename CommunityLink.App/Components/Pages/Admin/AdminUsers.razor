@@ -19,11 +19,38 @@
 
     <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden shadow-sm">
         <div class="p-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E] flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="w-full md:w-80">
-                <input type="text" class="w-full px-3.5 py-2 rounded-lg text-sm bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] transition" placeholder="Search by name, username, or email..." @bind="searchFilter" @bind:after="OnSearchChanged" />
+            <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto flex-1">
+                <div class="relative w-full md:w-72">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#7A8CA6]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </span>
+                    <input type="text" class="w-full pl-9 pr-3.5 py-2 rounded-xl text-sm bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] transition" placeholder="Search by name, username, email..." @bind="searchFilter" @bind:after="OnSearchChanged" />
+                </div>
+
+                <!-- Status Filter -->
+                <select value="@statusFilterRaw" @onchange="OnStatusFilterChanged" class="w-full md:w-40 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 cursor-pointer">
+                    <option value="all">All Statuses</option>
+                    <option value="active">Active Users</option>
+                    <option value="deactivated">Deactivated Users</option>
+                </select>
+
+                <!-- Role Category Filter -->
+                <select value="@roleFilter" @onchange="OnRoleFilterChanged" class="w-full md:w-44 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 cursor-pointer">
+                    <option value="all">All Roles</option>
+                    <option value="user">Normal Users</option>
+                    <option value="creator">Creators & Pros</option>
+                    <option value="admin">Administrators</option>
+                </select>
             </div>
-            <div class="text-xs text-[#7A8CA6] font-mono">
-                Showing page @pageNumber of @totalPages (@totalCount total users)
+
+            <div class="flex items-center gap-2 shrink-0 text-xs text-[#557392] dark:text-[#C4D2E1]">
+                <span class="font-medium">Rows per page:</span>
+                <select value="@pageSize" @onchange="OnPageSizeChanged" class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 cursor-pointer">
+                    <option value="10">10 rows</option>
+                    <option value="25">25 rows</option>
+                    <option value="50">50 rows</option>
+                    <option value="100">100 rows</option>
+                </select>
             </div>
         </div>
 
@@ -46,21 +73,24 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-[#F1F5F9] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
-                            <th class="px-6 py-3">ID</th>
+                            <th class="px-6 py-3">No</th>
                             <th class="px-6 py-3">Display Name</th>
                             <th class="px-6 py-3">Username</th>
                             <th class="px-6 py-3">Email</th>
                             <th class="px-6 py-3">Assigned Role</th>
                             <th class="px-6 py-3">Status</th>
                             <th class="px-6 py-3">Registered Date</th>
+                            <th class="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)] text-sm">
-                        @foreach (var u in users)
+                        @for (var index = 0; index < users.Count; index++)
                         {
+                            var u = users[index];
+                            var rowNo = (pageNumber - 1) * pageSize + index + 1;
                             <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/40 transition">
-                                <td class="px-6 py-4 font-mono text-xs text-[#7A8CA6]">#@u.UserId</td>
-                                <td class="px-6 py-4 font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@u.DisplayName</td>
+                                <td class="px-6 py-4 font-mono text-xs text-[#7A8CA6] whitespace-nowrap">@(rowNo).</td>
+                                <td class="px-6 py-4 font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] whitespace-nowrap">@u.DisplayName</td>
                                 <td class="px-6 py-4 text-[#557392] dark:text-[#C4D2E1] font-medium font-mono">@@@u.UserName</td>
                                 <td class="px-6 py-4 text-[#557392] dark:text-[#C4D2E1]">@u.Email</td>
                                 <td class="px-6 py-4">
@@ -83,26 +113,79 @@
                                     </select>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold @(u.IsActive ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50" : "bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#7A8CA6] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)]")">
-                                        @(u.IsActive ? "Active" : "Inactive")
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold @(u.IsActive ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50" : "bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50")">
+                                        @(u.IsActive ? "Active" : "Deactivated")
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-xs text-[#7A8CA6] font-mono">@u.CreatedAt.ToString("g")</td>
+                                <td class="px-6 py-4 text-right">
+                                    @if (u.IsActive)
+                                    {
+                                        <button type="button"
+                                                @onclick="() => PromptStatusToggle(u)"
+                                                title="Deactivate account"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                            </svg>
+                                            <span>Deactivate</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button"
+                                                @onclick="() => PromptStatusToggle(u)"
+                                                title="Activate account"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span>Activate</span>
+                                        </button>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
 
-            <!-- Pagination Bar -->
-            <div class="px-6 py-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between text-xs text-[#7A8CA6] bg-[#F8FAFC] dark:bg-[#0A1B2E]">
-                <button @onclick="PreviousPage" disabled="@(pageNumber <= 1)" class="px-3 py-1.5 rounded-full border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-medium hover:border-[#0A1B2E] dark:hover:border-[#E1E8F0] hover:text-[#0A1B2E] dark:hover:text-white disabled:opacity-50 transition cursor-pointer">
-                    &larr; Previous
-                </button>
-                <span class="font-mono">Page @pageNumber of @totalPages</span>
-                <button @onclick="NextPage" disabled="@(pageNumber >= totalPages)" class="px-3 py-1.5 rounded-full border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-medium hover:border-[#0A1B2E] dark:hover:border-[#E1E8F0] hover:text-[#0A1B2E] dark:hover:text-white disabled:opacity-50 transition cursor-pointer">
-                    Next &rarr;
-                </button>
+            <!-- Modern Pagination Bar -->
+            <div class="px-6 py-3.5 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-[#F8FAFC] dark:bg-[#0A1B2E]">
+                <!-- Item Range Stats -->
+                <div class="text-[#557392] dark:text-[#C4D2E1] font-medium">
+                    @if (totalCount > 0)
+                    {
+                        var startItem = (pageNumber - 1) * pageSize + 1;
+                        var endItem = Math.Min(pageNumber * pageSize, totalCount);
+                        <span>Showing <strong class="text-[#0A1B2E] dark:text-[#E1E8F0]">@startItem</strong> to <strong class="text-[#0A1B2E] dark:text-[#E1E8F0]">@endItem</strong> of <strong class="text-[#0A1B2E] dark:text-[#E1E8F0]">@totalCount</strong> registered users</span>
+                    }
+                    else
+                    {
+                        <span>No user records available</span>
+                    }
+                </div>
+
+                <!-- Pagination Navigation Controls -->
+                <div class="flex items-center gap-1.5">
+                    <button @onclick="GoToFirstPage" disabled="@(pageNumber <= 1)" title="First Page" class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                        &laquo; First
+                    </button>
+                    <button @onclick="PreviousPage" disabled="@(pageNumber <= 1)" title="Previous Page" class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                        &larr; Prev
+                    </button>
+                    
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] font-mono font-bold">
+                        Page @pageNumber of @totalPages
+                    </span>
+
+                    <button @onclick="NextPage" disabled="@(pageNumber >= totalPages)" title="Next Page" class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                        Next &rarr;
+                    </button>
+                    <button @onclick="GoToLastPage" disabled="@(pageNumber >= totalPages)" title="Last Page" class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                        Last &raquo;
+                    </button>
+                </div>
             </div>
         }
     </div>
@@ -148,15 +231,74 @@
     </div>
 }
 
+@if (showStatusModal && pendingStatusUser != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+        <div class="bg-white dark:bg-[#112A46] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-left space-y-4">
+            <div class="flex items-center gap-3 @(pendingStatusUser.IsActive ? "text-rose-500" : "text-emerald-500")">
+                <div class="p-2 rounded-xl @(pendingStatusUser.IsActive ? "bg-rose-100 dark:bg-rose-900/30" : "bg-emerald-100 dark:bg-emerald-900/30")">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="@(pendingStatusUser.IsActive ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" : "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z")" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">@(pendingStatusUser.IsActive ? "Deactivate User Account" : "Activate User Account")</h3>
+            </div>
+            
+            <p class="text-sm text-slate-600 dark:text-slate-300">
+                Are you sure you want to @(pendingStatusUser.IsActive ? "deactivate" : "activate") the account for <strong>@pendingStatusUser.DisplayName</strong> (@@@pendingStatusUser.UserName)?
+            </p>
+
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-xs space-y-1">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Account Email:</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200">@pendingStatusUser.Email</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Current Status:</span>
+                    <span class="font-bold @(pendingStatusUser.IsActive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")">
+                        @(pendingStatusUser.IsActive ? "Active" : "Inactive")
+                    </span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Target Status:</span>
+                    <span class="font-bold @(pendingStatusUser.IsActive ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400")">
+                        @(pendingStatusUser.IsActive ? "Deactivated" : "Active")
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" @onclick="CancelStatusToggle" class="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" @onclick="ConfirmStatusToggle" disabled="@isTogglingStatus" class="px-4 py-2 text-sm font-semibold rounded-xl @(pendingStatusUser.IsActive ? "bg-rose-600 hover:bg-rose-700" : "bg-emerald-600 hover:bg-emerald-700") text-white transition shadow-sm cursor-pointer disabled:opacity-50">
+                    @(isTogglingStatus ? "Updating..." : (pendingStatusUser.IsActive ? "Yes, Deactivate Account" : "Yes, Activate Account"))
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private bool isLoading = true;
     private bool isAssigning = false;
+    private bool isTogglingStatus = false;
     private bool showConfirmModal = false;
+    private bool showStatusModal = false;
     private UserInfoModel? pendingUser;
+    private UserInfoModel? pendingStatusUser;
     private CommunityLink.Shared.Features.RoleAndPermission.RoleModel? pendingRole;
     private IReadOnlyList<UserInfoModel>? users;
     private IReadOnlyList<CommunityLink.Shared.Features.RoleAndPermission.RoleModel>? availableRoles;
     private string searchFilter = "";
+    private string statusFilterRaw = "all";
+    private string roleFilter = "all";
+    private bool? isActiveFilter => statusFilterRaw switch
+    {
+        "active" => true,
+        "deactivated" => false,
+        _ => null
+    };
     private int pageNumber = 1;
     private int pageSize = 10;
     private int totalCount = 0;
@@ -183,13 +325,27 @@
     private async Task LoadUsersAsync()
     {
         isLoading = true;
-        var res = await AdminApi.GetUsersPageAsync(pageNumber, pageSize, searchFilter);
+        var res = await AdminApi.GetUsersPageAsync(pageNumber, pageSize, searchFilter, isActiveFilter, roleFilter);
         if (res.IsSuccess && res.Data != null)
         {
             users = res.Data.Items;
             totalCount = res.Data.TotalCount;
         }
         isLoading = false;
+    }
+
+    private async Task OnStatusFilterChanged(ChangeEventArgs e)
+    {
+        statusFilterRaw = e.Value?.ToString() ?? "all";
+        pageNumber = 1;
+        await LoadUsersAsync();
+    }
+
+    private async Task OnRoleFilterChanged(ChangeEventArgs e)
+    {
+        roleFilter = e.Value?.ToString() ?? "all";
+        pageNumber = 1;
+        await LoadUsersAsync();
     }
 
     private void PromptRoleChange(UserInfoModel user, ChangeEventArgs e)
@@ -238,10 +394,72 @@
         pendingRole = null;
     }
 
+    private void PromptStatusToggle(UserInfoModel user)
+    {
+        pendingStatusUser = user;
+        showStatusModal = true;
+    }
+
+    private void CancelStatusToggle()
+    {
+        showStatusModal = false;
+        pendingStatusUser = null;
+    }
+
+    private async Task ConfirmStatusToggle()
+    {
+        if (pendingStatusUser == null) return;
+
+        isTogglingStatus = true;
+        var res = await AdminApi.ToggleUserStatusAsync(pendingStatusUser.UserId);
+        isTogglingStatus = false;
+        showStatusModal = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success(res.Message);
+            await LoadUsersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message);
+        }
+
+        pendingStatusUser = null;
+    }
+
     private async Task OnSearchChanged()
     {
         pageNumber = 1;
         await LoadUsersAsync();
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var newSize) && newSize > 0)
+        {
+            pageSize = newSize;
+            pageNumber = 1;
+            await LoadUsersAsync();
+        }
+    }
+
+    private async Task GoToFirstPage()
+    {
+        if (pageNumber > 1)
+        {
+            pageNumber = 1;
+            await LoadUsersAsync();
+        }
+    }
+
+    private async Task GoToLastPage()
+    {
+        if (pageNumber < totalPages)
+        {
+            pageNumber = totalPages;
+            await LoadUsersAsync();
+        }
     }
 
     private async Task PreviousPage()

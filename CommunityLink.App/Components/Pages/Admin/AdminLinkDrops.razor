@@ -102,8 +102,16 @@
                                         <span>@p.SnapshotLinkDropAmount.ToString("N0")</span>
                                     </td>
                                     <td class="py-4 px-6">
-                                        <div class="font-medium text-slate-800 dark:text-[#E1E8F0]">@p.PaymentMethodName</div>
-                                        <div class="font-mono text-xs text-slate-500 dark:text-[#C4D2E1]">Ref: @p.TransactionReferenceNo</div>
+                                        <div class="flex items-center gap-2">
+                                            @if (!string.IsNullOrWhiteSpace(p.PaymentMethodLogoUrl))
+                                            {
+                                                <img src="@BuildFileUrl(p.PaymentMethodLogoUrl)" alt="@p.PaymentMethodName" class="w-7 h-7 object-contain rounded-md bg-white border border-slate-200 dark:border-[rgba(196,210,225,0.12)] p-0.5 shrink-0" />
+                                            }
+                                            <div>
+                                                <div class="font-medium text-slate-800 dark:text-[#E1E8F0]">@p.PaymentMethodName</div>
+                                                <div class="font-mono text-xs text-slate-500 dark:text-[#C4D2E1]">Ref: @p.TransactionReferenceNo</div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="py-4 px-6">
                                         @if (p.Proof != null && !string.IsNullOrWhiteSpace(p.Proof.FileUrl))
@@ -208,10 +216,36 @@
             <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-6 space-y-4 shadow-sm">
                 <h2 class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">Add New Payment Channel</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" @bind="newMethodName" placeholder="Channel Name (e.g. KPAY)" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    <input type="text" @bind="newMethodName" placeholder="Channel Name (e.g. KBZ Pay, AYA Pay)" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
                     <input type="text" @bind="newAccountName" placeholder="Account Holder Name" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
                     <input type="text" @bind="newAccountNumber" placeholder="Account / Phone Number" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-                    <input type="text" @bind="newQrUrl" placeholder="QR Code Image URL (optional)" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    
+                    <!-- Image Upload: Payment Type Logo -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Payment Type Logo</label>
+                        <div class="flex items-center gap-3">
+                            <InputFile OnChange="OnNewLogoFileSelected" accept=".jpg,.jpeg,.png,.webp,.svg"
+                                       class="w-full text-xs text-slate-500 dark:text-[#C4D2E1] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#1B3B5A] file:text-slate-700 dark:file:text-[#E1E8F0] hover:file:bg-slate-200 cursor-pointer" />
+                            @if (!string.IsNullOrWhiteSpace(newLogoPreviewUrl))
+                            {
+                                <img src="@newLogoPreviewUrl" alt="Logo preview" class="w-10 h-10 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0 shadow-2xs" />
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Image Upload: QR Code Image -->
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">QR Code Image</label>
+                        <div class="flex items-center gap-3">
+                            <InputFile OnChange="OnNewQrFileSelected" accept=".jpg,.jpeg,.png,.webp"
+                                       class="w-full text-xs text-slate-500 dark:text-[#C4D2E1] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#1B3B5A] file:text-slate-700 dark:file:text-[#E1E8F0] hover:file:bg-slate-200 cursor-pointer" />
+                            @if (!string.IsNullOrWhiteSpace(newQrPreviewUrl))
+                            {
+                                <img src="@newQrPreviewUrl" alt="QR code preview" class="w-12 h-12 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0 shadow-2xs" />
+                            }
+                        </div>
+                    </div>
+
                     <textarea @bind="newInstructions" rows="2" placeholder="Payment instructions shown to buyers (optional)" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm md:col-span-2"></textarea>
                 </div>
                 <div class="flex justify-end">
@@ -225,7 +259,8 @@
                 <table class="w-full text-left text-sm text-slate-700 dark:text-[#C4D2E1]">
                     <thead class="bg-slate-50 dark:bg-[#0A1B2E] text-xs uppercase text-slate-500 dark:text-[#C4D2E1] border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)]">
                         <tr>
-                            <th class="py-3 px-6">Channel</th>
+                            <th class="py-3 px-6">Channel & Logo</th>
+                            <th class="py-3 px-6">QR Code</th>
                             <th class="py-3 px-6">Account Holder</th>
                             <th class="py-3 px-6">Account Number</th>
                             <th class="py-3 px-6">Status</th>
@@ -236,7 +271,34 @@
                         @foreach (var m in methodsList)
                         {
                             <tr class="hover:bg-slate-50/80 dark:hover:bg-[#1B3B5A]/40 transition">
-                                <td class="py-4 px-6 font-bold text-slate-900 dark:text-[#E1E8F0]">@m.MethodName</td>
+                                <td class="py-4 px-6 font-bold text-slate-900 dark:text-[#E1E8F0]">
+                                    <div class="flex items-center gap-3">
+                                        @if (!string.IsNullOrWhiteSpace(m.PaymentLogoUrl))
+                                        {
+                                            <img src="@BuildFileUrl(m.PaymentLogoUrl)" alt="@m.MethodName" class="w-8 h-8 object-contain rounded-lg bg-white border border-slate-200 dark:border-[rgba(196,210,225,0.12)] p-0.5 shrink-0 shadow-2xs" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-extrabold flex items-center justify-center text-xs border border-indigo-500/20 shrink-0">
+                                                @(string.IsNullOrWhiteSpace(m.MethodName) ? "PAY" : m.MethodName.Substring(0, Math.Min(2, m.MethodName.Length)).ToUpper())
+                                            </div>
+                                        }
+                                        <span>@m.MethodName</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    @if (!string.IsNullOrWhiteSpace(m.QrCodeImageUrl))
+                                    {
+                                        <button type="button" @onclick="() => OpenProofModal(m.QrCodeImageUrl)" class="inline-flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
+                                            <img src="@BuildFileUrl(m.QrCodeImageUrl)" alt="QR" class="w-6 h-6 object-contain rounded border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white p-0.5" />
+                                            <span>View QR</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-xs text-slate-400">None</span>
+                                    }
+                                </td>
                                 <td class="py-4 px-6 text-slate-700 dark:text-[#E1E8F0]">@m.AccountName</td>
                                 <td class="py-4 px-6 font-mono font-bold text-amber-600 dark:text-amber-400">@m.AccountNumber</td>
                                 <td class="py-4 px-6">
@@ -454,7 +516,41 @@
                     <input type="text" @bind="editMethod.AccountName" placeholder="Account Holder Name" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
                     <input type="text" @bind="editMethod.AccountNumber" placeholder="Account / Phone Number" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
                 </div>
-                <input type="text" @bind="editMethod.QrCodeImageUrl" placeholder="QR Code Image URL (optional)" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+
+                <!-- Payment Type Logo Upload -->
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Payment Type Logo</label>
+                    <div class="flex items-center gap-3">
+                        <InputFile OnChange="OnEditLogoFileSelected" accept=".jpg,.jpeg,.png,.webp,.svg"
+                                   class="w-full text-xs text-slate-500 dark:text-[#C4D2E1] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#1B3B5A] file:text-slate-700 dark:file:text-[#E1E8F0] hover:file:bg-slate-200 cursor-pointer" />
+                        @if (!string.IsNullOrWhiteSpace(editLogoPreviewUrl))
+                        {
+                            <img src="@editLogoPreviewUrl" alt="Logo preview" class="w-10 h-10 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0" />
+                        }
+                        else if (!string.IsNullOrWhiteSpace(editMethod.PaymentLogoUrl))
+                        {
+                            <img src="@BuildFileUrl(editMethod.PaymentLogoUrl)" alt="Current logo" class="w-10 h-10 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0" />
+                        }
+                    </div>
+                </div>
+
+                <!-- QR Code Image Upload -->
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">QR Code Image</label>
+                    <div class="flex items-center gap-3">
+                        <InputFile OnChange="OnEditQrFileSelected" accept=".jpg,.jpeg,.png,.webp"
+                                   class="w-full text-xs text-slate-500 dark:text-[#C4D2E1] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#1B3B5A] file:text-slate-700 dark:file:text-[#E1E8F0] hover:file:bg-slate-200 cursor-pointer" />
+                        @if (!string.IsNullOrWhiteSpace(editQrPreviewUrl))
+                        {
+                            <img src="@editQrPreviewUrl" alt="QR preview" class="w-12 h-12 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0" />
+                        }
+                        else if (!string.IsNullOrWhiteSpace(editMethod.QrCodeImageUrl))
+                        {
+                            <img src="@BuildFileUrl(editMethod.QrCodeImageUrl)" alt="Current QR" class="w-12 h-12 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0" />
+                        }
+                    </div>
+                </div>
+
                 <textarea @bind="editMethod.Instructions" rows="3" placeholder="Payment instructions shown to buyers (optional)" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm"></textarea>
                 <div class="grid grid-cols-2 gap-3">
                     <input type="number" @bind="editMethod.DisplayOrder" placeholder="Display Order" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
@@ -500,14 +596,21 @@
     private string newMethodName = string.Empty;
     private string newAccountName = string.Empty;
     private string newAccountNumber = string.Empty;
-    private string newQrUrl = string.Empty;
     private string newInstructions = string.Empty;
+    private IBrowserFile? newQrFile;
+    private string? newQrPreviewUrl;
+    private IBrowserFile? newLogoFile;
+    private string? newLogoPreviewUrl;
 
     // Edit modals
     private bool showEditPackageModal = false;
     private LinkDropPackageDto? editPackage;
     private bool showEditMethodModal = false;
     private PaymentMethodDto? editMethod;
+    private IBrowserFile? editQrFile;
+    private string? editQrPreviewUrl;
+    private IBrowserFile? editLogoFile;
+    private string? editLogoPreviewUrl;
 
     // Exchange Rates state
     private bool isLoadingRates = false;
@@ -737,6 +840,54 @@
         }
     }
 
+    private async Task OnNewQrFileSelected(InputFileChangeEventArgs e)
+    {
+        newQrFile = e.File;
+        if (newQrFile != null)
+        {
+            using var stream = newQrFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            newQrPreviewUrl = $"data:{newQrFile.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+        }
+    }
+
+    private async Task OnNewLogoFileSelected(InputFileChangeEventArgs e)
+    {
+        newLogoFile = e.File;
+        if (newLogoFile != null)
+        {
+            using var stream = newLogoFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            newLogoPreviewUrl = $"data:{newLogoFile.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+        }
+    }
+
+    private async Task OnEditQrFileSelected(InputFileChangeEventArgs e)
+    {
+        editQrFile = e.File;
+        if (editQrFile != null)
+        {
+            using var stream = editQrFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            editQrPreviewUrl = $"data:{editQrFile.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+        }
+    }
+
+    private async Task OnEditLogoFileSelected(InputFileChangeEventArgs e)
+    {
+        editLogoFile = e.File;
+        if (editLogoFile != null)
+        {
+            using var stream = editLogoFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            editLogoPreviewUrl = $"data:{editLogoFile.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+        }
+    }
+
     private async Task CreatePaymentMethodAsync()
     {
         if (string.IsNullOrWhiteSpace(newMethodName)) return;
@@ -745,19 +896,25 @@
             MethodName = newMethodName,
             AccountName = newAccountName,
             AccountNumber = newAccountNumber,
-            QrCodeImageUrl = string.IsNullOrWhiteSpace(newQrUrl) ? null : newQrUrl.Trim(),
             Instructions = string.IsNullOrWhiteSpace(newInstructions) ? null : newInstructions.Trim()
         };
-        var res = await LinkDropApi.CreatePaymentMethodAsync(request);
+        var res = await LinkDropApi.CreatePaymentMethodAsync(request, newQrFile, newLogoFile);
         if (res.IsSuccess)
         {
             Toast.Success("Payment method created successfully.");
             newMethodName = string.Empty;
             newAccountName = string.Empty;
             newAccountNumber = string.Empty;
-            newQrUrl = string.Empty;
             newInstructions = string.Empty;
+            newQrFile = null;
+            newQrPreviewUrl = null;
+            newLogoFile = null;
+            newLogoPreviewUrl = null;
             await LoadMethodsAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to create payment method.");
         }
     }
 
@@ -770,10 +927,15 @@
             AccountName = m.AccountName,
             AccountNumber = m.AccountNumber,
             QrCodeImageUrl = m.QrCodeImageUrl,
+            PaymentLogoUrl = m.PaymentLogoUrl,
             Instructions = m.Instructions,
             DisplayOrder = m.DisplayOrder,
             IsActive = m.IsActive
         };
+        editQrFile = null;
+        editQrPreviewUrl = null;
+        editLogoFile = null;
+        editLogoPreviewUrl = null;
         showEditMethodModal = true;
     }
 
@@ -786,14 +948,19 @@
             AccountName = editMethod.AccountName,
             AccountNumber = editMethod.AccountNumber,
             QrCodeImageUrl = string.IsNullOrWhiteSpace(editMethod.QrCodeImageUrl) ? null : editMethod.QrCodeImageUrl.Trim(),
+            PaymentLogoUrl = string.IsNullOrWhiteSpace(editMethod.PaymentLogoUrl) ? null : editMethod.PaymentLogoUrl.Trim(),
             Instructions = string.IsNullOrWhiteSpace(editMethod.Instructions) ? null : editMethod.Instructions.Trim(),
             DisplayOrder = editMethod.DisplayOrder,
             IsActive = editMethod.IsActive
-        });
+        }, editQrFile, editLogoFile);
         if (res.IsSuccess)
         {
             Toast.Success("Payment channel updated successfully.");
             showEditMethodModal = false;
+            editQrFile = null;
+            editQrPreviewUrl = null;
+            editLogoFile = null;
+            editLogoPreviewUrl = null;
             await LoadMethodsAsync();
         }
         else

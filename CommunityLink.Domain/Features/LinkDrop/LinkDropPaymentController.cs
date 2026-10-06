@@ -277,8 +277,9 @@ public class LinkDropPaymentController : BaseController
     }
 
     [HttpPost("/api/admin/linkdrops/payment-methods")]
+    [Consumes("application/json")]
     [Authorize]
-    public async Task<IActionResult> CreatePaymentMethod([FromBody] CreatePaymentMethodRequestDto request)
+    public async Task<IActionResult> CreatePaymentMethodJson([FromBody] CreatePaymentMethodRequestDto request)
     {
         if (!_currentUser.IsAdmin || !_currentUser.UserId.HasValue)
             return ToActionResult(Result.Failure("Administrator privileges required.", ResultStatus.Forbidden));
@@ -294,9 +295,41 @@ public class LinkDropPaymentController : BaseController
         }
     }
 
-    [HttpPut("/api/admin/linkdrops/payment-methods/{id:int}")]
+    [HttpPost("/api/admin/linkdrops/payment-methods")]
+    [Consumes("multipart/form-data")]
     [Authorize]
-    public async Task<IActionResult> UpdatePaymentMethod(int id, [FromBody] UpdatePaymentMethodRequestDto request)
+    public async Task<IActionResult> CreatePaymentMethodForm([FromForm] CreatePaymentMethodRequestDto request, IFormFile? qrCodeFile, IFormFile? logoFile)
+    {
+        if (!_currentUser.IsAdmin || !_currentUser.UserId.HasValue)
+            return ToActionResult(Result.Failure("Administrator privileges required.", ResultStatus.Forbidden));
+
+        try
+        {
+            Stream? qrCodeStream = qrCodeFile is { Length: > 0 } ? qrCodeFile.OpenReadStream() : null;
+            string? qrCodeFileName = qrCodeFile?.FileName;
+            Stream? logoStream = logoFile is { Length: > 0 } ? logoFile.OpenReadStream() : null;
+            string? logoFileName = logoFile?.FileName;
+
+            var method = await _linkDropService.CreatePaymentMethodAsync(
+                _currentUser.UserId.Value,
+                request,
+                qrCodeStream,
+                qrCodeFileName,
+                logoStream,
+                logoFileName
+            );
+            return ToActionResult(Result<PaymentMethodDto>.Success(method));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return ToActionResult(Result.Failure(ex.Message, ResultStatus.ValidationError));
+        }
+    }
+
+    [HttpPut("/api/admin/linkdrops/payment-methods/{id:int}")]
+    [Consumes("application/json")]
+    [Authorize]
+    public async Task<IActionResult> UpdatePaymentMethodJson(int id, [FromBody] UpdatePaymentMethodRequestDto request)
     {
         if (!_currentUser.IsAdmin || !_currentUser.UserId.HasValue)
             return ToActionResult(Result.Failure("Administrator privileges required.", ResultStatus.Forbidden));
@@ -304,6 +337,38 @@ public class LinkDropPaymentController : BaseController
         try
         {
             var method = await _linkDropService.UpdatePaymentMethodAsync(_currentUser.UserId.Value, id, request);
+            return ToActionResult(Result<PaymentMethodDto>.Success(method));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return ToActionResult(Result.Failure(ex.Message, ResultStatus.ValidationError));
+        }
+    }
+
+    [HttpPut("/api/admin/linkdrops/payment-methods/{id:int}")]
+    [Consumes("multipart/form-data")]
+    [Authorize]
+    public async Task<IActionResult> UpdatePaymentMethodForm(int id, [FromForm] UpdatePaymentMethodRequestDto request, IFormFile? qrCodeFile, IFormFile? logoFile)
+    {
+        if (!_currentUser.IsAdmin || !_currentUser.UserId.HasValue)
+            return ToActionResult(Result.Failure("Administrator privileges required.", ResultStatus.Forbidden));
+
+        try
+        {
+            Stream? qrCodeStream = qrCodeFile is { Length: > 0 } ? qrCodeFile.OpenReadStream() : null;
+            string? qrCodeFileName = qrCodeFile?.FileName;
+            Stream? logoStream = logoFile is { Length: > 0 } ? logoFile.OpenReadStream() : null;
+            string? logoFileName = logoFile?.FileName;
+
+            var method = await _linkDropService.UpdatePaymentMethodAsync(
+                _currentUser.UserId.Value,
+                id,
+                request,
+                qrCodeStream,
+                qrCodeFileName,
+                logoStream,
+                logoFileName
+            );
             return ToActionResult(Result<PaymentMethodDto>.Success(method));
         }
         catch (InvalidOperationException ex)

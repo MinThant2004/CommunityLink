@@ -8,6 +8,14 @@ public static class RbacSeeder
 {
     public static async Task SeedAsync(AppDbContext db)
     {
+        if (db.Database.IsRelational())
+        {
+            // Startup seeding runs before SQL Server has warmed its buffer pool (pages are often
+            // paged out after sleep), and the seeder issues hundreds of statements. The 30s default
+            // command timeout is too tight for that cold start, so raise it for this DbContext scope.
+            db.Database.SetCommandTimeout(TimeSpan.FromSeconds(300));
+        }
+
         await db.Database.EnsureCreatedAsync();
 
         if (db.Database.IsRelational())

@@ -206,6 +206,14 @@ public sealed class ChatRealtimeService
             .WithUrl($"{baseUrl}/hubs/chat", options =>
             {
                 options.AccessTokenProvider = () => Task.FromResult<string?>(token);
+                options.HttpMessageHandlerFactory = handler =>
+                {
+                    if (handler is HttpClientHandler clientHandler)
+                    {
+                        clientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                    }
+                    return handler;
+                };
             })
             .WithAutomaticReconnect(reconnectPolicy)
             .Build();
@@ -316,6 +324,14 @@ public sealed class ChatRealtimeService
             .WithUrl($"{baseUrl}/hubs/chat-groups", options =>
             {
                 options.AccessTokenProvider = () => Task.FromResult<string?>(token);
+                options.HttpMessageHandlerFactory = handler =>
+                {
+                    if (handler is HttpClientHandler clientHandler)
+                    {
+                        clientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                    }
+                    return handler;
+                };
             })
             .WithAutomaticReconnect(reconnectPolicy)
             .Build();

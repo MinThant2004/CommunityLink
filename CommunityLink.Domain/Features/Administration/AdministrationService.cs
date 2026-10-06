@@ -21,13 +21,14 @@ public interface IAdministrationService
     Task<Result<AdminDashboardStatsModel>> GetDashboardStatsAsync(CancellationToken cancellationToken = default);
     Task<Result<AdminDashboardModel>> GetDashboardAsync(CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<UserInfoModel>>> GetUsersAsync(CancellationToken cancellationToken = default);
-    Task<Result<PagedResult<UserInfoModel>>> GetUsersPageAsync(int page = 1, int pageSize = 10, string? search = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<UserInfoModel>>> GetUsersPageAsync(int page = 1, int pageSize = 10, string? search = null, bool? isActive = null, string? roleFilter = null, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<AuditLogModel>>> GetAuditLogsAsync(CancellationToken cancellationToken = default);
     Task<Result<PagedResult<AuditLogModel>>> GetAuditLogsPageAsync(int page = 1, int pageSize = 10, string? search = null, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<JoinRequestModel>>> GetPendingJoinRequestsAsync(CancellationToken cancellationToken = default);
     Task<Result> ApproveJoinRequestAsync(int requestId, CancellationToken cancellationToken = default);
     Task<Result> RejectJoinRequestAsync(int requestId, CancellationToken cancellationToken = default);
     Task<Result> AssignUserRoleAsync(AssignUserRoleRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result> ToggleUserStatusAsync(int userId, CancellationToken cancellationToken = default);
 
     // Admin Account Management
     Task<Result<IReadOnlyList<AdminAccountModel>>> GetAdminAccountsAsync(CancellationToken cancellationToken = default);
@@ -83,6 +84,34 @@ public sealed class AdministrationService(
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success($"Role assigned to '{role.RoleName}' successfully.");
     }
+
+    public async Task<Result> ToggleUserStatusAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        var user = await dbContext.TblUsers.FirstOrDefaultAsync(u => u.UserId == userId && !u.IsDeleted, cancellationToken);
+        if (user is null) return Result.Failure("User not found.", ResultStatus.NotFound);
+
+        user.IsActive = !user.IsActive;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        var status = user.IsActive ? "activated" : "deactivated";
+
+        dbContext.TblAuditLogs.Add(new TblAuditLog
+        {
+            ActorType = currentUser.RoleCode ?? "ADMIN",
+            ActorId = currentUser.UserId,
+            Action = user.IsActive ? "ACTIVATE" : "DEACTIVATE",
+            EntityName = "USER",
+            EntityId = user.UserId,
+            OldValues = $"IsActive: {!user.IsActive}",
+            NewValues = $"IsActive: {user.IsActive}",
+            ChangedColumns = "IsActive",
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success($"User '{user.DisplayName}' has been {status} successfully.");
+    }
+
     public async Task<Result<AdminDashboardStatsModel>> GetDashboardStatsAsync(CancellationToken cancellationToken = default)
     {
         var totalUsers = await dbContext.TblUsers.CountAsync(u => !u.IsDeleted, cancellationToken);
@@ -139,16 +168,44 @@ public sealed class AdministrationService(
 
     public async Task<Result<IReadOnlyList<UserInfoModel>>> GetUsersAsync(CancellationToken cancellationToken = default)
     {
-        var pageRes = await GetUsersPageAsync(1, 100, null, cancellationToken);
+        var pageRes = await GetUsersPageAsync(1, 100, null, null, null, cancellationToken);
         return Result<IReadOnlyList<UserInfoModel>>.Success(pageRes.Data?.Items ?? []);
     }
 
-    public async Task<Result<PagedResult<UserInfoModel>>> GetUsersPageAsync(int page = 1, int pageSize = 10, string? search = null, CancellationToken cancellationToken = default)
+    public async Task<Result<PagedResult<UserInfoModel>>> GetUsersPageAsync(
+        int page = 1, 
+        int pageSize = 10, 
+        string? search = null, 
+        bool? isActive = null, 
+        string? roleFilter = null, 
+        CancellationToken cancellationToken = default)
     {
         var query = dbContext.TblUsers
             .Include(u => u.TblUserRoles).ThenInclude(ur => ur.Role)
             .Where(u => !u.IsDeleted)
             .AsNoTracking();
+
+        if (isActive.HasValue)
+        {
+            query = query.Where(u => u.IsActive == isActive.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(roleFilter) && !roleFilter.Equals("all", StringComparison.OrdinalIgnoreCase))
+        {
+            var rf = roleFilter.Trim().ToLower();
+            if (rf == "admin")
+            {
+                query = query.Where(u => u.TblUserRoles.Any(ur => ur.Role.RoleCode.ToLower() == "admin" || ur.Role.RoleCode.ToLower() == "superadmin"));
+            }
+            else if (rf == "creator" || rf == "pro")
+            {
+                query = query.Where(u => u.TblUserRoles.Any(ur => ur.Role.RoleCode.ToLower() == "domain_pro" || ur.Role.RoleCode.ToLower() == "domain_professional" || ur.Role.RoleCode.ToLower() == "public_figure"));
+            }
+            else if (rf == "user" || rf == "normal" || rf == "member")
+            {
+                query = query.Where(u => u.TblUserRoles.Any(ur => ur.Role.RoleCode.ToLower() == "user" || ur.Role.RoleCode.ToLower() == "member") || !u.TblUserRoles.Any());
+            }
+        }
 
         if (!string.IsNullOrWhiteSpace(search))
         {

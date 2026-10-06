@@ -47,6 +47,12 @@ public static class LinkDropSeeder
                     IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblLinkDropWallet') AND name = 'EarnedBalance')
                         ALTER TABLE dbo.TblLinkDropWallet ADD EarnedBalance BIGINT NOT NULL CONSTRAINT DF_TblLinkDropWallet_EarnedBalance DEFAULT (0);
                 END;
+
+                IF EXISTS (SELECT * FROM sys.tables WHERE name = 'TblPaymentMethod' AND schema_id = SCHEMA_ID('dbo'))
+                BEGIN
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblPaymentMethod') AND name = 'PaymentLogoUrl')
+                        ALTER TABLE dbo.TblPaymentMethod ADD PaymentLogoUrl NVARCHAR(500) NULL;
+                END;
             ");
         }
 

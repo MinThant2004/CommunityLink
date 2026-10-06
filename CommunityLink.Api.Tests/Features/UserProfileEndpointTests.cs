@@ -227,4 +227,20 @@ public class UserProfileEndpointTests(CommunityApiFactory factory) : IClassFixtu
         });
         Assert.Equal(HttpStatusCode.BadRequest, rateRes.StatusCode);
     }
+
+    [Fact]
+    public async Task DeleteMyAccount_SoftDelete_DeactivatesUserAccount()
+    {
+        var (token, userName, _) = await RegisterNewUserAsync("del_target");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Delete account (soft delete)
+        var deleteRes = await _client.DeleteAsync("/api/users/me/account");
+        Assert.Equal(HttpStatusCode.OK, deleteRes.StatusCode);
+
+        // Verify account is soft-deleted and cannot be retrieved publicly (404)
+        _client.DefaultRequestHeaders.Authorization = null;
+        var getRes = await _client.GetAsync($"/api/users/{userName}");
+        Assert.Equal(HttpStatusCode.NotFound, getRes.StatusCode);
+    }
 }

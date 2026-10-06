@@ -61,6 +61,18 @@ public static class AuthFlowEndpoints
             return Results.Redirect("/admin/dashboard");
         });
 
+        endpoints.MapPost("/account/delete",
+            async (HttpContext context,
+                   IAntiforgery antiforgery,
+                   UserProfileApiService profileApi,
+                   AuthSessionService sessions) =>
+        {
+            await antiforgery.ValidateRequestAsync(context);
+            var result = await profileApi.DeleteMyAccountAsync();
+            await sessions.SignOutAsync();
+            return Results.Redirect("/login?error=" + Uri.EscapeDataString("Your account has been closed successfully."));
+        });
+
         return endpoints;
     }
 

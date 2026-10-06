@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityLink.Database.AppDbContextModels;
+using CommunityLink.Domain.Services;
 using CommunityLink.Shared.Features.LinkDrop;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,10 +13,12 @@ namespace CommunityLink.Domain.Features.LinkDrop;
 public class LinkDropPaymentService : ILinkDropPaymentService
 {
     private readonly AppDbContext _db;
+    private readonly IPublicUrlBuilder _publicUrlBuilder;
 
-    public LinkDropPaymentService(AppDbContext db)
+    public LinkDropPaymentService(AppDbContext db, IPublicUrlBuilder publicUrlBuilder)
     {
         _db = db;
+        _publicUrlBuilder = publicUrlBuilder;
     }
 
     public async Task<List<LinkDropPackageDto>> GetActivePackagesAsync()
@@ -31,13 +34,14 @@ public class LinkDropPaymentService : ILinkDropPaymentService
 
     public async Task<List<PaymentMethodDto>> GetActivePaymentMethodsAsync()
     {
-        return await _db.TblPaymentMethods
+        var methods = await _db.TblPaymentMethods
             .AsNoTracking()
             .Where(m => m.IsActive && !m.IsDeleted)
             .OrderBy(m => m.DisplayOrder)
             .ThenBy(m => m.PaymentMethodId)
-            .Select(m => MapPaymentMethodToDto(m))
             .ToListAsync();
+
+        return methods.Select(m => MapPaymentMethodToDto(m)).ToList();
     }
 
     public async Task<PurchaseResponseDto> SubmitPurchaseAsync(
@@ -172,7 +176,8 @@ public class LinkDropPaymentService : ILinkDropPaymentService
                 await proofStream.CopyToAsync(fileStream);
             }
 
-            var webUrl = $"/{relativeFolder.Replace('\\', '/')}/{uniqueFileName}";
+            var relativeUrl = $"/{relativeFolder.Replace('\\', '/')}/{uniqueFileName}";
+            var webUrl = _publicUrlBuilder.Build(relativeUrl);
 
             proofEntity = new TblLinkDropPurchaseProof
             {
@@ -568,16 +573,23 @@ public class LinkDropPaymentService : ILinkDropPaymentService
 
     public async Task<List<PaymentMethodDto>> GetAllPaymentMethodsAsync()
     {
-        return await _db.TblPaymentMethods
+        var methods = await _db.TblPaymentMethods
             .AsNoTracking()
             .Where(m => !m.IsDeleted)
             .OrderBy(m => m.DisplayOrder)
             .ThenBy(m => m.PaymentMethodId)
-            .Select(m => MapPaymentMethodToDto(m))
             .ToListAsync();
+
+        return methods.Select(m => MapPaymentMethodToDto(m)).ToList();
     }
 
-    public async Task<PaymentMethodDto> CreatePaymentMethodAsync(int adminId, CreatePaymentMethodRequestDto request)
+    public async Task<PaymentMethodDto> CreatePaymentMethodAsync(
+        int adminId,
+        CreatePaymentMethodRequestDto request,
+        Stream? qrCodeStream = null,
+        string? qrCodeFileName = null,
+        Stream? logoStream = null,
+        string? logoFileName = null)
     {
         if (string.IsNullOrWhiteSpace(request.MethodName))
             throw new InvalidOperationException("Payment method name is required.");
@@ -592,6 +604,7 @@ public class LinkDropPaymentService : ILinkDropPaymentService
             AccountName = request.AccountName.Trim(),
             AccountNumber = request.AccountNumber.Trim(),
             QrCodeImageUrl = request.QrCodeImageUrl?.Trim(),
+            PaymentLogoUrl = request.PaymentLogoUrl?.Trim(),
             Instructions = request.Instructions?.Trim(),
             DisplayOrder = request.DisplayOrder,
             IsActive = true,
@@ -600,13 +613,30 @@ public class LinkDropPaymentService : ILinkDropPaymentService
             IsDeleted = false
         };
 
+        if (qrCodeStream != null && !string.IsNullOrWhiteSpace(qrCodeFileName))
+        {
+            method.QrCodeImageUrl = await SavePaymentMethodImageAsync(qrCodeStream, qrCodeFileName, "qr");
+        }
+
+        if (logoStream != null && !string.IsNullOrWhiteSpace(logoFileName))
+        {
+            method.PaymentLogoUrl = await SavePaymentMethodImageAsync(logoStream, logoFileName, "logo");
+        }
+
         _db.TblPaymentMethods.Add(method);
         await _db.SaveChangesAsync();
 
         return MapPaymentMethodToDto(method);
     }
 
-    public async Task<PaymentMethodDto> UpdatePaymentMethodAsync(int adminId, int paymentMethodId, UpdatePaymentMethodRequestDto request)
+    public async Task<PaymentMethodDto> UpdatePaymentMethodAsync(
+        int adminId,
+        int paymentMethodId,
+        UpdatePaymentMethodRequestDto request,
+        Stream? qrCodeStream = null,
+        string? qrCodeFileName = null,
+        Stream? logoStream = null,
+        string? logoFileName = null)
     {
         var method = await _db.TblPaymentMethods
             .FirstOrDefaultAsync(m => m.PaymentMethodId == paymentMethodId && !m.IsDeleted);
@@ -617,16 +647,57 @@ public class LinkDropPaymentService : ILinkDropPaymentService
         method.MethodName = request.MethodName.Trim();
         method.AccountName = request.AccountName.Trim();
         method.AccountNumber = request.AccountNumber.Trim();
-        method.QrCodeImageUrl = request.QrCodeImageUrl?.Trim();
         method.Instructions = request.Instructions?.Trim();
         method.DisplayOrder = request.DisplayOrder;
         method.IsActive = request.IsActive;
         method.UpdatedAt = DateTime.UtcNow;
         method.UpdatedBy = adminId;
 
+        if (qrCodeStream != null && !string.IsNullOrWhiteSpace(qrCodeFileName))
+        {
+            method.QrCodeImageUrl = await SavePaymentMethodImageAsync(qrCodeStream, qrCodeFileName, "qr");
+        }
+        else if (request.QrCodeImageUrl != null)
+        {
+            method.QrCodeImageUrl = request.QrCodeImageUrl.Trim();
+        }
+
+        if (logoStream != null && !string.IsNullOrWhiteSpace(logoFileName))
+        {
+            method.PaymentLogoUrl = await SavePaymentMethodImageAsync(logoStream, logoFileName, "logo");
+        }
+        else if (request.PaymentLogoUrl != null)
+        {
+            method.PaymentLogoUrl = request.PaymentLogoUrl.Trim();
+        }
+
         await _db.SaveChangesAsync();
 
         return MapPaymentMethodToDto(method);
+    }
+
+    private async Task<string> SavePaymentMethodImageAsync(Stream stream, string fileName, string imageType)
+    {
+        var ext = Path.GetExtension(fileName).ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(ext)) ext = ".png";
+        var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp", ".svg" };
+        if (!allowedExts.Contains(ext))
+            throw new InvalidOperationException($"Invalid file format for {imageType}. Allowed formats: JPG, PNG, WEBP, SVG.");
+
+        var relativeFolder = Path.Combine("uploads", "payment-methods");
+        var absoluteFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativeFolder);
+        Directory.CreateDirectory(absoluteFolder);
+
+        var uniqueFileName = $"{imageType}_{Guid.NewGuid():N}{ext}";
+        var absoluteFilePath = Path.Combine(absoluteFolder, uniqueFileName);
+
+        using (var fileStream = new FileStream(absoluteFilePath, FileMode.Create))
+        {
+            await stream.CopyToAsync(fileStream);
+        }
+
+        var relativeUrl = $"/{relativeFolder.Replace('\\', '/')}/{uniqueFileName}";
+        return _publicUrlBuilder.Build(relativeUrl);
     }
 
     public async Task<bool> TogglePaymentMethodStatusAsync(int adminId, int paymentMethodId)
@@ -679,7 +750,7 @@ public class LinkDropPaymentService : ILinkDropPaymentService
         };
     }
 
-    private static PaymentMethodDto MapPaymentMethodToDto(TblPaymentMethod m)
+    private PaymentMethodDto MapPaymentMethodToDto(TblPaymentMethod m)
     {
         return new PaymentMethodDto
         {
@@ -687,14 +758,15 @@ public class LinkDropPaymentService : ILinkDropPaymentService
             MethodName = m.MethodName,
             AccountName = m.AccountName,
             AccountNumber = m.AccountNumber,
-            QrCodeImageUrl = m.QrCodeImageUrl,
+            QrCodeImageUrl = !string.IsNullOrWhiteSpace(m.QrCodeImageUrl) ? _publicUrlBuilder.Build(m.QrCodeImageUrl) : null,
+            PaymentLogoUrl = !string.IsNullOrWhiteSpace(m.PaymentLogoUrl) ? _publicUrlBuilder.Build(m.PaymentLogoUrl) : null,
             Instructions = m.Instructions,
             DisplayOrder = m.DisplayOrder,
             IsActive = m.IsActive
         };
     }
 
-    private static PurchaseResponseDto MapPurchaseToDto(TblLinkDropPurchase p)
+    private PurchaseResponseDto MapPurchaseToDto(TblLinkDropPurchase p)
     {
         return new PurchaseResponseDto
         {
@@ -706,6 +778,7 @@ public class LinkDropPaymentService : ILinkDropPaymentService
             PackageName = p.Package?.PackageName ?? p.SnapshotPackageName,
             PaymentMethodId = p.PaymentMethodId,
             PaymentMethodName = p.PaymentMethod?.MethodName ?? "Manual Transfer",
+            PaymentMethodLogoUrl = !string.IsNullOrWhiteSpace(p.PaymentMethod?.PaymentLogoUrl) ? _publicUrlBuilder.Build(p.PaymentMethod.PaymentLogoUrl) : null,
             IsCustomPurchase = p.IsCustomPurchase,
             SnapshotPackageName = p.SnapshotPackageName,
             SnapshotRealMoneyAmount = p.SnapshotRealMoneyAmount,

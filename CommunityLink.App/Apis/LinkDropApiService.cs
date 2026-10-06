@@ -108,11 +108,97 @@ public sealed class LinkDropApiService(IHttpClientFactory clientFactory, IHttpCo
     public Task<Result<IReadOnlyList<PaymentMethodDto>>> GetAllPaymentMethodsAsync(CancellationToken cancellationToken = default) =>
         GetAsync<IReadOnlyList<PaymentMethodDto>>("api/admin/linkdrops/payment-methods", cancellationToken);
 
-    public Task<Result<PaymentMethodDto>> CreatePaymentMethodAsync(CreatePaymentMethodRequestDto request, CancellationToken cancellationToken = default) =>
-        PostAsync<PaymentMethodDto, CreatePaymentMethodRequestDto>("api/admin/linkdrops/payment-methods", request, cancellationToken);
+    public async Task<Result<PaymentMethodDto>> CreatePaymentMethodAsync(
+        CreatePaymentMethodRequestDto request,
+        IBrowserFile? qrCodeFile = null,
+        IBrowserFile? logoFile = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (qrCodeFile == null && logoFile == null)
+        {
+            return await PostAsync<PaymentMethodDto, CreatePaymentMethodRequestDto>("api/admin/linkdrops/payment-methods", request, cancellationToken);
+        }
 
-    public Task<Result<PaymentMethodDto>> UpdatePaymentMethodAsync(int paymentMethodId, UpdatePaymentMethodRequestDto request, CancellationToken cancellationToken = default) =>
-        PutAsync<PaymentMethodDto, UpdatePaymentMethodRequestDto>($"api/admin/linkdrops/payment-methods/{paymentMethodId}", request, cancellationToken);
+        using var client = CreateClient();
+        using var content = new MultipartFormDataContent();
+
+        content.Add(new StringContent(request.MethodName ?? ""), "MethodName");
+        content.Add(new StringContent(request.AccountName ?? ""), "AccountName");
+        content.Add(new StringContent(request.AccountNumber ?? ""), "AccountNumber");
+        content.Add(new StringContent(request.DisplayOrder.ToString()), "DisplayOrder");
+        if (!string.IsNullOrWhiteSpace(request.Instructions))
+            content.Add(new StringContent(request.Instructions), "Instructions");
+        if (!string.IsNullOrWhiteSpace(request.QrCodeImageUrl))
+            content.Add(new StringContent(request.QrCodeImageUrl), "QrCodeImageUrl");
+        if (!string.IsNullOrWhiteSpace(request.PaymentLogoUrl))
+            content.Add(new StringContent(request.PaymentLogoUrl), "PaymentLogoUrl");
+
+        if (qrCodeFile != null)
+        {
+            var stream = qrCodeFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024, cancellationToken);
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(qrCodeFile.ContentType ?? "image/png");
+            content.Add(streamContent, "qrCodeFile", qrCodeFile.Name);
+        }
+
+        if (logoFile != null)
+        {
+            var stream = logoFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024, cancellationToken);
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(logoFile.ContentType ?? "image/png");
+            content.Add(streamContent, "logoFile", logoFile.Name);
+        }
+
+        var response = await client.PostAsync("api/admin/linkdrops/payment-methods", content, cancellationToken);
+        return await ReadResultAsync<PaymentMethodDto>(response, cancellationToken);
+    }
+
+    public async Task<Result<PaymentMethodDto>> UpdatePaymentMethodAsync(
+        int paymentMethodId,
+        UpdatePaymentMethodRequestDto request,
+        IBrowserFile? qrCodeFile = null,
+        IBrowserFile? logoFile = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (qrCodeFile == null && logoFile == null)
+        {
+            return await PutAsync<PaymentMethodDto, UpdatePaymentMethodRequestDto>($"api/admin/linkdrops/payment-methods/{paymentMethodId}", request, cancellationToken);
+        }
+
+        using var client = CreateClient();
+        using var content = new MultipartFormDataContent();
+
+        content.Add(new StringContent(request.MethodName ?? ""), "MethodName");
+        content.Add(new StringContent(request.AccountName ?? ""), "AccountName");
+        content.Add(new StringContent(request.AccountNumber ?? ""), "AccountNumber");
+        content.Add(new StringContent(request.DisplayOrder.ToString()), "DisplayOrder");
+        content.Add(new StringContent(request.IsActive.ToString().ToLowerInvariant()), "IsActive");
+        if (!string.IsNullOrWhiteSpace(request.Instructions))
+            content.Add(new StringContent(request.Instructions), "Instructions");
+        if (!string.IsNullOrWhiteSpace(request.QrCodeImageUrl))
+            content.Add(new StringContent(request.QrCodeImageUrl), "QrCodeImageUrl");
+        if (!string.IsNullOrWhiteSpace(request.PaymentLogoUrl))
+            content.Add(new StringContent(request.PaymentLogoUrl), "PaymentLogoUrl");
+
+        if (qrCodeFile != null)
+        {
+            var stream = qrCodeFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024, cancellationToken);
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(qrCodeFile.ContentType ?? "image/png");
+            content.Add(streamContent, "qrCodeFile", qrCodeFile.Name);
+        }
+
+        if (logoFile != null)
+        {
+            var stream = logoFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024, cancellationToken);
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(logoFile.ContentType ?? "image/png");
+            content.Add(streamContent, "logoFile", logoFile.Name);
+        }
+
+        var response = await client.PutAsync($"api/admin/linkdrops/payment-methods/{paymentMethodId}", content, cancellationToken);
+        return await ReadResultAsync<PaymentMethodDto>(response, cancellationToken);
+    }
 
     public Task<Result<bool>> TogglePaymentMethodStatusAsync(int paymentMethodId, CancellationToken cancellationToken = default) =>
         PostAsync<bool, object>($"api/admin/linkdrops/payment-methods/{paymentMethodId}/toggle", new { }, cancellationToken);

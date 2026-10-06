@@ -24,6 +24,7 @@ public class PaymentMethodDto
     public string AccountName { get; set; } = null!;
     public string AccountNumber { get; set; } = null!;
     public string? QrCodeImageUrl { get; set; }
+    public string? PaymentLogoUrl { get; set; }
     public string? Instructions { get; set; }
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; }
@@ -52,6 +53,7 @@ public class PurchaseResponseDto
     public string? PackageName { get; set; }
     public int PaymentMethodId { get; set; }
     public string PaymentMethodName { get; set; } = null!;
+    public string? PaymentMethodLogoUrl { get; set; }
     public bool IsCustomPurchase { get; set; }
     public string? SnapshotPackageName { get; set; }
     public decimal SnapshotRealMoneyAmount { get; set; }
@@ -152,6 +154,7 @@ public class CreatePaymentMethodRequestDto
     public string AccountName { get; set; } = null!;
     public string AccountNumber { get; set; } = null!;
     public string? QrCodeImageUrl { get; set; }
+    public string? PaymentLogoUrl { get; set; }
     public string? Instructions { get; set; }
     public int DisplayOrder { get; set; }
 }
@@ -162,6 +165,7 @@ public class UpdatePaymentMethodRequestDto
     public string AccountName { get; set; } = null!;
     public string AccountNumber { get; set; } = null!;
     public string? QrCodeImageUrl { get; set; }
+    public string? PaymentLogoUrl { get; set; }
     public string? Instructions { get; set; }
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; }
