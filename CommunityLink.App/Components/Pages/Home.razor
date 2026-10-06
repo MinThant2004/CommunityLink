@@ -1243,12 +1243,12 @@ else if (dashboard != null)
         else if (activeFeedTab == "people")
         {
             <!-- Search & Filter Controls Matrix -->
-            <section class="w-full bg-surface-container-low rounded-xl p-3 sm:p-3.5 mb-3.5 shadow-xs border border-white/5">
+            <section class="w-full bg-white dark:bg-surface-container-low rounded-xl p-3 sm:p-3.5 mb-3.5 shadow-sm dark:shadow-none border border-slate-200/80 dark:border-white/5">
                 <div class="flex flex-col md:flex-row items-center gap-2.5">
                     <!-- Search Input -->
                     <div class="relative flex-1 w-full">
                         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">manage_search</span>
-                        <input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs pl-9 pr-3 py-2 rounded-lg focus:outline-none focus:bg-surface-container transition-all border border-white/5"
+                        <input class="w-full bg-slate-50 dark:bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs pl-9 pr-3 py-2 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-surface-container transition-all border border-slate-200/80 dark:border-white/5"
                                id="member-search"
                                placeholder="Search members..."
                                type="text"
@@ -1259,7 +1259,7 @@ else if (dashboard != null)
                     <!-- Sort Control -->
                     <div class="relative w-full md:w-56 flex-shrink-0">
                         <select @bind="peopleSortOption"
-                                class="w-full appearance-none bg-surface-container-lowest text-on-surface text-xs pl-3 pr-8 py-2 rounded-lg focus:outline-none focus:bg-surface-container cursor-pointer transition-all border border-white/5">
+                                class="w-full appearance-none bg-slate-50 dark:bg-surface-container-lowest text-on-surface text-xs pl-3 pr-8 py-2 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-surface-container cursor-pointer transition-all border border-slate-200/80 dark:border-white/5">
                             <option value="all">All</option>
                             <option value="followed">People you followed</option>
                             <option value="active">Active Now</option>
@@ -1270,15 +1270,15 @@ else if (dashboard != null)
                 <!-- Filter Pills Row -->
                 <div class="flex items-center gap-1.5 mt-2.5 overflow-x-auto pb-0.5 scrollbar-none">
                     <button type="button" @onclick='() => SetPeopleRoleFilter("ALL")'
-                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "ALL" ? "bg-surface-container-highest text-on-surface font-bold shadow-xs" : "bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-surface-container border border-white/5 font-medium") transition-all flex-shrink-0 cursor-pointer">
+                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "ALL" ? "bg-surface-container-highest text-on-surface font-bold shadow-xs" : "bg-slate-100 dark:bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-slate-200 dark:hover:bg-surface-container border border-slate-200/70 dark:border-white/5 font-medium") transition-all flex-shrink-0 cursor-pointer">
                         ALL (@PeopleCountAll)
                     </button>
                     <button type="button" @onclick='() => SetPeopleRoleFilter("DOMAIN_PROFESSIONAL")'
-                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "DOMAIN_PROFESSIONAL" ? "bg-surface-container-highest text-on-surface font-bold shadow-xs" : "bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-surface-container border border-white/5 font-medium") transition-all flex-shrink-0 cursor-pointer">
+                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "DOMAIN_PROFESSIONAL" ? "bg-surface-container-highest text-on-surface font-bold shadow-xs" : "bg-slate-100 dark:bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-slate-200 dark:hover:bg-surface-container border border-slate-200/70 dark:border-white/5 font-medium") transition-all flex-shrink-0 cursor-pointer">
                         DOMAIN PROFESSIONALS (@PeopleCountDomainPro)
                     </button>
                     <button type="button" @onclick='() => SetPeopleRoleFilter("PUBLIC_FIGURE")'
-                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "PUBLIC_FIGURE" ? "bg-surface-container-highest text-on-surface font-bold shadow-xs" : "bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-surface-container border border-white/5 font-medium") transition-all flex-shrink-0 cursor-pointer">
+                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "PUBLIC_FIGURE" ? "bg-surface-container-highest text-on-surface font-bold shadow-xs" : "bg-slate-100 dark:bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-slate-200 dark:hover:bg-surface-container border border-slate-200/70 dark:border-white/5 font-medium") transition-all flex-shrink-0 cursor-pointer">
                         PUBLIC FIGURES (@PeopleCountPublicFigure)
                     </button>
                 </div>
@@ -1302,136 +1302,156 @@ else if (dashboard != null)
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="directory-grid-container">
                         @foreach (var person in VisiblePeople)
                         {
-                            <div class="bg-surface-container-low hover:bg-surface-container rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between border border-white/5 hover:border-white/10 shadow-xs hover:shadow-md transition-all group">
-                                <div>
-                                    <!-- Top Badge & Availability Ribbon -->
-                                    <div class="flex items-center justify-between gap-2 mb-3.5">
-                                        @if (person.RoleCode == "PUBLIC_FIGURE" || person.RoleCode == "DOMAIN_PROFESSIONAL")
-                                        {
-                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-container-highest text-primary font-mono text-[10px] uppercase tracking-wider font-bold">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                                                @(person.RoleCode == "PUBLIC_FIGURE" ? "PUBLIC FIGURE" : "DOMAIN PRO")
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-mono text-[10px] uppercase tracking-wider font-semibold">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
-                                                VERIFIED MEMBER
-                                            </span>
-                                        }
-                                        <div class="flex items-center gap-1.5 font-mono text-[10px] text-outline">
-                                            <span class="w-2 h-2 rounded-full @(person.AvailabilityStatus?.ToLower().Contains("busy") == true ? "bg-amber-500" : "bg-emerald-500")"></span>
-                                            <span class="truncate text-on-surface-variant">@(string.IsNullOrWhiteSpace(person.AvailabilityStatus) ? "Online / Available" : person.AvailabilityStatus)</span>
-                                        </div>
-                                    </div>
+                            <div class="relative overflow-hidden bg-white hover:bg-slate-50/70 dark:bg-[#131722] dark:hover:bg-[#171C28] rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between border border-slate-200/80 hover:border-slate-300 dark:border-white/[0.08] dark:hover:border-white/15 shadow-[0_2px_8px_-2px_rgba(10,27,46,0.06),0_1px_3px_rgba(10,27,46,0.04)] hover:shadow-[0_8px_20px_-4px_rgba(10,27,46,0.1),0_2px_6px_rgba(10,27,46,0.05)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5),0_1px_3px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_8px_28px_-2px_rgba(0,0,0,0.7)] transition-all group">
+                                
+                                <!-- Decorative Soft Color Shades (Smooth Corner Wash - Clearly Visible & Soft) -->
+                                @if (person.RoleCode == "PUBLIC_FIGURE")
+                                {
+                                    <div class="absolute top-0 right-0 w-60 sm:w-72 h-36 sm:h-44 bg-gradient-to-bl from-indigo-500/20 via-purple-500/10 to-transparent dark:from-indigo-400/25 dark:via-purple-500/15 dark:to-transparent rounded-bl-full pointer-events-none"></div>
+                                    <div class="absolute -bottom-8 -left-8 w-36 h-36 bg-indigo-500/10 dark:bg-indigo-400/10 rounded-full blur-2xl pointer-events-none"></div>
+                                }
+                                else if (person.RoleCode == "DOMAIN_PROFESSIONAL")
+                                {
+                                    <div class="absolute top-0 right-0 w-60 sm:w-72 h-36 sm:h-44 bg-gradient-to-bl from-amber-500/20 via-amber-400/10 to-transparent dark:from-[#D4AF37]/25 dark:via-amber-500/15 dark:to-transparent rounded-bl-full pointer-events-none"></div>
+                                    <div class="absolute -bottom-8 -left-8 w-36 h-36 bg-amber-500/10 dark:bg-[#D4AF37]/10 rounded-full blur-2xl pointer-events-none"></div>
+                                }
+                                else
+                                {
+                                    <div class="absolute top-0 right-0 w-60 sm:w-72 h-36 sm:h-44 bg-gradient-to-bl from-sky-500/20 via-blue-500/10 to-transparent dark:from-sky-400/20 dark:via-blue-500/10 dark:to-transparent rounded-bl-full pointer-events-none"></div>
+                                    <div class="absolute -bottom-8 -left-8 w-36 h-36 bg-sky-500/10 dark:bg-sky-400/10 rounded-full blur-2xl pointer-events-none"></div>
+                                }
 
-                                    <!-- Member Profile -->
-                                    <div class="flex items-center gap-3.5 mb-3.5">
-                                        <div class="relative shrink-0">
-                                            <a href="u/@person.UserName" class="block">
-                                                @if (!string.IsNullOrWhiteSpace(person.AvatarUrl))
-                                                {
-                                                    <img class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover ring-1 ring-white/10 shadow-xs group-hover:ring-white/20 transition-all"
-                                                         src="@person.AvatarUrl"
-                                                         alt="@person.DisplayName" />
-                                                }
-                                                else
-                                                {
-                                                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-surface-container-highest text-on-surface font-bold text-lg sm:text-xl flex items-center justify-center ring-1 ring-white/10 shadow-xs">
-                                                        @GetPersonInitials(person)
-                                                    </div>
-                                                }
-                                            </a>
-                                        </div>
-                                        <div class="min-w-0 flex-1">
-                                            <a href="u/@person.UserName" class="text-sm sm:text-base font-bold text-on-surface group-hover:text-primary transition-colors truncate block">
-                                                @(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)
-                                            </a>
-                                            <p class="text-xs text-on-surface-variant font-medium truncate mt-0.5">
-                                                @(string.IsNullOrWhiteSpace(person.Headline) ? $"@{person.UserName}" : person.Headline)
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Metrics Strip -->
-                                    <div class="bg-surface-container-lowest rounded-xl p-2.5 mb-3 border border-white/5 grid grid-cols-2 gap-2 text-xs">
-                                        <div class="flex flex-col">
-                                            <span class="font-mono text-[9px] uppercase tracking-wider text-outline font-semibold">Community Rating</span>
-                                            <div class="flex items-center gap-1 mt-0.5">
-                                                <span class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-0.5">
-                                                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-                                                    <span>@((person.AverageRating.HasValue && person.AverageRating.Value > 0 ? person.AverageRating.Value.ToString("F1") : "5.0"))</span>
-                                                </span>
-                                                <span class="text-outline text-[10px]">
-                                                    (@(person.RatingCount > 0 ? $"{person.RatingCount} ratings" : "Verified"))
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="flex flex-col border-l border-white/5 pl-2.5">
-                                            <span class="font-mono text-[9px] uppercase tracking-wider text-outline font-semibold">Contributions</span>
-                                            <span class="text-on-surface font-semibold mt-0.5 truncate">
-                                                @person.PostsCount Posts Published
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Specialties & Skills -->
-                                    <div class="mb-3">
-                                        <span class="font-mono text-[9px] uppercase tracking-wider text-outline block mb-1.5 font-semibold">Specialties &amp; Skills</span>
-                                        <div class="flex flex-wrap gap-1.5">
-                                            @if (person.Skills != null && person.Skills.Any())
+                                <div class="relative z-10 flex flex-col justify-between h-full">
+                                    <div>
+                                        <!-- Top Badge & Availability Ribbon -->
+                                        <div class="flex items-center justify-between gap-2 mb-3.5">
+                                            @if (person.RoleCode == "PUBLIC_FIGURE" || person.RoleCode == "DOMAIN_PROFESSIONAL")
                                             {
-                                                @foreach (var skill in person.Skills.Take(4))
-                                                {
-                                                    <span class="px-2 py-0.5 bg-surface-container text-on-surface text-[10px] rounded-md border border-white/5 truncate max-w-[150px]">
-                                                        @skill
-                                                    </span>
-                                                }
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] dark:text-[#D4AF37] border border-[#D4AF37]/30 font-mono text-[10px] uppercase tracking-wider font-bold">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></span>
+                                                    @(person.RoleCode == "PUBLIC_FIGURE" ? "PUBLIC FIGURE" : "DOMAIN PRO")
+                                                </span>
                                             }
                                             else
                                             {
-                                                <span class="text-[11px] text-outline italic">
-                                                    No specialties listed
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-surface-container-high text-on-surface-variant font-mono text-[10px] uppercase tracking-wider font-semibold border border-slate-200/60 dark:border-white/5">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                                                    VERIFIED MEMBER
                                                 </span>
                                             }
-                                        </div>
-                                    </div>
-
-                                    <!-- Direct Communication -->
-                                    <div class="mb-3.5">
-                                        <span class="font-mono text-[9px] uppercase tracking-wider text-outline block mb-1.5 font-semibold">Direct Communication</span>
-                                        <div class="bg-surface-container-lowest rounded-xl p-2.5 border border-white/5 flex items-center justify-between">
-                                            <div class="flex items-center gap-1.5 text-xs text-on-surface font-medium">
-                                                <span class="material-symbols-outlined text-[16px] text-outline">chat</span>
-                                                <span>Direct 1:1 Message</span>
+                                            <div class="flex items-center gap-1.5 font-mono text-[10px] text-outline">
+                                                <span class="w-2 h-2 rounded-full @(person.AvailabilityStatus?.ToLower().Contains("busy") == true ? "bg-amber-500" : "bg-emerald-500")"></span>
+                                                <span class="truncate text-on-surface-variant">@(string.IsNullOrWhiteSpace(person.AvailabilityStatus) ? "Online / Available" : person.AvailabilityStatus)</span>
                                             </div>
-                                            <span class="text-on-surface font-semibold text-xs">
-                                                @(person.RoleCode == "PUBLIC_FIGURE" ? "250 Drops" : "150 Drops")
-                                            </span>
+                                        </div>
+
+                                        <!-- Member Profile -->
+                                        <div class="flex items-center gap-3.5 mb-3.5">
+                                            <div class="relative shrink-0">
+                                                <a href="u/@person.UserName" class="block">
+                                                    @if (!string.IsNullOrWhiteSpace(person.AvatarUrl))
+                                                    {
+                                                        <img class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover ring-1 ring-slate-200/80 dark:ring-white/10 shadow-xs group-hover:ring-slate-300 dark:group-hover:ring-white/20 transition-all"
+                                                             src="@person.AvatarUrl"
+                                                             alt="@person.DisplayName" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-100 dark:bg-surface-container-highest text-on-surface font-bold text-lg sm:text-xl flex items-center justify-center ring-1 ring-slate-200/80 dark:ring-white/10 shadow-xs">
+                                                            @GetPersonInitials(person)
+                                                        </div>
+                                                    }
+                                                </a>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <a href="u/@person.UserName" class="text-sm sm:text-base font-bold text-on-surface group-hover:text-secondary dark:group-hover:text-[#D4AF37] transition-colors truncate block">
+                                                    @(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)
+                                                </a>
+                                                <p class="text-xs text-on-surface-variant font-medium truncate mt-0.5">
+                                                    @(string.IsNullOrWhiteSpace(person.Headline) ? $"@{person.UserName}" : person.Headline)
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Metrics Strip -->
+                                        <div class="bg-slate-50 dark:bg-surface-container-lowest/80 rounded-xl p-2.5 mb-3 border border-slate-200/70 dark:border-white/5 grid grid-cols-2 gap-2 text-xs">
+                                            <div class="flex flex-col">
+                                                <span class="font-mono text-[9px] uppercase tracking-wider text-outline font-semibold">Community Rating</span>
+                                                <div class="flex items-center gap-1 mt-0.5">
+                                                    <span class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-0.5">
+                                                        <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                                                        <span>@((person.AverageRating.HasValue && person.AverageRating.Value > 0 ? person.AverageRating.Value.ToString("F1") : "5.0"))</span>
+                                                    </span>
+                                                    <span class="text-outline text-[10px]">
+                                                        (@(person.RatingCount > 0 ? $"{person.RatingCount} ratings" : "Verified"))
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col border-l border-slate-200/70 dark:border-white/5 pl-2.5">
+                                                <span class="font-mono text-[9px] uppercase tracking-wider text-outline font-semibold">Contributions</span>
+                                                <span class="text-on-surface font-semibold mt-0.5 truncate">
+                                                    @person.PostsCount Posts Published
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Specialties & Skills -->
+                                        <div class="mb-3">
+                                            <span class="font-mono text-[9px] uppercase tracking-wider text-outline block mb-1.5 font-semibold">Specialties &amp; Skills</span>
+                                            <div class="flex flex-wrap gap-1.5">
+                                                @if (person.Skills != null && person.Skills.Any())
+                                                {
+                                                    @foreach (var skill in person.Skills.Take(4))
+                                                    {
+                                                        <span class="px-2 py-0.5 bg-slate-100 text-on-surface dark:bg-surface-container text-[10px] rounded-md border border-slate-200/70 dark:border-white/5 truncate max-w-[150px]">
+                                                            @skill
+                                                        </span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-[11px] text-outline italic">
+                                                        No specialties listed
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <!-- Direct Communication -->
+                                        <div class="mb-3.5">
+                                            <span class="font-mono text-[9px] uppercase tracking-wider text-outline block mb-1.5 font-semibold">Direct Communication</span>
+                                            <div class="bg-slate-50 dark:bg-surface-container-lowest/80 rounded-xl p-2.5 border border-slate-200/70 dark:border-white/5 flex items-center justify-between">
+                                                <div class="flex items-center gap-1.5 text-xs text-on-surface font-medium">
+                                                    <span class="material-symbols-outlined text-[16px] text-outline">chat</span>
+                                                    <span>Direct 1:1 Message</span>
+                                                </div>
+                                                <span class="text-on-surface font-semibold text-xs">
+                                                    @(person.RoleCode == "PUBLIC_FIGURE" ? "250 Drops" : "150 Drops")
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- Action Buttons -->
-                                <div class="flex items-center gap-2 pt-2 border-t border-white/5 mt-auto">
-                                    <button type="button" @onclick="() => ToggleFollowPersonAsync(person.UserId)"
-                                            class="px-3.5 py-1.5 rounded-lg @(person.IsFollowedByCurrentUser ? "bg-surface-container-highest text-on-surface border border-white/10" : "bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-white/5") text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer shrink-0">
-                                        @if (person.IsFollowedByCurrentUser)
-                                        {
-                                            <span class="material-symbols-outlined text-[15px] text-emerald-500">check</span>
-                                            <span>Following</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="material-symbols-outlined text-[15px] text-outline">person_add</span>
-                                            <span>Follow</span>
-                                        }
-                                    </button>
-                                    <a href="u/@person.UserName" class="flex-1 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-xs font-semibold rounded-lg flex items-center justify-center gap-1 border border-white/5 transition-colors">
-                                        <span>View Full Profile</span>
-                                        <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
-                                    </a>
+                                    <!-- Action Buttons -->
+                                    <div class="flex items-center gap-2 pt-2 border-t border-slate-200/70 dark:border-white/5 mt-auto">
+                                        <button type="button" @onclick="() => ToggleFollowPersonAsync(person.UserId)"
+                                                class="px-3.5 py-1.5 rounded-lg @(person.IsFollowedByCurrentUser ? "bg-slate-200 dark:bg-surface-container-highest text-on-surface border border-slate-300 dark:border-white/10" : "bg-slate-100 hover:bg-slate-200/80 text-on-surface-variant hover:text-on-surface dark:bg-surface-container dark:hover:bg-surface-container-high border border-slate-200/70 dark:border-white/5") text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer shrink-0">
+                                            @if (person.IsFollowedByCurrentUser)
+                                            {
+                                                <span class="material-symbols-outlined text-[15px] text-emerald-500">check</span>
+                                                <span>Following</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="material-symbols-outlined text-[15px] text-outline">person_add</span>
+                                                <span>Follow</span>
+                                            }
+                                        </button>
+                                        <a href="u/@person.UserName" class="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-surface-container dark:hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-xs font-semibold rounded-lg flex items-center justify-center gap-1 border border-slate-200/70 dark:border-white/5 transition-colors">
+                                            <span>View Full Profile</span>
+                                            <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         }
@@ -1442,7 +1462,7 @@ else if (dashboard != null)
                     {
                         <div class="flex justify-center pt-3 pb-2">
                             <button type="button" @onclick="LoadMorePeople"
-                                    class="px-5 py-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-semibold flex items-center gap-2 border border-white/5 transition-all cursor-pointer shadow-xs hover:shadow-sm group">
+                                    class="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-surface-container-low dark:hover:bg-surface-container text-on-surface text-xs font-semibold flex items-center gap-2 border border-slate-200/80 dark:border-white/5 transition-all cursor-pointer shadow-sm dark:shadow-xs hover:shadow-md group">
                                 <span>See More</span>
                                 <span class="material-symbols-outlined text-[18px] group-hover:translate-y-0.5 transition-transform text-outline">expand_more</span>
                             </button>

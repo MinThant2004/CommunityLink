@@ -204,6 +204,20 @@
 
             _clock = new THREE.Clock();
 
+            _lights = { ambientLight, dirLight1, dirLight2, pointLight };
+            _materials = {
+                prismMat,
+                wireMat,
+                coreMat,
+                haloMat,
+                nodeMat,
+                thinStringMat,
+                neonBloomMat,
+                neonAuraMat,
+                secRingMat
+            };
+
+            applyThemePalette();
             attachGlobalInteractionListeners();
             return true;
         } catch (e) {
@@ -212,9 +226,102 @@
         }
     }
 
+    let _lights = {};
+    let _materials = {};
+
+    function applyThemePalette() {
+        if (!_materials.prismMat) return;
+        const isDark = document.documentElement.classList.contains('dark');
+
+        if (isDark) {
+            // Dark Mode: Radiant Glowing Neon Cyan & Blue (Original)
+            if (_lights.ambientLight) _lights.ambientLight.intensity = 0.95;
+            if (_lights.dirLight1) { _lights.dirLight1.color.setHex(0x38bdf8); _lights.dirLight1.intensity = 2.8; }
+            if (_lights.dirLight2) { _lights.dirLight2.color.setHex(0x0284c7); _lights.dirLight2.intensity = 2.2; }
+            if (_lights.pointLight) { _lights.pointLight.color.setHex(0x00f0ff); _lights.pointLight.intensity = 4.0; }
+
+            _materials.prismMat.color.setHex(0x0284c7);
+            _materials.prismMat.emissive.setHex(0x0369a1);
+            _materials.prismMat.specular.setHex(0xffffff);
+            _materials.prismMat.opacity = 0.72;
+
+            _materials.wireMat.color.setHex(0xa5f3fc);
+            _materials.wireMat.opacity = 0.95;
+
+            _materials.coreMat.color.setHex(0xffffff);
+
+            _materials.haloMat.color.setHex(0x38bdf8);
+            _materials.haloMat.opacity = 0.55;
+
+            _materials.nodeMat.color.setHex(0x67e8f9);
+
+            _materials.thinStringMat.color.setHex(0xffffff);
+            _materials.thinStringMat.opacity = 0.95;
+
+            _materials.neonBloomMat.color.setHex(0x00f0ff);
+            _materials.neonBloomMat.opacity = 0.65;
+
+            _materials.neonAuraMat.color.setHex(0x0284c7);
+            _materials.neonAuraMat.opacity = 0.28;
+
+            _materials.secRingMat.color.setHex(0x38bdf8);
+            _materials.secRingMat.opacity = 0.55;
+        } else {
+            // Light Mode: Darker, Solid, High-Contrast Sapphire & Sovereign Navy
+            if (_lights.ambientLight) _lights.ambientLight.intensity = 0.75;
+            if (_lights.dirLight1) { _lights.dirLight1.color.setHex(0x0369a1); _lights.dirLight1.intensity = 2.2; }
+            if (_lights.dirLight2) { _lights.dirLight2.color.setHex(0x075985); _lights.dirLight2.intensity = 1.8; }
+            if (_lights.pointLight) { _lights.pointLight.color.setHex(0x0284c7); _lights.pointLight.intensity = 2.8; }
+
+            // Darker Prism Mesh (Deep Sapphire Crystal)
+            _materials.prismMat.color.setHex(0x0c4a6e);
+            _materials.prismMat.emissive.setHex(0x034977);
+            _materials.prismMat.specular.setHex(0x38bdf8);
+            _materials.prismMat.opacity = 0.95;
+
+            _materials.wireMat.color.setHex(0x082f49);
+            _materials.wireMat.opacity = 1.0;
+
+            _materials.coreMat.color.setHex(0x0369a1);
+
+            _materials.haloMat.color.setHex(0x075985);
+            _materials.haloMat.opacity = 0.70;
+
+            _materials.nodeMat.color.setHex(0x082f49);
+
+            _materials.thinStringMat.color.setHex(0x082f49);
+            _materials.thinStringMat.opacity = 0.95;
+
+            _materials.neonBloomMat.color.setHex(0x0284c7);
+            _materials.neonBloomMat.opacity = 0.85;
+
+            _materials.neonAuraMat.color.setHex(0x0369a1);
+            _materials.neonAuraMat.opacity = 0.45;
+
+            _materials.secRingMat.color.setHex(0x075985);
+            _materials.secRingMat.opacity = 0.80;
+        }
+    }
+
     function attachGlobalInteractionListeners() {
         if (_listenersAttached) return;
         _listenersAttached = true;
+
+        window.addEventListener('themeChanged', function () {
+            applyThemePalette();
+        });
+
+        if (typeof MutationObserver !== 'undefined') {
+            const observer = new MutationObserver(function (mutations) {
+                for (let i = 0; i < mutations.length; i++) {
+                    if (mutations[i].attributeName === 'class') {
+                        applyThemePalette();
+                        break;
+                    }
+                }
+            });
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        }
 
         window.addEventListener('mousemove', function (e) {
             if (!_isDragging || !_masterGroup) return;
@@ -393,6 +500,8 @@
         }
 
         _instances.set(containerId, inst);
+
+        applyThemePalette();
 
         // Immediate first render blit if master canvas has content
         if (_masterRenderer && _scene && _camera) {
