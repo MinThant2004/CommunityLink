@@ -44,81 +44,105 @@
                 <span class="text-on-surface font-semibold truncate">@(selectedSubCommunity?.Name ?? "Groups")</span>
             </nav>
 
-            <!-- Hero Panel -->
-            <div class="relative rounded-xl bg-surface-container-low p-space-md md:p-space-lg overflow-hidden border border-surface-container-high/30">
-                <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+            <!-- Hero Panel (Visible to Admins only) -->
+            @if (isAdmin)
+            {
+                <div class="relative rounded-xl bg-surface-container-low p-space-md md:p-space-lg overflow-hidden border border-surface-container-high/30">
+                    <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
-                    <div class="lg:col-span-7 flex flex-col gap-space-sm">
-                        <div class="flex flex-wrap items-center gap-space-sm">
-                            <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase tracking-wider border border-primary/20">
-                                <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>Room Index
-                            </span>
-                            <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm border border-secondary/20">
-                                <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>@totalGroupCount Rooms Indexed
-                            </span>
-                            @if (SubCommunityId.HasValue)
-                            {
-                                <button type="button" @onclick="ClearSubCommunityFilter"
-                                        class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-error/10 text-error font-label-sm text-label-sm border border-error/30 hover:bg-error/20 transition-colors cursor-pointer">
-                                    <span class="material-symbols-outlined text-xs">close</span>
-                                    <span class="truncate max-w-[10rem]">@selectedSubCommunityName</span>
-                                </button>
-                            }
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
+                        <div class="lg:col-span-7 flex flex-col gap-space-sm">
+                            <div class="flex flex-wrap items-center gap-space-sm">
+                                <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase tracking-wider border border-primary/20">
+                                    <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>Room Index
+                                </span>
+                                <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm border border-secondary/20">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>@totalGroupCount Rooms Indexed
+                                </span>
+                                @if (SubCommunityId.HasValue)
+                                {
+                                    <button type="button" @onclick="ClearSubCommunityFilter"
+                                            class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-error/10 text-error font-label-sm text-label-sm border border-error/30 hover:bg-error/20 transition-colors cursor-pointer">
+                                        <span class="material-symbols-outlined text-xs">close</span>
+                                        <span class="truncate max-w-[10rem]">@selectedSubCommunityName</span>
+                                    </button>
+                                }
 
-                            <!-- Sub-Community Switcher -->
-                            @if (subCommunities.Count > 0)
-                            {
-                                <div class="relative inline-block ml-auto sm:ml-0">
-                                    <select class="bg-surface-container-highest text-on-surface font-label-sm text-label-sm py-0.5 px-2 rounded-full border border-surface-container-high focus:outline-none focus:border-primary cursor-pointer max-w-[12rem]"
-                                            value="@(SubCommunityId?.ToString() ?? "")"
-                                            @onchange="OnSubCommunityFilterChanged">
-                                        <option value="">All Sub-Communities</option>
-                                        @foreach (var sc in subCommunities)
-                                        {
-                                            <option value="@sc.CommunityId">@sc.Name</option>
-                                        }
-                                    </select>
-                                </div>
-                            }
+                                <!-- Sub-Community Switcher -->
+                                @if (subCommunities.Count > 0)
+                                {
+                                    <div class="relative inline-block ml-auto sm:ml-0">
+                                        <select class="bg-surface-container-highest text-on-surface font-label-sm text-label-sm py-0.5 px-2 rounded-full border border-surface-container-high focus:outline-none focus:border-primary cursor-pointer max-w-[12rem]"
+                                                value="@(SubCommunityId?.ToString() ?? "")"
+                                                @onchange="OnSubCommunityFilterChanged">
+                                            <option value="">All Sub-Communities</option>
+                                            @foreach (var sc in subCommunities)
+                                            {
+                                                <option value="@sc.CommunityId">@sc.Name</option>
+                                            }
+                                        </select>
+                                    </div>
+                                }
+                            </div>
+
+                            <h1 class="font-headline-lg text-headline-lg md:text-display-md text-on-surface tracking-tight mt-space-xs font-bold">
+                                @(selectedSubCommunity != null ? selectedSubCommunity.Name : "Working Groups")
+                            </h1>
+
+                            <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl leading-relaxed">
+                                Enter the focused working rooms nested inside your sub-communities — structured discussion, live polls, and resource syndication for chartered operators.
+                            </p>
+
+                            <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 pt-space-sm mt-space-xs text-body-sm text-body-sm">
+                                <span class="flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-xs text-primary">forum</span>
+                                    <span class="text-on-surface-variant">Rooms</span>
+                                    <span class="font-mono font-bold text-on-surface">@totalGroupCount</span>
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-xs text-secondary">groups</span>
+                                    <span class="text-on-surface-variant">Members</span>
+                                    <span class="font-mono font-bold text-on-surface">@FormatCompact(totalMemberCount)</span>
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-xs text-primary">article</span>
+                                    <span class="text-on-surface-variant">Posts</span>
+                                    <span class="font-mono font-bold text-on-surface">@FormatCompact(totalPostCount)</span>
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-xs text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    <span class="text-on-surface-variant">Avg Rating</span>
+                                    <span class="font-mono font-bold text-on-surface">@averageRating</span>
+                                </span>
+                            </div>
                         </div>
 
-                        <h1 class="font-headline-lg text-headline-lg md:text-display-md text-on-surface tracking-tight mt-space-xs font-bold">
-                            @(selectedSubCommunity != null ? selectedSubCommunity.Name : "Working Groups")
-                        </h1>
-
-                        <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl leading-relaxed">
-                            Enter the focused working rooms nested inside your sub-communities — structured discussion, live polls, and resource syndication for chartered operators.
-                        </p>
-
-                        <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 pt-space-sm mt-space-xs text-body-sm text-body-sm">
-                            <span class="flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-xs text-primary">forum</span>
-                                <span class="text-on-surface-variant">Rooms</span>
-                                <span class="font-mono font-bold text-on-surface">@totalGroupCount</span>
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-xs text-secondary">groups</span>
-                                <span class="text-on-surface-variant">Members</span>
-                                <span class="font-mono font-bold text-on-surface">@FormatCompact(totalMemberCount)</span>
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-xs text-primary">article</span>
-                                <span class="text-on-surface-variant">Posts</span>
-                                <span class="font-mono font-bold text-on-surface">@FormatCompact(totalPostCount)</span>
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-xs text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
-                                <span class="text-on-surface-variant">Avg Rating</span>
-                                <span class="font-mono font-bold text-on-surface">@averageRating</span>
-                            </span>
+                        <div class="lg:col-span-5 flex flex-col bg-surface-container-lowest/60 p-space-md rounded-xl border border-surface-container-high/30 backdrop-blur-sm">
+                            <TelemetryChart Title="Room Liquidity &amp; Velocity" PrimaryLabel="Members" SecondaryLabel="Posts" Values="liquiditySeries" SecondaryValues="velocitySeries" Labels="chartLabels" Highlight="@roomHighlight" />
                         </div>
-                    </div>
-
-                    <div class="lg:col-span-5 flex flex-col bg-surface-container-lowest/60 p-space-md rounded-xl border border-surface-container-high/30 backdrop-blur-sm">
-                        <TelemetryChart Title="Room Liquidity &amp; Velocity" PrimaryLabel="Members" SecondaryLabel="Posts" Values="liquiditySeries" SecondaryValues="velocitySeries" Labels="chartLabels" Highlight="@roomHighlight" />
                     </div>
                 </div>
+            }
+
+            <!-- Institutional Callout Bar under Working Groups Box (Soft Blue Theme) -->
+            <div class="mt-space-md p-space-md rounded-xl bg-sky-50/90 dark:bg-[#0c1f36]/90 flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md border border-sky-200/80 dark:border-sky-500/30 shadow-xs backdrop-blur-sm">
+                <div class="flex items-center gap-space-md">
+                    <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950/70 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0 border border-sky-200 dark:border-sky-800/50">
+                        <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">group_add</span>
+                    </div>
+                    <div>
+                        <div class="font-title-md text-title-md text-on-surface font-bold">Charter a New Working Room</div>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">Members of a sub-community may open a focused room for deep collaboration, live polls, and syndication.</p>
+                    </div>
+                </div>
+                @if (canCreateGroup)
+                {
+                    <button type="button" @onclick="OpenCreateGroupModal"
+                            class="px-space-md py-2 bg-sky-600 hover:bg-sky-700 text-white dark:bg-sky-500 dark:hover:bg-sky-400 dark:text-slate-950 rounded-lg font-label-lg text-label-lg font-bold flex items-center gap-1.5 shrink-0 transition-colors shadow-xs cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">add_circle</span>
+                        <span>Create Group</span>
+                    </button>
+                }
             </div>
         </div>
 
@@ -133,18 +157,16 @@
 
             <div class="flex flex-wrap items-center gap-space-sm w-full sm:w-auto">
                 <!-- Joined / Browse Tabs -->
-                <div class="inline-flex items-center gap-0.5 p-1 rounded-lg bg-surface-container border border-surface-container-high/30">
-                    <button type="button" @onclick='() => SetTab("joined")'
-                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md font-label-md text-label-md transition-colors cursor-pointer @(activeTab == "joined" ? "bg-primary text-on-primary font-bold" : "text-on-surface-variant hover:text-on-surface")">
-                        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                <div class="flex items-center gap-1 p-0.5 bg-surface-container-low rounded-lg border border-surface-container-high/30">
+                    <button type="button" id="tab-joined" @onclick='() => SetTab("joined")'
+                            class="px-3 py-1 rounded-md text-xs font-semibold @(activeTab == "joined" ? "bg-surface-container-high text-[#B38F24] dark:text-[#F2CA50] shadow-xs" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container") transition-all flex items-center gap-1.5 cursor-pointer">
                         <span>Joined</span>
-                        <span class="px-1.5 py-0.5 rounded font-mono text-label-sm @(activeTab == "joined" ? "bg-on-primary/20" : "bg-surface-container-high text-on-surface-variant")">@joinedCount</span>
+                        <span class="px-1.5 py-0.5 rounded font-mono text-[10px] @(activeTab == "joined" ? "bg-amber-500/15 dark:bg-[#F2CA50]/15 text-[#B38F24] dark:text-[#F2CA50] font-bold" : "bg-surface-container text-on-surface-variant")">@joinedCount</span>
                     </button>
-                    <button type="button" @onclick='() => SetTab("browse")'
-                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md font-label-md text-label-md transition-colors cursor-pointer @(activeTab == "browse" ? "bg-primary text-on-primary font-bold" : "text-on-surface-variant hover:text-on-surface")">
-                        <span class="material-symbols-outlined text-sm">travel_explore</span>
+                    <button type="button" id="tab-browse" @onclick='() => SetTab("browse")'
+                            class="px-3 py-1 rounded-md text-xs font-semibold @(activeTab == "browse" ? "bg-surface-container-high text-[#B38F24] dark:text-[#F2CA50] shadow-xs" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container") transition-all flex items-center gap-1.5 cursor-pointer">
                         <span>Browse</span>
-                        <span class="px-1.5 py-0.5 rounded font-mono text-label-sm @(activeTab == "browse" ? "bg-on-primary/20" : "bg-surface-container-high text-on-surface-variant")">@browseCount</span>
+                        <span class="px-1.5 py-0.5 rounded font-mono text-[10px] @(activeTab == "browse" ? "bg-amber-500/15 dark:bg-[#F2CA50]/15 text-[#B38F24] dark:text-[#F2CA50] font-bold" : "bg-surface-container text-on-surface-variant")">@browseCount</span>
                     </button>
                 </div>
 
@@ -224,170 +246,175 @@
             else
             {
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-space-lg">
-                    @for (var gIdx = 0; gIdx < ActiveGroups.Count; gIdx++)
+                    @for (var gIdx = 0; gIdx < DisplayedGroups.Count; gIdx++)
                     {
-                        var grp = ActiveGroups[gIdx];
+                        var grp = DisplayedGroups[gIdx];
                         var cardIndex = gIdx;
                         var isCreator = currentUserId.HasValue && grp.CreatorId == currentUserId.Value;
                         var photoUrl = GetGroupPhoto(grp);
 
-                        <div class="group flex flex-col justify-between rounded-xl bg-surface-container-low hover:bg-surface-container transition-all duration-300 overflow-hidden relative border border-surface-container-highest/20 hover:border-primary/30">
-                            <div class="absolute inset-x-0 top-0 h-1 opacity-80 @GetGlowGradientForIndex(cardIndex)"></div>
+                        <div class="relative overflow-hidden bg-white hover:bg-slate-50/70 dark:bg-[#131722] dark:hover:bg-[#171C28] rounded-2xl flex flex-col justify-between border border-slate-200/80 hover:border-slate-300 dark:border-white/[0.08] dark:hover:border-white/15 shadow-[0_2px_8px_-2px_rgba(10,27,46,0.06),0_1px_3px_rgba(10,27,46,0.04)] hover:shadow-[0_8px_20px_-4px_rgba(10,27,46,0.1),0_2px_6px_rgba(10,27,46,0.05)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5),0_1px_3px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_8px_28px_-2px_rgba(0,0,0,0.7)] transition-all group">
 
-                            <div class="p-space-md flex flex-col gap-space-sm">
-                                <!-- Banner (without gradient shadow overlay) -->
-                                <div class="relative h-36 rounded-lg overflow-hidden bg-surface-container-lowest border border-slate-200 dark:border-surface-container-high/30">
-                                    <img src="@photoUrl" alt="@grp.Name"
-                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <!-- Decorative Soft Color Shades (Smooth Corner Wash Inspired by People Cards) -->
+                            @if (cardIndex % 3 == 0)
+                            {
+                                <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-sky-500/20 via-blue-500/10 to-transparent dark:from-sky-400/20 dark:via-blue-500/10 dark:to-transparent rounded-bl-full pointer-events-none"></div>
+                                <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-sky-500/10 dark:bg-sky-400/10 rounded-full blur-2xl pointer-events-none"></div>
+                            }
+                            else if (cardIndex % 3 == 1)
+                            {
+                                <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-blue-600/20 via-cyan-500/10 to-transparent dark:from-blue-400/25 dark:via-cyan-400/15 dark:to-transparent rounded-bl-full pointer-events-none"></div>
+                                <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-blue-500/10 dark:bg-cyan-400/10 rounded-full blur-2xl pointer-events-none"></div>
+                            }
+                            else
+                            {
+                                <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-indigo-500/15 via-sky-400/10 to-transparent dark:from-indigo-400/20 dark:via-sky-400/10 dark:to-transparent rounded-bl-full pointer-events-none"></div>
+                                <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-sky-400/10 dark:bg-indigo-400/10 rounded-full blur-2xl pointer-events-none"></div>
+                            }
 
-                                    <div class="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
-                                        <span class="px-2 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-[#0A1B2E] dark:text-primary font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1 border border-slate-300/80 dark:border-primary/20 truncate max-w-[70%] font-semibold shadow-xs">
-                                            <span class="material-symbols-outlined text-xs shrink-0 text-primary">@GetCategoryIcon(cardIndex)</span>
-                                            <span class="truncate">@(string.IsNullOrWhiteSpace(grp.SubCommunityName) ? "Working Group" : grp.SubCommunityName)</span>
-                                        </span>
+                            <div class="relative z-10 flex flex-col justify-between h-full">
+                                <div class="p-space-md flex flex-col gap-space-sm">
+                                    <!-- Banner (without gradient shadow overlay) -->
+                                    <div class="relative h-36 rounded-lg overflow-hidden bg-surface-container-lowest border border-slate-200 dark:border-surface-container-high/30">
+                                        <img src="@photoUrl" alt="@grp.Name"
+                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
 
-                                        @if (grp.Visibility == "PRIVATE")
-                                        {
-                                            <span class="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-slate-800 dark:text-on-surface font-label-sm text-label-sm uppercase tracking-wider border border-slate-300 dark:border-outline-variant/40 font-semibold shadow-xs">
-                                                <span class="material-symbols-outlined text-xs">lock</span>Private
+                                        <div class="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                                            <span class="px-2 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-[#0A1B2E] dark:text-primary font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1 border border-slate-300/80 dark:border-primary/20 truncate max-w-[70%] font-semibold shadow-xs">
+                                                <span class="material-symbols-outlined text-xs shrink-0 text-primary">@GetCategoryIcon(cardIndex)</span>
+                                                <span class="truncate">@(string.IsNullOrWhiteSpace(grp.SubCommunityName) ? "Working Group" : grp.SubCommunityName)</span>
                                             </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-secondary font-label-sm text-label-sm uppercase tracking-wider border border-secondary/30 font-semibold shadow-xs">
-                                                <span class="material-symbols-outlined text-xs">visibility</span>Public
-                                            </span>
-                                        }
-                                    </div>
 
-                                    <div class="absolute bottom-2 left-2 right-2 p-2 rounded-lg bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md border border-slate-200/80 dark:border-surface-container-high/30 flex items-center justify-between gap-2 shadow-xs">
-                                        <div class="min-w-0">
-                                            <span class="block font-label-sm text-[10px] text-slate-500 dark:text-on-surface-variant uppercase tracking-wider font-semibold truncate">@GetTierLabel(cardIndex)</span>
-                                            <a href="/group/@grp.GroupId"
-                                               class="block font-title-md text-sm text-slate-900 dark:text-on-surface font-bold tracking-tight truncate hover:text-primary transition-colors">
-                                                @grp.Name
-                                            </a>
+                                            @if (grp.Visibility == "PRIVATE")
+                                            {
+                                                <span class="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-slate-800 dark:text-on-surface font-label-sm text-label-sm uppercase tracking-wider border border-slate-300 dark:border-outline-variant/40 font-semibold shadow-xs">
+                                                    <span class="material-symbols-outlined text-xs">lock</span>Private
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-secondary font-label-sm text-label-sm uppercase tracking-wider border border-secondary/30 font-semibold shadow-xs">
+                                                    <span class="material-symbols-outlined text-xs">visibility</span>Public
+                                                </span>
+                                            }
                                         </div>
 
-                                        @if (!string.IsNullOrWhiteSpace(grp.AvatarUrl) && grp.AvatarUrl != grp.BannerUrl)
-                                        {
-                                            <div class="w-7 h-7 rounded-full bg-surface-container-high overflow-hidden border-2 border-white dark:border-surface-container-lowest shrink-0 shadow-xs">
-                                                <img class="w-full h-full object-cover" src="@grp.AvatarUrl" alt="@grp.Name" />
+                                        <div class="absolute bottom-2 left-2 right-2 p-2 rounded-lg bg-sky-50/95 dark:bg-[#0f243c]/95 backdrop-blur-md border border-sky-200/70 dark:border-sky-500/20 flex items-center justify-between gap-2 shadow-xs">
+                                            <div class="min-w-0">
+                                                <a href="/group/@grp.GroupId"
+                                                   class="block font-title-md text-sm text-slate-900 dark:text-on-surface font-bold tracking-tight truncate hover:text-primary transition-colors">
+                                                    @grp.Name
+                                                </a>
                                             </div>
-                                        }
-                                        else
+
+                                            @if (!string.IsNullOrWhiteSpace(grp.AvatarUrl) && grp.AvatarUrl != grp.BannerUrl)
+                                            {
+                                                <div class="w-7 h-7 rounded-full bg-surface-container-high overflow-hidden border-2 border-white dark:border-surface-container-lowest shrink-0 shadow-xs">
+                                                    <img class="w-full h-full object-cover" src="@grp.AvatarUrl" alt="@grp.Name" />
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-surface-container-highest text-slate-800 dark:text-on-surface-variant font-label-sm text-xs flex items-center justify-center font-bold border-2 border-white dark:border-surface-container-lowest shrink-0 shadow-xs">
+                                                    @InitialOf(grp.Name)
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 leading-relaxed">
+                                        @(string.IsNullOrWhiteSpace(grp.Description)
+                                            ? "Active working group for structured collaboration, specialized discussion, and resource syndication."
+                                            : grp.Description)
+                                    </p>
+
+                                    <!-- Metrics -->
+                                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-body-sm py-space-xs px-space-sm rounded-lg bg-surface-container-lowest/50 border border-surface-container-high/20">
+                                        <span class="flex items-center gap-1 text-on-surface font-semibold">
+                                            <span class="material-symbols-outlined text-xs text-primary">groups</span>
+                                            @FormatCompact(grp.MemberCount) Members
+                                        </span>
+                                        <span class="text-on-surface-variant">•</span>
+                                        <span class="flex items-center gap-1 text-primary font-medium">
+                                            <span class="material-symbols-outlined text-xs">article</span>
+                                            @FormatCompact(grp.PostCount) Posts
+                                        </span>
+                                        <span class="text-on-surface-variant">•</span>
+                                        <span class="flex items-center gap-1 text-secondary font-medium">
+                                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+                                            @RatingLabel(grp)
+                                        </span>
+                                    </div>
+
+                                    <!-- Curator Strip -->
+                                    <div class="flex items-center justify-between gap-2 pt-space-xs font-label-sm text-label-sm text-on-surface-variant">
+                                        <span class="truncate">Curated by <span class="font-mono text-on-surface font-bold">@grp.CreatorName</span></span>
+                                        @if (isCreator)
                                         {
-                                            <div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-surface-container-highest text-slate-800 dark:text-on-surface-variant font-label-sm text-xs flex items-center justify-center font-bold border-2 border-white dark:border-surface-container-lowest shrink-0 shadow-xs">
-                                                @InitialOf(grp.Name)
-                                            </div>
+                                            <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary-container text-on-primary-container font-mono uppercase">
+                                                <span class="material-symbols-outlined text-label-sm">shield</span>You Manage
+                                            </span>
                                         }
                                     </div>
                                 </div>
 
-                                <!-- Description -->
-                                <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 leading-relaxed">
-                                    @(string.IsNullOrWhiteSpace(grp.Description)
-                                        ? "Active working group for structured collaboration, specialized discussion, and resource syndication."
-                                        : grp.Description)
-                                </p>
+                                <!-- Actions -->
+                                <div class="p-space-md pt-0 flex items-stretch gap-space-sm">
+                                    <a class="flex-1 py-2 px-space-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-slate-200 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 transition-all no-underline cursor-pointer border border-slate-300/80 dark:border-white/10 shadow-xs"
+                                       href="/group/@grp.GroupId">
+                                        <span class="truncate">Enter Room</span>
+                                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                                    </a>
 
-                                <!-- Metrics -->
-                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-body-sm py-space-xs px-space-sm rounded-lg bg-surface-container-lowest/50 border border-surface-container-high/20">
-                                    <span class="flex items-center gap-1 text-on-surface font-semibold">
-                                        <span class="material-symbols-outlined text-xs text-primary">groups</span>
-                                        @FormatCompact(grp.MemberCount) Members
-                                    </span>
-                                    <span class="text-on-surface-variant">•</span>
-                                    <span class="flex items-center gap-1 text-primary font-medium">
-                                        <span class="material-symbols-outlined text-xs">article</span>
-                                        @FormatCompact(grp.PostCount) Posts
-                                    </span>
-                                    <span class="text-on-surface-variant">•</span>
-                                    <span class="flex items-center gap-1 text-secondary font-medium">
-                                        <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
-                                        @RatingLabel(grp)
-                                    </span>
-                                </div>
-
-                                <!-- Curator Strip -->
-                                <div class="flex items-center justify-between gap-2 pt-space-xs font-label-sm text-label-sm text-on-surface-variant">
-                                    <span class="truncate">Curated by <span class="font-mono text-on-surface font-bold">@grp.CreatorName</span></span>
-                                    @if (isCreator)
+                                    @if (grp.IsJoined)
                                     {
-                                        <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary-container text-on-primary-container font-mono uppercase">
-                                            <span class="material-symbols-outlined text-label-sm">shield</span>You Manage
+                                        <button type="button" disabled
+                                                class="flex-1 py-2 px-space-sm rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/70 dark:hover:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 cursor-default border-2 border-emerald-400 dark:border-emerald-500 shadow-sm">
+                                            <span class="material-symbols-outlined text-base text-emerald-600 dark:text-emerald-400 font-bold" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                            <span class="font-bold text-emerald-800 dark:text-emerald-200">Joined</span>
+                                        </button>
+                                        @if (isCreator)
+                                        {
+                                            <button type="button" @onclick="() => OpenRequestsDrawer(grp.GroupId)"
+                                                    title="Manage join requests"
+                                                    class="shrink-0 w-10 py-2 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface border border-surface-container-high/40 transition-colors flex items-center justify-center cursor-pointer">
+                                                <span class="material-symbols-outlined text-sm">outgoing_mail</span>
+                                            </button>
+                                        }
+                                    }
+                                    else if (grp.UserJoinStatus == "PENDING")
+                                    {
+                                        <span class="flex-1 py-2 px-space-sm rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 border border-amber-300 dark:border-amber-600 shadow-xs">
+                                            <span class="material-symbols-outlined text-sm text-amber-600 dark:text-amber-400">schedule</span>
+                                            <span class="truncate font-bold">Pending</span>
                                         </span>
                                     }
-                                </div>
-                            </div>
-
-                            <!-- Actions -->
-                            <div class="p-space-md pt-0 flex items-stretch gap-space-sm">
-                                <a class="flex-1 py-2 px-space-sm rounded-lg bg-surface-container-high text-primary hover:bg-surface-container-highest font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all no-underline cursor-pointer border border-primary/20"
-                                   href="/group/@grp.GroupId">
-                                    <span class="truncate">Enter Room</span>
-                                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                                </a>
-
-                                @if (grp.IsJoined)
-                                {
-                                    <button type="button" disabled
-                                            class="flex-1 py-2 px-space-sm rounded-lg bg-surface-container-highest text-on-surface font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 cursor-default border border-surface-container-high">
-                                        <span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                        <span>Joined</span>
-                                    </button>
-                                    @if (isCreator)
+                                    else
                                     {
-                                        <button type="button" @onclick="() => OpenRequestsDrawer(grp.GroupId)"
-                                                title="Manage join requests"
-                                                class="shrink-0 w-10 py-2 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface border border-surface-container-high/40 transition-colors flex items-center justify-center cursor-pointer">
-                                            <span class="material-symbols-outlined text-sm">outgoing_mail</span>
+                                        <button type="button" @onclick="() => JoinGroup(grp)"
+                                                class="flex-1 py-2 px-space-sm rounded-lg bg-[#0A1B2E] hover:bg-[#153252] text-white dark:bg-[#D4AF37] dark:hover:bg-[#F2CA50] dark:text-[#0A1B2E] font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-[#0A1B2E] dark:border-[#D4AF37] shadow-sm">
+                                            <span class="material-symbols-outlined text-sm text-white dark:text-[#0A1B2E]">lock_open</span>
+                                            <span class="truncate font-bold text-white dark:text-[#0A1B2E]">@(grp.JoinPolicy == "APPROVAL_REQUIRED" || grp.Visibility == "PRIVATE" ? "Request" : "Join")</span>
                                         </button>
                                     }
-                                }
-                                else if (grp.UserJoinStatus == "PENDING")
-                                {
-                                    <span class="flex-1 py-2 px-space-sm rounded-lg bg-surface-container-high text-on-surface-variant font-label-lg text-label-lg font-semibold flex items-center justify-center gap-1.5 border border-surface-container-high/50">
-                                        <span class="material-symbols-outlined text-sm">schedule</span>
-                                        <span class="truncate">Pending</span>
-                                    </span>
-                                }
-                                else
-                                {
-                                    <button type="button" @onclick="() => JoinGroup(grp)"
-                                            class="flex-1 py-2 px-space-sm rounded-lg bg-primary text-on-primary hover:bg-primary-fixed-dim font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                                        <span class="material-symbols-outlined text-sm">lock_open</span>
-                                        <span class="truncate">@(grp.JoinPolicy == "APPROVAL_REQUIRED" || grp.Visibility == "PRIVATE" ? "Request" : "Join")</span>
-                                    </button>
-                                }
+                                </div>
                             </div>
                         </div>
                     }
                 </div>
-            }
-        </div>
 
-        <!-- Institutional Bottom Callout -->
-        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-lg w-full">
-            <div class="p-space-md rounded-xl bg-surface-container-lowest flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md border border-surface-container-high/30">
-                <div class="flex items-center gap-space-md">
-                    <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary shrink-0 border border-primary/20">
-                        <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">group_add</span>
-                    </div>
-                    <div>
-                        <div class="font-title-md text-title-md text-on-surface font-bold">Charter a New Working Room</div>
-                        <p class="font-body-sm text-body-sm text-on-surface-variant">Members of a sub-community may open a focused room for deep collaboration, live polls, and syndication.</p>
-                    </div>
-                </div>
-                @if (canCreateGroup)
+                @if (ActiveGroups.Count > MaxInitialGroups)
                 {
-                    <button type="button" @onclick="OpenCreateGroupModal"
-                            class="px-space-md py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg font-label-lg text-label-lg flex items-center gap-1.5 shrink-0 transition-colors border border-surface-container-high/40 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm text-primary">add_circle</span>
-                        <span>Create Group</span>
-                    </button>
+                    <div class="flex justify-center mt-space-lg">
+                        <button type="button" @onclick="() => showAllGroups = !showAllGroups"
+                                class="px-5 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md font-bold flex items-center gap-2 border border-surface-container-high/40 transition-all cursor-pointer shadow-xs hover:shadow-sm">
+                            <span>@(showAllGroups ? "See Less" : $"See More ({ActiveGroups.Count - MaxInitialGroups} more)")</span>
+                            <span class="material-symbols-outlined text-sm transition-transform @(showAllGroups ? "rotate-180" : "")">expand_more</span>
+                        </button>
+                    </div>
                 }
-            </div>
+            }
         </div>
     </div>
 </div>
@@ -688,6 +715,12 @@
         }
     }
 
+    private bool showAllGroups = false;
+    private const int MaxInitialGroups = 12; // 4 rows on desktop (3 cols/row)
+
+    private IReadOnlyList<GroupModel> DisplayedGroups =>
+        showAllGroups ? ActiveGroups : ActiveGroups.Take(MaxInitialGroups).ToList();
+
     private int joinedCount => groups?.Count(g => g.IsJoined) ?? 0;
     private int browseCount => groups?.Count(g => !g.IsJoined) ?? 0;
 
@@ -777,10 +810,12 @@
     private void SetTab(string tab)
     {
         activeTab = tab;
+        showAllGroups = false;
     }
 
     private void ToggleSort()
     {
+        showAllGroups = false;
         sortMode = sortMode switch
         {
             "Activity" => "Members",
@@ -791,6 +826,7 @@
 
     private void OnSubCommunityFilterChanged(ChangeEventArgs e)
     {
+        showAllGroups = false;
         if (int.TryParse(e.Value?.ToString(), out var subId) && subId > 0)
         {
             Navigation.NavigateTo($"/groups?subCommunityId={subId}");
@@ -803,6 +839,7 @@
 
     private void ClearSubCommunityFilter()
     {
+        showAllGroups = false;
         Navigation.NavigateTo("/groups");
     }
 
@@ -822,6 +859,7 @@
     private async Task LoadGroupsAsync()
     {
         isLoading = true;
+        showAllGroups = false;
         appliedSubCommunityId = SubCommunityId;
         var res = await GroupApi.GetGroupsAsync(SubCommunityId, searchTerm);
         if (res.IsSuccess)
@@ -837,6 +875,7 @@
 
     private async Task ClearSearch()
     {
+        showAllGroups = false;
         searchTerm = "";
         await LoadGroupsAsync();
     }
