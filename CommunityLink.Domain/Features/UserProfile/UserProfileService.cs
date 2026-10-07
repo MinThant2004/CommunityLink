@@ -386,12 +386,23 @@ public class UserProfileService : IUserProfileService
         return liked.ToHashSet();
     }
 
+    private static bool IsCancellationException(Exception ex)
+    {
+        if (ex is OperationCanceledException) return true;
+        if (ex is Microsoft.Data.SqlClient.SqlException sqlEx && (sqlEx.Number == 0 || sqlEx.Message.Contains("cancelled", StringComparison.OrdinalIgnoreCase) || sqlEx.Message.Contains("canceled", StringComparison.OrdinalIgnoreCase)))
+            return true;
+        if (ex.InnerException != null)
+            return IsCancellationException(ex.InnerException);
+        return false;
+    }
+
     public async Task<Result<List<UserPostItemDto>>> GetUserPostsAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default)
     {
         try
         {
             var rawPosts = await _dbContext.TblPosts
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(p => p.Author)
                 .Include(p => p.Community)
                 .Include(p => p.TblPostImages)
@@ -420,12 +431,13 @@ public class UserProfileService : IUserProfileService
             if (rootPostIdsToFetch.Count > 0)
             {
                 var fetchedRoots = await _dbContext.TblPosts
+                    .AsNoTracking()
+                    .AsSplitQuery()
                     .Include(p => p.Author)
                     .Include(p => p.Community)
                     .Include(p => p.Group)
                     .Include(p => p.TblPostImages)
                     .Where(p => rootPostIdsToFetch.Contains(p.PostId) && !p.IsDeleted)
-                    .AsNoTracking()
                     .ToListAsync(cancellationToken);
 
                 foreach (var r in fetchedRoots)
@@ -453,6 +465,7 @@ public class UserProfileService : IUserProfileService
             // Exclude any posts that already exist as a SHARED post on this user's wall to avoid duplicate display
             var sharedPosts = await _dbContext.TblPostShares
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(s => s.User)
                 .Include(s => s.Post)
                     .ThenInclude(p => p.Author)
@@ -526,7 +539,7 @@ public class UserProfileService : IUserProfileService
 
             return Result<List<UserPostItemDto>>.Success(combinedList);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (Exception ex) when (cancellationToken.IsCancellationRequested || IsCancellationException(ex))
         {
             return Result<List<UserPostItemDto>>.Success([], "Request was canceled.");
         }
@@ -538,6 +551,7 @@ public class UserProfileService : IUserProfileService
         {
             var rawPosts = await _dbContext.TblSavedPosts
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(sp => sp.Post)
                     .ThenInclude(p => p.Author)
                 .Include(sp => sp.Post)
@@ -559,7 +573,7 @@ public class UserProfileService : IUserProfileService
             var list = rawPosts.Select(p => MapPostToDto(p, currentUserId, likedPostIds)).ToList();
             return Result<List<UserPostItemDto>>.Success(list);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (Exception ex) when (cancellationToken.IsCancellationRequested || IsCancellationException(ex))
         {
             return Result<List<UserPostItemDto>>.Success([], "Request was canceled.");
         }
@@ -584,6 +598,7 @@ public class UserProfileService : IUserProfileService
 
             var recycledPosts = await _dbContext.TblPosts
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(p => p.Author)
                 .Include(p => p.Community)
                 .Include(p => p.TblPostImages)
@@ -599,7 +614,7 @@ public class UserProfileService : IUserProfileService
             var list = recycledPosts.Select(p => MapPostToDto(p, currentUserId, likedPostIds)).ToList();
             return Result<List<UserPostItemDto>>.Success(list);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (Exception ex) when (cancellationToken.IsCancellationRequested || IsCancellationException(ex))
         {
             return Result<List<UserPostItemDto>>.Success([], "Request was canceled.");
         }

@@ -9,48 +9,48 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
-    <!-- Admin Header Banner -->
-    <div class="bg-gradient-to-r from-amber-500/10 via-slate-50 to-indigo-500/10 dark:from-amber-950/80 dark:via-[#0A1B2E] dark:to-indigo-950/80 border border-amber-500/30 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm dark:shadow-xl">
+    <!-- Compact Admin Header Card -->
+    <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm dark:shadow-xl">
         <div>
-            <div class="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wider mb-1">
+            <div class="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-wider mb-0.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
                 <span>Administrative Portal</span>
             </div>
-            <h1 class="text-3xl font-extrabold text-slate-900 dark:text-[#E1E8F0] tracking-tight">Link Drops Review & Catalog</h1>
-            <p class="text-slate-600 dark:text-[#C4D2E1] text-sm mt-1">Review pending user payment receipts, approve token wallet allocations, and manage purchase packages.</p>
+            <h1 class="text-xl md:text-2xl font-bold text-slate-900 dark:text-[#E1E8F0] tracking-tight">Link Drops Review &amp; Catalog</h1>
+            <p class="text-slate-500 dark:text-[#C4D2E1] text-xs mt-0.5">Review pending user payment receipts, approve token wallet allocations, and manage purchase packages.</p>
         </div>
 
         <div class="flex items-center gap-3">
-            <span class="bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 font-extrabold px-4 py-2 rounded-xl text-sm border border-amber-300 dark:border-amber-500/30">
+            <span class="bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300 font-bold px-3.5 py-1.5 rounded-xl text-xs border border-indigo-200 dark:border-indigo-500/30">
                 @pendingList.Count Pending Review
             </span>
-            <button @onclick="RefreshAllAsync" class="bg-white dark:bg-[#1B3B5A] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]/80 text-slate-700 dark:text-[#E1E8F0] p-2.5 rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] transition" title="Refresh">
+            <button @onclick="RefreshAllAsync" class="bg-white dark:bg-[#1B3B5A] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]/80 text-slate-700 dark:text-[#E1E8F0] p-2 rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] transition" title="Refresh">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
             </button>
         </div>
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="flex items-center border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] space-x-2">
+    <div class="flex items-center border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] space-x-2 overflow-x-auto">
         <button @onclick='() => activeTab = "pending"'
-                class="@(activeTab == "pending" ? "border-amber-500 text-amber-600 dark:text-amber-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
+                class="@(activeTab == "pending" ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2 shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
             <span>Pending Queue (@pendingList.Count)</span>
         </button>
         <button @onclick='() => activeTab = "packages"'
-                class="@(activeTab == "packages" ? "border-amber-500 text-amber-600 dark:text-amber-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
+                class="@(activeTab == "packages" ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2 shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
             <span>Packages Catalog (@packagesList.Count)</span>
         </button>
         <button @onclick='() => activeTab = "methods"'
-                class="@(activeTab == "methods" ? "border-amber-500 text-amber-600 dark:text-amber-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
+                class="@(activeTab == "methods" ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2 shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>
             <span>Payment Methods (@methodsList.Count)</span>
         </button>
         <button @onclick='() => activeTab = "rates"'
-                class="@(activeTab == "rates" ? "border-amber-500 text-amber-600 dark:text-amber-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2">
+                class="@(activeTab == "rates" ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2 shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-            <span>Exchange Rates & Currencies</span>
+            <span>Exchange Rates &amp; Currencies</span>
         </button>
     </div>
 
@@ -97,7 +97,7 @@
                                     <td class="py-4 px-6 font-semibold text-slate-900 dark:text-[#E1E8F0]">@p.UserName</td>
                                     <td class="py-4 px-6 text-slate-600 dark:text-[#C4D2E1]">@(p.PackageName ?? "Custom Purchase")</td>
                                     <td class="py-4 px-6 font-bold text-slate-900 dark:text-[#E1E8F0]">@p.SnapshotRealMoneyAmount.ToString("N0") @p.SnapshotCurrency</td>
-                                    <td class="py-4 px-6 font-extrabold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                    <td class="py-4 px-6 font-extrabold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
                                         <LinkDropIcon Class="w-4 h-4 shrink-0" />
                                         <span>@p.SnapshotLinkDropAmount.ToString("N0")</span>
                                     </td>
@@ -155,10 +155,22 @@
             <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-6 space-y-4 shadow-sm">
                 <h2 class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">Create New Package</h2>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <input type="text" @bind="newPkgName" placeholder="Package Name (e.g. 100 Link Drops)" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-                    <input type="number" @bind="newPkgDrops" placeholder="Link Drops (e.g. 100)" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-                    <input type="number" @bind="newPkgBonus" placeholder="Bonus Drops (e.g. 0)" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-                    <input type="number" step="100" @bind="newPkgPrice" placeholder="Price (MMK)" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Package Name</label>
+                        <input type="text" @bind="newPkgName" placeholder="e.g. 100 Link Drops" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Link Drops Amount</label>
+                        <input type="number" @bind="newPkgDrops" placeholder="e.g. 100" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Bonus Drops</label>
+                        <input type="number" @bind="newPkgBonus" placeholder="e.g. 0" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Price (MMK)</label>
+                        <input type="number" step="100" @bind="newPkgPrice" placeholder="e.g. 1000" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
                 </div>
                 <div class="flex justify-end">
                     <button @onclick="CreatePackageAsync" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2 rounded-xl transition">
@@ -176,7 +188,8 @@
                             <th class="py-3 px-6">Bonus</th>
                             <th class="py-3 px-6">Price</th>
                             <th class="py-3 px-6">Status</th>
-                            <th class="py-3 px-6 text-right">Actions</th>
+                            <th class="py-3 px-6 text-center">Edit</th>
+                            <th class="py-3 px-6 text-center">Status Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 dark:divide-[rgba(196,210,225,0.12)]">
@@ -184,22 +197,38 @@
                         {
                             <tr class="hover:bg-slate-50/80 dark:hover:bg-[#1B3B5A]/40 transition">
                                 <td class="py-4 px-6 font-bold text-slate-900 dark:text-[#E1E8F0]">@pkg.PackageName</td>
-                                <td class="py-4 px-6 font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                <td class="py-4 px-6 font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
                                     <LinkDropIcon Class="w-4 h-4 shrink-0" />
                                     <span>@pkg.LinkDropAmount.ToString("N0")</span>
                                 </td>
-                                <td class="py-4 px-6 text-amber-600 dark:text-amber-300">+@pkg.BonusAmount.ToString("N0")</td>
+                                <td class="py-4 px-6 text-emerald-600 dark:text-emerald-400 font-semibold">+@pkg.BonusAmount.ToString("N0")</td>
                                 <td class="py-4 px-6 font-bold text-slate-900 dark:text-[#E1E8F0]">@pkg.RealMoneyAmount.ToString("N0") @pkg.Currency</td>
                                 <td class="py-4 px-6">
                                     <span class="@(pkg.IsActive ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30" : "text-slate-500 dark:text-[#C4D2E1] bg-slate-100 dark:bg-[#1B3B5A] border-slate-200 dark:border-[rgba(196,210,225,0.12)]") text-xs font-bold px-2 py-0.5 rounded-md border">
                                         @(pkg.IsActive ? "Active" : "Disabled")
                                     </span>
                                 </td>
-                                <td class="py-4 px-6">
-                                    <div class="flex items-center justify-end gap-3">
-                                        <button @onclick="() => OpenEditPackageModal(pkg)" class="text-xs text-sky-600 dark:text-sky-400 hover:underline font-semibold">Edit</button>
-                                        <button @onclick="() => TogglePackageStatusAsync(pkg.PackageId)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">Toggle Status</button>
-                                    </div>
+                                <td class="py-4 px-6 text-center">
+                                    <button @onclick="() => OpenEditPackageModal(pkg)"
+                                            class="px-3 py-1 text-xs font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg border border-sky-200 dark:border-sky-500/30 transition cursor-pointer">
+                                        Edit
+                                    </button>
+                                </td>
+                                <td class="py-4 px-6 text-center">
+                                    @if (pkg.IsActive)
+                                    {
+                                        <button @onclick="() => TogglePackageStatusAsync(pkg.PackageId)"
+                                                class="px-3 py-1 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg border border-rose-200 dark:border-rose-500/30 transition cursor-pointer">
+                                            Disable
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button @onclick="() => TogglePackageStatusAsync(pkg.PackageId)"
+                                                class="px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg border border-emerald-200 dark:border-emerald-500/30 transition cursor-pointer">
+                                            Enable
+                                        </button>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -216,9 +245,18 @@
             <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-6 space-y-4 shadow-sm">
                 <h2 class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">Add New Payment Channel</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" @bind="newMethodName" placeholder="Channel Name (e.g. KBZ Pay, AYA Pay)" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-                    <input type="text" @bind="newAccountName" placeholder="Account Holder Name" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-                    <input type="text" @bind="newAccountNumber" placeholder="Account / Phone Number" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Channel Name</label>
+                        <input type="text" @bind="newMethodName" placeholder="e.g. KBZ Pay, AYA Pay" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Account Holder Name</label>
+                        <input type="text" @bind="newAccountName" placeholder="Account Holder Name" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Account / Phone Number</label>
+                        <input type="text" @bind="newAccountNumber" placeholder="Account or Phone Number" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
                     
                     <!-- Image Upload: Payment Type Logo -->
                     <div class="space-y-1">
@@ -246,7 +284,10 @@
                         </div>
                     </div>
 
-                    <textarea @bind="newInstructions" rows="2" placeholder="Payment instructions shown to buyers (optional)" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm md:col-span-2"></textarea>
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Transfer Instructions (Optional)</label>
+                        <textarea @bind="newInstructions" rows="2" placeholder="Payment instructions shown to buyers" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm"></textarea>
+                    </div>
                 </div>
                 <div class="flex justify-end">
                     <button @onclick="CreatePaymentMethodAsync" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2 rounded-xl transition">
@@ -264,7 +305,8 @@
                             <th class="py-3 px-6">Account Holder</th>
                             <th class="py-3 px-6">Account Number</th>
                             <th class="py-3 px-6">Status</th>
-                            <th class="py-3 px-6 text-right">Actions</th>
+                            <th class="py-3 px-6 text-center">Edit</th>
+                            <th class="py-3 px-6 text-center">Status Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 dark:divide-[rgba(196,210,225,0.12)]">
@@ -300,17 +342,33 @@
                                     }
                                 </td>
                                 <td class="py-4 px-6 text-slate-700 dark:text-[#E1E8F0]">@m.AccountName</td>
-                                <td class="py-4 px-6 font-mono font-bold text-amber-600 dark:text-amber-400">@m.AccountNumber</td>
+                                <td class="py-4 px-6 font-mono font-bold text-indigo-600 dark:text-indigo-400">@m.AccountNumber</td>
                                 <td class="py-4 px-6">
                                     <span class="@(m.IsActive ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30" : "text-slate-500 dark:text-[#C4D2E1] bg-slate-100 dark:bg-[#1B3B5A] border-slate-200 dark:border-[rgba(196,210,225,0.12)]") text-xs font-bold px-2 py-0.5 rounded-md border">
                                         @(m.IsActive ? "Active" : "Disabled")
                                     </span>
                                 </td>
-                                <td class="py-4 px-6">
-                                    <div class="flex items-center justify-end gap-3">
-                                        <button @onclick="() => OpenEditMethodModal(m)" class="text-xs text-sky-600 dark:text-sky-400 hover:underline font-semibold">Edit</button>
-                                        <button @onclick="() => TogglePaymentMethodStatusAsync(m.PaymentMethodId)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">Toggle Status</button>
-                                    </div>
+                                <td class="py-4 px-6 text-center">
+                                    <button @onclick="() => OpenEditMethodModal(m)"
+                                            class="px-3 py-1 text-xs font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg border border-sky-200 dark:border-sky-500/30 transition cursor-pointer">
+                                        Edit
+                                    </button>
+                                </td>
+                                <td class="py-4 px-6 text-center">
+                                    @if (m.IsActive)
+                                    {
+                                        <button @onclick="() => TogglePaymentMethodStatusAsync(m.PaymentMethodId)"
+                                                class="px-3 py-1 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg border border-rose-200 dark:border-rose-500/30 transition cursor-pointer">
+                                            Disable
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button @onclick="() => TogglePaymentMethodStatusAsync(m.PaymentMethodId)"
+                                                class="px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg border border-emerald-200 dark:border-emerald-500/30 transition cursor-pointer">
+                                            Enable
+                                        </button>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -327,7 +385,7 @@
             <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
                 <div>
                     <h2 class="text-xl font-bold text-slate-900 dark:text-[#E1E8F0] flex items-center gap-2">
-                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
                         <span>Link Drop Exchange Rate Settings</span>
                     </h2>
                     <p class="text-slate-600 dark:text-[#C4D2E1] text-sm mt-1">
@@ -343,15 +401,15 @@
                 {
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <!-- MMK Card (Primary) -->
-                        <div class="p-5 rounded-2xl border-2 border-amber-500/40 bg-gradient-to-b from-amber-500/10 to-transparent dark:from-amber-500/5 space-y-4">
+                        <div class="p-5 rounded-2xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/40 dark:bg-[#0A1B2E]/60 space-y-4 shadow-2xs">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">Primary Currency</span>
+                                <span class="text-xs font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">Primary Currency</span>
                                 <span class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">MMK (Ks)</span>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-xs font-semibold text-slate-600 dark:text-[#C4D2E1]">1 Link Drop = (MMK)</label>
                                 <div class="relative">
-                                    <input type="number" step="0.01" min="0.01" @bind="rateMmk" class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2.5 text-slate-900 dark:text-[#E1E8F0] text-base font-bold focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                                    <input type="number" step="0.01" min="0.01" @bind="rateMmk" class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2.5 text-slate-900 dark:text-[#E1E8F0] text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                                     <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">MMK</span>
                                 </div>
                             </div>
@@ -369,7 +427,7 @@
                             <div class="space-y-1.5">
                                 <label class="text-xs font-semibold text-slate-600 dark:text-[#C4D2E1]">1 Link Drop = (USD)</label>
                                 <div class="relative">
-                                    <input type="number" step="0.0001" min="0.00001" @bind="rateUsd" class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2.5 text-slate-900 dark:text-[#E1E8F0] text-base font-bold focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                                    <input type="number" step="0.0001" min="0.00001" @bind="rateUsd" class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2.5 text-slate-900 dark:text-[#E1E8F0] text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                                     <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">USD</span>
                                 </div>
                             </div>
@@ -387,7 +445,7 @@
                             <div class="space-y-1.5">
                                 <label class="text-xs font-semibold text-slate-600 dark:text-[#C4D2E1]">1 Link Drop = (CNY)</label>
                                 <div class="relative">
-                                    <input type="number" step="0.0001" min="0.00001" @bind="rateCny" class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2.5 text-slate-900 dark:text-[#E1E8F0] text-base font-bold focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                                    <input type="number" step="0.0001" min="0.00001" @bind="rateCny" class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2.5 text-slate-900 dark:text-[#E1E8F0] text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                                     <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">CNY</span>
                                 </div>
                             </div>
@@ -401,7 +459,7 @@
                         <div class="text-xs text-slate-500 dark:text-[#C4D2E1]">
                             Rates update instantly across the entire platform upon saving.
                         </div>
-                        <button @onclick="SaveExchangeRatesAsync" disabled="@isSavingRates" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                        <button @onclick="SaveExchangeRatesAsync" disabled="@isSavingRates" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-2">
                             @if (isSavingRates)
                             {
                                 <span>Saving...</span>
@@ -427,7 +485,7 @@
         <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <h3 class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">Approve Purchase Request #@targetPurchase?.PurchaseNumber</h3>
             <p class="text-xs text-slate-600 dark:text-[#C4D2E1]">
-                This will credit <strong class="text-amber-600 dark:text-amber-400 font-bold">@targetPurchase?.SnapshotLinkDropAmount.ToString("N0") Drops</strong> to user <strong class="text-slate-900 dark:text-[#E1E8F0]">@targetPurchase?.UserName</strong>.
+                This will credit <strong class="text-indigo-600 dark:text-indigo-400 font-bold">@targetPurchase?.SnapshotLinkDropAmount.ToString("N0") Drops</strong> to user <strong class="text-slate-900 dark:text-[#E1E8F0]">@targetPurchase?.UserName</strong>.
             </p>
             <input type="text" @bind="approveNotes" placeholder="Optional audit notes..." class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
             <div class="flex justify-end gap-3 pt-2">
@@ -480,13 +538,31 @@
                 <button @onclick="() => showEditPackageModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-[#E1E8F0]">✕</button>
             </div>
             <div class="space-y-3">
-                <input type="text" @bind="editPackage.PackageName" placeholder="Package Name" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-                <textarea @bind="editPackage.Description" rows="2" placeholder="Description (optional)" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm"></textarea>
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Package Name</label>
+                    <input type="text" @bind="editPackage.PackageName" placeholder="e.g. 100 Link Drops" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Description (Optional)</label>
+                    <textarea @bind="editPackage.Description" rows="2" placeholder="Description" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm"></textarea>
+                </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <input type="number" @bind="editPackage.LinkDropAmount" placeholder="Link Drops" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-                    <input type="number" @bind="editPackage.BonusAmount" placeholder="Bonus Drops" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-                    <input type="number" step="100" @bind="editPackage.RealMoneyAmount" placeholder="Price (MMK)" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-                    <input type="number" @bind="editPackage.DisplayOrder" placeholder="Display Order" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Link Drops Amount</label>
+                        <input type="number" @bind="editPackage.LinkDropAmount" placeholder="100" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Bonus Drops</label>
+                        <input type="number" @bind="editPackage.BonusAmount" placeholder="0" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Price (MMK)</label>
+                        <input type="number" step="100" @bind="editPackage.RealMoneyAmount" placeholder="1000" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Display Order</label>
+                        <input type="number" @bind="editPackage.DisplayOrder" placeholder="1" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
                 </div>
                 <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-[#C4D2E1]">
                     <input type="checkbox" @bind="editPackage.IsActive" class="accent-indigo-500" />
@@ -511,10 +587,19 @@
                 <button @onclick="() => showEditMethodModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-[#E1E8F0]">✕</button>
             </div>
             <div class="space-y-3">
-                <input type="text" @bind="editMethod.MethodName" placeholder="Channel Name" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Channel Name</label>
+                    <input type="text" @bind="editMethod.MethodName" placeholder="Channel Name" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                </div>
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <input type="text" @bind="editMethod.AccountName" placeholder="Account Holder Name" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-                    <input type="text" @bind="editMethod.AccountNumber" placeholder="Account / Phone Number" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Account Holder Name</label>
+                        <input type="text" @bind="editMethod.AccountName" placeholder="Account Holder Name" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Account / Phone Number</label>
+                        <input type="text" @bind="editMethod.AccountNumber" placeholder="Account / Phone Number" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    </div>
                 </div>
 
                 <!-- Payment Type Logo Upload -->
@@ -551,9 +636,13 @@
                     </div>
                 </div>
 
-                <textarea @bind="editMethod.Instructions" rows="3" placeholder="Payment instructions shown to buyers (optional)" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm"></textarea>
-                <div class="grid grid-cols-2 gap-3">
-                    <input type="number" @bind="editMethod.DisplayOrder" placeholder="Display Order" class="bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Transfer Instructions (Optional)</label>
+                    <textarea @bind="editMethod.Instructions" rows="3" placeholder="Payment instructions shown to buyers" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm"></textarea>
+                </div>
+                <div class="space-y-1 max-w-[200px]">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Display Order</label>
+                    <input type="number" @bind="editMethod.DisplayOrder" placeholder="Display Order" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
                 </div>
                 <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-[#C4D2E1]">
                     <input type="checkbox" @bind="editMethod.IsActive" class="accent-indigo-500" />
