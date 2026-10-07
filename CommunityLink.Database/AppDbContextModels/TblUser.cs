@@ -27,20 +27,6 @@ public partial class TblUser
 
     public bool IsActive { get; set; }
 
-    public string? Headline { get; set; }
-
-    public string? Pronouns { get; set; }
-
-    public string? Location { get; set; }
-
-    public string? AvailabilityStatus { get; set; }
-
-    public string? ResponseSlaText { get; set; }
-
-    public string? PercentileBadgeText { get; set; }
-
-    public DateTime? LastActiveAt { get; set; }
-
     public decimal? AverageRating { get; set; }
 
     public int RatingCount { get; set; }
@@ -62,11 +48,54 @@ public partial class TblUser
     public int? DeletedBy { get; set; }
 
     public byte[] RowVersion { get; set; } = null!;
+
+    public string? Headline { get; set; }
+
+    public string? Pronouns { get; set; }
+
+    public string? Location { get; set; }
+
+    public string? AvailabilityStatus { get; set; }
+
+    public string? ResponseSlaText { get; set; }
+
+    public string? PercentileBadgeText { get; set; }
+
+    public DateTime? LastActiveAt { get; set; }
+
+    public virtual ICollection<TblChatGroupBan> TblChatGroupBanBannedByUsers { get; set; } = new List<TblChatGroupBan>();
+
+    public virtual ICollection<TblChatGroupBan> TblChatGroupBanRevokedByUsers { get; set; } = new List<TblChatGroupBan>();
+
+    public virtual ICollection<TblChatGroupBan> TblChatGroupBanUsers { get; set; } = new List<TblChatGroupBan>();
+
+    public virtual ICollection<TblChatGroupInvite> TblChatGroupInviteDeletedByNavigations { get; set; } = new List<TblChatGroupInvite>();
+
+    public virtual ICollection<TblChatGroupInvite> TblChatGroupInviteInvitedByUsers { get; set; } = new List<TblChatGroupInvite>();
+
+    public virtual ICollection<TblChatGroupInviteLink> TblChatGroupInviteLinks { get; set; } = new List<TblChatGroupInviteLink>();
+
+    public virtual ICollection<TblChatGroupInvite> TblChatGroupInviteUsers { get; set; } = new List<TblChatGroupInvite>();
+
     public virtual ICollection<TblChatGroupMember> TblChatGroupMembers { get; set; } = new List<TblChatGroupMember>();
 
-    public virtual ICollection<TblChatGroupMessage> TblChatGroupMessages { get; set; } = new List<TblChatGroupMessage>();
+    public virtual ICollection<TblChatGroupMessage> TblChatGroupMessagePinnedByUsers { get; set; } = new List<TblChatGroupMessage>();
+
+    public virtual ICollection<TblChatGroupMessageReaction> TblChatGroupMessageReactions { get; set; } = new List<TblChatGroupMessageReaction>();
+
+    public virtual ICollection<TblChatGroupMessage> TblChatGroupMessageSenders { get; set; } = new List<TblChatGroupMessage>();
+
+    public virtual ICollection<TblChatGroupMessageUserState> TblChatGroupMessageUserStates { get; set; } = new List<TblChatGroupMessageUserState>();
+
+    public virtual ICollection<TblChatGroupPaymentTransaction> TblChatGroupPaymentTransactionCreatorUsers { get; set; } = new List<TblChatGroupPaymentTransaction>();
+
+    public virtual ICollection<TblChatGroupPaymentTransaction> TblChatGroupPaymentTransactionUsers { get; set; } = new List<TblChatGroupPaymentTransaction>();
 
     public virtual ICollection<TblChatGroup> TblChatGroups { get; set; } = new List<TblChatGroup>();
+
+    public virtual ICollection<TblChatMessageReaction> TblChatMessageReactions { get; set; } = new List<TblChatMessageReaction>();
+
+    public virtual ICollection<TblChatMessageUserState> TblChatMessageUserStates { get; set; } = new List<TblChatMessageUserState>();
 
     public virtual ICollection<TblChatMessage> TblChatMessages { get; set; } = new List<TblChatMessage>();
 
@@ -86,6 +115,14 @@ public partial class TblUser
 
     public virtual ICollection<TblConversation> TblConversationUserTwos { get; set; } = new List<TblConversation>();
 
+    public virtual TblCreatorChatSetting? TblCreatorChatSetting { get; set; }
+
+    public virtual ICollection<TblCreatorPayoutRequest> TblCreatorPayoutRequests { get; set; } = new List<TblCreatorPayoutRequest>();
+
+    public virtual ICollection<TblChatGroupJoinRequest> TblChatGroupJoinRequestReviewedByNavigations { get; set; } = new List<TblChatGroupJoinRequest>();
+
+    public virtual ICollection<TblChatGroupJoinRequest> TblChatGroupJoinRequestUsers { get; set; } = new List<TblChatGroupJoinRequest>();
+
     public virtual ICollection<TblGroupJoinRequest> TblGroupJoinRequestReviewedByNavigations { get; set; } = new List<TblGroupJoinRequest>();
 
     public virtual ICollection<TblGroupJoinRequest> TblGroupJoinRequestUsers { get; set; } = new List<TblGroupJoinRequest>();
@@ -95,6 +132,8 @@ public partial class TblUser
     public virtual ICollection<TblGroupRating> TblGroupRatings { get; set; } = new List<TblGroupRating>();
 
     public virtual ICollection<TblGroup> TblGroups { get; set; } = new List<TblGroup>();
+
+    public virtual ICollection<TblIdentityVerification> TblIdentityVerifications { get; set; } = new List<TblIdentityVerification>();
 
     public virtual ICollection<TblLinkDropPurchase> TblLinkDropPurchases { get; set; } = new List<TblLinkDropPurchase>();
 
@@ -114,6 +153,10 @@ public partial class TblUser
 
     public virtual ICollection<TblPost> TblPosts { get; set; } = new List<TblPost>();
 
+    public virtual ICollection<TblPrivateChatPaymentTransaction> TblPrivateChatPaymentTransactionBuyerUsers { get; set; } = new List<TblPrivateChatPaymentTransaction>();
+
+    public virtual ICollection<TblPrivateChatPaymentTransaction> TblPrivateChatPaymentTransactionCreatorUsers { get; set; } = new List<TblPrivateChatPaymentTransaction>();
+
     public virtual ICollection<TblSavedAccount> TblSavedAccountSavedUsers { get; set; } = new List<TblSavedAccount>();
 
     public virtual ICollection<TblSavedAccount> TblSavedAccountUsers { get; set; } = new List<TblSavedAccount>();
@@ -121,6 +164,12 @@ public partial class TblUser
     public virtual ICollection<TblSavedPost> TblSavedPosts { get; set; } = new List<TblSavedPost>();
 
     public virtual ICollection<TblSkillEndorsement> TblSkillEndorsements { get; set; } = new List<TblSkillEndorsement>();
+
+    public virtual ICollection<TblUserActivity> TblUserActivities { get; set; } = new List<TblUserActivity>();
+
+    public virtual ICollection<TblUserBlock> TblUserBlockBlockedUsers { get; set; } = new List<TblUserBlock>();
+
+    public virtual ICollection<TblUserBlock> TblUserBlockBlockerUsers { get; set; } = new List<TblUserBlock>();
 
     public virtual ICollection<TblUserFollow> TblUserFollowFollowees { get; set; } = new List<TblUserFollow>();
 
@@ -133,6 +182,8 @@ public partial class TblUser
     public virtual ICollection<TblUserRole> TblUserRoles { get; set; } = new List<TblUserRole>();
 
     public virtual ICollection<TblUserSkill> TblUserSkills { get; set; } = new List<TblUserSkill>();
+
+    public virtual ICollection<TblUserSubscription> TblUserSubscriptions { get; set; } = new List<TblUserSubscription>();
 
     public virtual ICollection<TblUserVerificationAudit> TblUserVerificationAudits { get; set; } = new List<TblUserVerificationAudit>();
 }

@@ -27,7 +27,7 @@ public sealed class ChatRealtimeService
     private TaskCompletionSource<bool>? _starting;
     private int _currentUserId;
     private int? _subscribedGroupId;
-    private string? _subscribedGroupRole;
+    private ChatGroupPermissionSet? _subscribedGroupPermissions;
 
     public ChatRealtimeService(
         IConfiguration config,
@@ -70,6 +70,48 @@ public sealed class ChatRealtimeService
     public event Func<int, int, bool, Task>? GroupTypingChanged;
 
     public event Func<int, Task>? ConversationRead;
+
+    public event Func<int, int, Task>? MessageDeleted;
+
+    public event Func<int, int, List<MessageReactionModel>, Task>? ReactionUpdated;
+
+    public event Func<int, Task>? UserOnline;
+
+    public event Func<int, DateTime?, Task>? UserOffline;
+
+    public event Func<int, Task>? GroupMembersUpdated;
+
+    /// <summary>Raised when an Owner changes group settings, so the header and panel can re-render.</summary>
+    public event Func<ChatGroupModel, Task>? GroupUpdated;
+
+    /// <summary>Raised when an Owner replaces the group avatar, carrying the new public URL.</summary>
+    public event Func<int, string, Task>? GroupImageUpdated;
+
+    /// <summary>
+    /// Raised when the group itself is deleted. Carries the group id so the view can close the
+    /// thread instead of leaving a dead conversation on screen.
+    /// </summary>
+    public event Func<int, Task>? GroupDeleted;
+
+    /// <summary>
+    /// Raised when a member is removed or banned. Carries the group id and the affected user
+    /// id; the client that matches the second argument must leave the room immediately.
+    /// </summary>
+    public event Func<int, int, Task>? GroupMemberRemoved;
+
+    /// <summary>
+    /// Raised when the group's single pinned message changes. Carries the group id and the new
+    /// pin, which is null when the group has nothing pinned. The banner takes the resulting state
+    /// rather than the action, so clients cannot drift out of step with the server.
+    /// </summary>
+    public event Func<int, ChatGroupPinnedMessageModel?, Task>? GroupPinnedMessageChanged;
+
+    /// <summary>
+    /// Raised when the owner edits an admin's permission set. Carries the group id, the affected
+    /// user id and the new set. Only that user's client acts on it, so an admin's own cached
+    /// permissions converge without a manual reload.
+    /// </summary>
+    public event Func<int, int, ChatGroupPermissionSet, Task>? GroupPermissionsChanged;
 
     public event Action? StateChanged;
 
@@ -201,6 +243,46 @@ public sealed class ChatRealtimeService
             return Task.CompletedTask;
         });
 
+        connection.On<int, int>("MessageDeleted", (conversationId, messageId) =>
+        {
+            if (MessageDeleted is not null)
+            {
+                return MessageDeleted.Invoke(conversationId, messageId);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int, int, List<MessageReactionModel>>("MessageReactionUpdated", (conversationId, messageId, reactions) =>
+        {
+            if (ReactionUpdated is not null)
+            {
+                return ReactionUpdated.Invoke(conversationId, messageId, reactions);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int>("UserOnline", userId =>
+        {
+            if (UserOnline is not null)
+            {
+                return UserOnline.Invoke(userId);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int, DateTime?>("UserOffline", (userId, lastActiveAt) =>
+        {
+            if (UserOffline is not null)
+            {
+                return UserOffline.Invoke(userId, lastActiveAt);
+            }
+
+            return Task.CompletedTask;
+        });
+
         connection.Reconnecting += _ =>
         {
             PrivateStatus = "Reconnecting…";
@@ -248,7 +330,7 @@ public sealed class ChatRealtimeService
             await GroupMessageReceived.Invoke(message.ToMessage(
                 message.ChatGroupId,
                 _currentUserId,
-                _subscribedGroupRole ?? "MEMBER"));
+                _subscribedGroupPermissions));
         });
 
         connection.On<int, int, bool>("GroupTyping", (chatGroupId, senderId, isTyping) =>
@@ -260,6 +342,99 @@ public sealed class ChatRealtimeService
 
             return Task.CompletedTask;
         });
+
+        connection.On<int, int>("ChatGroupMessageDeleted", (chatGroupId, messageId) =>
+        {
+            if (MessageDeleted is not null)
+            {
+                return MessageDeleted.Invoke(chatGroupId, messageId);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int, int, List<MessageReactionModel>>("ChatGroupReactionUpdated", (chatGroupId, messageId, reactions) =>
+        {
+            if (ReactionUpdated is not null)
+            {
+                return ReactionUpdated.Invoke(chatGroupId, messageId, reactions);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int>("GroupMemberUpdated", chatGroupId =>
+        {
+            if (GroupMembersUpdated is not null)
+            {
+                return GroupMembersUpdated.Invoke(chatGroupId);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<ChatGroupModel>("ChatGroupUpdated", group =>
+        {
+            if (GroupUpdated is not null)
+            {
+                return GroupUpdated.Invoke(group);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int, string>("ChatGroupImageUpdated", (chatGroupId, imageUrl) =>
+        {
+            if (GroupImageUpdated is not null)
+            {
+                return GroupImageUpdated.Invoke(chatGroupId, imageUrl);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int>("ChatGroupDeleted", chatGroupId =>
+        {
+            if (GroupDeleted is not null)
+            {
+                return GroupDeleted.Invoke(chatGroupId);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int, int>("ChatGroupMemberRemoved", (chatGroupId, userId) =>
+        {
+            if (GroupMemberRemoved is not null)
+            {
+                return GroupMemberRemoved.Invoke(chatGroupId, userId);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        // The pin is broadcast as the resulting state, null included: a JSON null body arrives as
+        // a null argument here rather than as a missing payload, so unpin needs no special case.
+        connection.On<int, ChatGroupPinnedMessageModel?>("ChatGroupPinnedMessageChanged", (chatGroupId, pinned) =>
+        {
+            if (GroupPinnedMessageChanged is not null)
+            {
+                return GroupPinnedMessageChanged.Invoke(chatGroupId, pinned);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        connection.On<int, int, ChatGroupPermissionSet>("ChatGroupPermissionsChanged",
+            (chatGroupId, userId, permissions) =>
+            {
+                if (GroupPermissionsChanged is not null)
+                {
+                    return GroupPermissionsChanged.Invoke(chatGroupId, userId, permissions);
+                }
+
+                return Task.CompletedTask;
+            });
 
         connection.Reconnecting += _ =>
         {
@@ -288,19 +463,20 @@ public sealed class ChatRealtimeService
         return connection;
     }
 
-    /// <summary>Moves the SignalR room subscription to the given group, or clears it for 1:1 threads.</summary>
     /// <summary>
-    /// Tracks the room the page is currently showing. The viewer's role is supplied by the
-    /// page because only it knows the membership loaded for the open thread; a hard-coded
-    /// role would hide the delete affordance from owners and admins on live messages.
+    /// Tracks the room the page is currently showing. The viewer's permission set is supplied by
+    /// the page because only it knows the membership loaded for the open thread; a hard-coded
+    /// role would hide the moderation affordances from owners and grant them to stripped admins
+    /// on live messages.
     /// </summary>
-    public void SetSubscribedGroupRole(string? role) => _subscribedGroupRole = role;
+    public void SetSubscribedGroupPermissions(ChatGroupPermissionSet? permissions) =>
+        _subscribedGroupPermissions = permissions;
 
     public async Task SetSubscribedGroupAsync(int? chatGroupId)
     {
         if (chatGroupId.HasValue)
         {
-            _subscribedGroupRole = null;
+            _subscribedGroupPermissions = null;
         }
 
         if (_subscribedGroupId == chatGroupId)
@@ -318,6 +494,19 @@ public sealed class ChatRealtimeService
         if (chatGroupId.HasValue)
         {
             await TryInvokeGroupAsync("JoinChatGroup", chatGroupId.Value);
+        }
+    }
+
+    /// <summary>
+    /// Leaves the current group room without changing the subscription, used when this client
+    /// is the one being removed. <see cref="SetSubscribedGroupAsync"/> would also work but reads
+    /// as "unsubscribe", which is not what happens when the caller keeps the group open.
+    /// </summary>
+    public async Task LeaveGroupRoomAsync(int chatGroupId)
+    {
+        if (_subscribedGroupId == chatGroupId)
+        {
+            await TryInvokeGroupAsync("LeaveChatGroup", chatGroupId);
         }
     }
 

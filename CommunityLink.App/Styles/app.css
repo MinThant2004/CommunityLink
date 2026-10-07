@@ -524,3 +524,27 @@
   }
 }
 
+/* Telegram-style message pulse animation for pinned & quoted reply navigation */
+@keyframes telegramMessagePulse {
+  0% {
+    background-color: rgba(99, 102, 241, 0.35);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25);
+    transform: scale(1.015);
+  }
+  50% {
+    background-color: rgba(99, 102, 241, 0.22);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+    transform: scale(1);
+  }
+}
+
+.telegram-highlight {
+  animation: telegramMessagePulse 2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+}
+

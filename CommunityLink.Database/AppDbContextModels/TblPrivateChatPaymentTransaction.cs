@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
 
@@ -18,15 +19,15 @@ public partial class TblPrivateChatPaymentTransaction
 
     public long CreatorAmount { get; set; }
 
-    public string Status { get; set; } = "COMPLETED";
+    public string Status { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
 
-    public byte[]? RowVersion { get; set; }
-
-    public virtual TblConversation Conversation { get; set; } = null!;
+    public byte[] RowVersion { get; set; } = null!;
 
     public virtual TblUser BuyerUser { get; set; } = null!;
+
+    public virtual TblConversation Conversation { get; set; } = null!;
 
     public virtual TblUser CreatorUser { get; set; } = null!;
 }

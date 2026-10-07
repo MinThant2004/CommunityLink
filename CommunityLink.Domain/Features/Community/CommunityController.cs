@@ -53,4 +53,9 @@ public sealed class CommunityController(ICommunityService communityService) : Ba
     [Authorize]
     public async Task<IActionResult> JoinCommunity(int communityId, CancellationToken cancellationToken) =>
         ToActionResult(await communityService.JoinCommunityAsync(communityId, cancellationToken));
+
+    [HttpPost("{communityId:int}/leave")]
+    [Authorize]
+    public async Task<IActionResult> LeaveCommunity(int communityId, CancellationToken cancellationToken) =>
+        ToActionResult(await communityService.LeaveCommunityAsync(communityId, cancellationToken));
 }

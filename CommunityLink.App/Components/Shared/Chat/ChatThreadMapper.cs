@@ -12,23 +12,59 @@ public static class ChatThreadMapper
 {
     public static ChatThreadViewModel ToThread(this ConversationModel model, int currentUserId)
     {
-        var isMine = model.OtherUserId != currentUserId;
-        var title = isMine
-            ? "You and " + model.OtherDisplayName
-            : model.OtherDisplayName;
-
         return new ChatThreadViewModel
         {
             Type = ChatThreadType.Private,
             Id = model.ConversationId,
-            Title = title,
+            Title = model.OtherDisplayName,
             AvatarUrl = model.OtherAvatarUrl,
             Subtitle = "@" + model.OtherUserName,
             LastMessagePreview = model.LastMessagePreview,
             LastActivityAt = model.LastMessageAt?.ToLocalTime() ?? model.LastMessageAt,
             DirectUserId = model.OtherUserId,
-            IsUnlocked = true
+            IsUnlocked = true,
+            IsBlockedByMe = model.IsBlockedByMe,
+            IsBlockedByTarget = model.IsBlockedByTarget,
+            IsOnline = model.IsOnline,
+            OtherUserLastActiveAt = model.LastActiveAt
         };
+    }
+
+    public static string FormatPresenceText(bool isOnline, DateTime? lastActiveAt)
+    {
+        if (isOnline)
+        {
+            return "online";
+        }
+
+        if (!lastActiveAt.HasValue)
+        {
+            return "offline";
+        }
+
+        var localTime = lastActiveAt.Value.ToLocalTime();
+        var now = DateTime.Now;
+        var diff = now - localTime;
+
+        if (diff.TotalMinutes < 1)
+        {
+            return "last seen just now";
+        }
+        if (diff.TotalMinutes < 60)
+        {
+            int mins = (int)diff.TotalMinutes;
+            return $"last seen {mins} {(mins == 1 ? "minute" : "minutes")} ago";
+        }
+        if (localTime.Date == now.Date)
+        {
+            return $"last seen at {localTime:h:mm tt}";
+        }
+        if (localTime.Date == now.Date.AddDays(-1))
+        {
+            return $"last seen yesterday at {localTime:h:mm tt}";
+        }
+
+        return $"last seen {localTime:MMM d, yyyy}";
     }
 
     public static ChatThreadViewModel ToThread(this ChatGroupModel model) => new()
@@ -43,11 +79,22 @@ public static class ChatThreadMapper
         Subtitle = model.MemberCount + (model.MemberCount == 1 ? " member" : " members"),
         MemberCount = model.MemberCount,
         IsJoined = model.IsJoined,
+        IsBanned = model.IsBanned,
         UserRole = model.UserRole,
+        ViewerPermissions = model.ViewerPermissions,
+        IsInvited = model.IsInvited,
+        InviteFeeLinkDrops = model.InviteFeeLinkDrops,
+        InvitedByName = model.InvitedByName,
         RequiresPayment = string.Equals(model.ChatType, "PAID", StringComparison.OrdinalIgnoreCase),
-        FeeLinkDrops = model.JoinFeeLinkDrops,
-        IsUnlocked = model.IsJoined,
-        Badge = string.Equals(model.ChatType, "PAID", StringComparison.OrdinalIgnoreCase) ? "Paid" : "Free"
+        // An invitee is shown the price they were quoted, not the group's current fee, so a fee
+        // change after the invite cannot silently reprice it. Falls back to the live fee when
+        // there is no invite (the ordinary self-service join path).
+        FeeLinkDrops = model.IsInvited && model.InviteFeeLinkDrops.HasValue
+            ? model.InviteFeeLinkDrops.Value
+            : model.JoinFeeLinkDrops,
+        IsUnlocked = model.IsJoined && !model.IsBanned,
+        AccessMode = model.AccessMode ?? "PUBLIC",
+        Badge = model.IsBanned ? "Banned" : (string.Equals(model.ChatType, "PAID", StringComparison.OrdinalIgnoreCase) ? "Paid" : "Free")
     };
 
     public static ChatThreadViewModel WithPreview(
@@ -77,6 +124,11 @@ public static class ChatThreadMapper
         SenderName = model.SenderName,
         SenderAvatar = model.SenderAvatar,
         Content = model.MessageText,
+        MessageType = model.MessageType ?? "TEXT",
+        AttachmentUrl = model.AttachmentUrl,
+        FileName = model.FileName,
+        FileSizeByte = model.FileSizeByte,
+        FormattedFileSize = model.FormattedFileSize,
         SentAtLocal = model.SentAt.ToLocalTime(),
         IsMine = model.SenderId == currentUserId,
         IsRead = model.IsRead,
@@ -94,10 +146,18 @@ public static class ChatThreadMapper
         this ChatGroupMessageModel model,
         int threadId,
         int currentUserId,
-        string currentUserRole)
+        ChatGroupPermissionSet? viewerPermissions,
+        int? pinnedMessageId = null)
     {
+        // Permissions, not role: an admin stripped of CanDeleteMessages/CanPinMessages keeps the
+        // ADMIN label but must not be offered the controls. The owner is reported as holding
+        // everything, so this covers that case too.
         var canDelete = model.SenderId == currentUserId
-            || currentUserRole is "OWNER" or "ADMIN";
+            || (model.CanDeleteForEveryone)
+            || (viewerPermissions?.CanDeleteMessages ?? false);
+
+        var canPin = model.SenderId == currentUserId
+            || (viewerPermissions?.CanPinMessages ?? false);
 
         return new ChatMessageViewModel
         {
@@ -110,6 +170,11 @@ public static class ChatThreadMapper
                 : model.SenderDisplayName,
             SenderAvatar = model.SenderAvatar,
             Content = model.Content,
+            MessageType = model.MessageType ?? "TEXT",
+            AttachmentUrl = model.AttachmentUrl,
+            FileName = model.FileName,
+            FileSizeByte = model.FileSizeByte,
+            FormattedFileSize = model.FormattedFileSize,
             SentAtLocal = model.CreatedAt.ToLocalTime(),
             IsMine = model.SenderId == currentUserId,
             CanDelete = canDelete,
@@ -119,7 +184,10 @@ public static class ChatThreadMapper
             ReplyToSenderName = model.ReplyToSenderName,
             ReplyToPreview = model.ReplyToPreview,
             ReplyToIsDeleted = model.ReplyToIsDeleted,
-            Reactions = model.Reactions
+            Reactions = model.Reactions,
+            CanPin = canPin,
+            CanUnpin = canPin,
+            IsPinned = pinnedMessageId.HasValue && pinnedMessageId.Value == model.ChatGroupMessageId
         };
     }
 

@@ -1,5 +1,20 @@
 namespace CommunityLink.Shared.Features.Post;
 
+public sealed record OriginalPostSummaryModel(
+    int PostId,
+    int AuthorId,
+    string AuthorName,
+    string? AuthorUserName,
+    string? AuthorAvatar,
+    string Content,
+    DateTime CreatedAt,
+    string? CommunityName = null,
+    string? GroupName = null,
+    IReadOnlyList<string>? ImageUrls = null,
+    string? CodeSnippet = null,
+    string? CodeFileName = null,
+    string? CodeLanguage = null);
+
 public sealed record PostModel(
     int PostId,
     int? CommunityId,
@@ -22,7 +37,11 @@ public sealed record PostModel(
     string? CodeFileName = null,
     string? CodeLanguage = null,
     string? AuthorRoleCode = null,
-    bool IsAuthorVerified = false);
+    bool IsAuthorVerified = false,
+    string? SharedByUserName = null,
+    string? SharedByDisplayName = null,
+    DateTime? SharedAt = null,
+    OriginalPostSummaryModel? OriginalPost = null);
 
 public sealed record CreatePostRequestModel(
     int? CommunityId,

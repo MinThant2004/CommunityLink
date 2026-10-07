@@ -1,0 +1,95 @@
+================================================================================
+DAILY STATUS & BACKLOG PROGRESS REPORT
+Date: September 30, 2026
+Project: CommunityLink
+Developer: Min Thant
+Role: Full-Stack Developer
+Recipient: Project Manager (PM)
+================================================================================
+
+1. EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+Today's development focused on enhancing the Link Drop payment workflow,
+implementing payment proof preview features (user upload modal & admin view),
+expanding the chat reaction/sticker features, database seeding with realistic 
+Myanmar localization data, and multi-currency pricing architecture with an
+administrative exchange rate configuration system.
+
+All deliverables were completed, critical EF Core concurrency issues resolved,
+and solutions tested across UI, API, and Database layers.
+
+--------------------------------------------------------------------------------
+2. TASKS COMPLETED & BACKLOG ITEMS ADDRESSED
+--------------------------------------------------------------------------------
+
+[FEATURE 1] Payment Receipt Preview & Lightbox Modal
+- User Top-up Flow (/linkdrops):
+  * Added instant client-side thumbnail preview upon uploading a payment slip screenshot.
+  * Implemented centered lightbox modal allowing users to inspect the uploaded receipt in full size prior to submission.
+- My Purchases Flow:
+  * Enabled full-size receipt viewing under "Details" for pending and past purchase requests.
+- Admin Review Portal (/admin/linkdrops):
+  * Connected "View Receipt" button to fetch and display the user's submitted receipt proof in high resolution.
+
+[FEATURE 2] Chat Stickers & Message Reaction Stabilization
+- Integrated sticker selection drawer in Chat message composer with 5 dedicated stickers.
+- Resolved EF Core DbUpdateException on chat message reactions caused by concurrency token collision on message reaction state.
+
+[FEATURE 3] Database Clean-Up & Realistic Myanmar Sample Data Seeding
+- Generated comprehensive SQL migration script (Seed_Realistic_Sample_Data.sql).
+- Sanitized and wiped sample data across all tables while preserving critical lookup constraints and system roles:
+  * System Admin (default protected)
+  * User (default protected)
+  * Domain Professional
+  * Public Figure
+  * Admin
+- Set standardized development password ("123456789") for all seeded accounts.
+- Seeded 40+ realistic accounts using localized Myanmar names, professional bios, communities, posts, wallets, and activities.
+
+[FEATURE 4] Currency System Refactor & Admin Live Exchange Rate Control
+- Fixed baseline conversion: 1 Link Drop = 1 MMK.
+- Replaced hardcoded '$' and 'USD' references throughout the application with 'MMK' (including Premium Plans, Top-up Wallet, and database seed scripts).
+- Designed dynamic multi-currency architecture:
+  * Persisted live exchange rate keys (MMK, USD, CNY) in TblPlatformSetting.
+  * Added administrative API endpoints: GET /api/linkdrops/rates, PUT /api/admin/linkdrops/rates.
+  * Built "Exchange Rates & Currencies" Tab 4 in Admin Link Drops Portal (/admin/linkdrops).
+  * Built interactive currency switcher in User Wallet (/linkdrops).
+  * Updated USD & CNY buttons to display a clean warning toast: "This feature is currently unavailable" to keep transactions locked to MMK while retaining future architecture readiness.
+
+[BUG FIX] Private Chat Paid Unlock RowVersion Exception
+- Root Cause: TblPrivateChatPaymentTransaction.RowVersion was declared as a concurrency token but lacked .IsRowVersion() in EF Core mapping, triggering "Cannot insert NULL into column 'RowVersion'" error during chat unlocks.
+- Resolution: Configured .IsRowVersion().IsConcurrencyToken() in AppDbContext.Custom.cs to treat the column as database-generated, resolving the private chat unlock transaction error.
+
+--------------------------------------------------------------------------------
+3. FILES & ARTIFACTS MODIFIED
+--------------------------------------------------------------------------------
+- Frontend Components:
+  * CommunityLink.App/Components/Pages/LinkDrops.razor
+  * CommunityLink.App/Components/Pages/Admin/AdminLinkDrops.razor
+  * CommunityLink.App/Components/Pages/Admin/AdminPlans.razor
+  * CommunityLink.App/Components/Pages/Upgrade.razor
+  * CommunityLink.App/Components/_Imports.razor
+  * CommunityLink.App/Apis/LinkDropApiService.cs
+- Backend & Business Logic:
+  * CommunityLink.Domain/Features/LinkDrop/LinkDropPaymentController.cs
+  * CommunityLink.Domain/Features/LinkDrop/LinkDropPaymentService.cs
+  * CommunityLink.Domain/Features/LinkDrop/LinkDropPricing.cs
+  * CommunityLink.Domain/Features/Admin/PlatformSettingService.cs
+  * CommunityLink.Domain/Features/Chat/PrivateChatPaymentService.cs
+- Data & Shared Models:
+  * CommunityLink.Shared/Features/LinkDrop/LinkDropModels.cs
+  * CommunityLink.Shared/Features/Admin/PlatformSettingModels.cs
+  * CommunityLink.Database/AppDbContextModels/AppDbContext.Custom.cs
+  * CommunityLink.Database/Scripts/Seed_Realistic_Sample_Data.sql
+  * CommunityLink.Database/Scripts/Migration_PremiumSubscriptionPlans.sql
+
+--------------------------------------------------------------------------------
+4. STATUS / ROADMAP FOR TOMORROW
+--------------------------------------------------------------------------------
+- Monitor Admin Link Drops approval queues with live test transactions.
+- Conduct regression testing on real-time notification alerts for wallet credits.
+- Review Creator Payout requests and commission balance calculations.
+
+================================================================================
+END OF REPORT
+================================================================================

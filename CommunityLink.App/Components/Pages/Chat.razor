@@ -3,10 +3,12 @@
 @inject ChatApiService ChatApi
 @inject ChatGroupApiService ChatGroupApi
 @inject LinkDropApiService LinkDropApi
+@inject UserProfileApiService UserProfileApi
 @inject ChatRealtimeService Realtime
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
 @inject ToastService Toast
+@inject IJSRuntime JS
 @implements IAsyncDisposable
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
 
@@ -16,14 +18,14 @@
     and routes reads, writes, payments and realtime events by ThreadType.
 *@
 
-<div class="app-shell -m-6 flex overflow-hidden border-t border-slate-200 bg-white">
+<div class="app-shell -m-6 flex overflow-hidden border-t border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E]">
     <!-- Pane 1: thread list -->
     <div class="@(mobileShowThread ? "hidden md:flex" : "flex") w-full md:w-auto">
         <ChatThreadList VisibleThreads="VisibleThreads"
                         ActiveThreadType="activeThread?.Type"
                         ActiveThreadId="activeThread?.Id"
                         ActiveSegment="activeSegment"
-                        searchText="searchText"
+                        SearchText="@searchText"
                         IsLoading="isLoadingThreads"
                         HasError="threadsFailed"
                         IsPremiumCreator="isPremiumCreator"
@@ -32,75 +34,129 @@
                         OnSelect="SelectThreadAsync"
                         OnSegmentChanged="SetSegmentAsync"
                         OnSearchChanged="SetSearch"
+                        UserMatches="userMatches"
+                        DirectThreadUserIds="DirectThreadUserIds"
+                        IsSearchingUsers="isSearchingUsers"
+                        OnStartChat="StartChatWithUserAsync"
                         OnDiscover="OpenDiscover"
                         OnNewGroup="() => showCreateGroup = true"
                         OnRetry="LoadThreadsAsync" />
     </div>
 
     <!-- Pane 2: active thread -->
-    <div class="@(mobileShowThread ? "flex" : "hidden md:flex") min-w-0 flex-1 flex-col bg-slate-50">
+    <div class="@(mobileShowThread ? "flex" : "hidden md:flex") min-w-0 flex-1 flex-col bg-slate-50 dark:bg-[#0A1B2E]">
         @if (activeThread is null)
         {
             <div class="flex h-full flex-col items-center justify-center px-6 text-center">
-                <span class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-                    <svg class="h-7 w-7 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <span class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1B3B5A]">
+                    <svg class="h-7 w-7 text-slate-400 dark:text-[#C4D2E1]" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.189A8.721 8.721 0 0 1 3 12a8.721 8.721 0 0 1 3.04-6.06 8.721 8.721 0 0 1 6.96 0A8.721 8.721 0 0 1 21 12Z" />
                     </svg>
                 </span>
-                <p class="mt-4 text-sm font-semibold text-slate-800">Select a conversation to start chatting</p>
-                <p class="mt-1 max-w-xs text-xs text-slate-500">Direct messages and chat groups are all here. Use Discover to find new groups.</p>
+                <p class="mt-4 text-sm font-semibold text-slate-800 dark:text-[#E1E8F0]">Select a conversation to start chatting</p>
+                <p class="mt-1 max-w-xs text-xs text-slate-500 dark:text-[#C4D2E1]">Direct messages and chat groups are all here. Use Discover to find new groups.</p>
             </div>
         }
         else
         {
             <ChatThreadHeader Thread="activeThread"
-                              Status="Realtime.OverallStatus"
                               TypingText="@typingStatusText"
                               ShowBackButton="true"
+                              PinnedMessage="pinnedMessage"
+                              CanUnpin="@(pinnedMessage is not null && (pinnedMessage.SenderId == currentUserId || activeThread.CanPinMessages))"
                               OnToggleInfo="ToggleInfo"
-                              OnBack="CloseThreadOnMobile" />
+                              OnBack="CloseThreadOnMobile"
+                              OnUnpin="UnpinMessageAsync"
+                              OnSelectPinnedMessage="SelectPinnedMessageAsync" />
 
-            @if (activeThread.IsGroup && !activeThread.IsJoined)
+            @if (activeThread.IsGroup && activeThread.IsBanned)
             {
-                @* Non-member view: describe the group and gate entry behind the join payment. *@
                 <div class="min-h-0 flex-1 overflow-y-auto px-4 py-6">
-                    <div class="mx-auto max-w-md rounded-xl border border-slate-200 bg-white p-6 text-center">
+                    <div class="mx-auto max-w-md rounded-xl border border-rose-200 dark:border-rose-900/50 bg-white dark:bg-[#112A46] p-6 text-center select-none">
                         @if (!string.IsNullOrWhiteSpace(activeThread.AvatarUrl))
                         {
                             <img src="@activeThread.AvatarUrl" alt="" class="mx-auto h-16 w-16 rounded-full object-cover" />
                         }
                         else
                         {
-                            <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-xl font-semibold text-slate-600">@activeThread.Initials</span>
+                            <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1B3B5A] text-xl font-semibold text-slate-600 dark:text-[#E1E8F0]">@activeThread.Initials</span>
                         }
 
-                        <h2 class="mt-4 text-base font-semibold text-slate-900">@activeThread.Title</h2>
-                        <p class="mt-0.5 text-xs text-slate-500">@activeThread.Subtitle · by @activeThread.CreatorName</p>
+                        <h2 class="mt-4 text-base font-semibold text-slate-900 dark:text-[#E1E8F0]">@activeThread.Title</h2>
+
+                        <div class="mt-5 rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 p-4 text-left">
+                            <p class="flex items-center gap-2 text-sm font-semibold text-rose-800 dark:text-rose-300">
+                                <span class="text-base">🚫</span>
+                                You are banned from this group.
+                            </p>
+                            <p class="mt-1.5 text-xs leading-relaxed text-rose-700 dark:text-rose-400">
+                                You cannot access or send messages in this group.
+                            </p>
+                            <p class="mt-3 text-xs leading-relaxed text-slate-600 dark:text-[#C4D2E1]">
+                                Please contact a group administrator if you believe this was a mistake.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (activeThread.IsGroup && !activeThread.IsJoined)
+            {
+                @* Non-member view: describe the group and gate entry behind the join payment. *@
+                <div class="min-h-0 flex-1 overflow-y-auto px-4 py-6">
+                    <div class="mx-auto max-w-md rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46] p-6 text-center">
+                        @if (!string.IsNullOrWhiteSpace(activeThread.AvatarUrl))
+                        {
+                            <img src="@activeThread.AvatarUrl" alt="" class="mx-auto h-16 w-16 rounded-full object-cover" />
+                        }
+                        else
+                        {
+                            <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1B3B5A] text-xl font-semibold text-slate-600 dark:text-[#E1E8F0]">@activeThread.Initials</span>
+                        }
+
+                        <h2 class="mt-4 text-base font-semibold text-slate-900 dark:text-[#E1E8F0]">@activeThread.Title</h2>
+                        <p class="mt-0.5 text-xs text-slate-500 dark:text-[#C4D2E1]">@activeThread.Subtitle · by @activeThread.CreatorName</p>
 
                         @if (!string.IsNullOrWhiteSpace(activeThread.Description))
                         {
-                            <p class="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">@activeThread.Description</p>
+                            <p class="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600 dark:text-[#C4D2E1]">@activeThread.Description</p>
+                        }
+
+                        @if (activeThread.IsInvited)
+                        {
+                            @* The owner invited this user, but the invite is an offer rather than
+                                access: the paywall below still applies until they pay. *@
+                            <div class="mt-4 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50 p-3 text-left">
+                                <p class="flex items-center gap-1.5 text-sm font-semibold text-indigo-900 dark:text-indigo-300">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                                    </svg>
+                                    You have been invited
+                                </p>
+                                <p class="mt-1 text-xs leading-relaxed text-indigo-800 dark:text-indigo-400">
+                                    @InviterDisplayName invited you to this group. Accept the invitation and pay the one-time fee below to take part.
+                                </p>
+                            </div>
                         }
 
                         @if (activeThread.RequiresPayment)
                         {
-                            <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-left">
-                                <p class="flex items-center gap-1.5 text-sm font-semibold text-amber-900">
+                            <div class="mt-4 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/40 p-3 text-left">
+                                <p class="flex items-center gap-1.5 text-sm font-semibold text-amber-900 dark:text-amber-300">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                                     </svg>
                                     Paid group · @activeThread.FeeLinkDrops drops
                                 </p>
-                                <p class="mt-1 text-xs leading-relaxed text-amber-800">
-                                    One-time payment to join. The creator keeps @CreatorEarnings drops after the @CommissionAmount drops platform commission.
+                                <p class="mt-1 text-xs leading-relaxed text-amber-800 dark:text-amber-400">
+                                    One-time payment to join this group.
                                 </p>
                             </div>
                         }
                         else
                         {
-                            <div class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-left">
-                                <p class="text-sm font-semibold text-emerald-800">Free to join</p>
-                                <p class="mt-1 text-xs text-emerald-700">Anyone can join this group at no cost.</p>
+                            <div class="mt-4 rounded-lg border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-left">
+                                <p class="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Free to join</p>
+                                <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-400">Anyone can join this group at no cost.</p>
                             </div>
                         }
 
@@ -110,10 +166,22 @@
                                 class="mt-5 w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                             @(isActionSubmitting
                                 ? "Working…"
-                                : activeThread.RequiresPayment
-                                    ? $"Join for {activeThread.FeeLinkDrops} drops"
-                                    : "Join group")
+                                : activeThread.IsInvited
+                                    ? $"Accept invitation · {activeThread.FeeLinkDrops} drops"
+                                    : activeThread.RequiresPayment
+                                        ? $"Join for {activeThread.FeeLinkDrops} drops"
+                                        : "Join group")
                         </button>
+
+                        @if (activeThread.IsInvited)
+                        {
+                            <button type="button"
+                                    @onclick="DeclineGroupInviteAsync"
+                                    disabled="@isActionSubmitting"
+                                    class="mt-2.5 w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#1B3B5A] px-4 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A]/80 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-slate-300">
+                                Decline invitation
+                            </button>
+                        }
                     </div>
                 </div>
             }
@@ -121,15 +189,15 @@
             {
                 @* Locked 1:1: the payment prompt appears before the first send, not after a 403. *@
                 <div class="flex min-h-0 flex-1 flex-col items-center justify-center px-6 text-center">
-                    <div class="max-w-md rounded-xl border border-slate-200 bg-white p-6">
-                        <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-50">
-                            <svg class="h-7 w-7 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <div class="max-w-md rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46] p-6">
+                        <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-950/50">
+                            <svg class="h-7 w-7 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                             </svg>
                         </span>
-                        <h2 class="mt-4 text-base font-semibold text-slate-900">This is a paid conversation</h2>
-                        <p class="mt-1.5 text-sm leading-relaxed text-slate-600">
-                            @activeThread.Title requires a one-time payment of <span class="font-semibold text-slate-900">@activeThread.FeeLinkDrops LinkDrops</span> before you can send messages.
+                        <h2 class="mt-4 text-base font-semibold text-slate-900 dark:text-[#E1E8F0]">This is a paid conversation</h2>
+                        <p class="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-[#C4D2E1]">
+                            @activeThread.Title requires a one-time payment of <span class="font-semibold text-slate-900 dark:text-[#E1E8F0]">@activeThread.FeeLinkDrops LinkDrops</span> before you can send messages.
                         </p>
                         <button type="button"
                                 @onclick="OpenUnlockModal"
@@ -143,21 +211,34 @@
             }
             else
             {
-                <ChatMessageList Messages="messages"
+                <ChatMessageList @ref="_messageList" Messages="messages"
                                   IsLoading="isLoadingMessages"
                                   HasError="messagesFailed"
                                   OnRetry="LoadMessagesAsync"
                                   OnReply="msg => activeReplyMessage = msg"
                                   OnDeleteForSelf="DeleteMessageForSelfAsync"
                                   OnDeleteForEveryone="DeleteMessageForEveryoneAsync"
-                                  OnToggleReaction="ToggleMessageReactionAsync" />
+                                  OnToggleReaction="ToggleMessageReactionAsync"
+                                  OnPin="PinMessageAsync"
+                                  OnUnpin="UnpinMessageAsync" />
 
-                <ChatMessageComposer IsSubmitting="isSending"
+                @if (activeThread.IsDirect && activeThread.IsBlockedByMe)
+                {
+                    <div class="border-t border-rose-200 bg-rose-50 px-4 py-4 text-center select-none">
+                        <p class="text-xs font-semibold text-rose-700">
+                            🚫 You have blocked this user. Unblock them to send messages.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <ChatMessageComposer IsSubmitting="isSending"
                                       Placeholder="@ComposerPlaceholder"
                                       ReplyToMessage="activeReplyMessage"
                                       OnSend="SendMessageAsync"
                                       OnCancelReply="() => activeReplyMessage = null"
                                       OnTyping="OnUserTypingAsync" />
+                }
             }
         }
     </div>
@@ -170,10 +251,27 @@
                      Members="groupMembers"
                      IsLoadingMembers="isLoadingMembers"
                      IsSubmitting="isActionSubmitting"
+                     IsMuted="isCurrentGroupMuted"
                      Description="activeThread?.Description"
                      CreatorName="activeThread?.CreatorName"
                      OnClose="() => showInfo = false"
-                     OnLeave="LeaveGroupAsync" />
+                     OnLeave="LeaveGroupAsync"
+                     OnToggleMute="ToggleGroupMuteAsync"
+                    OnPromoteMember="PromoteGroupMemberAsync"
+                    OnDemoteMember="DemoteGroupMemberAsync"
+                    OnRemoveMember="RemoveGroupMemberAsync"
+                    OnBanMember="BanGroupMemberAsync"
+                    OnUpdateMemberPermissions="UpdateGroupMemberPermissionsAsync"
+                     OnAddMembers="AddGroupMemberAsync"
+                     Invitations="groupInvitations"
+                     IsLoadingInvitations="isLoadingInvitations"
+                     OnRevokeInvitation="RevokeGroupInvitationAsync"
+                     OnGroupChanged="ApplyGroupUpdateAsync"
+                     OnGroupImageChanged="ApplyGroupImageAsync"
+                     OnDeleteGroup="DeleteGroupAsync"
+                     OnToggleBlockUser="ToggleBlockUserAsync"
+                     OnDeleteConversation="DeleteConversationAsync"
+                     OnViewInChat="ViewMessageInChatAsync" />
 
 @if (showDiscover)
 {
@@ -216,13 +314,26 @@
     private IReadOnlyList<ChatGroupModel> discoverGroups = Array.Empty<ChatGroupModel>();
     private IReadOnlyList<ChatGroupMemberModel> groupMembers = Array.Empty<ChatGroupMemberModel>();
 
+    // Pending PAID-group invitations the owner/admin can still revoke. Only populated for the
+    // open group; an invite never grants access, so these users are absent from groupMembers.
+    private IReadOnlyList<ChatGroupInviteModel> groupInvitations = Array.Empty<ChatGroupInviteModel>();
+    private bool isLoadingInvitations;
+    private bool isCurrentGroupMuted;
+    // The group's single pinned message, or null. Kept beside the message list rather than derived
+    // from it so the banner still renders when the pin is outside the loaded page of history.
+    private ChatGroupPinnedMessageModel? pinnedMessage;
+
     private ChatThreadViewModel? activeThread;
     private ChatThreadViewModel placeholderThread = new() { Title = "Conversation" };
     private ChatMessageViewModel? activeReplyMessage;
+    private ChatMessageList? _messageList;
 
     private string activeSegment = "all";
     private string? searchText;
     private string? discoverSearch;
+    private IReadOnlyList<UserSearchResultDto> userMatches = Array.Empty<UserSearchResultDto>();
+    private bool isSearchingUsers;
+    private CancellationTokenSource? userSearchCts;
 
     private int currentUserId;
     private bool isPremiumCreator;
@@ -249,6 +360,7 @@
     private string? unlockError;
     private string? _handledRoute;
     private bool _eventsWired;
+    private int? _deletingGroupId;
 
     private string? TypingSenderName => typingSenderName ?? (typingSenderId.HasValue ? "Someone" : null);
 
@@ -261,6 +373,13 @@
         MidpointRounding.AwayFromZero);
 
     private long CreatorEarnings => (activeThread?.FeeLinkDrops ?? 0) - CommissionAmount;
+
+    // Falls back to the group creator so the copy still reads correctly if an invite predates
+    // the InvitedByName field being populated.
+    private string InviterDisplayName =>
+        string.IsNullOrWhiteSpace(activeThread?.InvitedByName)
+            ? activeThread?.CreatorName ?? "The group owner"
+            : activeThread!.InvitedByName!;
 
     private string EmptyTitle => activeSegment switch
     {
@@ -275,6 +394,13 @@
         "group" => "Browse Discover to find groups you can join.",
         _ => "Start a chat from a member's profile, or discover a group."
     };
+
+    // Rebuilt on render, but off a small list, so a HashSet beats a per-row scan.
+    private IReadOnlyCollection<int> DirectThreadUserIds =>
+        allThreads
+            .Where(t => t.IsDirect && t.DirectUserId.HasValue)
+            .Select(t => t.DirectUserId!.Value)
+            .ToHashSet();
 
     private IReadOnlyList<ChatThreadViewModel> VisibleThreads
     {
@@ -321,7 +447,18 @@
         Realtime.TypingChanged += OnTypingChanged;
         Realtime.GroupTypingChanged += OnGroupTypingChanged;
         Realtime.ConversationRead += OnConversationRead;
+        Realtime.MessageDeleted += OnMessageDeleted;
+        Realtime.ReactionUpdated += OnReactionUpdated;
+        Realtime.GroupMembersUpdated += OnGroupMembersUpdated;
+        Realtime.GroupUpdated += OnGroupUpdated;
+        Realtime.GroupImageUpdated += OnGroupImageUpdated;
+        Realtime.GroupDeleted += OnGroupDeleted;
+        Realtime.GroupMemberRemoved += OnGroupMemberRemoved;
+        Realtime.GroupPinnedMessageChanged += OnGroupPinnedMessageChanged;
+        Realtime.GroupPermissionsChanged += OnGroupPermissionsChanged;
         Realtime.StateChanged += OnRealtimeStateChanged;
+        Realtime.UserOnline += OnUserOnline;
+        Realtime.UserOffline += OnUserOffline;
         _eventsWired = true;
 
         await LoadWalletAsync();
@@ -345,9 +482,21 @@
             Realtime.GroupTypingChanged -= OnGroupTypingChanged;
             typingResetTimer?.Dispose();
             Realtime.ConversationRead -= OnConversationRead;
-            Realtime.StateChanged -= OnRealtimeStateChanged;
+            Realtime.MessageDeleted -= OnMessageDeleted;
+            Realtime.ReactionUpdated -= OnReactionUpdated;
+            Realtime.GroupMembersUpdated -= OnGroupMembersUpdated;
+            Realtime.GroupUpdated -= OnGroupUpdated;
+            Realtime.GroupImageUpdated -= OnGroupImageUpdated;
+Realtime.GroupDeleted -= OnGroupDeleted;
+        Realtime.GroupMemberRemoved -= OnGroupMemberRemoved;
+        Realtime.GroupPinnedMessageChanged -= OnGroupPinnedMessageChanged;
+        Realtime.GroupPermissionsChanged -= OnGroupPermissionsChanged;
+        Realtime.StateChanged -= OnRealtimeStateChanged;
+            Realtime.UserOnline -= OnUserOnline;
+            Realtime.UserOffline -= OnUserOffline;
         }
 
+        CancelUserSearch();
         await Realtime.SetSubscribedGroupAsync(null);
         GC.SuppressFinalize(this);
     }
@@ -361,19 +510,23 @@
     {
         isLoadingThreads = true;
         threadsFailed = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
         try
         {
             var conversationsTask = ChatApi.GetConversationsAsync();
             var groupsTask = ChatGroupApi.GetMyMembershipsAsync();
             var previewsTask = ChatGroupApi.GetPreviewsAsync();
+            // Pending PAID-group invites, so an invitee sees the group in the list with the
+            // paywall still applied instead of having to find it through Discover.
+            var invitationsTask = ChatGroupApi.GetMyInvitationsAsync();
 
-            await Task.WhenAll(conversationsTask, groupsTask, previewsTask);
+            await Task.WhenAll(conversationsTask, groupsTask, previewsTask, invitationsTask);
 
             var conversations = await conversationsTask;
             var groups = await groupsTask;
             var previews = await previewsTask;
+            var invitations = await invitationsTask;
 
             var threads = new List<ChatThreadViewModel>();
 
@@ -385,6 +538,20 @@
             if (groups.IsSuccess && groups.Data is not null)
             {
                 threads.AddRange(groups.Data.Select(g => g.ToThread()));
+            }
+
+            if (invitations.IsSuccess && invitations.Data is not null)
+            {
+                // A group can only be in one of the two lists - paying resolves the invite and
+                // creates the membership in the same transaction - but the membership list wins
+                // if a stale invite somehow overlaps, so a paid member is never shown a paywall.
+                var joinedGroupIds = groups.IsSuccess && groups.Data is not null
+                    ? groups.Data.Select(g => g.ChatGroupId).ToHashSet()
+                    : [];
+
+                threads.AddRange(invitations.Data
+                    .Where(i => !joinedGroupIds.Contains(i.ChatGroupId))
+                    .Select(i => i.ToThread()));
             }
 
             if (previews.IsSuccess && previews.Data is not null)
@@ -400,7 +567,12 @@
             }
 
             allThreads.Clear();
-            allThreads.AddRange(SortByActivity(threads));
+            var deduplicatedThreads = threads
+                .GroupBy(t => t.IsGroup ? $"G_{t.Id}" : $"D_{t.DirectUserId}")
+                .Select(g => g.OrderByDescending(t => t.LastActivityAt ?? DateTime.MinValue).First())
+                .ToList();
+
+            allThreads.AddRange(SortByActivity(deduplicatedThreads));
             threadsFailed = false;
         }
         catch
@@ -410,7 +582,7 @@
         finally
         {
             isLoadingThreads = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -491,6 +663,20 @@
                 return;
             }
 
+            if (res.Error != null && res.Error.Contains("banned", StringComparison.OrdinalIgnoreCase))
+            {
+                var bannedThread = new ChatThreadViewModel
+                {
+                    Type = ChatThreadType.Group,
+                    Id = ThreadQuery.Value,
+                    Title = "Chat Group",
+                    IsBanned = true,
+                    IsJoined = false
+                };
+                await ActivateThreadAsync(bannedThread);
+                return;
+            }
+
             Toast.Error("That chat group could not be found.");
         }
         else
@@ -504,7 +690,11 @@
         NavManager.NavigateTo("/chat", replace: true);
     }
 
-    private async Task OpenDirectThreadAsync(int targetUserId)
+    private async Task<ChatThreadViewModel> OpenDirectThreadAsync(
+        int targetUserId,
+        string? displayTitle = null,
+        string? displaySubtitle = null,
+        string? displayAvatarUrl = null)
     {
         var statusRes = await ChatApi.GetPrivateChatStatusAsync(targetUserId);
         var isPaid = statusRes.IsSuccess && statusRes.Data is not null && statusRes.Data.IsPaidChat;
@@ -515,8 +705,9 @@
             Type = ChatThreadType.Private,
             Id = 0,
             DirectUserId = targetUserId,
-            Title = "New conversation",
-            Subtitle = $"User #{targetUserId}",
+            Title = string.IsNullOrWhiteSpace(displayTitle) ? "New conversation" : displayTitle,
+            Subtitle = string.IsNullOrWhiteSpace(displaySubtitle) ? $"User #{targetUserId}" : displaySubtitle,
+            AvatarUrl = displayAvatarUrl,
             RequiresPayment = isPaid,
             FeeLinkDrops = statusRes.Data?.FeeLinkDrops ?? 0,
             IsUnlocked = isUnlocked,
@@ -534,6 +725,7 @@
         }
 
         await ActivateThreadAsync(thread);
+        return thread;
     }
 
     private async Task SelectThreadAsync(ChatThreadViewModel thread) => await ActivateThreadAsync(thread);
@@ -553,20 +745,27 @@
         _handledRoute = thread.RouteSignature;
         NavManager.NavigateTo($"/chat{thread.RouteQuery}", replace: true);
 
-        await Realtime.SetSubscribedGroupAsync(thread.IsGroup ? thread.Id : null);
+        await Realtime.SetSubscribedGroupAsync((thread.IsGroup && thread.IsJoined && !thread.IsBanned) ? thread.Id : null);
 
         if (thread.IsGroup)
         {
-            // Lets the realtime service compute delete permission for live group messages.
-            Realtime.SetSubscribedGroupRole(thread.UserRole);
+            // Lets the realtime service compute permissions for live group messages.
+            Realtime.SetSubscribedGroupPermissions(thread.ViewerPermissions);
             if (thread.IsJoined)
             {
                 await LoadGroupMembersAsync();
+                groupInvitations = Array.Empty<ChatGroupInviteModel>();
                 await LoadMessagesAsync();
                 return;
             }
 
-            // Preview-only: membership is required before the history is readable.
+            // Preview-only: membership is required before the history is readable. The roster
+            // must be cleared too, otherwise the info panel would keep rendering the previous
+            // group's members - LoadGroupMembersAsync only runs for joined groups.
+            groupMembers = Array.Empty<ChatGroupMemberModel>();
+            // An invitee is not a member, so they must not see the group's outstanding
+            // invitations either; that list is owner/admin only.
+            groupInvitations = Array.Empty<ChatGroupInviteModel>();
             messages = Array.Empty<ChatMessageViewModel>();
             messagesFailed = false;
             isLoadingMessages = false;
@@ -629,17 +828,27 @@
 
         isLoadingMessages = true;
         messagesFailed = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
         try
         {
             if (activeThread.IsGroup)
             {
+                // The pin is fetched alongside the history so the banner and the in-list marker
+                // agree. A failure here must not fail the thread: the messages are the primary
+                // content, so an unreachable pin simply renders no banner.
+                var pinnedRes = await ChatGroupApi.GetPinnedMessageAsync(activeThread.Id);
+                pinnedMessage = pinnedRes.IsSuccess ? pinnedRes.Data : null;
+
                 var res = await ChatGroupApi.GetMessagesAsync(activeThread.Id);
                 if (res.IsSuccess && res.Data is not null)
                 {
                     messages = res.Data
-                        .Select(m => m.ToMessage(activeThread.Id, currentUserId, activeThread.UserRole ?? "NONE"))
+                        .Select(m => m.ToMessage(
+                            activeThread.Id,
+                            currentUserId,
+                            activeThread.ViewerPermissions,
+                            pinnedMessage?.ChatGroupMessageId))
                         .ToList();
                 }
                 else
@@ -669,13 +878,16 @@
         finally
         {
             isLoadingMessages = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
     private async Task SendMessageAsync(ChatMessageComposer.SendMessagePayload payload)
     {
-        if (activeThread is null || isSending || string.IsNullOrWhiteSpace(payload.Text))
+        var hasText = !string.IsNullOrWhiteSpace(payload.Text);
+        var hasAttachment = !string.IsNullOrWhiteSpace(payload.AttachmentUrl);
+
+        if (activeThread is null || isSending || (!hasText && !hasAttachment))
         {
             return;
         }
@@ -689,10 +901,18 @@
         {
             if (thread.IsGroup)
             {
-                var res = await ChatGroupApi.SendMessageAsync(thread.Id, new SendChatGroupMessageRequestModel(payload.Text, replyToId));
+                var req = new SendChatGroupMessageRequestModel(
+                    Content: payload.Text,
+                    MessageType: payload.MessageType,
+                    AttachmentUrl: payload.AttachmentUrl,
+                    FileName: payload.FileName,
+                    FileSizeByte: payload.FileSizeByte,
+                    ReplyToChatGroupMessageId: replyToId
+                );
+                var res = await ChatGroupApi.SendMessageAsync(thread.Id, req);
                 if (res.IsSuccess && res.Data is not null)
                 {
-                    AppendMessage(res.Data.ToMessage(thread.Id, currentUserId, thread.UserRole ?? "NONE"));
+                    AppendMessage(res.Data.ToMessage(thread.Id, currentUserId, thread.ViewerPermissions));
                     activeReplyMessage = null;
                 }
                 else
@@ -705,8 +925,8 @@
                 // A 1:1 thread that has no server-side conversation id yet must be
                 // addressed by recipient; the server creates the conversation.
                 var request = thread.Id > 0
-                    ? new SendMessageRequestModel(thread.Id, null, payload.Text, replyToId)
-                    : new SendMessageRequestModel(null, thread.DirectUserId, payload.Text, replyToId);
+                    ? new SendMessageRequestModel(thread.Id, null, payload.Text, payload.MessageType, payload.AttachmentUrl, payload.FileName, payload.FileSizeByte, replyToId)
+                    : new SendMessageRequestModel(null, thread.DirectUserId, payload.Text, payload.MessageType, payload.AttachmentUrl, payload.FileName, payload.FileSizeByte, replyToId);
 
                 var res = await ChatApi.SendMessageAsync(request);
                 if (res.IsSuccess && res.Data is not null)
@@ -773,6 +993,15 @@
         if (res.IsSuccess)
         {
             messages = messages.Where(m => m.Id != msg.Id).ToList();
+
+            // A deleted message cannot stay pinned; the server filters deleted rows out of the
+            // pinned read, so dropping it locally keeps the banner from pointing at a tombstone.
+            if (msg.IsPinned)
+            {
+                pinnedMessage = null;
+                messages = messages.Select(m => m.WithPinnedState(false)).ToList();
+            }
+
             Toast.Success("Message deleted for everyone.");
             StateHasChanged();
         }
@@ -780,6 +1009,63 @@
         {
             Toast.Error(res.Message ?? "Could not delete message for everyone.");
         }
+    }
+
+    private async Task PinMessageAsync(ChatMessageViewModel msg)
+    {
+        if (activeThread is null || !activeThread.IsGroup)
+        {
+            return;
+        }
+
+        var res = await ChatGroupApi.PinMessageAsync(activeThread.Id, msg.Id);
+        if (res.IsSuccess && res.Data is not null)
+        {
+            // Applied locally as well as broadcast: the acting client must not wait on the hub
+            // round trip to see its own change.
+            ApplyPinnedMessage(res.Data);
+            Toast.Success("Message pinned.");
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not pin message.");
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task UnpinMessageAsync()
+    {
+        if (activeThread is null || !activeThread.IsGroup)
+        {
+            return;
+        }
+
+        var res = await ChatGroupApi.UnpinMessageAsync(activeThread.Id);
+        if (res.IsSuccess)
+        {
+            ApplyPinnedMessage(null);
+            Toast.Success("Message unpinned.");
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not unpin message.");
+        }
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Single point that moves the banner and the in-list marker together from the authoritative
+    /// pin, so the two cannot disagree whichever path produced the change.
+    /// </summary>
+    private void ApplyPinnedMessage(ChatGroupPinnedMessageModel? pinned)
+    {
+        pinnedMessage = pinned;
+        var pinnedId = pinned?.ChatGroupMessageId;
+        messages = messages
+            .Select(m => m.WithPinnedState(pinnedId.HasValue && m.Id == pinnedId.Value))
+            .ToList();
     }
 
     private async Task ToggleMessageReactionAsync((ChatMessageViewModel Message, string Emoji) arg)
@@ -867,11 +1153,359 @@
         }
 
         isLoadingMembers = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
         var res = await ChatGroupApi.GetMembersAsync(activeThread.Id);
         groupMembers = res.IsSuccess && res.Data is not null ? res.Data : Array.Empty<ChatGroupMemberModel>();
+
+        var selfMember = groupMembers.FirstOrDefault(m => m.UserId == currentUserId);
+        isCurrentGroupMuted = selfMember?.IsMuted ?? false;
+
+        // The roster is authoritative for the viewer's own powers, and it is the one source that is
+        // correct whether the thread was opened from the list (whose group model carries no
+        // permissions) or from a direct route. The owner's row reports every permission.
+        if (selfMember is not null)
+        {
+            activeThread.ViewerPermissions = selfMember.Permissions;
+            Realtime.SetSubscribedGroupPermissions(selfMember.Permissions);
+        }
+
         isLoadingMembers = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Outstanding PAID-group invitations, for the owner/admin list in the info panel. Cleared
+    /// whenever the open thread stops being a group, so a stale list cannot survive a switch.
+    /// </summary>
+    private async Task LoadGroupInvitationsAsync()
+    {
+        if (activeThread is null || !activeThread.IsGroup)
+        {
+            groupInvitations = Array.Empty<ChatGroupInviteModel>();
+            return;
+        }
+
+        isLoadingInvitations = true;
+        await InvokeAsync(StateHasChanged);
+
+        var res = await ChatGroupApi.GetPendingInvitationsAsync(activeThread.Id);
+        groupInvitations = res.IsSuccess && res.Data is not null ? res.Data : Array.Empty<ChatGroupInviteModel>();
+
+        isLoadingInvitations = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ToggleGroupMuteAsync()
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.ToggleMuteAsync(activeThread.Id);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            isCurrentGroupMuted = !isCurrentGroupMuted;
+            Toast.Success(isCurrentGroupMuted ? "Group notifications muted." : "Group notifications enabled.");
+            await LoadGroupMembersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not toggle mute state.");
+        }
+        StateHasChanged();
+    }
+
+    private async Task PromoteGroupMemberAsync(ChatGroupMemberModel member)
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.PromoteMemberAsync(activeThread.Id, member.UserId);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success($"Promoted {member.DisplayName ?? member.UserName} to Admin.");
+            await LoadGroupMembersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not promote member.");
+        }
+        StateHasChanged();
+    }
+
+    private async Task UpdateGroupMemberPermissionsAsync((ChatGroupMemberModel Member, ChatGroupPermissionSet Permissions) arg)
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.UpdateMemberPermissionsAsync(activeThread.Id, arg.Member.UserId, arg.Permissions);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success($"Updated permissions for {arg.Member.DisplayName ?? arg.Member.UserName}.");
+            await LoadGroupMembersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not update permissions.");
+        }
+        StateHasChanged();
+    }
+
+    private async Task DemoteGroupMemberAsync(ChatGroupMemberModel member)
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.DemoteMemberAsync(activeThread.Id, member.UserId);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success($"Demoted {member.DisplayName ?? member.UserName} to Member.");
+            await LoadGroupMembersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not demote admin.");
+        }
+        StateHasChanged();
+    }
+
+    private async Task RemoveGroupMemberAsync(ChatGroupMemberModel member)
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.RemoveMemberAsync(activeThread.Id, member.UserId);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success($"Removed {member.DisplayName ?? member.UserName} from group.");
+            await LoadGroupMembersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not remove member.");
+        }
+        StateHasChanged();
+    }
+
+    private async Task BanGroupMemberAsync(ChatGroupMemberModel member)
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.BanMemberAsync(activeThread.Id, member.UserId);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success($"Banned {member.DisplayName ?? member.UserName}.");
+            await LoadGroupMembersAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not ban member.");
+        }
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Owner-only direct add. Returns success so the info panel can drop the candidate from
+    /// its search results only when the server actually accepted the add.
+    /// <para>
+    /// In a PAID group the server issues an invite instead of a membership, so the candidate is
+    /// still removable from the search list but is deliberately not added to the member roster -
+    /// it appears in the pending invitations list until they pay.
+    /// </para>
+    /// </summary>
+    private async Task<bool> AddGroupMemberAsync(int userId)
+    {
+        if (activeThread is null || !activeThread.IsGroup) return false;
+
+        var isPaidInvite = activeThread.RequiresPayment && activeThread.FeeLinkDrops > 0;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.AddMembersAsync(activeThread.Id, [userId]);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success(isPaidInvite
+                ? $"Invitation sent. They must unlock the group for {activeThread.FeeLinkDrops} drops to join."
+                : "Member added.");
+
+            if (isPaidInvite)
+            {
+                await LoadGroupInvitationsAsync();
+            }
+            else
+            {
+                await LoadGroupMembersAsync();
+            }
+
+            StateHasChanged();
+            return true;
+        }
+
+        Toast.Error(res.Message ?? "Could not add member.");
+        StateHasChanged();
+        return false;
+    }
+
+    /// <summary>
+    /// Invitee-side decline. The invite is retained as DECLINED server-side, so the group stops
+    /// appearing in the caller's list once the threads are reloaded.
+    /// </summary>
+    private async Task DeclineGroupInviteAsync()
+    {
+        if (activeThread is null || !activeThread.IsGroup || !activeThread.IsInvited) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var thread = activeThread;
+        var res = await ChatGroupApi.DeclineInvitationAsync(thread.Id);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Invitation declined.");
+            showUnlockModal = false;
+            showInfo = false;
+            // The group is gone from this viewer's list, so the open thread is closed out and the
+            // route reset - otherwise the paywall would keep offering a declined invitation.
+            activeThread = null;
+            mobileShowThread = false;
+            messages = Array.Empty<ChatMessageViewModel>();
+            groupMembers = Array.Empty<ChatGroupMemberModel>();
+            groupInvitations = Array.Empty<ChatGroupInviteModel>();
+            await LoadThreadsAsync();
+            NavManager.NavigateTo("/chat", replace: true);
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not decline the invitation.");
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task RevokeGroupInvitationAsync(int targetUserId)
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.RevokeInvitationAsync(activeThread.Id, targetUserId);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("Invitation revoked.");
+            await LoadGroupInvitationsAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not revoke the invitation.");
+        }
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Applies an owner settings change returned by the API. The server also broadcasts the
+    /// same model, but applying it locally keeps the panel responsive for the owner who
+    /// clicked Save instead of waiting for the round trip through SignalR.
+    /// </summary>
+    private Task ApplyGroupUpdateAsync(ChatGroupModel group)
+    {
+        if (activeThread is null || !activeThread.IsGroup || activeThread.Id != group.ChatGroupId)
+        {
+            return Task.CompletedTask;
+        }
+
+        activeThread.Title = group.Name;
+        activeThread.AvatarUrl = group.AvatarUrl;
+        activeThread.Description = group.Description;
+        // Subtitle is the "N members" line, not the description - it is rendered next to the
+        // creator name in the header and info panel, so it has to be recomputed from the count.
+        activeThread.Subtitle = group.MemberCount + (group.MemberCount == 1 ? " member" : " members");
+        activeThread.MemberCount = group.MemberCount;
+        activeThread.FeeLinkDrops = group.JoinFeeLinkDrops;
+        // ChatType, not the fee, is the source of truth for the paid badge: the mapper keys
+        // off ChatType, and a PAID group can legitimately carry a 0 fee.
+        activeThread.RequiresPayment = string.Equals(group.ChatType, "PAID", StringComparison.OrdinalIgnoreCase);
+        activeThread.UserRole = group.UserRole;
+        // UpdateInfoAsync returns a model built for the acting viewer, so its permission set is
+        // authoritative for this client and keeps the panel in step after an owner settings save.
+        activeThread.ViewerPermissions = group.ViewerPermissions;
+        Realtime.SetSubscribedGroupPermissions(group.ViewerPermissions);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task ApplyGroupImageAsync(string? imageUrl)
+    {
+        if (activeThread is not null && activeThread.IsGroup)
+        {
+            activeThread.AvatarUrl = imageUrl;
+            StateHasChanged();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private async Task DeleteGroupAsync()
+    {
+        if (activeThread is null || !activeThread.IsGroup) return;
+
+        // Captured before the thread is cleared, because leaving the room still needs it.
+        var chatGroupId = activeThread.Id;
+        _deletingGroupId = chatGroupId;
+
+        isActionSubmitting = true;
+        StateHasChanged();
+
+        var res = await ChatGroupApi.DeleteChatGroupAsync(chatGroupId);
+        isActionSubmitting = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success("The group was deleted.");
+            showInfo = false;
+            await Realtime.LeaveGroupRoomAsync(chatGroupId);
+            activeThread = null;
+            messages = Array.Empty<ChatMessageViewModel>();
+            groupMembers = Array.Empty<ChatGroupMemberModel>();
+            await LoadThreadsAsync();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Could not delete the group.");
+        }
         StateHasChanged();
     }
 
@@ -1099,7 +1733,106 @@
         await Task.CompletedTask;
     }
 
-    private void SetSearch(string? value) => searchText = value;
+    private async Task SetSearch(string? value)
+    {
+        searchText = value;
+        await ScheduleUserSearchAsync();
+    }
+
+    // ---------- People search ----------
+
+    private const int UserSearchDebounceMs = 300;
+    private const int UserSearchMinTermLength = 2;
+
+    private async Task ScheduleUserSearchAsync()
+    {
+        CancelUserSearch();
+
+        var term = (searchText ?? string.Empty).Trim();
+        if (term.Length < UserSearchMinTermLength)
+        {
+            userMatches = Array.Empty<UserSearchResultDto>();
+            isSearchingUsers = false;
+            return;
+        }
+
+        userSearchCts = new CancellationTokenSource();
+        var token = userSearchCts.Token;
+        isSearchingUsers = true;
+
+        // Render the skeleton before awaiting, otherwise the loading state is never
+        // painted: Blazor only re-renders once this handler finishes.
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            await Task.Delay(UserSearchDebounceMs, token);
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var res = await UserProfileApi.SearchUsersAsync(term, cancellationToken: token);
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            userMatches = res.IsSuccess && res.Data is not null ? res.Data : Array.Empty<UserSearchResultDto>();
+            isSearchingUsers = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (OperationCanceledException)
+        {
+            // A newer keystroke superseded this request; the newer one owns the UI state.
+        }
+    }
+
+    private void CancelUserSearch()
+    {
+        if (userSearchCts is null)
+        {
+            return;
+        }
+
+        try
+        {
+            userSearchCts.Cancel();
+            userSearchCts.Dispose();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Already torn down by a previous keystroke.
+        }
+
+        userSearchCts = null;
+    }
+
+    private async Task StartChatWithUserAsync(UserSearchResultDto user)
+    {
+        CancelUserSearch();
+        searchText = null;
+        userMatches = Array.Empty<UserSearchResultDto>();
+        isSearchingUsers = false;
+
+        var known = allThreads.FirstOrDefault(t => t.IsDirect && t.DirectUserId == user.UserId);
+        if (known is not null)
+        {
+            await SelectThreadAsync(known);
+            return;
+        }
+
+        _handledRoute = null;
+        var thread = await OpenDirectThreadAsync(user.UserId, user.DisplayName, $"@{user.UserName}", user.AvatarUrl);
+
+        // ActivateThreadAsync only promotes a thread that already has a server-side id, so
+        // seed the brand-new 1:1 thread here to keep it visible in the list.
+        if (!allThreads.Any(t => t.IsDirect && t.DirectUserId == thread.DirectUserId))
+        {
+            allThreads.Insert(0, thread);
+        }
+    }
+
 
     private void ToggleInfo()
     {
@@ -1155,6 +1888,112 @@
         allThreads.AddRange(ordered);
     }
 
+    private async Task ToggleBlockUserAsync()
+    {
+        if (activeThread is null || !activeThread.IsDirect || !activeThread.DirectUserId.HasValue) return;
+
+        isActionSubmitting = true;
+        try
+        {
+            var targetUserId = activeThread.DirectUserId.Value;
+            if (activeThread.IsBlockedByMe)
+            {
+                var res = await ChatApi.UnblockUserAsync(targetUserId);
+                if (res.IsSuccess)
+                {
+                    activeThread.IsBlockedByMe = false;
+                    Toast.Success("User unblocked successfully.");
+                }
+                else
+                {
+                    Toast.Error(res.Message ?? "Failed to unblock user.");
+                }
+            }
+            else
+            {
+                var res = await ChatApi.BlockUserAsync(targetUserId);
+                if (res.IsSuccess)
+                {
+                    activeThread.IsBlockedByMe = true;
+                    Toast.Success("User blocked successfully.");
+                }
+                else
+                {
+                    Toast.Error(res.Message ?? "Failed to block user.");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"An error occurred: {ex.Message}");
+        }
+        finally
+        {
+            isActionSubmitting = false;
+            showInfo = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteConversationAsync()
+    {
+        if (activeThread is null || !activeThread.IsDirect) return;
+
+        isActionSubmitting = true;
+        try
+        {
+            if (activeThread.HasConversationId)
+            {
+                var res = await ChatApi.DeleteConversationForSelfAsync(activeThread.Id);
+                if (!res.IsSuccess)
+                {
+                    Toast.Error(res.Message ?? "Failed to delete chat.");
+                    return;
+                }
+            }
+
+            allThreads.RemoveAll(t => t.Type == ChatThreadType.Private && t.Id == activeThread.Id && t.DirectUserId == activeThread.DirectUserId);
+            activeThread = null;
+            messages = Array.Empty<ChatMessageViewModel>();
+            showInfo = false;
+            Toast.Success("Chat deleted.");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"An error occurred: {ex.Message}");
+        }
+        finally
+        {
+            isActionSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ViewMessageInChatAsync(int messageId)
+    {
+        showInfo = false;
+        await Task.Delay(100);
+        try
+        {
+            await JS.InvokeVoidAsync("eval", $@"
+                (function() {{
+                    const el = document.getElementById('msg-{messageId}');
+                    if (el) {{
+                        el.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                        el.classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50', 'rounded-lg');
+                        setTimeout(() => {{
+                            el.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50', 'rounded-lg');
+                        }}, 2500);
+                    }}
+                }})();
+            ");
+        }
+        catch
+        {
+            // Ignore JS scroll errors
+        }
+    }
+
     private async Task OnUserTypingAsync(bool isTyping)
     {
         if (activeThread is null) return;
@@ -1167,6 +2006,32 @@
         {
             await Realtime.SendGroupTypingAsync(activeThread.Id, isTyping);
         }
+    }
+
+    
+    private Task OnUserOnline(int userId)
+    {
+        foreach (var t in allThreads)
+        {
+            if (t.IsDirect && t.DirectUserId == userId)
+            {
+                t.IsOnline = true;
+            }
+        }
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnUserOffline(int userId, DateTime? lastActiveAt)
+    {
+        foreach (var t in allThreads)
+        {
+            if (t.IsDirect && t.DirectUserId == userId)
+            {
+                t.IsOnline = false;
+                t.OtherUserLastActiveAt = lastActiveAt;
+            }
+        }
+        return InvokeAsync(StateHasChanged);
     }
 
     private Task OnTypingChanged(int senderId, bool isTyping)
@@ -1233,5 +2098,159 @@
 
     private Task OnConversationRead(int conversationId) => InvokeAsync(StateHasChanged);
 
+    private Task OnMessageDeleted(int threadId, int messageId)
+    {
+        if (activeThread is not null && activeThread.Id == threadId)
+        {
+            messages = messages.Where(m => m.Id != messageId).ToList();
+        }
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnReactionUpdated(int threadId, int messageId, List<MessageReactionModel> reactions)
+    {
+        if (activeThread is not null && activeThread.Id == threadId)
+        {
+            messages = messages.Select(m => m.Id == messageId ? m.WithReactions(reactions) : m).ToList();
+        }
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnGroupMembersUpdated(int chatGroupId)
+    {
+        if (activeThread is not null && activeThread.IsGroup && activeThread.Id == chatGroupId)
+        {
+            await LoadGroupMembersAsync();
+        }
+    }
+
+    private async Task OnGroupUpdated(ChatGroupModel group)
+    {
+        if (activeThread is not null && activeThread.IsGroup && activeThread.Id == group.ChatGroupId)
+        {
+            // Header, info panel and join button all read from the thread model, so updating
+            // the fields in place keeps them consistent without reloading the whole thread.
+            activeThread.Title = group.Name;
+            activeThread.AvatarUrl = group.AvatarUrl;
+            activeThread.Description = group.Description;
+            // Subtitle is the "N members" line shown next to the creator name, not the
+            // description, so it has to be recomputed from the new count.
+            activeThread.Subtitle = group.MemberCount + (group.MemberCount == 1 ? " member" : " members");
+            activeThread.MemberCount = group.MemberCount;
+            activeThread.FeeLinkDrops = group.JoinFeeLinkDrops;
+            // ChatType drives the paid badge, matching the mapper: a PAID group can carry a
+            // 0 fee, so the fee alone would flip the badge the wrong way.
+            activeThread.RequiresPayment = string.Equals(group.ChatType, "PAID", StringComparison.OrdinalIgnoreCase);
+            // IsJoined and UserRole are deliberately NOT applied here. The server builds the
+            // broadcast payload with the *acting* user's view (the owner, who just saved), and
+            // fans it out to every client. Applying it would tell a non-member they are joined
+            // as OWNER. Membership is per-viewer and stays authoritative from REST and the
+            // targeted removal event.
+            await InvokeAsync(StateHasChanged);
+        }
+
+        await LoadThreadsAsync();
+    }
+
+    private Task OnGroupImageUpdated(int chatGroupId, string imageUrl)
+    {
+        if (activeThread is not null && activeThread.IsGroup && activeThread.Id == chatGroupId)
+        {
+            activeThread.AvatarUrl = imageUrl;
+        }
+
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnGroupDeleted(int chatGroupId)
+    {
+        // Close the thread rather than leaving a dead conversation: the group is gone, so
+        // history, composer and member panel are all unreachable.
+        if (activeThread is not null && activeThread.IsGroup && activeThread.Id == chatGroupId)
+        {
+            activeThread = null;
+            messages = Array.Empty<ChatMessageViewModel>();
+            groupMembers = Array.Empty<ChatGroupMemberModel>();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        await LoadThreadsAsync();
+        Toast.Info("This Chat Group was deleted by its owner.");
+    }
+
+    private async Task OnGroupMemberRemoved(int chatGroupId, int userId)
+    {
+        if (activeThread is not null && activeThread.IsGroup && activeThread.Id == chatGroupId)
+        {
+            // Only the affected client leaves: everyone else just refreshes the roster.
+            if (userId == currentUserId)
+            {
+                activeThread.IsJoined = false;
+                activeThread.UserRole = "NONE";
+                activeThread.ViewerPermissions = null;
+                groupMembers = Array.Empty<ChatGroupMemberModel>();
+                messages = Array.Empty<ChatMessageViewModel>();
+                pinnedMessage = null;
+                await Realtime.LeaveGroupRoomAsync(chatGroupId);
+                Toast.Info("You were removed from this Chat Group.");
+            }
+            else
+            {
+                await LoadGroupMembersAsync();
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+
+        await LoadThreadsAsync();
+    }
+
+    private Task OnGroupPinnedMessageChanged(int chatGroupId, ChatGroupPinnedMessageModel? pinned)
+    {
+        if (activeThread is not null && activeThread.IsGroup && activeThread.Id == chatGroupId)
+        {
+            ApplyPinnedMessage(pinned);
+        }
+
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnGroupPermissionsChanged(int chatGroupId, int userId, ChatGroupPermissionSet permissions)
+    {
+        if (activeThread is null || !activeThread.IsGroup || activeThread.Id != chatGroupId)
+        {
+            return;
+        }
+
+        if (userId == currentUserId)
+        {
+            // This client's own powers changed. Rewire the thread model and the realtime mapper so
+            // the controls appear or disappear immediately instead of after a reload.
+            activeThread.ViewerPermissions = permissions;
+            Realtime.SetSubscribedGroupPermissions(permissions);
+
+            // Re-derive the per-message flags, which are computed at map time from the old set.
+            var pinnedId = pinnedMessage?.ChatGroupMessageId;
+            messages = messages
+                .Select(m => m.WithViewerPermissions(permissions, currentUserId, pinnedId))
+                .ToList();
+
+            await InvokeAsync(StateHasChanged);
+        }
+
+        // The roster carries each admin's set for the owner's editor, so it refreshes for everyone.
+        await LoadGroupMembersAsync();
+    }
+
+    private async Task SelectPinnedMessageAsync(int messageId)
+    {
+        if (_messageList is not null)
+        {
+            await _messageList.ScrollToAndHighlightMessageAsync(messageId);
+        }
+    }
+
     private void OnRealtimeStateChanged() => InvokeAsync(StateHasChanged);
 }
+
+

@@ -52,22 +52,9 @@
                 }
                 <img src="@heroPhoto" alt="@group.Name" class="w-full h-full object-cover" />
                 <div class="absolute inset-0 bg-gradient-to-t from-[#0A1B2E] via-[#0A1B2E]/60 to-transparent"></div>
-
-                <div class="absolute -bottom-6 left-6">
-                    @if (!string.IsNullOrEmpty(group.AvatarUrl) && group.AvatarUrl != group.BannerUrl)
-                    {
-                        <img src="@group.AvatarUrl" alt="@group.Name" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-4 border-white dark:border-[#112A46] shadow-lg bg-[#F1F5F9] dark:bg-[#1B3B5A]" />
-                    }
-                    else
-                    {
-                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#0A1B2E] border-4 border-white dark:border-[#112A46] shadow-lg flex items-center justify-center font-bold text-[#D4AF37] text-2xl font-mono">
-                            @(string.IsNullOrWhiteSpace(group.Name) ? "G" : group.Name.Substring(0, 1).ToUpper())
-                        </div>
-                    }
-                </div>
             </div>
 
-            <div class="p-6 pt-8 space-y-4">
+            <div class="p-6 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div>
                         <div class="flex items-center gap-2.5 flex-wrap">
@@ -297,7 +284,7 @@
                     <div class="space-y-6">
                         @foreach (var post in posts)
                         {
-                            <div id="post-@post.PostId" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
+                            <div id="post-@post.PostId" class="bg-white dark:bg-[#112A46] rounded-2xl shadow-sm border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden transition hover:shadow-md">
                                 <!-- Post Author Header -->
                                 <div class="p-4 sm:p-5 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                     <div class="flex items-center gap-3">
@@ -333,13 +320,13 @@
                                                     </span>
                                                 }
                                             </div>
-                                            <span class="text-[11px] text-[#7A8CA6] font-mono">@post.CreatedAt.ToLocalTime().ToString("g")</span>
+                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@post.CreatedAt.ToLocalTime().ToString("g")</span>
                                         </div>
                                     </div>
 
                                     <div class="relative">
                                         <button type="button" @onclick="() => TogglePostMenu(post.PostId)"
-                                                class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer" title="Options">
+                                                class="p-1.5 text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition cursor-pointer" title="Options">
                                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                 <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                                             </svg>
@@ -347,10 +334,10 @@
 
                                         @if (activeMenuPostId == post.PostId)
                                         {
-                                            <div class="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+                                            <div class="absolute right-0 mt-1 w-44 bg-white dark:bg-[#112A46] rounded-xl shadow-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
                                                 <!-- Save Button (For all users) -->
                                                 <button type="button" @onclick="() => ToggleSavePost(post.PostId)"
-                                                        class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
+                                                        class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                                                     <span>@(post.IsSavedByCurrentUser ? "Unsave Post" : "Save Post")</span>
                                                 </button>
@@ -359,13 +346,13 @@
                                                 @if (currentUserId.HasValue && post.AuthorId == currentUserId.Value)
                                                 {
                                                     <button type="button" @onclick="() => OpenEditPost(post)"
-                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
+                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                         <span>Edit Description</span>
                                                     </button>
-                                                    <div class="border-t border-slate-100 my-1"></div>
+                                                    <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] my-1"></div>
                                                     <button type="button" @onclick="() => ConfirmDeletePost(post.PostId)"
-                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
+                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 transition cursor-pointer">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                         <span>Delete Post</span>
                                                     </button>
@@ -552,26 +539,33 @@
                     <div class="space-y-6">
                         @foreach (var poll in polls)
                         {
-                            <div id="poll-@poll.PollId" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
+                            <div id="poll-@poll.PollId" class="bg-white dark:bg-[#112A46] rounded-2xl shadow-sm border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden transition hover:shadow-md">
                                 <!-- Poll Author Info -->
                                 <div class="p-4 sm:p-5 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
                                     <div class="flex items-center gap-3">
-                                        <a href="u/@poll.AuthorName" class="shrink-0 hover:opacity-80 transition">
-                                            <div class="w-10 h-10 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center font-bold text-sm">
-                                                @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName.Substring(0, 1).ToUpper())
-                                            </div>
+                                        <a href="u/@(poll.AuthorId > 0 ? poll.AuthorId.ToString() : poll.AuthorName)" class="shrink-0 hover:opacity-80 transition">
+                                            @if (!string.IsNullOrEmpty(poll.AuthorAvatar))
+                                            {
+                                                <img src="@poll.AuthorAvatar" alt="@poll.AuthorName" class="w-10 h-10 rounded-full object-cover border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]" />
+                                            }
+                                            else
+                                            {
+                                                <div class="w-10 h-10 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center font-bold text-sm">
+                                                    @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName.Substring(0, 1).ToUpper())
+                                                </div>
+                                            }
                                         </a>
                                         <div>
-                                            <a href="u/@poll.AuthorName" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition block leading-tight">
+                                            <a href="u/@(poll.AuthorId > 0 ? poll.AuthorId.ToString() : poll.AuthorName)" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition block leading-tight" style="font-family:'Manrope',sans-serif">
                                                 @poll.AuthorName
                                             </a>
-                                            <span class="text-[11px] text-[#557392] dark:text-[#7A8CA6]">@poll.CreatedAt.ToLocalTime().ToString("g")</span>
+                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@poll.CreatedAt.ToLocalTime().ToString("g")</span>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         @if (poll.ExpiresAt.HasValue)
                                         {
-                                            <span class="text-xs px-2.5 py-1 rounded-full @(poll.IsExpired ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-emerald-50 text-emerald-700 border border-emerald-100")">
+                                            <span class="text-xs px-2.5 py-1 rounded-full @(poll.IsExpired ? "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50" : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/50")">
                                                 @(poll.IsExpired ? "Closed" : $"Ends {poll.ExpiresAt.Value.ToLocalTime():g}")
                                             </span>
                                         }
@@ -579,7 +573,7 @@
                                         <!-- Three-Dots Action Menu for Poll -->
                                         <div class="relative">
                                             <button type="button" @onclick="() => TogglePollMenu(poll.PollId)"
-                                                    class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer" title="Options">
+                                                    class="p-1.5 text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition cursor-pointer" title="Options">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                                                 </svg>
@@ -587,10 +581,10 @@
 
                                             @if (activeMenuPollId == poll.PollId)
                                             {
-                                                <div class="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+                                                <div class="absolute right-0 mt-1 w-44 bg-white dark:bg-[#112A46] rounded-xl shadow-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
                                                     <!-- Save Button (All users) -->
                                                     <button type="button" @onclick="() => ToggleSavePoll(poll.PostId)"
-                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
+                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                                                         <span>Save Poll</span>
                                                     </button>
@@ -599,11 +593,11 @@
                                                     @if (currentUserId.HasValue && poll.AuthorId == currentUserId.Value)
                                                     {
                                                         <button type="button" @onclick="() => OpenEditPoll(poll)"
-                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
+                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                             <span>Edit Poll</span>
                                                         </button>
-                                                        <div class="border-t border-slate-100 my-1"></div>
+                                                        <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] my-1"></div>
                                                         <button type="button" @onclick="() => DeletePoll(poll.PollId)"
                                                                 class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>

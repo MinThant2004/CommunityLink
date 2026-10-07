@@ -13,7 +13,7 @@
          role="presentation">
         <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @onclick="OnClose"></div>
 
-        <div class="@PanelClass relative flex w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white"
+        <div class="@PanelClass relative flex w-full flex-col overflow-hidden rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46]"
              role="dialog"
              aria-modal="true"
              aria-label="@Title"
@@ -21,12 +21,12 @@
              @ref="_panel"
              @onkeydown="HandleKeyDown"
              @onkeydown:stopPropagation="true">
-            <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3">
-                <h2 class="text-sm font-semibold text-slate-900">@Title</h2>
+            <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-slate-50 dark:bg-[#0A1B2E] px-4 py-3">
+                <h2 class="text-sm font-semibold text-slate-900 dark:text-[#E1E8F0]">@Title</h2>
                 <button type="button"
                         @onclick="OnClose"
                         aria-label="Close dialog"
-                        class="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-200 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        class="rounded-lg p-1.5 text-slate-500 dark:text-[#C4D2E1] transition hover:bg-slate-200 dark:hover:bg-[#1B3B5A] hover:text-slate-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                     </svg>
@@ -39,7 +39,7 @@
 
             @if (FooterContent is not null)
             {
-                <div class="flex shrink-0 items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-4 py-3">
+                <div class="flex shrink-0 items-center justify-end gap-2 border-t border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-slate-50 dark:bg-[#0A1B2E] px-4 py-3">
                     @FooterContent
                 </div>
             }
@@ -51,26 +51,36 @@
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public string Title { get; set; } = string.Empty;
     [Parameter] public string MaxWidth { get; set; } = "max-w-lg";
+    [Parameter] public string MaxHeight { get; set; } = "max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)]";
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public RenderFragment? FooterContent { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
     private ElementReference _panel;
+    private bool _wasOpen;
+    private bool _focusPending;
 
-    private string PanelClass => $"{MaxWidth}";
+    private string PanelClass => $"{MaxWidth} {MaxHeight}";
+
+    // Focus moves into the panel only on the closed -> open transition. Re-focusing on every
+    // parameter set would steal focus from controls inside the panel: the panel content
+    // re-renders on every keystroke (e.g. the add-member search), so the user could only ever
+    // type a single character before focus was pulled back to the dialog shell.
+    protected override void OnParametersSet()
+    {
+        if (IsOpen && !_wasOpen)
+        {
+            _focusPending = true;
+        }
+
+        _wasOpen = IsOpen;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && IsOpen)
+        if (_focusPending)
         {
-            await FocusPanelAsync();
-        }
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if (IsOpen)
-        {
+            _focusPending = false;
             await FocusPanelAsync();
         }
     }
@@ -79,11 +89,13 @@
     {
         try
         {
-            await _panel.FocusAsync();
+            // focusDialog skips the call when focus already sits inside the panel, so a
+            // re-render triggered by typing never blurs the field the user is editing.
+            await JS.InvokeVoidAsync("communityLinkChat.focusDialog", _panel);
         }
         catch
         {
-            // Element may not be rendered yet; focus will be applied on the next render.
+            // Focus management is an enhancement; the dialog still traps via aria-modal.
         }
     }
 

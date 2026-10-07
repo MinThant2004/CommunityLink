@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CommunityLink.Domain.Features.Premium;
+using CommunityLink.Domain.Services;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Premium;
 using CommunityLink.Shared.Security;
@@ -18,6 +19,7 @@ namespace CommunityLink.Api.Controllers;
 [Route("api/premium")]
 public class PremiumUpgradeController(
     IIdentityVerificationService verificationService,
+    IPublicUrlBuilder publicUrlBuilder,
     IWebHostEnvironment env) : ControllerBase
 {
     private int? CurrentUserId
@@ -78,7 +80,7 @@ public class PremiumUpgradeController(
         {
             await idCardFront.CopyToAsync(stream, cancellationToken);
         }
-        var frontUrl = $"/uploads/identities/{frontFileName}";
+        var frontUrl = publicUrlBuilder.Build($"/uploads/identities/{frontFileName}");
 
         string? backUrl = null;
         if (idCardBack != null && idCardBack.Length > 0)
@@ -90,7 +92,7 @@ public class PremiumUpgradeController(
             {
                 await idCardBack.CopyToAsync(stream, cancellationToken);
             }
-            backUrl = $"/uploads/identities/{backFileName}";
+            backUrl = publicUrlBuilder.Build($"/uploads/identities/{backFileName}");
         }
 
         var dto = new SubmitIdentityVerificationRequestDto(

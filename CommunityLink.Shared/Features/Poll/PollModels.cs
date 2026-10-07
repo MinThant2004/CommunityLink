@@ -24,7 +24,8 @@ public sealed record PollModel(
     int CommentCount,
     int ShareCount,
     bool IsLikedByCurrentUser,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string? AuthorUserName = null);
 
 public sealed record CreatePollRequestModel(
     int? CommunityId,

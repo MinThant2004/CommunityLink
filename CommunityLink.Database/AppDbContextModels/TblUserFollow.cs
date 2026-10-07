@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -23,7 +23,7 @@ public partial class TblUserFollow
 
     public byte[] RowVersion { get; set; } = null!;
 
-    public virtual TblUser Follower { get; set; } = null!;
-
     public virtual TblUser Followee { get; set; } = null!;
+
+    public virtual TblUser Follower { get; set; } = null!;
 }

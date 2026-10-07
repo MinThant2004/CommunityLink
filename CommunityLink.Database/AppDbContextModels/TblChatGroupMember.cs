@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -30,6 +30,8 @@ public partial class TblChatGroupMember
     public int? DeletedBy { get; set; }
 
     public byte[] RowVersion { get; set; } = null!;
+
+    public bool IsMuted { get; set; }
 
     public virtual TblChatGroup ChatGroup { get; set; } = null!;
 

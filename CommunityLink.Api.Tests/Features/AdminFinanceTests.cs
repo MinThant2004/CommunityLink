@@ -288,7 +288,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
             {
                 CreatorUserId = creatorId,
                 AmountLinkDrops = 100,
-                AmountMMK = 10000,
+                AmountMmk = 10000,
                 PaymentMethod = "KBZPay",
                 PaymentAccountName = "U Mg Mg",
                 PaymentAccountNumber = "09123456789",
@@ -302,7 +302,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
             {
                 CreatorUserId = creatorId,
                 AmountLinkDrops = 200,
-                AmountMMK = 20000,
+                AmountMmk = 20000,
                 PaymentMethod = "KBZPay",
                 PaymentAccountName = "U Mg Mg",
                 PaymentAccountNumber = "09123456789",
@@ -348,7 +348,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
             {
                 CreatorUserId = creatorId,
                 AmountLinkDrops = 500,
-                AmountMMK = 50000,
+                AmountMmk = 50000,
                 PaymentMethod = "KBZPay",
                 PaymentAccountName = "U Mg Mg",
                 PaymentAccountNumber = "09123456789",
@@ -479,7 +479,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
             {
                 CreatorUserId = creatorId,
                 AmountLinkDrops = 150,
-                AmountMMK = 15000,
+                AmountMmk = 15000,
                 PaymentMethod = "KBZPay",
                 PaymentAccountName = "SECRET_ACCOUNT_NAME_999",
                 PaymentAccountNumber = "09999999999",
@@ -518,7 +518,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
                 {
                     CreatorUserId = creatorId,
                     AmountLinkDrops = 10 * i,
-                    AmountMMK = 1000 * i,
+                    AmountMmk = 1000 * i,
                     PaymentMethod = "KBZPay",
                     PaymentAccountName = "Account " + i,
                     PaymentAccountNumber = "0900000000" + i,
@@ -742,7 +742,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
             {
                 CreatorUserId = creatorId,
                 AmountLinkDrops = 777,
-                AmountMMK = 77700,
+                AmountMmk = 77700,
                 PaymentMethod = "KBZPay",
                 PaymentAccountName = "CONFIDENTIAL_PAYEE_NAME_888",
                 PaymentAccountNumber = "09888888888",
@@ -859,7 +859,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
             {
                 CreatorUserId = creatorId,
                 AmountLinkDrops = 400,
-                AmountMMK = 40000,
+                AmountMmk = 40000,
                 PaymentMethod = "KBZPay",
                 PaymentAccountName = "Creator Account",
                 PaymentAccountNumber = "09111222333",
@@ -929,7 +929,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
             {
                 CreatorUserId = creatorId,
                 AmountLinkDrops = 500,
-                AmountMMK = 50000,
+                AmountMmk = 50000,
                 PaymentMethod = "KBZPay",
                 PaymentAccountName = "Pending Test",
                 PaymentAccountNumber = "09444555666",
@@ -968,7 +968,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
             {
                 CreatorUserId = creatorId,
                 AmountLinkDrops = 300,
-                AmountMMK = 30000,
+                AmountMmk = 30000,
                 PaymentMethod = "KBZPay",
                 PaymentAccountName = "Reject Test",
                 PaymentAccountNumber = "09777888999",
@@ -1019,7 +1019,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
             {
                 CreatorUserId = creatorId,
                 AmountLinkDrops = 1000,
-                AmountMMK = 100000,
+                AmountMmk = 100000,
                 PaymentMethod = "KBZPay",
                 PaymentAccountName = "Deduction Test",
                 PaymentAccountNumber = "09123123123",
@@ -1070,7 +1070,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
             {
                 CreatorUserId = creatorId,
                 AmountLinkDrops = 800,
-                AmountMMK = 80000,
+                AmountMmk = 80000,
                 PaymentMethod = "KBZPay",
                 PaymentAccountName = "Ledger Test",
                 PaymentAccountNumber = "09444333222",
@@ -1121,7 +1121,7 @@ public class AdminFinanceTests : IClassFixture<CommunityApiFactory>
             {
                 CreatorUserId = creatorId,
                 AmountLinkDrops = 600,
-                AmountMMK = 60000,
+                AmountMmk = 60000,
                 PaymentMethod = "KBZPay",
                 PaymentAccountName = "Dup Test",
                 PaymentAccountNumber = "09555666777",

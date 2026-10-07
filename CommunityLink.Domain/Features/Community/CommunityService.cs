@@ -2,6 +2,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Security;
+using CommunityLink.Domain.Services;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Community;
 
@@ -18,6 +19,7 @@ public interface ICommunityService
     Task<Result<CommunityModel>> UpdateCommunityAsync(int communityId, EditCommunityRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityAuditModel>>> GetCommunityAuditsAsync(int communityId, CancellationToken cancellationToken = default);
     Task<Result> JoinCommunityAsync(int communityId, CancellationToken cancellationToken = default);
+    Task<Result> LeaveCommunityAsync(int communityId, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityModel>>> GetJoinedCommunitiesAsync(int userId, int take = 10, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityModel>>> GetRecommendedCommunitiesAsync(int userId, int take = 6, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityModel>>> GetCommunityDirectoryAsync(CancellationToken cancellationToken = default);
@@ -27,7 +29,8 @@ public interface ICommunityService
 public sealed class CommunityService(
     AppDbContext dbContext,
     ICurrentUserContext currentUser,
-    IPermissionEvaluator permissionEvaluator) : ICommunityService
+    IPermissionEvaluator permissionEvaluator,
+    IPublicUrlBuilder publicUrlBuilder) : ICommunityService
 {
     public async Task<Result<IReadOnlyList<CommunityModel>>> GetCommunitiesAsync(string? search, CancellationToken cancellationToken = default)
     {
@@ -312,7 +315,7 @@ public sealed class CommunityService(
             await fileStream.CopyToAsync(destStream, cancellationToken);
         }
 
-        var bannerUrl = $"/uploads/communities/banners/{uniqueFileName}";
+        var bannerUrl = publicUrlBuilder.Build($"/uploads/communities/banners/{uniqueFileName}");
         return Result<string>.Success(bannerUrl, "Banner uploaded successfully.");
     }
 
@@ -449,6 +452,32 @@ public sealed class CommunityService(
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success("Joined community successfully.");
+    }
+
+    public async Task<Result> LeaveCommunityAsync(int communityId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
+
+        var existing = await dbContext.TblCommunityMembers
+            .FirstOrDefaultAsync(m => m.CommunityId == communityId && m.UserId == currentUser.UserId.Value && !m.IsDeleted, cancellationToken);
+
+        if (existing is null)
+        {
+            return Result.Failure("You are not a member of this community.", ResultStatus.NotFound);
+        }
+
+        existing.IsDeleted = true;
+        existing.DeletedAt = DateTime.UtcNow;
+        existing.DeletedBy = currentUser.UserId.Value;
+
+        var community = await dbContext.TblCommunities.FindAsync([communityId], cancellationToken);
+        if (community is not null && community.MemberCount > 0)
+        {
+            community.MemberCount = Math.Max(0, community.MemberCount - 1);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success("Left community successfully.");
     }
 
     public async Task<Result<CommunityModel>> UpdateCommunityAsync(int communityId, EditCommunityRequestModel request, CancellationToken cancellationToken = default)
@@ -598,6 +627,7 @@ public sealed class CommunityService(
     public async Task<Result<IReadOnlyList<CommunityModel>>> GetJoinedCommunitiesAsync(int userId, int take = 10, CancellationToken cancellationToken = default)
     {
         var joinedCommunityIds = await dbContext.TblCommunityMembers
+            .AsNoTracking()
             .Where(m => m.UserId == userId && !m.IsDeleted)
             .Select(m => m.CommunityId)
             .ToListAsync(cancellationToken);
@@ -605,6 +635,7 @@ public sealed class CommunityService(
         if (!joinedCommunityIds.Any()) return Result<IReadOnlyList<CommunityModel>>.Success([]);
 
         var list = await dbContext.TblCommunities
+            .AsNoTracking()
             .Where(c => joinedCommunityIds.Contains(c.CommunityId) && !c.IsDeleted)
             .Take(take)
             .Select(c => new CommunityModel(
@@ -616,9 +647,9 @@ public sealed class CommunityService(
                 c.BannerUrl,
                 c.Visibility,
                 c.JoinPolicy,
-                c.TblCommunityMembers.Count(m => !m.IsDeleted),
-                c.TblPosts.Count(p => !p.IsDeleted),
-                c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
+                c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                c.PostCount > 0 ? c.PostCount : c.TblPosts.Count(p => !p.IsDeleted),
+                c.AverageRating.HasValue ? (double)c.AverageRating.Value : (c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0),
                 c.OwnerId,
                 c.Owner != null ? c.Owner.DisplayName : "Admin",
                 c.CreatedAt,
@@ -633,13 +664,15 @@ public sealed class CommunityService(
     public async Task<Result<IReadOnlyList<CommunityModel>>> GetRecommendedCommunitiesAsync(int userId, int take = 6, CancellationToken cancellationToken = default)
     {
         var joinedCommunityIds = await dbContext.TblCommunityMembers
+            .AsNoTracking()
             .Where(m => m.UserId == userId && !m.IsDeleted)
             .Select(m => m.CommunityId)
             .ToListAsync(cancellationToken);
 
         var list = await dbContext.TblCommunities
+            .AsNoTracking()
             .Where(c => !joinedCommunityIds.Contains(c.CommunityId) && c.Visibility == "PUBLIC" && !c.IsDeleted)
-            .OrderByDescending(c => c.TblCommunityMembers.Count(m => !m.IsDeleted))
+            .OrderByDescending(c => c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted))
             .Take(take)
             .Select(c => new CommunityModel(
                 c.CommunityId,
@@ -650,9 +683,9 @@ public sealed class CommunityService(
                 c.BannerUrl,
                 c.Visibility,
                 c.JoinPolicy,
-                c.TblCommunityMembers.Count(m => !m.IsDeleted),
-                c.TblPosts.Count(p => !p.IsDeleted),
-                c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
+                c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                c.PostCount > 0 ? c.PostCount : c.TblPosts.Count(p => !p.IsDeleted),
+                c.AverageRating.HasValue ? (double)c.AverageRating.Value : (c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0),
                 c.OwnerId,
                 c.Owner != null ? c.Owner.DisplayName : "Admin",
                 c.CreatedAt,
@@ -687,9 +720,9 @@ public sealed class CommunityService(
                 c.BannerUrl,
                 c.Visibility,
                 c.JoinPolicy,
-                MemberCount = c.TblCommunityMembers.Count(m => !m.IsDeleted),
-                PostCount = c.TblPosts.Count(p => !p.IsDeleted),
-                AverageRating = c.TblCommunityRatings.Any() ? (double)c.TblCommunityRatings.Average(r => r.Score) : 5.0,
+                MemberCount = c.MemberCount > 0 ? c.MemberCount : c.TblCommunityMembers.Count(m => !m.IsDeleted),
+                PostCount = c.PostCount > 0 ? c.PostCount : c.TblPosts.Count(p => !p.IsDeleted),
+                AverageRating = (double)(c.AverageRating ?? 5.0m),
                 c.OwnerId,
                 OwnerName = c.Owner != null ? c.Owner.DisplayName : "Admin",
                 c.CreatedAt,

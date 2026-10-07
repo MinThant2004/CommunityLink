@@ -197,9 +197,15 @@ public sealed class PrivateChatPaymentService(
 
         if (userId == creatorUserId) return true;
 
+        // Unlocked if:
+        // 1. Current user paid this creator for this conversation (or generally between the two users)
+        // 2. The other user paid this current user to start/unlock the conversation (replying back is free!)
         return await dbContext.TblPrivateChatPaymentTransactions
             .AsNoTracking()
-            .AnyAsync(t => t.ConversationId == conversationId && t.BuyerUserId == userId && t.Status == "COMPLETED", cancellationToken);
+            .AnyAsync(t => (t.ConversationId == conversationId ||
+                           (t.BuyerUserId == userId && t.CreatorUserId == creatorUserId) ||
+                           (t.BuyerUserId == creatorUserId && t.CreatorUserId == userId)) &&
+                           t.Status == "COMPLETED", cancellationToken);
     }
 
     public async Task<bool> IsPrivateChatPaidRequiredAsync(int creatorUserId, CancellationToken cancellationToken = default)
@@ -226,10 +232,14 @@ public sealed class PrivateChatPaymentService(
             return new PrivateChatStatusModel(creatorUserId, false, true, 0);
         }
 
+        // Check if either:
+        // 1. Viewer paid the creator to unlock
+        // 2. Or the creator already paid the viewer to initiate the chat (meaning viewer is replying back, so it's unlocked for viewer!)
+        // 3. Or a completed transaction exists for their conversation
         var unlocked = await dbContext.TblPrivateChatPaymentTransactions
             .AsNoTracking()
-            .AnyAsync(t => t.BuyerUserId == viewerUserId &&
-                           t.CreatorUserId == creatorUserId &&
+            .AnyAsync(t => ((t.BuyerUserId == viewerUserId && t.CreatorUserId == creatorUserId) ||
+                            (t.BuyerUserId == creatorUserId && t.CreatorUserId == viewerUserId)) &&
                            t.Status == "COMPLETED",
                 cancellationToken);
 

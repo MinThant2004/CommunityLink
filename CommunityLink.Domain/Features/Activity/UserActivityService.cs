@@ -28,7 +28,7 @@ public sealed class UserActivityService(
             .AsNoTracking()
             .Where(a => a.UserId == userId && !a.IsDeleted)
             .OrderByDescending(a => a.CreatedAt)
-            .Take(150)
+            .Take(500)
             .Select(a => new UserActivityModel(
                 a.ActivityId,
                 a.UserId,

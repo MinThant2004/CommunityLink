@@ -12,7 +12,7 @@ public class LinkDropPackageDto
     public long BonusAmount { get; set; }
     public long TotalGrantedDrops => LinkDropAmount + BonusAmount;
     public decimal RealMoneyAmount { get; set; }
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = "MMK";
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; }
 }
@@ -39,6 +39,7 @@ public class CreatePurchaseRequestDto
     public string TransactionReferenceNo { get; set; } = null!;
     public string? UserNotes { get; set; }
     public string? ProofFileUrl { get; set; }
+    public string Currency { get; set; } = "MMK";
 }
 
 public class PurchaseResponseDto
@@ -55,7 +56,7 @@ public class PurchaseResponseDto
     public string? SnapshotPackageName { get; set; }
     public decimal SnapshotRealMoneyAmount { get; set; }
     public long SnapshotLinkDropAmount { get; set; }
-    public string SnapshotCurrency { get; set; } = "USD";
+    public string SnapshotCurrency { get; set; } = "MMK";
     public decimal? SnapshotConversionRate { get; set; }
     public string TransactionReferenceNo { get; set; } = null!;
     public string? UserNotes { get; set; }
@@ -129,7 +130,7 @@ public class CreatePackageRequestDto
     public long LinkDropAmount { get; set; }
     public long BonusAmount { get; set; }
     public decimal RealMoneyAmount { get; set; }
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = "MMK";
     public int DisplayOrder { get; set; }
 }
 
@@ -140,7 +141,7 @@ public class UpdatePackageRequestDto
     public long LinkDropAmount { get; set; }
     public long BonusAmount { get; set; }
     public decimal RealMoneyAmount { get; set; }
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = "MMK";
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; }
 }
@@ -164,4 +165,20 @@ public class UpdatePaymentMethodRequestDto
     public string? Instructions { get; set; }
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; }
+}
+
+public class LinkDropExchangeRateSettingDto
+{
+    public decimal MmkPerLinkDrop { get; set; } = 1.00m;
+    public decimal UsdPerLinkDrop { get; set; } = 0.0003m;
+    public decimal CnyPerLinkDrop { get; set; } = 0.0025m;
+    public DateTime? UpdatedAt { get; set; }
+    public int? UpdatedBy { get; set; }
+}
+
+public class UpdateExchangeRateSettingRequestDto
+{
+    public decimal MmkPerLinkDrop { get; set; }
+    public decimal? UsdPerLinkDrop { get; set; }
+    public decimal? CnyPerLinkDrop { get; set; }
 }

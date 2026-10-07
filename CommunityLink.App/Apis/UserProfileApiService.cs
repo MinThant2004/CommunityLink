@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -19,6 +20,9 @@ public sealed class UserProfileApiService(IHttpClientFactory clientFactory, IHtt
 
     public Task<Result<UserProfileDto>> GetPublicProfileAsync(string userNameOrId, CancellationToken cancellationToken = default) =>
         GetAsync<UserProfileDto>($"api/users/{userNameOrId}", cancellationToken);
+
+    public Task<Result<IReadOnlyList<UserSearchResultDto>>> SearchUsersAsync(string? search, int limit = 10, CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<UserSearchResultDto>>($"api/users/search?search={Uri.EscapeDataString((search ?? string.Empty).Trim())}&limit={limit}", cancellationToken);
 
     public Task<Result<UserProfileDto>> UpdateProfileAsync(UpdateUserProfileRequestDto dto, CancellationToken cancellationToken = default) =>
         PutAsync<UserProfileDto, UpdateUserProfileRequestDto>("api/users/me", dto, cancellationToken);
@@ -53,6 +57,9 @@ public sealed class UserProfileApiService(IHttpClientFactory clientFactory, IHtt
 
     public Task<Result<UserProfileDto>> RateUserAsync(int targetUserId, RateUserRequestDto dto, CancellationToken cancellationToken = default) =>
         PostAsync<UserProfileDto, RateUserRequestDto>($"api/users/{targetUserId}/rate", dto, cancellationToken);
+
+    public Task<Result<UserProfileDto>> DeleteRatingAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        DeleteAsync<UserProfileDto>($"api/users/{targetUserId}/rate", cancellationToken);
 
     public Task<Result<List<UserPostItemDto>>> GetUserPostsAsync(int targetUserId, CancellationToken cancellationToken = default) =>
         GetAsync<List<UserPostItemDto>>($"api/users/{targetUserId}/posts", cancellationToken);

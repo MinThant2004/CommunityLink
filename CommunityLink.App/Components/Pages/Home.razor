@@ -14,6 +14,7 @@
 @inject UserProfileApiService ProfileApi
 @inject LinkDropApiService LinkDropApi
 @using System.IO
+@using System.Text.Json
 
 <PageTitle>Ecosystem Home — CommunityLink</PageTitle>
 
@@ -951,7 +952,7 @@ else if (dashboard != null)
 
                     <!-- 4. EXECUTIVE BROADCAST STREAM (POSTS FEED) -->
                     <div class="flex flex-col gap-3.5" id="feed-stream">
-                        @if (!dashboard.RecentPosts.Any())
+                        @if (!feedPosts.Any())
                         {
                             <div class="bg-surface-container-low p-6 sm:p-8 rounded-xl text-center flex flex-col items-center gap-2 shadow-xs border border-white/5">
                                 <span class="w-10 h-10 rounded-lg bg-surface-container text-secondary flex items-center justify-center">
@@ -963,7 +964,7 @@ else if (dashboard != null)
                         }
                         else
                         {
-                            @foreach (var post in dashboard.RecentPosts)
+                            @foreach (var post in feedPosts)
                             {
                                 <article class="bg-surface-container-low p-3.5 sm:p-4 rounded-xl shadow-xs flex flex-col gap-2.5 border border-white/5 relative">
                                     <!-- Post Header -->
@@ -1158,6 +1159,24 @@ else if (dashboard != null)
                                     }
                                 </article>
                             }
+
+                            <!-- Infinite Scroll Loading Indicator & Sentinel -->
+                            @if (isLoadingMoreFeed)
+                            {
+                                <div class="py-4 flex items-center justify-center gap-2 text-on-surface-variant text-xs font-medium">
+                                    <div class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                    <span>Loading more posts...</span>
+                                </div>
+                            }
+                            else if (!hasMoreFeedPosts && feedPosts.Count > 0)
+                            {
+                                <div class="py-4 text-center">
+                                    <span class="font-mono text-[11px] text-outline">You've reached the end of the feed</span>
+                                </div>
+                            }
+
+                            <!-- Invisible Sentinel Element Observed for Infinite Scroll -->
+                            <div id="feed-infinite-sentinel" class="h-2 w-full"></div>
                         }
                     </div>
                 </div>
@@ -1476,6 +1495,16 @@ else if (dashboard != null)
 }
 </div>
 
+<!-- Floating Scroll to Top Button -->
+<button type="button" @onclick="ScrollToTopAsync"
+        id="btn-scroll-to-top"
+        class="fixed bottom-6 right-6 z-40 p-3 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.25)] opacity-0 pointer-events-none"
+        title="Scroll to top">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+</button>
+
 <!-- Share Post Modal -->
 @if (showHomeShareModal)
 {
@@ -1613,34 +1642,42 @@ else if (dashboard != null)
                               class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded-xl p-3 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]"></textarea>
                 </div>
 
-                <!-- Text File Attachment Section -->
+                <!-- Text Files Attachment Section -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Attach Text File (.txt) (Optional)</label>
-                        @if (!string.IsNullOrEmpty(composerCodeSnippet))
+                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Attach Text Files (.txt) (Multiple allowed)</label>
+                        @if (composerTextFiles.Count > 0)
                         {
-                            <button type="button" @onclick="RemoveComposerCodeFile" class="text-xs text-rose-500 hover:underline">Remove file</button>
+                            <button type="button" @onclick="ClearComposerTextFiles" class="text-xs text-rose-500 hover:underline">Clear all files</button>
                         }
                     </div>
 
-                    @if (string.IsNullOrEmpty(composerCodeSnippet))
+                    <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
+                        <span class="text-base">📄</span>
+                        <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isReadingTextFile ? "Scanning text file(s)..." : "Attach .txt files (Choose multiple)")</span>
+                        <InputFile OnChange="HandleComposerMultipleTextFilesSelected" accept=".txt" multiple class="hidden" disabled="@isReadingTextFile" />
+                    </label>
+
+                    @if (composerTextFiles.Count > 0)
                     {
-                        <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
-                            <span class="text-base">📄</span>
-                            <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isReadingTextFile ? "Scanning text file..." : "Click to select a .txt file")</span>
-                            <InputFile OnChange="HandleComposerTextFileSelected" accept=".txt" class="hidden" disabled="@isReadingTextFile" />
-                        </label>
-                    }
-                    else
-                    {
-                        <div class="prof-code-block p-3 space-y-1.5 rounded-xl border border-gray-800 bg-[#0d1117] text-gray-200">
-                            <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
-                                <span class="font-bold text-emerald-400 font-mono">📄 @(string.IsNullOrWhiteSpace(composerCodeFileName) ? "attachment.txt" : composerCodeFileName)</span>
-                                <span class="font-mono text-gray-500">TEXT</span>
-                            </div>
-                            <div class="overflow-x-auto overflow-y-auto max-h-40 text-[11px] leading-relaxed">
-                                <pre class="whitespace-pre font-mono"><code>@composerCodeSnippet</code></pre>
-                            </div>
+                        <div class="space-y-2 mt-2.5">
+                            @for (int i = 0; i < composerTextFiles.Count; i++)
+                            {
+                                var fileIdx = i;
+                                var tf = composerTextFiles[fileIdx];
+                                <div class="flex items-center justify-between p-2.5 rounded-xl border border-gray-800 bg-[#0d1117] text-gray-200 text-xs">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="text-emerald-400 font-bold font-mono text-sm">📄</span>
+                                        <div class="truncate">
+                                            <p class="font-mono text-xs font-bold text-emerald-400 truncate">@tf.FileName</p>
+                                            <p class="font-mono text-[10px] text-gray-500">@(tf.Content.Length) chars</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" @onclick="() => RemoveComposerTextFile(fileIdx)" class="text-rose-400 hover:text-rose-300 text-xs font-bold px-2 py-1 cursor-pointer">
+                                        &times; Remove
+                                    </button>
+                                </div>
+                            }
                         </div>
                     }
                 </div>
@@ -1679,7 +1716,7 @@ else if (dashboard != null)
             </div>
             <div class="px-5 py-3.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex justify-end gap-2.5">
                 <button type="button" @onclick="CloseCreatePostModal" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg transition cursor-pointer">Cancel</button>
-                <button type="button" @onclick="PublishPostAsync" disabled="@(isPublishingPost || isUploadingImage || isReadingTextFile || (string.IsNullOrWhiteSpace(newPostContent) && string.IsNullOrWhiteSpace(composerCodeSnippet) && uploadedImageUrls.Count == 0))"
+                <button type="button" @onclick="PublishPostAsync" disabled="@(isPublishingPost || isUploadingImage || isReadingTextFile || (string.IsNullOrWhiteSpace(newPostContent) && composerTextFiles.Count == 0 && uploadedImageUrls.Count == 0))"
                         class="px-5 py-2 text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded-lg shadow-sm transition disabled:opacity-50 flex items-center gap-2 cursor-pointer">
                     @if (isPublishingPost)
                     {
@@ -1806,11 +1843,54 @@ else if (dashboard != null)
     </div>
 }
 
+<!-- ================= MODAL: FULL TEXT FILE READER ================= -->
+@if (showTextFileModal)
+{
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-[#0A1B2E]/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-[#112A46] rounded-2xl shadow-2xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.18)] w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in duration-200">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between bg-[#F8FAFC] dark:bg-[#0A1B2E]">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="text-xl">📄</span>
+                    <div class="min-w-0">
+                        <h3 class="font-mono text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] truncate">@textFileModalTitle</h3>
+                        <p class="font-mono text-[11px] text-[#7A8CA6]">Plain Text Document • @(textFileModalContent?.Length ?? 0) characters</p>
+                    </div>
+                </div>
+                <button type="button" @onclick="CloseTextFileModal" class="p-2 text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-[#F2F6FB] dark:hover:bg-[#1B3B5A] text-sm font-bold cursor-pointer transition">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Content with larger, readable font and comfortable padding -->
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-950 text-slate-100">
+                <pre class="font-mono text-xs sm:text-sm leading-relaxed whitespace-pre-wrap select-text break-words"><code>@textFileModalContent</code></pre>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)] flex justify-between items-center text-xs">
+                <span class="text-[#7A8CA6] font-mono">Press Esc or Close</span>
+                <button type="button" @onclick="CloseTextFileModal" class="px-4 py-1.5 rounded-lg bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-semibold hover:opacity-90 transition cursor-pointer">
+                    Close Document
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
+    public sealed record AttachedTextFileItem(string FileName, string Content);
+
     private bool isCheckingAuth = true;
     private bool isLoading = true;
     private string? errorMessage;
     private UserDashboardModel? dashboard;
+    private List<PostModel> feedPosts = new();
+    private int currentFeedPage = 1;
+    private const int FeedPageSize = 15;
+    private bool hasMoreFeedPosts = true;
+    private bool isLoadingMoreFeed = false;
+    private DotNetObjectReference<Home>? dotNetRef;
 
     // Permissions & User
     private bool canPostStandalone = false;
@@ -1830,7 +1910,7 @@ else if (dashboard != null)
     // Top Feed Tabs: "posts" | "people"
     private string activeFeedTab = "posts";
 
-    private int FeedPostCount => dashboard?.RecentPosts?.Count ?? 0;
+    private int FeedPostCount => feedPosts.Count;
     private int FeedPeopleCount => dashboard?.People?.Count ?? 0;
 
     private void SetFeedTab(string tab)
@@ -1947,8 +2027,7 @@ else if (dashboard != null)
     private bool isPublishingPost;
     private readonly List<string> uploadedImageUrls = new();
     private bool isUploadingImage;
-    private string? composerCodeSnippet;
-    private string? composerCodeFileName;
+    private readonly List<AttachedTextFileItem> composerTextFiles = new();
     private bool isReadingTextFile = false;
 
     // Create Poll State
@@ -2046,6 +2125,9 @@ else if (dashboard != null)
             if (res.IsSuccess && res.Data != null)
             {
                 dashboard = res.Data;
+                feedPosts = dashboard.RecentPosts?.ToList() ?? new List<PostModel>();
+                currentFeedPage = 1;
+                hasMoreFeedPosts = (dashboard.RecentPosts?.Count ?? 0) >= FeedPageSize;
             }
             else
             {
@@ -2170,29 +2252,32 @@ else if (dashboard != null)
         }
     }
 
-    private async Task HandleComposerTextFileSelected(InputFileChangeEventArgs e)
+    private async Task HandleComposerMultipleTextFilesSelected(InputFileChangeEventArgs e)
     {
-        var file = e.File;
-        if (file == null) return;
-
-        if (!file.Name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
-        {
-            Toast.Error("Only plain text (.txt) files are allowed.");
-            return;
-        }
+        var files = e.GetMultipleFiles(maximumFileCount: 10);
+        if (files == null || files.Count == 0) return;
 
         try
         {
             isReadingTextFile = true;
-            using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
-            using var reader = new StreamReader(stream);
-            composerCodeSnippet = await reader.ReadToEndAsync();
-            composerCodeFileName = file.Name;
-            Toast.Success($"Text file '{file.Name}' read successfully.");
+            foreach (var file in files)
+            {
+                if (!file.Name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+                {
+                    Toast.Error($"'{file.Name}' skipped: Only plain text (.txt) files are allowed.");
+                    continue;
+                }
+
+                using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+                using var reader = new StreamReader(stream);
+                var content = await reader.ReadToEndAsync();
+                composerTextFiles.Add(new AttachedTextFileItem(file.Name, content));
+            }
+            Toast.Success($"{composerTextFiles.Count} text file(s) attached.");
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to read text file: {ex.Message}");
+            Toast.Error($"Failed to read text file(s): {ex.Message}");
         }
         finally
         {
@@ -2200,28 +2285,52 @@ else if (dashboard != null)
         }
     }
 
-    private void RemoveComposerCodeFile()
+    private void RemoveComposerTextFile(int index)
     {
-        composerCodeSnippet = null;
-        composerCodeFileName = null;
+        if (index >= 0 && index < composerTextFiles.Count)
+        {
+            composerTextFiles.RemoveAt(index);
+        }
+    }
+
+    private void ClearComposerTextFiles()
+    {
+        composerTextFiles.Clear();
     }
 
     private async Task PublishPostAsync()
     {
-        if (string.IsNullOrWhiteSpace(newPostContent) && string.IsNullOrWhiteSpace(composerCodeSnippet) && uploadedImageUrls.Count == 0) return;
+        if (string.IsNullOrWhiteSpace(newPostContent) && composerTextFiles.Count == 0 && uploadedImageUrls.Count == 0) return;
 
         isPublishingPost = true;
         try
         {
             var images = uploadedImageUrls.Count > 0 ? uploadedImageUrls.ToList() : null;
 
+            string? snippet = null;
+            string? fileName = null;
+            string? lang = null;
+
+            if (composerTextFiles.Count == 1)
+            {
+                snippet = composerTextFiles[0].Content;
+                fileName = composerTextFiles[0].FileName;
+                lang = "TEXT";
+            }
+            else if (composerTextFiles.Count > 1)
+            {
+                snippet = JsonSerializer.Serialize(composerTextFiles);
+                fileName = $"{composerTextFiles.Count} text files";
+                lang = "TEXT";
+            }
+
             var req = new CreatePostRequestModel(
                 selectedCommunityId > 0 ? selectedCommunityId : null,
                 newPostContent.Trim(),
                 images,
-                CodeSnippet: composerCodeSnippet,
-                CodeFileName: composerCodeFileName,
-                CodeLanguage: !string.IsNullOrWhiteSpace(composerCodeSnippet) ? "TEXT" : null
+                CodeSnippet: snippet,
+                CodeFileName: fileName,
+                CodeLanguage: lang
             );
 
             var res = await PostApi.CreatePostAsync(req, _cts.Token);
@@ -2230,8 +2339,7 @@ else if (dashboard != null)
                 Toast.Success("Broadcast published successfully!");
                 newPostContent = string.Empty;
                 uploadedImageUrls.Clear();
-                composerCodeSnippet = null;
-                composerCodeFileName = null;
+                composerTextFiles.Clear();
                 showCreatePostModal = false;
                 await LoadDashboardAsync();
             }
@@ -2659,8 +2767,104 @@ else if (dashboard != null)
         };
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotNetRef = DotNetObjectReference.Create(this);
+            try
+            {
+                await JS.InvokeVoidAsync("eval", @"
+                    window.clInitHomeFeedObserver = function(dotNetHelper) {
+                        var topBtn = document.getElementById('btn-scroll-to-top');
+                        window.addEventListener('scroll', function() {
+                            if (!topBtn) topBtn = document.getElementById('btn-scroll-to-top');
+                            if (topBtn) {
+                                if (window.scrollY > 350) {
+                                    topBtn.classList.remove('opacity-0', 'pointer-events-none');
+                                    topBtn.classList.add('opacity-100', 'pointer-events-auto');
+                                } else {
+                                    topBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                                    topBtn.classList.add('opacity-0', 'pointer-events-none');
+                                }
+                            }
+                        });
+
+                        var observer = new IntersectionObserver(function(entries) {
+                            if (entries[0] && entries[0].isIntersecting) {
+                                dotNetHelper.invokeMethodAsync('TriggerLoadMoreFeedPosts');
+                            }
+                        }, { rootMargin: '400px' });
+
+                        var sentinel = document.getElementById('feed-infinite-sentinel');
+                        if (sentinel) observer.observe(sentinel);
+                    };
+                ");
+
+                await JS.InvokeVoidAsync("clInitHomeFeedObserver", dotNetRef);
+            }
+            catch { }
+        }
+    }
+
+    [JSInvokable]
+    public async Task TriggerLoadMoreFeedPosts()
+    {
+        if (isLoadingMoreFeed || !hasMoreFeedPosts || isLoading) return;
+
+        isLoadingMoreFeed = true;
+        StateHasChanged();
+
+        try
+        {
+            var nextPage = currentFeedPage + 1;
+            var res = await PostApi.GetFeedAsync(page: nextPage, pageSize: FeedPageSize, cancellationToken: _cts.Token);
+            if (res.IsSuccess && res.Data != null)
+            {
+                var newItems = res.Data;
+                if (newItems.Count > 0)
+                {
+                    // Deduplicate against existing feed
+                    var existingIds = new HashSet<int>(feedPosts.Select(p => p.PostId));
+                    var toAdd = newItems.Where(p => !existingIds.Contains(p.PostId)).ToList();
+                    feedPosts.AddRange(toAdd);
+                    currentFeedPage = nextPage;
+                    hasMoreFeedPosts = newItems.Count >= FeedPageSize;
+                }
+                else
+                {
+                    hasMoreFeedPosts = false;
+                }
+            }
+            else
+            {
+                hasMoreFeedPosts = false;
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception)
+        {
+            hasMoreFeedPosts = false;
+        }
+        finally
+        {
+            isLoadingMoreFeed = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ScrollToTopAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("eval", "window.scrollTo({ top: 0, behavior: 'smooth' })");
+        }
+        catch { }
+    }
+
     public void Dispose()
     {
+        dotNetRef?.Dispose();
         _cts.Cancel();
         _cts.Dispose();
     }

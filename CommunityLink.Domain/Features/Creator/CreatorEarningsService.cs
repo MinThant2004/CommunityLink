@@ -116,7 +116,70 @@ public sealed class CreatorEarningsService(
             .ThenBy(g => g.ChatGroupName)
             .ToList();
 
-        // 5. Combine and Filter Transactions List for History Table
+        // 5. Calculate User Breakdown (Top Supporters / Buyers by LinkDrops paid)
+        var userAggregates = new Dictionary<int, (string Name, string? AvatarUrl, long TotalGross, long TotalNet, int Count, DateTime LastPaid)>();
+
+        foreach (var gt in groupTransactions)
+        {
+            var uid = gt.UserId;
+            var name = gt.User?.DisplayName ?? gt.User?.UserName ?? $"User #{uid}";
+            var avatar = gt.User?.AvatarUrl;
+
+            if (userAggregates.TryGetValue(uid, out var cur))
+            {
+                userAggregates[uid] = (
+                    string.IsNullOrWhiteSpace(cur.Name) ? name : cur.Name,
+                    cur.AvatarUrl ?? avatar,
+                    cur.TotalGross + gt.GrossAmount,
+                    cur.TotalNet + gt.NetAmount,
+                    cur.Count + 1,
+                    gt.CreatedAt > cur.LastPaid ? gt.CreatedAt : cur.LastPaid
+                );
+            }
+            else
+            {
+                userAggregates[uid] = (name, avatar, gt.GrossAmount, gt.NetAmount, 1, gt.CreatedAt);
+            }
+        }
+
+        foreach (var pt in privateTransactions)
+        {
+            var uid = pt.BuyerUserId;
+            var name = pt.BuyerUser?.DisplayName ?? pt.BuyerUser?.UserName ?? $"User #{uid}";
+            var avatar = pt.BuyerUser?.AvatarUrl;
+
+            if (userAggregates.TryGetValue(uid, out var cur))
+            {
+                userAggregates[uid] = (
+                    string.IsNullOrWhiteSpace(cur.Name) ? name : cur.Name,
+                    cur.AvatarUrl ?? avatar,
+                    cur.TotalGross + pt.GrossAmountLinkDrops,
+                    cur.TotalNet + pt.CreatorAmount,
+                    cur.Count + 1,
+                    pt.CreatedAt > cur.LastPaid ? pt.CreatedAt : cur.LastPaid
+                );
+            }
+            else
+            {
+                userAggregates[uid] = (name, avatar, pt.GrossAmountLinkDrops, pt.CreatorAmount, 1, pt.CreatedAt);
+            }
+        }
+
+        var userBreakdownList = userAggregates
+            .Select(kv => new CreatorUserEarningsModel(
+                BuyerUserId: kv.Key,
+                BuyerName: kv.Value.Name,
+                BuyerAvatarUrl: kv.Value.AvatarUrl,
+                TotalLinkDrops: kv.Value.TotalGross,
+                NetLinkDrops: kv.Value.TotalNet,
+                TransactionCount: kv.Value.Count,
+                LastPaidAt: kv.Value.LastPaid
+            ))
+            .OrderByDescending(u => u.TotalLinkDrops)
+            .ThenByDescending(u => u.TransactionCount)
+            .ToList();
+
+        // 6. Combine and Filter Transactions List for History Table
         var combinedTxModels = new List<CreatorEarningsTransactionModel>();
 
         foreach (var t in groupTransactions)
@@ -174,6 +237,7 @@ public sealed class CreatorEarningsService(
         var dashboard = new CreatorEarningsDashboardModel(
             Summary: summary,
             GroupBreakdown: groupBreakdownList,
+            UserBreakdown: userBreakdownList,
             Transactions: transactionModels
         );
 

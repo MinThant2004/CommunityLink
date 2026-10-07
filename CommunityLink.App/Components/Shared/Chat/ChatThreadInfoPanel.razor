@@ -1,152 +1,2065 @@
 @using CommunityLink.App.Components.Shared.Chat
 @using CommunityLink.Shared.Features.ChatGroup
+@using CommunityLink.Shared.Features.UserProfile
+@inject ChatGroupApiService ChatGroupApi
+@inject ChatApiService ChatApi
+@inject UserProfileApiService UserApi
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
 
 <ChatModal IsOpen="IsOpen"
            Title="@(Thread.IsGroup ? "Group info" : "Conversation details")"
            MaxWidth="max-w-md"
            OnClose="OnClose">
     <ChildContent>
-    <div class="space-y-5 px-4 py-4">
-        <div class="flex flex-col items-center text-center">
-            @if (!string.IsNullOrWhiteSpace(Thread.AvatarUrl))
-            {
-                <img src="@Thread.AvatarUrl" alt="" class="h-16 w-16 rounded-full object-cover" />
-            }
-            else
-            {
-                <span class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-xl font-semibold text-slate-600">@Thread.Initials</span>
-            }
-            <p class="mt-3 text-base font-semibold text-slate-900">@Thread.Title</p>
-            <p class="mt-0.5 text-sm text-slate-500">@Thread.Subtitle</p>
-
-            @if (Thread.IsGroup)
-            {
-                <span class="mt-2 rounded border @(Thread.RequiresPayment ? "border-amber-200 bg-amber-50 text-amber-700" : "border-emerald-200 bg-emerald-50 text-emerald-700") px-2 py-0.5 text-xs font-semibold">
-                    @Thread.Badge group
-                </span>
-            }
-        </div>
-
-        @if (Thread.IsGroup && !string.IsNullOrWhiteSpace(CreatorName))
-        {
-            <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Created by</p>
-                <p class="mt-1 text-sm text-slate-800">@CreatorName</p>
-            </div>
-        }
-
-        @if (Thread.IsGroup && !string.IsNullOrWhiteSpace(Description))
-        {
-            <div>
-                <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">About</h3>
-                <p class="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">@Description</p>
-            </div>
-        }
-
-        @if (Thread.RequiresPayment)
-        {
-            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
-                <p class="text-sm font-semibold text-amber-900 inline-flex items-center gap-1.5">
-                    <LinkDropIcon Class="w-4 h-4 shrink-0" />
-                    <span>@Thread.FeeLinkDrops LinkDrops</span>
-                </p>
-                <p class="mt-1 text-xs leading-relaxed text-amber-800">
-                    @if (Thread.IsGroup)
+        <div class="flex flex-col bg-white dark:bg-[#112A46]">
+            <!-- Telegram-style Group Header & Quick Actions -->
+            <div class="flex flex-col items-center border-b border-slate-100 dark:border-[rgba(196,210,225,0.12)] bg-slate-50/60 dark:bg-[#0A1B2E] px-5 py-5 text-center">
+                <div class="relative">
+                    @if (!string.IsNullOrWhiteSpace(Thread.AvatarUrl))
                     {
-                        @(Thread.IsJoined
-                            ? "You have already paid to join this group. The creator earns the fee minus the platform commission."
-                            : "Join with a one-time payment. The creator earns the fee minus the platform commission.")
+                        <img src="@Thread.AvatarUrl" alt="" class="h-20 w-20 rounded-full object-cover shadow-sm ring-4 ring-white dark:ring-[#112A46]" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
+                        <span class="hidden h-20 w-20 items-center justify-center rounded-full bg-indigo-600 text-2xl font-bold text-white shadow-sm ring-4 ring-white dark:ring-[#112A46]">@Thread.Initials</span>
                     }
                     else
                     {
-                        @(Thread.IsUnlocked
-                            ? "You have unlocked this conversation. The creator earns the fee minus the platform commission."
-                            : "Unlock this conversation with a one-time payment to start messaging this creator.")
+                        <span class="flex h-20 w-20 items-center justify-center rounded-full bg-indigo-600 text-2xl font-bold text-white shadow-sm ring-4 ring-white dark:ring-[#112A46]">@Thread.Initials</span>
                     }
-                </p>
-            </div>
-        }
 
-        @if (Thread.IsGroup)
-        {
-            <div>
-                <div class="flex items-center justify-between">
-                    <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Members</h3>
-                    <span class="text-xs text-slate-400">@Thread.MemberCount</span>
+                    @if (IsOwner)
+                    {
+                        <label for="cg-panel-avatar"
+                               title="Change group avatar"
+                               class="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46] text-slate-600 dark:text-[#C4D2E1] shadow transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] hover:text-indigo-600 dark:hover:text-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                            </svg>
+                            <InputFile id="cg-panel-avatar" class="sr-only" OnChange="OnImageSelected" accept="@ChatGroupImagePolicy.AcceptAttribute" />
+                        </label>
+                    }
                 </div>
 
-                <ul class="mt-2 max-h-56 space-y-1 overflow-y-auto" role="list">
-                    @if (IsLoadingMembers)
-                    {
-                        <li class="space-y-2 py-2">
-                            @for (var i = 0; i < 4; i++)
+                @if (IsOwner && editImageFile is not null)
+                {
+                    <div class="mt-3 flex items-center gap-2">
+                        <button type="button" @onclick="UploadImageAsync" disabled="@IsSubmitting"
+                                class="rounded-lg bg-indigo-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
+                            @(IsSubmitting ? "Uploading…" : "Save avatar")
+                        </button>
+                        <button type="button" @onclick="CancelImage" disabled="@IsSubmitting"
+                                class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E] px-3 py-1 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] disabled:opacity-50">
+                            Cancel
+                        </button>
+                    </div>
+                }
+
+                <h2 class="mt-3 text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">@Thread.Title</h2>
+                <p class="mt-0.5 text-xs text-slate-500 dark:text-[#C4D2E1] font-medium">@Thread.Subtitle</p>
+
+                <!-- Telegram Quick Action Buttons (Mute, Manage) -->
+                @if (Thread.IsGroup)
+                {
+                    <div class="mt-4 flex items-center justify-center gap-2.5">
+                        <!-- Mute / Unmute Button -->
+                        <button type="button"
+                                @onclick="ToggleMuteAsync"
+                                disabled="@IsSubmitting"
+                                title="Toggle group notifications"
+                                class="flex flex-col items-center justify-center gap-1 rounded-xl bg-white dark:bg-[#0A1B2E] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] w-16 py-2 shadow-sm transition hover:bg-slate-100 dark:hover:bg-[#1B3B5A] hover:border-slate-300 dark:hover:border-slate-700 active:scale-95 disabled:opacity-50">
+                            @if (IsMuted)
                             {
-                                <div class="skeleton h-8 w-full"></div>
+                                <svg class="h-4 w-4 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6 4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.395C2.806 8.757 3.63 8.25 4.51 8.25H6.75Z" />
+                                </svg>
+                                <span class="text-[10px] font-semibold text-rose-600 dark:text-rose-400">Unmute</span>
                             }
-                        </li>
-                    }
-                    else if (Members.Count == 0)
-                    {
-                        <li class="py-3 text-center text-sm text-slate-500">No members to show.</li>
-                    }
-                    else
-                    {
-                        @foreach (var member in Members)
+                            else
+                            {
+                                <svg class="h-4 w-4 text-slate-600 dark:text-[#C4D2E1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                </svg>
+                                <span class="text-[10px] font-semibold text-slate-700 dark:text-[#E1E8F0]">Mute</span>
+                            }
+                        </button>
+
+                        <!-- Invite Link Quick Button (Owner / Admin) -->
+                        @if (IsAdminOrOwner)
                         {
-                            <li class="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
-                                @if (!string.IsNullOrWhiteSpace(member.UserAvatar))
+                            <button type="button"
+                                    @onclick="OpenInviteLinksModalAsync"
+                                    title="Group invite links"
+                                    class="flex flex-col items-center justify-center gap-1 rounded-xl bg-white dark:bg-[#0A1B2E] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] w-16 py-2 shadow-sm transition hover:bg-slate-100 dark:hover:bg-[#1B3B5A] hover:border-slate-300 dark:hover:border-slate-700 active:scale-95">
+                                <svg class="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                                </svg>
+                                <span class="text-[10px] font-semibold text-slate-700 dark:text-[#E1E8F0]">Invite link</span>
+                            </button>
+                        }
+
+                        <!-- Manage Group Button (Owner / Admin) -->
+                        @if (IsAdminOrOwner)
+                        {
+                            <button type="button"
+                                    @onclick="ToggleManageSection"
+                                    title="Manage group settings"
+                                    class="flex flex-col items-center justify-center gap-1 rounded-xl bg-white dark:bg-[#0A1B2E] border @(showManageSection ? "border-indigo-600 ring-2 ring-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-950/40" : "border-slate-200 dark:border-[rgba(196,210,225,0.12)] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] hover:border-slate-300 dark:hover:border-slate-700") w-16 py-2 shadow-sm transition active:scale-95">
+                                <svg class="h-4 w-4 @(showManageSection ? "text-indigo-600 dark:text-indigo-400" : "text-slate-600 dark:text-[#C4D2E1]")" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                                </svg>
+                                <span class="text-[10px] font-semibold @(showManageSection ? "text-indigo-600 dark:text-indigo-400" : "text-slate-700 dark:text-[#E1E8F0]")">Manage</span>
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Scrollable Content Body (About Section, Manage Settings, Members List, Shared Media) -->
+            <div class="flex-1 max-h-[55vh] overflow-y-auto px-5 py-4 space-y-4 divide-y divide-slate-100 dark:divide-[rgba(196,210,225,0.12)]">
+                @if (selectedMediaCategory != null)
+                {
+                    <!-- Sub-view for Shared Media Category -->
+                    <div class="pt-1 space-y-3">
+                        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-[rgba(196,210,225,0.12)] pb-2">
+                            <button type="button" @onclick="BackToMediaSummary"
+                                    class="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                                </svg>
+                                <span>Back</span>
+                            </button>
+                            <span class="text-xs font-bold text-slate-800 dark:text-[#E1E8F0] capitalize">
+                                Shared @selectedMediaCategory (@(mediaResult?.TotalCount ?? 0))
+                            </span>
+                        </div>
+
+                        @if (isLoadingSharedMedia && (mediaResult == null || mediaPage == 1))
+                        {
+                            <div class="space-y-2 py-4">
+                                <div class="skeleton h-12 w-full rounded-lg"></div>
+                                <div class="skeleton h-12 w-full rounded-lg"></div>
+                            </div>
+                        }
+                        else if (mediaResult == null || mediaResult.Items.Count == 0)
+                        {
+                            <p class="py-6 text-center text-xs text-slate-500 dark:text-[#C4D2E1]">No shared @selectedMediaCategory found.</p>
+                        }
+                        else
+                        {
+                            @if (selectedMediaCategory == "photos")
+                            {
+                                <div class="grid grid-cols-3 gap-2">
+                                    @foreach (var item in mediaResult.Items)
+                                    {
+                                        <button type="button" @onclick="() => selectedPhotoItem = item"
+                                                class="group relative aspect-square overflow-hidden rounded-lg bg-slate-100 dark:bg-[#0A1B2E] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                            <img src="@item.AttachmentUrl" alt="" class="h-full w-full object-cover transition group-hover:scale-105" />
+                                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-end p-1">
+                                                <span class="text-[9px] font-medium text-white truncate">@item.SenderDisplayName</span>
+                                            </div>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                            else if (selectedMediaCategory == "videos")
+                            {
+                                <div class="space-y-2">
+                                    @foreach (var item in mediaResult.Items)
+                                    {
+                                        <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl border border-slate-100 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E] hover:bg-slate-50 dark:hover:bg-[#1B3B5A]">
+                                            <div class="flex min-w-0 items-center gap-3">
+                                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25z" />
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <p class="truncate text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">@(string.IsNullOrWhiteSpace(item.FileName) ? "Video file" : item.FileName)</p>
+                                                    <p class="text-[10px] text-slate-500 dark:text-[#C4D2E1]">@item.SenderDisplayName • @item.CreatedAt.ToLocalTime().ToString("MMM d, yyyy HH:mm")</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-1.5 shrink-0">
+                                                <a href="@item.AttachmentUrl" target="_blank" download
+                                                   class="rounded-lg bg-slate-100 dark:bg-[#1B3B5A] px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-[#E1E8F0] hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                                                    Open
+                                                </a>
+                                                <button type="button" @onclick="() => TriggerViewInChat(item.MessageId)"
+                                                        class="rounded-lg bg-indigo-50 dark:bg-indigo-950/50 px-2 py-1 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition">
+                                                    View in chat
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else if (selectedMediaCategory == "files")
+                            {
+                                <div class="space-y-2">
+                                    @foreach (var item in mediaResult.Items)
+                                    {
+                                        <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl border border-slate-100 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E] hover:bg-slate-50 dark:hover:bg-[#1B3B5A]">
+                                            <div class="flex min-w-0 items-center gap-3">
+                                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <p class="truncate text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">@(string.IsNullOrWhiteSpace(item.FileName) ? "Attachment" : item.FileName)</p>
+                                                    <p class="text-[10px] text-slate-500 dark:text-[#C4D2E1]">
+                                                        @FormatFileSize(item.FileSizeByte) • @item.SenderDisplayName • @item.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-1.5 shrink-0">
+                                                <a href="@item.AttachmentUrl" target="_blank" download
+                                                   class="rounded-lg bg-slate-100 dark:bg-[#1B3B5A] px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-[#E1E8F0] hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                                                    Download
+                                                </a>
+                                                <button type="button" @onclick="() => TriggerViewInChat(item.MessageId)"
+                                                        class="rounded-lg bg-indigo-50 dark:bg-indigo-950/50 px-2 py-1 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition">
+                                                    View in chat
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            @if (mediaResult.HasNextPage)
+                            {
+                                <div class="pt-2 text-center">
+                                    <button type="button" @onclick="LoadMoreMediaAsync" disabled="@isLoadingSharedMedia"
+                                            class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] disabled:opacity-50">
+                                        @(isLoadingSharedMedia ? "Loading..." : "Load more")
+                                    </button>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+                else
+                {
+                    <!-- About Section -->
+                @if (Thread.IsGroup)
+                {
+                    <div class="pt-1">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-[#C4D2E1]">About</h3>
+                        <p class="mt-1.5 whitespace-pre-wrap text-sm text-slate-700 dark:text-[#E1E8F0] leading-relaxed">
+                            @(string.IsNullOrWhiteSpace(Thread.Description) ? "No description provided." : Thread.Description)
+                        </p>
+                    </div>
+                }
+
+                <!-- Manage Group Settings Section -->
+                @if (IsAdminOrOwner && Thread.IsGroup && showManageSection)
+                {
+                    <div class="pt-4 space-y-4">
+                        <div class="rounded-xl border border-indigo-100 dark:border-[rgba(196,210,225,0.12)] bg-indigo-50/40 dark:bg-[#0A1B2E]/60 p-4">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+                                <svg class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                                </svg>
+                                Group Settings & Administration
+                            </h3>
+
+                            @if (actionError is not null)
+                            {
+                                <p class="mt-2.5 rounded-lg border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-950/40 px-3 py-2 text-xs font-medium text-rose-700 dark:text-rose-300" role="alert">@actionError</p>
+                            }
+
+                            <!-- Edit Name & Description (Owner) -->
+                            @if (IsOwner)
+                            {
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
+                                    @if (isEditing)
+                                    {
+                                        <div class="space-y-2.5">
+                                            <div>
+                                                <label for="mg-name" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-[#E1E8F0]">Group name</label>
+                                                <input id="mg-name" type="text" @bind="editName"
+                                                       class="w-full rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-sm text-slate-900 dark:text-[#E1E8F0] focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
+                                            </div>
+                                            <div>
+                                                <label for="mg-desc" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-[#E1E8F0]">Description</label>
+                                                <textarea id="mg-desc" @bind="editDescription" rows="2"
+                                                          class="w-full resize-none rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-sm text-slate-900 dark:text-[#E1E8F0] focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"></textarea>
+                                            </div>
+                                            <div class="flex items-center gap-2 pt-1">
+                                                <button type="button" @onclick="SaveInfoAsync" disabled="@IsSubmitting"
+                                                        class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
+                                                    @(IsSubmitting ? "Saving…" : "Save changes")
+                                                </button>
+                                                <button type="button" @onclick="CancelEdit" disabled="@IsSubmitting"
+                                                        class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" @onclick="BeginEdit" disabled="@IsSubmitting"
+                                                class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-center gap-1.5">
+                                            <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#C4D2E1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                            </svg>
+                                            Edit group name & description
+                                        </button>
+                                    }
+                                </div>
+
+                                <!-- Invite Links Row (Owner / Admin) -->
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
+                                    <button type="button" @onclick="OpenInviteLinksModalAsync" disabled="@IsSubmitting"
+                                            class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <svg class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                                            </svg>
+                                            <span>Invite links</span>
+                                        </div>
+                                        <span class="rounded-full bg-slate-100 dark:bg-[#112A46] px-2 py-0.5 text-[11px] font-bold text-slate-600 dark:text-[#C4D2E1]">
+                                            @(inviteLinks.Count > 0 ? inviteLinks.Count : (primaryInviteLink != null ? 1 : 1))
+                                        </span>
+                                    </button>
+                                </div>
+                            }
+
+                            <!-- Join Fee (Owner) -->
+                            @if (IsOwner)
+                            {
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
+                                    @if (isEditingFee)
+                                    {
+                                        <div class="space-y-2.5">
+                                            <label for="mg-fee" class="block text-xs font-semibold text-slate-700 dark:text-[#E1E8F0]">Join fee (LinkDrops)</label>
+                                            <input id="mg-fee" type="number" min="0" @bind="editFeeLinkDrops"
+                                                   class="w-full rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-sm font-semibold text-slate-900 dark:text-[#E1E8F0] focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
+                                            <p class="text-[11px] text-slate-500 dark:text-[#C4D2E1]">A fee of 0 makes the group free.</p>
+                                            <div class="flex items-center gap-2 pt-1">
+                                                <button type="button" @onclick="SaveFeeAsync" disabled="@IsSubmitting"
+                                                        class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
+                                                    @(IsSubmitting ? "Saving…" : "Update fee")
+                                                </button>
+                                                <button type="button" @onclick="CancelEditFee" disabled="@IsSubmitting"
+                                                        class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" @onclick="BeginEditFee" disabled="@IsSubmitting"
+                                                class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-center gap-1.5">
+                                            <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#C4D2E1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33" />
+                                            </svg>
+                                            Change join fee (@Thread.FeeLinkDrops LinkDrops)
+                                        </button>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Access Mode (Owner) -->
+                            @if (IsOwner)
+                            {
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
+                                    @if (isEditingAccessMode)
+                                    {
+                                        <div class="space-y-2.5">
+                                            <label class="block text-xs font-semibold text-slate-700 dark:text-[#E1E8F0]">Access Mode</label>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button type="button" @onclick='() => editAccessMode = "PUBLIC"'
+                                                        class="flex items-center justify-center gap-1.5 rounded-lg border p-2 text-xs font-semibold transition @(editAccessMode == "PUBLIC" ? "border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/60 dark:text-indigo-300 ring-1 ring-indigo-600" : "border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-50 dark:hover:bg-[#244b72]")">
+                                                    <span>🌐</span>
+                                                    <span>Public</span>
+                                                </button>
+                                                <button type="button" @onclick='() => editAccessMode = "PRIVATE"'
+                                                        class="flex items-center justify-center gap-1.5 rounded-lg border p-2 text-xs font-semibold transition @(editAccessMode == "PRIVATE" ? "border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/60 dark:text-indigo-300 ring-1 ring-indigo-600" : "border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-50 dark:hover:bg-[#244b72]")">
+                                                    <span>🔒</span>
+                                                    <span>Private</span>
+                                                </button>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 dark:text-[#C4D2E1]">
+                                                @(editAccessMode == "PRIVATE" ? "Private groups require approval before new members can join." : "Public groups allow anyone to join immediately.")
+                                            </p>
+                                            <div class="flex items-center gap-2 pt-1">
+                                                <button type="button" @onclick="SaveAccessModeAsync" disabled="@IsSubmitting"
+                                                        class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
+                                                    @(IsSubmitting ? "Saving…" : "Save Access Mode")
+                                                </button>
+                                                <button type="button" @onclick="CancelEditAccessMode" disabled="@IsSubmitting"
+                                                        class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" @onclick="BeginEditAccessMode" disabled="@IsSubmitting"
+                                                class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-center gap-1.5">
+                                            <span class="text-sm">@(Thread.AccessMode == "PRIVATE" ? "🔒" : "🌐")</span>
+                                            Change access mode (@(Thread.AccessMode == "PRIVATE" ? "Private 🔒" : "Public 🌐"))
+                                        </button>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Pending Join Requests (Admin or Owner) -->
+                            @if (IsAdminOrOwner)
+                            {
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
+                                    <button type="button" @onclick="ToggleJoinRequestsAsync" disabled="@IsSubmitting"
+                                            class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <svg class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                                            </svg>
+                                            <span>Join Requests</span>
+                                        </div>
+                                        @if (joinRequests.Count(r => r.Status == "PENDING_APPROVAL") > 0)
+                                        {
+                                            <span class="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                                                @joinRequests.Count(r => r.Status == "PENDING_APPROVAL")
+                                            </span>
+                                        }
+                                    </button>
+
+                                    @if (showJoinRequests)
+                                    {
+                                        <div class="mt-2 space-y-2">
+                                            @if (isLoadingJoinRequests)
+                                            {
+                                                <p class="py-2 text-center text-xs text-slate-500 dark:text-[#C4D2E1]">Loading join requests…</p>
+                                            }
+                                            else if (joinRequests.Count == 0)
+                                            {
+                                                <p class="py-2 text-center text-xs text-slate-500 dark:text-[#C4D2E1]">No pending join requests.</p>
+                                            }
+                                            else
+                                            {
+                                                <ul class="max-h-48 space-y-1.5 overflow-y-auto" role="list">
+                                                    @foreach (var req in joinRequests)
+                                                    {
+                                                        <li class="flex items-center justify-between gap-2 rounded-lg bg-white dark:bg-[#1B3B5A] p-2.5 shadow-sm border border-slate-100 dark:border-[rgba(196,210,225,0.12)]">
+                                                            <div class="flex min-w-0 items-center gap-2">
+                                                                @if (!string.IsNullOrWhiteSpace(req.UserAvatar))
+                                                                {
+                                                                    <img src="@req.UserAvatar" alt="" class="h-7 w-7 shrink-0 rounded-full object-cover" />
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">@Initial(req.UserDisplayName)</span>
+                                                                }
+                                                                <div class="min-w-0">
+                                                                    <div class="flex items-center gap-1.5">
+                                                                        <p class="truncate text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">@(string.IsNullOrWhiteSpace(req.UserDisplayName) ? req.UserName : req.UserDisplayName)</p>
+                                                                        @if (req.IsOnline)
+                                                                        {
+                                                                            <span class="h-2 w-2 rounded-full bg-emerald-500" title="Online"></span>
+                                                                        }
+                                                                    </div>
+                                                                    <p class="text-[10px] text-slate-400 dark:text-[#C4D2E1]">@req.RequestedAt.ToLocalTime().ToString("MMM d, HH:mm")</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="flex items-center gap-1 shrink-0">
+                                                                @if (req.Status == "PENDING_APPROVAL")
+                                                                {
+                                                                    <button type="button" @onclick="() => ApproveJoinRequestAsync(req.ChatGroupJoinRequestId)" disabled="@IsSubmitting"
+                                                                            class="rounded bg-indigo-600 px-2 py-1 text-[10px] font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
+                                                                        Approve
+                                                                    </button>
+                                                                    <button type="button" @onclick="() => RejectJoinRequestAsync(req.ChatGroupJoinRequestId)" disabled="@IsSubmitting"
+                                                                            class="rounded border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#112A46] px-2 py-1 text-[10px] font-semibold text-slate-600 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] disabled:opacity-50">
+                                                                        Reject
+                                                                    </button>
+                                                                }
+                                                                else if (req.Status == "APPROVED_WAITING_PAYMENT")
+                                                                {
+                                                                    <span class="rounded bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
+                                                                        Approved (Waiting Payment)
+                                                                    </span>
+                                                                }
+                                                                else if (req.Status == "REJECTED")
+                                                                {
+                                                                    <span class="rounded bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 text-[10px] font-semibold text-rose-600 dark:text-rose-400">
+                                                                        Rejected
+                                                                    </span>
+                                                                }
+                                                                else if (req.Status == "JOINED")
+                                                                {
+                                                                    <span class="rounded bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                                                        Joined
+                                                                    </span>
+                                                                }
+                                                            </div>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Add Members Directly (Owner) -->
+                            @* Owner-only: the server rejects AddMembersAsync for an admin, so the
+                               control is hidden rather than shown-and-failing. In a PAID group it
+                               issues an invite instead of a membership. *@
+                            @if (IsOwner)
+                            {
+                            <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
+                                @if (isAdding)
                                 {
-                                    <img src="@member.UserAvatar" alt="" class="h-7 w-7 shrink-0 rounded-full object-cover" />
+                                    <label for="mg-add-user" class="block text-xs font-semibold text-slate-700 dark:text-[#E1E8F0]">
+                                        @(IsPaidGroup ? "Invite members" : "Add members directly")
+                                    </label>
+                                    <input @key="addInputKey"
+                                           id="mg-add-user" type="text"
+                                           @bind="addSearch"
+                                           @bind:event="oninput"
+                                           @bind:after="OnAddSearchInputAsync"
+                                           @onkeydown="OnAddSearchKeyDownAsync"
+                                           placeholder="Search user name..."
+                                           class="mt-1.5 w-full rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1.5 text-xs text-slate-900 dark:text-[#E1E8F0] placeholder:text-slate-400 dark:placeholder:text-[#C4D2E1]/60 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
+
+                                    @if (isSearching)
+                                    {
+                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#C4D2E1]">Searching…</p>
+                                    }
+                                    else if (addCandidates.Count == 0 && addSearch.Trim().Length > 0)
+                                    {
+                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#C4D2E1]">No matching users found.</p>
+                                    }
+                                    else
+                                    {
+                                        <ul class="mt-2 max-h-36 space-y-1 overflow-y-auto" role="list">
+                                            @foreach (var candidate in addCandidates)
+                                            {
+                                                <li class="flex items-center justify-between gap-2 rounded-lg bg-white dark:bg-[#1B3B5A] px-2.5 py-1.5 shadow-sm">
+                                                    <div class="flex min-w-0 items-center gap-2">
+                                                        @if (!string.IsNullOrWhiteSpace(candidate.AvatarUrl))
+                                                        {
+                                                            <img src="@candidate.AvatarUrl" alt="" class="h-6 w-6 shrink-0 rounded-full object-cover" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#112A46] text-[10px] font-semibold text-slate-600 dark:text-[#E1E8F0]">@Initial(candidate.DisplayName)</span>
+                                                        }
+                                                        <span class="min-w-0 truncate text-xs text-slate-800 dark:text-[#E1E8F0]">@(string.IsNullOrWhiteSpace(candidate.DisplayName) ? candidate.UserName : candidate.DisplayName)</span>
+                                                    </div>
+                                                    <button type="button" @onclick="() => AddUserAsync(candidate.UserId)" disabled="@IsSubmitting"
+                                                            class="shrink-0 rounded bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
+                                                        Add
+                                                    </button>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+
+                                    <button type="button" @onclick="CancelAdd" disabled="@IsSubmitting"
+                                            class="mt-2 rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-1 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50">
+                                        Close
+                                    </button>
                                 }
                                 else
                                 {
-                                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">@Initial(member.DisplayName)</span>
+                                    <button type="button" @onclick="BeginAdd" disabled="@IsSubmitting"
+                                            class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-center gap-1.5">
+                                        <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#C4D2E1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                                        </svg>
+                                        @(IsPaidGroup ? "Invite members" : "Add members directly")
+                                    </button>
+                                    @if (IsPaidGroup)
+                                    {
+                                        <p class="mt-1.5 text-[11px] leading-relaxed text-slate-500 dark:text-[#C4D2E1]">
+                                            Invited people are not members yet. They appear under pending invitations and must
+                                            pay the @Thread.FeeLinkDrops LinkDrops join fee to take part.
+                                        </p>
+                                    }
                                 }
-                                <span class="min-w-0 flex-1 truncate text-sm text-slate-800">@(string.IsNullOrWhiteSpace(member.DisplayName) ? member.UserName : member.DisplayName)</span>
-                                @if (member.Role is "OWNER" or "ADMIN")
+                            </div>
+                            }
+
+                            <!-- Pending Invitations (Admin or Owner) -->
+                            @* Invitees are not members, so they are absent from the roster above and
+                               are tracked separately until they pay, decline, or are revoked. *@
+                            @if (IsPaidGroup)
+                            {
+                                <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
+                                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-[#C4D2E1]">Pending invitations</h4>
+
+                                    @if (IsLoadingInvitations)
+                                    {
+                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#C4D2E1]">Loading…</p>
+                                    }
+                                    else if (Invitations.Count == 0)
+                                    {
+                                        <p class="mt-1.5 text-xs text-slate-500 dark:text-[#C4D2E1]">No pending invitations.</p>
+                                    }
+                                    else
+                                    {
+                                        <ul class="mt-2 max-h-36 space-y-1 overflow-y-auto" role="list">
+                                            @foreach (var invite in Invitations)
+                                            {
+                                                <li class="flex items-center justify-between gap-2.5 rounded-lg bg-white dark:bg-[#1B3B5A] px-2.5 py-1.5 shadow-sm">
+                                                    <div class="flex min-w-0 items-center gap-2">
+                                                        @if (!string.IsNullOrWhiteSpace(invite.InvitedUserAvatar))
+                                                        {
+                                                            <img src="@invite.InvitedUserAvatar" alt="" class="h-6 w-6 shrink-0 rounded-full object-cover" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-[10px] font-semibold text-indigo-700 dark:text-indigo-300">@Initial(InviteeName(invite))</span>
+                                                        }
+                                                        <div class="min-w-0">
+                                                            <p class="min-w-0 truncate text-xs text-slate-800 dark:text-[#E1E8F0]">@InviteeName(invite)</p>
+                                                            <p class="text-[11px] text-slate-500 dark:text-[#C4D2E1]">Quoted @invite.FeeAtInviteLinkDrops LinkDrops · @invite.InvitedAt.ToLocalTime().ToString("MMM d, HH:mm")</p>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" @onclick="() => RevokeAsync(invite.InvitedUserId)" disabled="@IsSubmitting"
+                                                            class="shrink-0 rounded bg-white dark:bg-[#112A46] px-2.5 py-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400 transition hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-50">
+                                                        Revoke
+                                                    </button>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Banned Members -->
+                            <div class="mt-3 border-t border-indigo-100 dark:border-[rgba(196,210,225,0.12)] pt-3">
+                                <button type="button" @onclick="ToggleBanningAsync" disabled="@IsSubmitting"
+                                        class="w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.2)] bg-white dark:bg-[#1B3B5A] px-3 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] shadow-sm transition hover:bg-slate-50 dark:hover:bg-[#244b72] disabled:opacity-50 flex items-center justify-center gap-1.5">
+                                    <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#C4D2E1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                                    </svg>
+                                    @(isBanning ? "Hide banned list" : "Banned members list")
+                                </button>
+
+                                @if (isBanning)
                                 {
-                                    <span class="shrink-0 rounded border @(member.Role == "OWNER" ? "border-amber-200 bg-amber-50 text-amber-700" : "border-indigo-200 bg-indigo-50 text-indigo-700") px-1.5 py-0.5 text-xs font-semibold">@member.Role</span>
+                                    <ul class="mt-2 max-h-36 space-y-1 overflow-y-auto" role="list">
+                                        @if (bannedMembers.Count == 0)
+                                        {
+                                            <li class="py-2 text-center text-xs text-slate-500 dark:text-[#C4D2E1]">No banned members.</li>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var banned in bannedMembers)
+                                            {
+                                                <li class="flex items-center justify-between gap-2.5 rounded-lg bg-white dark:bg-[#1B3B5A] px-2.5 py-1.5 shadow-sm">
+                                                    <span class="min-w-0 truncate text-xs text-slate-800 dark:text-[#E1E8F0]">@banned.BannedUserName</span>
+                                                    <button type="button" @onclick="() => UnbanUserAsync(banned.BannedUserId)" disabled="@IsSubmitting"
+                                                            class="shrink-0 rounded bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 transition hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-50">
+                                                        Unban
+                                                    </button>
+                                                </li>
+                                            }
+                                        }
+                                    </ul>
                                 }
-                            </li>
-                        }
-                    }
-                </ul>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Members List Section -->
+                @if (Thread.IsGroup && Thread.IsJoined)
+                {
+                    <div class="pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[#C4D2E1]">@Thread.MemberCount MEMBERS</h3>
+                            @if (IsAdminOrOwner)
+                            {
+                                <button type="button"
+                                        @onclick="() => { showManageSection = true; isAdding = true; }"
+                                        title="Add Member"
+                                        class="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                                    </svg>
+                                    <span>Add</span>
+                                </button>
+                            }
+                        </div>
+
+                        <ul class="space-y-1.5" role="list">
+                            @if (IsLoadingMembers)
+                            {
+                                <li class="space-y-2 py-2">
+                                    @for (var i = 0; i < 4; i++)
+                                    {
+                                        <div class="skeleton h-10 w-full rounded-lg"></div>
+                                    }
+                                </li>
+                            }
+                            else if (Members.Count == 0)
+                            {
+                                <li class="py-4 text-center text-xs text-slate-500 dark:text-[#C4D2E1]">No members to display.</li>
+                            }
+                            else
+                            {
+                                @foreach (var member in Members)
+                                {
+                                    <li class="rounded-xl transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A]">
+                                        <div class="flex items-center justify-between gap-3 p-2">
+                                        <div class="flex min-w-0 items-center gap-3">
+                                            <div class="relative shrink-0">
+                                                @if (!string.IsNullOrWhiteSpace(member.UserAvatar))
+                                                {
+                                                    <img src="@member.UserAvatar" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover shadow-sm" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
+                                                    <span class="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1B3B5A] text-xs font-semibold text-slate-600 dark:text-[#E1E8F0]">@Initial(member.DisplayName)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1B3B5A] text-xs font-semibold text-slate-600 dark:text-[#E1E8F0]">@Initial(member.DisplayName)</span>
+                                                }
+                                                @if (member.IsOnline)
+                                                {
+                                                    <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-[#112A46] bg-emerald-500" title="Online"></span>
+                                                }
+                                            </div>
+                                            <div class="flex flex-col min-w-0">
+                                                <div class="flex items-center gap-1.5 min-w-0">
+                                                    <span class="truncate text-sm font-semibold text-slate-800 dark:text-[#E1E8F0]">@(string.IsNullOrWhiteSpace(member.DisplayName) ? member.UserName : member.DisplayName)</span>
+                                                    @if (member.Role is "OWNER" or "ADMIN")
+                                                    {
+                                                        <span class="shrink-0 rounded-md border @(member.Role == "OWNER" ? "border-amber-200 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "border-indigo-200 dark:border-indigo-800/40 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300") px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider">@member.Role</span>
+                                                    }
+                                                    @if (member.IsMuted)
+                                                    {
+                                                        <span class="shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.5 text-[9px] font-semibold text-rose-600 dark:text-rose-400" title="Muted">🔕</span>
+                                                    }
+                                                </div>
+                                                <span class="truncate text-[11px] text-slate-400 dark:text-[#C4D2E1]">
+                                                    @if (member.IsOnline)
+                                                    {
+                                                        <span class="font-medium text-emerald-600 dark:text-emerald-400">online</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>@@@member.UserName</span>
+                                                    }
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        @if (CanManageMember(member))
+                                        {
+                                            <div class="relative shrink-0">
+                                                <button type="button"
+                                                        @onclick="() => ToggleMemberMenu(member.UserId)"
+                                                        class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:text-[#C4D2E1] dark:hover:bg-[#1B3B5A] dark:hover:text-white transition"
+                                                        title="Member options">
+                                                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                                                    </svg>
+                                                </button>
+
+                                                @if (activeMemberMenuUserId == member.UserId)
+                                                {
+                                                    <div class="fixed inset-0 z-20" @onclick="() => activeMemberMenuUserId = null"></div>
+                                                    <div class="absolute right-0 top-9 z-30 w-48 rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E] p-1.5 shadow-xl">
+                                                        @if (Thread.UserRole == "OWNER")
+                                                        {
+                                                            @if (member.Role == "MEMBER")
+                                                            {
+                                                                <button type="button"
+                                                                        @onclick="() => { activeMemberMenuUserId = null; OnPromoteMember.InvokeAsync(member); }"
+                                                                        disabled="@IsSubmitting"
+                                                                        class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-[#E1E8F0] hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
+                                                                    <span>👑</span>
+                                                                    <span>Promote to Admin</span>
+                                                                </button>
+                                                            }
+                                                            else if (member.Role == "ADMIN")
+                                                            {
+                                                                <button type="button"
+                                                                        @onclick="() => { activeMemberMenuUserId = null; OnDemoteMember.InvokeAsync(member); }"
+                                                                        disabled="@IsSubmitting"
+                                                                        class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-[#E1E8F0] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition">
+                                                                    <span>🔽</span>
+                                                                    <span>Demote to Member</span>
+                                                                </button>
+                                                            }
+                                                        }
+
+                                                        @if (IsOwner && member.Role == "ADMIN")
+                                                        {
+                                                            <button type="button"
+                                                                    @onclick="() => { activeMemberMenuUserId = null; OpenPermissionEditor(member); }"
+                                                                    disabled="@IsSubmitting"
+                                                                    class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-[#E1E8F0] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition">
+                                                                <span>⚙️</span>
+                                                                <span>Edit Permissions</span>
+                                                            </button>
+                                                        }
+
+                                                        @if (CanRemoveMember(member))
+                                                        {
+                                                            <button type="button"
+                                                                    @onclick="() => { activeMemberMenuUserId = null; OnRemoveMember.InvokeAsync(member); }"
+                                                                    disabled="@IsSubmitting"
+                                                                    class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+                                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                                <span>Remove member</span>
+                                                            </button>
+                                                        }
+
+                                                        @if (CanBanMember(member))
+                                                        {
+                                                            <button type="button"
+                                                                    @onclick="() => { activeMemberMenuUserId = null; OnBanMember.InvokeAsync(member); }"
+                                                                    disabled="@IsSubmitting"
+                                                                    class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+                                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                                                                </svg>
+                                                                <span>Ban member</span>
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+
+                                        @if (editingPermissionsUserId == member.UserId)
+                                        {
+                                            <div class="mb-1 ml-2 mr-2 rounded-xl border border-indigo-100 bg-indigo-50/60 p-3">
+                                                <p class="text-xs font-semibold text-indigo-900">
+                                                    Permissions for @(string.IsNullOrWhiteSpace(member.DisplayName) ? member.UserName : member.DisplayName)
+                                                </p>
+
+                                                <div class="mt-2 space-y-1.5">
+                                                    <label class="flex items-center gap-2 text-xs text-slate-700">
+                                                        <input type="checkbox" @bind="editCanDeleteMessages" disabled="@IsSubmitting" class="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                                        <span>Delete messages</span>
+                                                    </label>
+                                                    <label class="flex items-center gap-2 text-xs text-slate-700">
+                                                        <input type="checkbox" @bind="editCanRemoveMembers" disabled="@IsSubmitting" class="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                                        <span>Remove members</span>
+                                                    </label>
+                                                    <label class="flex items-center gap-2 text-xs text-slate-700">
+                                                        <input type="checkbox" @bind="editCanBanMembers" disabled="@IsSubmitting" class="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                                        <span>Ban members</span>
+                                                    </label>
+                                                    <label class="flex items-center gap-2 text-xs text-slate-700">
+                                                        <input type="checkbox" @bind="editCanManageInviteLinks" disabled="@IsSubmitting" class="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                                        <span>Manage invite links</span>
+                                                    </label>
+                                                    <label class="flex items-center gap-2 text-xs text-slate-700">
+                                                        <input type="checkbox" @bind="editCanPinMessages" disabled="@IsSubmitting" class="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                                        <span>Pin messages</span>
+                                                    </label>
+                                                </div>
+
+                                                <div class="mt-3 flex justify-end gap-2">
+                                                    <button type="button"
+                                                            @onclick="CancelPermissionEditor"
+                                                            disabled="@IsSubmitting"
+                                                            class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50">
+                                                        Cancel
+                                                    </button>
+                                                    <button type="button"
+                                                            @onclick="() => SavePermissionsAsync(member)"
+                                                            disabled="@IsSubmitting"
+                                                            class="rounded-lg bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-60">
+                                                        @(IsSubmitting ? "Saving." : "Save")
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <!-- Shared Media Summary Section -->
+                <div class="pt-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[#C4D2E1] mb-2">SHARED MEDIA</h3>
+                    <div class="space-y-1">
+                        <button type="button" @onclick='() => OpenMediaCategory("photos")'
+                                class="w-full flex items-center justify-between p-2.5 rounded-xl transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] border border-slate-100 dark:border-[rgba(196,210,225,0.12)]">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">Photos</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-slate-400 dark:text-[#C4D2E1]">
+                                <span class="text-xs font-medium text-slate-500 dark:text-[#C4D2E1]">@sharedMediaCounts.PhotoCount</span>
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </div>
+                        </button>
+
+                        <button type="button" @onclick='() => OpenMediaCategory("videos")'
+                                class="w-full flex items-center justify-between p-2.5 rounded-xl transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] border border-slate-100 dark:border-[rgba(196,210,225,0.12)]">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25z" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">Videos</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-slate-400 dark:text-[#C4D2E1]">
+                                <span class="text-xs font-medium text-slate-500 dark:text-[#C4D2E1]">@sharedMediaCounts.VideoCount</span>
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </div>
+                        </button>
+
+                        <button type="button" @onclick='() => OpenMediaCategory("files")'
+                                class="w-full flex items-center justify-between p-2.5 rounded-xl transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] border border-slate-100 dark:border-[rgba(196,210,225,0.12)]">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E8F0]">Files</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-slate-400 dark:text-[#C4D2E1]">
+                                <span class="text-xs font-medium text-slate-500 dark:text-[#C4D2E1]">@sharedMediaCounts.FileCount</span>
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                }
             </div>
-        }
-    </div>
+        </div>
     </ChildContent>
 
     <FooterContent>
+        @if (Thread.IsDirect)
+        {
+            <button type="button"
+                    @onclick="OnToggleBlockUser"
+                    disabled="@IsSubmitting"
+                    class="rounded-lg border @(Thread.IsBlockedByMe ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" : "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100") px-3.5 py-2 text-xs font-semibold transition disabled:opacity-50">
+                @(Thread.IsBlockedByMe ? "Unblock User" : "Block User")
+            </button>
+            <button type="button"
+                    @onclick="() => showConfirmDeleteChatModal = true"
+                    disabled="@IsSubmitting"
+                    class="rounded-lg border border-rose-200 bg-white px-3.5 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50">
+                Delete Chat
+            </button>
+        }
         @if (Thread.IsGroup && CanLeave)
         {
             <button type="button"
-                    @onclick="OnLeave"
-                    disabled="IsSubmitting"
-                    class="rounded-lg border border-rose-200 bg-white px-3.5 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-rose-400">
-                @(IsSubmitting ? "Leaving…" : "Leave group")
+                    @onclick="() => showConfirmLeaveModal = true"
+                    class="rounded-lg border border-rose-200 bg-white px-3.5 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50">
+                @(IsOwner ? "Delete and leave" : "Leave group")
             </button>
         }
         <button type="button"
                 @onclick="OnClose"
-                class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300">
+                class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">
             Close
         </button>
     </FooterContent>
 </ChatModal>
 
+<!-- Dedicated Confirmation Modal Box for Deleting 1:1 Chat -->
+<ChatModal IsOpen="showConfirmDeleteChatModal" Title="Delete Chat" MaxWidth="max-w-md" OnClose="() => showConfirmDeleteChatModal = false">
+    <ChildContent>
+        <div class="flex items-start gap-4 p-5">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+            </div>
+            <div class="space-y-1">
+                <h3 class="text-sm font-semibold text-slate-900">Delete chat history with @Thread.Title?</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    This will clear all messages in this conversation for you. The other user will still keep their copy of the conversation.
+                </p>
+            </div>
+        </div>
+    </ChildContent>
+    <FooterContent>
+        <button type="button"
+                @onclick="() => showConfirmDeleteChatModal = false"
+                disabled="@IsSubmitting"
+                class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50">
+            Cancel
+        </button>
+        <button type="button"
+                @onclick="ConfirmDeleteChatAsync"
+                disabled="@IsSubmitting"
+                class="rounded-lg bg-rose-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-rose-500">
+            @(IsSubmitting ? "Deleting…" : "Delete chat")
+        </button>
+    </FooterContent>
+</ChatModal>
+
+<!-- Dedicated Confirmation Modal Box for Leaving Group -->
+<ChatModal IsOpen="showConfirmLeaveModal" Title="Leave Group" MaxWidth="max-w-md" OnClose="() => showConfirmLeaveModal = false">
+    <ChildContent>
+        <div class="flex items-start gap-4 p-5">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                </svg>
+            </div>
+            <div class="space-y-1">
+                @if (IsOwner)
+                {
+                    <h3 class="text-sm font-semibold text-slate-900">Leaving will delete this group</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        You are the owner of <strong>@Thread.Title</strong>. Ownership cannot be
+                        transferred to another member, so leaving deletes the group for everyone.
+                        Everyone is removed and no one can rejoin.
+                    </p>
+                }
+                else
+                {
+                    <h3 class="text-sm font-semibold text-slate-900">Are you sure you want to leave this group?</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        You will no longer be able to send or receive messages in <strong>@Thread.Title</strong> unless you are invited or join again.
+                    </p>
+                }
+            </div>
+        </div>
+    </ChildContent>
+    <FooterContent>
+        <button type="button"
+                @onclick="() => showConfirmLeaveModal = false"
+                disabled="@IsSubmitting"
+                class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50">
+            Cancel
+        </button>
+        <button type="button"
+                @onclick="ConfirmLeaveGroupAsync"
+                disabled="@IsSubmitting"
+                class="rounded-lg bg-rose-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-rose-500">
+            @(IsSubmitting
+                ? (IsOwner ? "Deleting…" : "Leaving…")
+                : (IsOwner ? "Yes, delete group and leave" : "Yes, leave group"))
+        </button>
+    </FooterContent>
+</ChatModal>
+
+
+<!-- Dedicated Invite Links Modal Box (Telegram Style) -->
+<ChatModal IsOpen="showInviteLinksModal" Title="Invite links" MaxWidth="max-w-md" OnClose="CloseInviteLinksModal">
+    <ChildContent>
+        <div class="p-5 space-y-5">
+            @if (copySuccessMessage != null)
+            {
+                <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 text-center text-xs font-semibold text-emerald-700">
+                    @copySuccessMessage
+                </div>
+            }
+
+            @if (isLoadingInviteLinks)
+            {
+                <div class="flex items-center justify-center py-8">
+                    <span class="h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent"></span>
+                </div>
+            }
+            else
+            {
+                <!-- Primary Link Section -->
+                <div>
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Primary link</h4>
+                    
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 flex items-center justify-between gap-2">
+                        <span class="text-xs font-mono font-medium text-slate-800 truncate select-all">
+                            @(primaryInviteLink != null ? Navigation.ToAbsoluteUri($"/invite/{primaryInviteLink.Token}").ToString() : "Generating link…")
+                        </span>
+                        <button type="button"
+                                @onclick="CopyPrimaryInviteLinkAsync"
+                                class="shrink-0 text-slate-400 hover:text-slate-600 transition">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.375a9.06 9.06 0 00-1.5-.124H15.75" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Copy & Share Action Buttons (matching Screenshot 2) -->
+                    <div class="grid grid-cols-2 gap-3 mt-3">
+                        <button type="button"
+                                @onclick="CopyPrimaryInviteLinkAsync"
+                                class="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.375a9.06 9.06 0 00-1.5-.124H15.75" />
+                            </svg>
+                            <span>Copy Link</span>
+                        </button>
+                        <button type="button"
+                                @onclick="CopyPrimaryInviteLinkAsync"
+                                class="flex items-center justify-center gap-2 rounded-xl bg-indigo-600/90 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+                            </svg>
+                            <span>Share Link</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Create New Link Button -->
+                <div class="border-t border-slate-100 pt-4">
+                    @if (showCreateLinkInput)
+                    {
+                        <div class="space-y-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                            <h5 class="text-xs font-semibold text-slate-800">Create custom invite link</h5>
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-600 mb-1">Link Name (optional)</label>
+                                <input type="text" @bind="newLinkName" placeholder="e.g. Social media promo"
+                                       class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none" />
+                            </div>
+                            <div class="flex items-center gap-2 pt-1">
+                                <button type="button" @onclick="CreateCustomLinkAsync" disabled="@isCreatingLink"
+                                        class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
+                                    @(isCreatingLink ? "Creating…" : "Create Link")
+                                </button>
+                                <button type="button" @onclick="() => showCreateLinkInput = false"
+                                        class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                @onclick="() => showCreateLinkInput = true"
+                                class="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition py-1">
+                            <div class="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                            </div>
+                            <span>Create a New Link</span>
+                        </button>
+                    }
+                </div>
+
+                <!-- Secondary Links List (if any) -->
+                @if (inviteLinks.Count(l => !l.IsPrimary) > 0)
+                {
+                    <div class="border-t border-slate-100 pt-3 space-y-2">
+                        <h5 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Other active links</h5>
+                        <div class="max-h-36 overflow-y-auto space-y-2">
+                            @foreach (var link in inviteLinks.Where(l => !l.IsPrimary))
+                            {
+                                <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-2.5 text-xs">
+                                    <div class="min-w-0 pr-2">
+                                        <p class="font-semibold text-slate-800 truncate">@(string.IsNullOrWhiteSpace(link.Name) ? "Custom link" : link.Name)</p>
+                                        <p class="font-mono text-[11px] text-slate-500 truncate">@Navigation.ToAbsoluteUri($"/invite/{link.Token}")</p>
+                                        <p class="text-[10px] text-slate-400">Used @link.UseCount times</p>
+                                    </div>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <button type="button" @onclick="() => CopyInviteLinkAsync(link.Token)" class="p-1 text-slate-400 hover:text-indigo-600">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.375a9.06 9.06 0 00-1.5-.124H15.75" />
+                                            </svg>
+                                        </button>
+                                        <button type="button" @onclick="() => RevokeInviteLinkAsync(link.ChatGroupInviteLinkId)" class="p-1 text-slate-400 hover:text-rose-600">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <p class="text-[11px] text-slate-400 leading-relaxed pt-2">
+                    You can generate invite links that expire after they are used.
+                </p>
+            }
+        </div>
+    </ChildContent>
+    <FooterContent>
+        <button type="button"
+                @onclick="CloseInviteLinksModal"
+                class="w-full rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800">
+            Done
+        </button>
+    </FooterContent>
+</ChatModal>
+
+@if (selectedPhotoItem != null)
+{
+    <ChatModal IsOpen="true" Title="Photo Preview" MaxWidth="max-w-xl" OnClose="() => selectedPhotoItem = null">
+        <ChildContent>
+            <div class="flex flex-col items-center bg-slate-900 p-4 text-white rounded-b-xl">
+                <img src="@selectedPhotoItem.AttachmentUrl" alt="" class="max-h-[60vh] max-w-full rounded object-contain shadow-lg" />
+                <div class="mt-4 flex w-full items-center justify-between border-t border-slate-800 pt-3 text-xs">
+                    <div>
+                        <p class="font-semibold text-slate-200">@selectedPhotoItem.SenderDisplayName</p>
+                        <p class="text-[11px] text-slate-400">@selectedPhotoItem.CreatedAt.ToLocalTime().ToString("MMM d, yyyy HH:mm")</p>
+                    </div>
+                    <button type="button" @onclick="() => TriggerViewInChat(selectedPhotoItem.MessageId)"
+                            class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition">
+                        View in chat
+                    </button>
+                </div>
+            </div>
+        </ChildContent>
+    </ChatModal>
+}
+
 @code {
+    private int? activeMemberMenuUserId;
+    private void ToggleMemberMenu(int userId) => activeMemberMenuUserId = activeMemberMenuUserId == userId ? null : userId;
+
+    // Invite links state
+    private bool showInviteLinksModal;
+    private bool isLoadingInviteLinks;
+    private bool isCreatingLink;
+    private bool showCreateLinkInput;
+    private string newLinkName = "";
+    private string? copySuccessMessage;
+    private ChatGroupInviteLinkModel? primaryInviteLink;
+    private IReadOnlyList<ChatGroupInviteLinkModel> inviteLinks = Array.Empty<ChatGroupInviteLinkModel>();
+
+    private async Task OpenInviteLinksModalAsync()
+    {
+        showInviteLinksModal = true;
+        await LoadInviteLinksAsync();
+    }
+
+    private void CloseInviteLinksModal()
+    {
+        showInviteLinksModal = false;
+        showCreateLinkInput = false;
+        newLinkName = "";
+        copySuccessMessage = null;
+    }
+
+    private async Task LoadInviteLinksAsync()
+    {
+        isLoadingInviteLinks = true;
+        var pRes = await ChatGroupApi.GetOrCreatePrimaryInviteLinkAsync(Thread.Id);
+        if (pRes.IsSuccess && pRes.Data != null)
+        {
+            primaryInviteLink = pRes.Data;
+        }
+
+        var lRes = await ChatGroupApi.GetInviteLinksAsync(Thread.Id);
+        if (lRes.IsSuccess && lRes.Data != null)
+        {
+            inviteLinks = lRes.Data;
+        }
+        isLoadingInviteLinks = false;
+    }
+
+    private async Task CopyInviteLinkAsync(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return;
+        var fullUrl = Navigation.ToAbsoluteUri($"/invite/{token}").ToString();
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", fullUrl);
+            copySuccessMessage = "Link copied to clipboard!";
+        }
+        catch
+        {
+            copySuccessMessage = fullUrl;
+        }
+        StateHasChanged();
+        await Task.Delay(2000);
+        copySuccessMessage = null;
+        StateHasChanged();
+    }
+
+    private async Task CopyPrimaryInviteLinkAsync()
+    {
+        if (primaryInviteLink != null && !string.IsNullOrWhiteSpace(primaryInviteLink.Token))
+        {
+            await CopyInviteLinkAsync(primaryInviteLink.Token);
+        }
+    }
+
+    private async Task CreateCustomLinkAsync()
+    {
+        if (isCreatingLink) return;
+        isCreatingLink = true;
+
+        var request = new CreateInviteLinkRequestModel(Name: string.IsNullOrWhiteSpace(newLinkName) ? null : newLinkName.Trim());
+        var res = await ChatGroupApi.CreateInviteLinkAsync(Thread.Id, request);
+        isCreatingLink = false;
+
+        if (res.IsSuccess)
+        {
+            showCreateLinkInput = false;
+            newLinkName = "";
+            await LoadInviteLinksAsync();
+        }
+    }
+
+    private async Task RevokeInviteLinkAsync(int linkId)
+    {
+        var res = await ChatGroupApi.RevokeInviteLinkAsync(Thread.Id, linkId);
+        if (res.IsSuccess)
+        {
+            await LoadInviteLinksAsync();
+        }
+    }
+
     [Parameter, EditorRequired] public ChatThreadViewModel Thread { get; set; } = default!;
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public IReadOnlyList<ChatGroupMemberModel> Members { get; set; } = Array.Empty<ChatGroupMemberModel>();
     [Parameter] public bool IsLoadingMembers { get; set; }
     [Parameter] public bool IsSubmitting { get; set; }
+    [Parameter] public bool IsMuted { get; set; }
     [Parameter] public string? Description { get; set; }
     [Parameter] public string? CreatorName { get; set; }
 
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnLeave { get; set; }
+    [Parameter] public EventCallback OnToggleMute { get; set; }
+    [Parameter] public EventCallback<ChatGroupMemberModel> OnPromoteMember { get; set; }
+    [Parameter] public EventCallback<ChatGroupMemberModel> OnDemoteMember { get; set; }
+    [Parameter] public EventCallback<ChatGroupMemberModel> OnRemoveMember { get; set; }
+    [Parameter] public EventCallback<ChatGroupMemberModel> OnBanMember { get; set; }
 
-    private bool CanLeave => Thread.IsGroup && Thread.IsJoined && Thread.UserRole != "OWNER";
+    /// <summary>OWNER. Persists a whole permission set for one admin.</summary>
+    [Parameter] public EventCallback<(ChatGroupMemberModel Member, ChatGroupPermissionSet Permissions)> OnUpdateMemberPermissions { get; set; }
+    [Parameter] public EventCallback<ChatGroupModel> OnGroupChanged { get; set; }
+    [Parameter] public EventCallback<string?> OnGroupImageChanged { get; set; }
+    [Parameter] public EventCallback OnDeleteGroup { get; set; }
+    [Parameter] public EventCallback OnToggleBlockUser { get; set; }
+    [Parameter] public EventCallback OnDeleteConversation { get; set; }
+    [Parameter] public Func<int, Task<bool>>? OnAddMembers { get; set; }
+
+    // Outstanding PAID-group invitations. Supplied by the page, which clears them whenever the
+    // open thread is not a group or the viewer is not a member, so a stale list cannot render.
+    [Parameter] public IReadOnlyList<ChatGroupInviteModel> Invitations { get; set; } = Array.Empty<ChatGroupInviteModel>();
+    [Parameter] public bool IsLoadingInvitations { get; set; }
+    [Parameter] public EventCallback<int> OnRevokeInvitation { get; set; }
+    [Parameter] public EventCallback<int> OnViewInChat { get; set; }
+
+    // Shared Media state
+    private SharedMediaCountsModel sharedMediaCounts = new(0, 0, 0);
+    private string? selectedMediaCategory;
+    private bool isLoadingSharedMedia;
+    private SharedMediaPagedResultModel? mediaResult;
+    private int mediaPage = 1;
+    private SharedMediaItemModel? selectedPhotoItem;
+    private int lastLoadedThreadId;
+    private bool lastLoadedIsGroup;
+
+    private async Task LoadSharedMediaCountsAsync()
+    {
+        if (Thread == null) return;
+        if (Thread.IsGroup)
+        {
+            var res = await ChatGroupApi.GetSharedMediaCountsAsync(Thread.Id);
+            if (res.IsSuccess && res.Data != null)
+            {
+                sharedMediaCounts = res.Data;
+            }
+        }
+        else
+        {
+            var res = await ChatApi.GetSharedMediaCountsAsync(Thread.Id);
+            if (res.IsSuccess && res.Data != null)
+            {
+                sharedMediaCounts = res.Data;
+            }
+        }
+    }
+
+    private async Task OpenMediaCategory(string category)
+    {
+        selectedMediaCategory = category;
+        mediaPage = 1;
+        mediaResult = null;
+        await LoadSharedMediaItemsAsync();
+    }
+
+    private async Task LoadSharedMediaItemsAsync()
+    {
+        if (Thread == null || selectedMediaCategory == null) return;
+        isLoadingSharedMedia = true;
+        try
+        {
+            if (Thread.IsGroup)
+            {
+                var res = await ChatGroupApi.GetSharedMediaAsync(Thread.Id, selectedMediaCategory, mediaPage, 30);
+                if (res.IsSuccess && res.Data != null)
+                {
+                    if (mediaPage == 1 || mediaResult == null)
+                    {
+                        mediaResult = res.Data;
+                    }
+                    else
+                    {
+                        var combined = mediaResult.Items.ToList();
+                        combined.AddRange(res.Data.Items);
+                        mediaResult = res.Data with { Items = combined };
+                    }
+                }
+            }
+            else
+            {
+                var res = await ChatApi.GetSharedMediaAsync(Thread.Id, selectedMediaCategory, mediaPage, 30);
+                if (res.IsSuccess && res.Data != null)
+                {
+                    if (mediaPage == 1 || mediaResult == null)
+                    {
+                        mediaResult = res.Data;
+                    }
+                    else
+                    {
+                        var combined = mediaResult.Items.ToList();
+                        combined.AddRange(res.Data.Items);
+                        mediaResult = res.Data with { Items = combined };
+                    }
+                }
+            }
+        }
+        finally
+        {
+            isLoadingSharedMedia = false;
+        }
+    }
+
+    private async Task LoadMoreMediaAsync()
+    {
+        if (mediaResult != null && mediaResult.HasNextPage)
+        {
+            mediaPage++;
+            await LoadSharedMediaItemsAsync();
+        }
+    }
+
+    private void BackToMediaSummary()
+    {
+        selectedMediaCategory = null;
+        selectedPhotoItem = null;
+    }
+
+    private async Task TriggerViewInChat(int messageId)
+    {
+        selectedPhotoItem = null;
+        selectedMediaCategory = null;
+        await OnClose.InvokeAsync();
+        await OnViewInChat.InvokeAsync(messageId);
+    }
+
+    private static string FormatFileSize(long? bytes)
+    {
+        if (bytes == null || bytes <= 0) return "0 B";
+        string[] units = { "B", "KB", "MB", "GB" };
+        int digitGroup = (int)(Math.Log10(bytes.Value) / Math.Log10(1024));
+        return $"{bytes.Value / Math.Pow(1024, digitGroup):0.#} {units[digitGroup]}";
+    }
+
+    private bool IsOwner => Thread.IsGroup && Thread.UserRole == "OWNER";
+    private bool IsAdminOrOwner => Thread.IsGroup && (Thread.UserRole == "OWNER" || Thread.UserRole == "ADMIN");
+    /// <summary>
+    /// Every member, the owner included, may leave. The owner is not exempt: ownership is not
+    /// transferable, so an owner leave deletes the group (see LeaveChatGroupAsync).
+    /// </summary>
+    private bool CanLeave => Thread.IsGroup && Thread.IsJoined;
+
+    // Mirrors the server rule in AddMembersAsync: only a PAID group with a non-zero fee is served
+    // through invitations, so the wording and the pending list track the real behaviour.
+    private bool IsPaidGroup => Thread.IsGroup && Thread.RequiresPayment && Thread.FeeLinkDrops > 0;
+
+    // Manage group state
+    private bool showManageSection;
+    private bool isEditing;
+    private bool isEditingFee;
+    private bool isEditingAccessMode;
+    private string editAccessMode = "PUBLIC";
+    private bool showJoinRequests;
+    private bool isLoadingJoinRequests;
+    private IReadOnlyList<ChatGroupJoinRequestModel> joinRequests = Array.Empty<ChatGroupJoinRequestModel>();
+    private bool isAdding;
+    private bool isBanning;
+    private bool showConfirmLeaveModal;
+    private bool showConfirmDeleteChatModal;
+
+    private async Task ConfirmDeleteChatAsync()
+    {
+        showConfirmDeleteChatModal = false;
+        await OnDeleteConversation.InvokeAsync();
+    }
+
+    private async Task ConfirmLeaveGroupAsync()
+    {
+        showConfirmLeaveModal = false;
+        // Owner leave deletes the group, so route through OnDeleteGroup for owners.
+        if (IsOwner)
+            await OnDeleteGroup.InvokeAsync();
+        else
+            await OnLeave.InvokeAsync();
+    }
+
+    private string? actionError;
+    private string editName = "";
+    private string? editDescription;
+    private long editFeeLinkDrops;
+    private IBrowserFile? editImageFile;
+
+    // Add-members search
+    private readonly object addInputKey = new();
+    private string addSearch = "";
+    private bool isSearching;
+    private IReadOnlyList<UserSearchResultDto> addCandidates = Array.Empty<UserSearchResultDto>();
+    private System.Threading.CancellationTokenSource? addSearchCts;
+
+    /// <summary>
+    /// Supersedes any in-flight add-member search. Cancelling and disposing the source here is
+    /// safe because the superseded handler only ever touches its own snapshot of the token, never
+    /// the <c>CancellationTokenSource</c> itself: reading <c>cts.Token</c> after disposal throws.
+    /// </summary>
+    private void CancelAddSearch()
+    {
+        var pending = addSearchCts;
+        if (pending is null)
+        {
+            return;
+        }
+
+        addSearchCts = null;
+        pending.Cancel();
+        pending.Dispose();
+    }
+
+    // Banned list, loaded lazily when the owner/admin opens it.
+    private IReadOnlyList<ChatGroupBannedMemberModel> bannedMembers = Array.Empty<ChatGroupBannedMemberModel>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!IsOpen)
+        {
+            showConfirmLeaveModal = false;
+            selectedMediaCategory = null;
+            selectedPhotoItem = null;
+        }
+        else if (Thread != null && (Thread.Id != lastLoadedThreadId || Thread.IsGroup != lastLoadedIsGroup))
+        {
+            lastLoadedThreadId = Thread.Id;
+            lastLoadedIsGroup = Thread.IsGroup;
+            selectedMediaCategory = null;
+            selectedPhotoItem = null;
+            await LoadSharedMediaCountsAsync();
+        }
+
+        if (Thread != null && !isEditing)
+        {
+            editName = Thread.Title;
+            editDescription = Thread.Description ?? Description;
+        }
+    }
+
+    private bool CanManageMember(ChatGroupMemberModel member)
+    {
+        if (!Thread.IsGroup || member.Role == "OWNER") return false;
+        if (Thread.UserRole == "OWNER") return true;
+        if (Thread.UserRole == "ADMIN" && member.Role == "MEMBER") return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Hierarchy plus the owner-granted flag. An admin who was stripped of CanRemoveMembers still
+    /// sees no Remove control, matching what the server would reject.
+    /// </summary>
+    private bool CanRemoveMember(ChatGroupMemberModel member) =>
+        CanManageMember(member) && (Thread.UserRole == "OWNER" || Thread.CanRemoveMembers);
+
+    /// <summary>Hierarchy plus CanBanMembers, and only where the banned list would list them.</summary>
+    private bool CanBanMember(ChatGroupMemberModel member) =>
+        CanManageMember(member) && (Thread.UserRole == "OWNER" || Thread.CanBanMembers);
+
+    // ---- Per-admin permission editor (owner only) ----
+
+    private int? editingPermissionsUserId;
+    private bool editCanDeleteMessages;
+    private bool editCanRemoveMembers;
+    private bool editCanBanMembers;
+    private bool editCanManageInviteLinks;
+    private bool editCanPinMessages;
+
+    private void OpenPermissionEditor(ChatGroupMemberModel member)
+    {
+        editingPermissionsUserId = member.UserId;
+        var current = member.Permissions ?? ChatGroupPermissionSet.None;
+        editCanDeleteMessages = current.CanDeleteMessages;
+        editCanRemoveMembers = current.CanRemoveMembers;
+        editCanBanMembers = current.CanBanMembers;
+        editCanManageInviteLinks = current.CanManageInviteLinks;
+        editCanPinMessages = current.CanPinMessages;
+    }
+
+    private void CancelPermissionEditor() => editingPermissionsUserId = null;
+
+    private async Task SavePermissionsAsync(ChatGroupMemberModel member)
+    {
+        var permissions = new ChatGroupPermissionSet(
+            editCanDeleteMessages,
+            editCanRemoveMembers,
+            editCanBanMembers,
+            editCanManageInviteLinks,
+            editCanPinMessages);
+
+        // Closed before the await so a slow round trip cannot leave two editors open.
+        editingPermissionsUserId = null;
+        await OnUpdateMemberPermissions.InvokeAsync((member, permissions));
+    }
+
+    private void ToggleManageSection()
+    {
+        showManageSection = !showManageSection;
+        actionError = null;
+    }
+
+    private async Task ToggleMuteAsync()
+    {
+        await OnToggleMute.InvokeAsync();
+    }
+
+    private void BeginEdit()
+    {
+        editName = Thread.Title;
+        editDescription = Thread.Description ?? Description;
+        actionError = null;
+        isEditing = true;
+    }
+
+    private void CancelEdit()
+    {
+        isEditing = false;
+        actionError = null;
+    }
+
+    private void BeginEditFee()
+    {
+        editFeeLinkDrops = Thread.FeeLinkDrops;
+        actionError = null;
+        isEditingFee = true;
+    }
+
+    private void CancelEditFee()
+    {
+        isEditingFee = false;
+        actionError = null;
+    }
+
+    private void BeginAdd()
+    {
+        isAdding = true;
+        addSearch = "";
+        addCandidates = Array.Empty<UserSearchResultDto>();
+        actionError = null;
+    }
+
+    private void CancelAdd()
+    {
+        isAdding = false;
+        addSearch = "";
+        addCandidates = Array.Empty<UserSearchResultDto>();
+        actionError = null;
+        CancelAddSearch();
+    }
+
+    private async Task SaveInfoAsync()
+    {
+        if (string.IsNullOrWhiteSpace(editName))
+        {
+            actionError = "The group name cannot be empty.";
+            return;
+        }
+
+        if (editName.Trim().Length > 100)
+        {
+            actionError = "The group name cannot exceed 100 characters.";
+            return;
+        }
+
+        var request = new UpdateChatGroupRequestModel(
+            editName.Trim(),
+            string.IsNullOrWhiteSpace(editDescription) ? null : editDescription.Trim(),
+            Thread.RequiresPayment ? "PAID" : "FREE",
+            Thread.FeeLinkDrops,
+            Thread.AccessMode ?? "PUBLIC");
+
+        var res = await ChatGroupApi.UpdateInfoAsync(Thread.Id, request);
+        if (res.IsSuccess && res.Data is not null)
+        {
+            isEditing = false;
+            actionError = null;
+            Thread.Title = res.Data.Name;
+            Thread.Description = res.Data.Description;
+            Thread.AccessMode = res.Data.AccessMode;
+            await OnGroupChanged.InvokeAsync(res.Data);
+        }
+        else
+        {
+            actionError = res.Message ?? "The group could not be updated.";
+        }
+    }
+
+    private void BeginEditAccessMode()
+    {
+        editAccessMode = Thread.AccessMode ?? "PUBLIC";
+        actionError = null;
+        isEditingAccessMode = true;
+    }
+
+    private void CancelEditAccessMode()
+    {
+        isEditingAccessMode = false;
+        actionError = null;
+    }
+
+    private async Task SaveAccessModeAsync()
+    {
+        var request = new UpdateChatGroupRequestModel(
+            Thread.Title,
+            Thread.Description ?? Description,
+            Thread.RequiresPayment ? "PAID" : "FREE",
+            Thread.FeeLinkDrops,
+            editAccessMode);
+
+        var res = await ChatGroupApi.UpdateInfoAsync(Thread.Id, request);
+        if (res.IsSuccess && res.Data is not null)
+        {
+            isEditingAccessMode = false;
+            actionError = null;
+            Thread.AccessMode = res.Data.AccessMode;
+            await OnGroupChanged.InvokeAsync(res.Data);
+        }
+        else
+        {
+            actionError = res.Message ?? "The access mode could not be updated.";
+        }
+    }
+
+    private async Task ToggleJoinRequestsAsync()
+    {
+        showJoinRequests = !showJoinRequests;
+        actionError = null;
+        if (showJoinRequests)
+        {
+            await LoadJoinRequestsAsync();
+        }
+    }
+
+    private async Task LoadJoinRequestsAsync()
+    {
+        isLoadingJoinRequests = true;
+        var res = await ChatGroupApi.GetJoinRequestsAsync(Thread.Id);
+        if (res.IsSuccess && res.Data is not null)
+        {
+            joinRequests = res.Data;
+        }
+        else
+        {
+            actionError = res.Message ?? "Could not load join requests.";
+        }
+        isLoadingJoinRequests = false;
+    }
+
+    private async Task ApproveJoinRequestAsync(int requestId)
+    {
+        actionError = null;
+        var res = await ChatGroupApi.ApproveJoinRequestAsync(Thread.Id, requestId);
+        if (res.IsSuccess)
+        {
+            await LoadJoinRequestsAsync();
+        }
+        else
+        {
+            actionError = res.Message ?? "Failed to approve join request.";
+        }
+    }
+
+    private async Task RejectJoinRequestAsync(int requestId)
+    {
+        actionError = null;
+        var res = await ChatGroupApi.RejectJoinRequestAsync(Thread.Id, requestId);
+        if (res.IsSuccess)
+        {
+            await LoadJoinRequestsAsync();
+        }
+        else
+        {
+            actionError = res.Message ?? "Failed to reject join request.";
+        }
+    }
+
+    private async Task SaveFeeAsync()
+    {
+        if (editFeeLinkDrops < 0)
+        {
+            actionError = "The join fee cannot be negative.";
+            return;
+        }
+
+        var res = await ChatGroupApi.SetJoinFeeAsync(Thread.Id, editFeeLinkDrops);
+        if (res.IsSuccess && res.Data is not null)
+        {
+            isEditingFee = false;
+            actionError = null;
+            Thread.FeeLinkDrops = res.Data.JoinFeeLinkDrops;
+            Thread.RequiresPayment = string.Equals(res.Data.ChatType, "PAID", StringComparison.OrdinalIgnoreCase);
+            await OnGroupChanged.InvokeAsync(res.Data);
+        }
+        else
+        {
+            actionError = res.Message ?? "The join fee could not be updated.";
+        }
+    }
+
+    private void OnImageSelected(InputFileChangeEventArgs args)
+    {
+        actionError = null;
+
+        var file = args.File;
+        if (file is null)
+        {
+            return;
+        }
+
+        if (!ChatGroupImagePolicy.IsAllowed(file.Name))
+        {
+            actionError = $"Unsupported image type. Allowed: {ChatGroupImagePolicy.AllowedExtensionsDisplay}.";
+            return;
+        }
+
+        if (file.Size > ChatGroupImagePolicy.MaxBytes)
+        {
+            actionError = "Image is too large. The maximum is 5 MB.";
+            return;
+        }
+
+        editImageFile = file;
+    }
+
+    private void CancelImage()
+    {
+        editImageFile = null;
+        actionError = null;
+    }
+
+    private async Task UploadImageAsync()
+    {
+        if (editImageFile is null)
+        {
+            return;
+        }
+
+        var res = await ChatGroupApi.UpdateImageAsync(Thread.Id, editImageFile);
+        if (res.IsSuccess && res.Data is not null)
+        {
+            editImageFile = null;
+            actionError = null;
+            Thread.AvatarUrl = res.Data.Url;
+            await OnGroupImageChanged.InvokeAsync(res.Data.Url);
+        }
+        else
+        {
+            actionError = res.Message ?? "The image could not be uploaded.";
+        }
+    }
+
+    private async Task OnAddSearchInputAsync()
+    {
+        CancelAddSearch();
+
+        var term = addSearch.Trim();
+        if (term.Length == 0)
+        {
+            addCandidates = Array.Empty<UserSearchResultDto>();
+            isSearching = false;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        var cts = new System.Threading.CancellationTokenSource();
+        addSearchCts = cts;
+
+        // Snapshot the token. Every await below re-checks this local copy instead of cts.Token:
+        // a newer keystroke disposes cts, and the property getter would then throw
+        // ObjectDisposedException on resume. A copied token stays valid after disposal.
+        var token = cts.Token;
+
+        try
+        {
+            // Debounce so a burst of keystrokes only issues one search request.
+            await Task.Delay(250, token);
+
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            isSearching = true;
+            await InvokeAsync(StateHasChanged);
+
+            var res = await UserApi.SearchUsersAsync(term, 8);
+
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            if (res.IsSuccess && res.Data is not null)
+            {
+                var existing = Members.Select(m => m.UserId).ToHashSet();
+                addCandidates = res.Data
+                    .Where(c => !existing.Contains(c.UserId))
+                    .ToList();
+            }
+            else
+            {
+                addCandidates = Array.Empty<UserSearchResultDto>();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer keystroke; the newer run owns the results.
+        }
+        finally
+        {
+            // Only the current run clears the searching indicator. A superseded run was already
+            // cancelled and its source disposed by CancelAddSearch.
+            if (addSearchCts == cts)
+            {
+                addSearchCts = null;
+                cts.Dispose();
+                isSearching = false;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    private async Task OnAddSearchKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            CancelAddSearch();
+
+            var term = addSearch.Trim();
+            if (term.Length == 0)
+            {
+                addCandidates = Array.Empty<UserSearchResultDto>();
+                isSearching = false;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            isSearching = true;
+            await InvokeAsync(StateHasChanged);
+
+            try
+            {
+                var res = await UserApi.SearchUsersAsync(term, 8);
+                if (res.IsSuccess && res.Data is not null)
+                {
+                    var existing = Members.Select(m => m.UserId).ToHashSet();
+                    addCandidates = res.Data
+                        .Where(c => !existing.Contains(c.UserId))
+                        .ToList();
+                }
+                else
+                {
+                    addCandidates = Array.Empty<UserSearchResultDto>();
+                }
+            }
+            finally
+            {
+                isSearching = false;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    private async Task AddUserAsync(int userId)
+    {
+        actionError = null;
+
+        if (OnAddMembers is null)
+        {
+            actionError = "Adding members is not available here.";
+            return;
+        }
+
+        var added = await OnAddMembers(userId);
+
+        if (added)
+        {
+            addCandidates = addCandidates.Where(c => c.UserId != userId).ToList();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static string InviteeName(ChatGroupInviteModel invite) =>
+        string.IsNullOrWhiteSpace(invite.InvitedUserDisplayName) ? invite.InvitedUserName : invite.InvitedUserDisplayName;
+
+    private async Task RevokeAsync(int userId)
+    {
+        actionError = null;
+        await OnRevokeInvitation.InvokeAsync(userId);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UnbanUserAsync(int userId)
+    {
+        actionError = null;
+        var res = await ChatGroupApi.UnbanMemberAsync(Thread.Id, userId);
+        if (res.IsSuccess)
+        {
+            bannedMembers = bannedMembers.Where(b => b.BannedUserId != userId).ToList();
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            actionError = res.Message ?? "The ban could not be lifted.";
+        }
+    }
+
+    private async Task ToggleBanningAsync()
+    {
+        isBanning = !isBanning;
+        actionError = null;
+
+        if (isBanning && bannedMembers.Count == 0)
+        {
+            var res = await ChatGroupApi.GetBannedMembersAsync(Thread.Id);
+            if (res.IsSuccess && res.Data is not null)
+            {
+                bannedMembers = res.Data;
+            }
+            else
+            {
+                actionError = res.Message ?? "The banned members list could not be loaded.";
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
 
     private static string Initial(string? name)
     {

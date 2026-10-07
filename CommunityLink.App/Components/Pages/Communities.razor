@@ -1,9 +1,11 @@
 @page "/communities"
 @page "/community"
 @rendermode InteractiveServer
+@using System.IO
 @inject CommunityApiService CommunityApi
 @inject ToastService Toast
 @inject NavigationManager Navigation
+@inject IWebHostEnvironment Environment
 
 <PageTitle>Communities — CommunityLink</PageTitle>
 
@@ -99,36 +101,48 @@
         </div>
 
         <!-- Filter Strip -->
-        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-md w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
-            <div class="flex items-center gap-space-sm">
-                <span class="font-title-lg text-title-lg text-on-surface font-bold">@(filterParentId.HasValue ? filterParentName : "All Communities")</span>
-                <span class="px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary font-label-md text-label-md border border-primary/20">
+        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-md w-full flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md">
+            <div class="flex flex-wrap items-center gap-space-sm">
+                <span class="font-title-lg text-title-lg text-[#0A1B2E] dark:text-[#E1E8F0] font-bold">@(filterParentId.HasValue ? filterParentName : "All Communities")</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-surface-container-high text-[#1E3A8A] dark:text-primary font-label-md text-label-md border border-slate-300 dark:border-primary/20 font-semibold">
                     @ActiveCommunities.Count Shown
                 </span>
+
+                <!-- Type Dropdown Filter: All / Communities / Sub-communities -->
+                <div class="inline-flex items-center gap-1.5 ml-1">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-on-surface-variant hidden sm:inline">Type:</span>
+                    <select class="px-3 py-1.5 rounded-lg bg-white dark:bg-surface-container-low text-slate-800 dark:text-[#E1E8F0] text-xs font-medium border border-slate-300 dark:border-surface-container-high/40 shadow-xs focus:outline-none focus:border-primary cursor-pointer"
+                            @bind="selectedTypeFilter"
+                            @bind:after="OnTypeFilterChanged">
+                        <option value="ALL">All Hubs &amp; Syndicates</option>
+                        <option value="COMMUNITIES">Communities (Parent Hubs)</option>
+                        <option value="SUB_COMMUNITIES">Sub-communities</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-space-sm w-full sm:w-auto">
+            <div class="flex flex-wrap items-center gap-space-sm w-full lg:w-auto">
                 <!-- Joined / Browse Tabs -->
-                <div class="inline-flex items-center gap-0.5 p-1 rounded-lg bg-surface-container border border-surface-container-high/30">
+                <div class="inline-flex items-center gap-1 p-1 rounded-lg bg-slate-100 dark:bg-surface-container border border-slate-200 dark:border-surface-container-high/30 shadow-xs">
                     <button type="button" @onclick='() => SetTab("joined")'
-                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md font-label-md text-label-md transition-colors cursor-pointer @(activeTab == "joined" ? "bg-primary text-on-primary font-bold" : "text-on-surface-variant hover:text-on-surface")">
-                        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-label-md text-label-md font-semibold transition-all cursor-pointer @(activeTab == "joined" ? "bg-white dark:bg-primary text-slate-900 dark:text-on-primary shadow-xs" : "text-slate-600 dark:text-on-surface-variant hover:text-slate-900 dark:hover:text-white")">
+                        <span class="material-symbols-outlined text-sm text-rose-500 dark:text-inherit" style="font-variation-settings: 'FILL' 1;">favorite</span>
                         <span>Joined</span>
-                        <span class="px-1.5 py-0.5 rounded font-mono text-label-sm @(activeTab == "joined" ? "bg-on-primary/20" : "bg-surface-container-high text-on-surface-variant")">@joinedCount</span>
+                        <span class="px-1.5 py-0.5 rounded font-mono text-label-sm @(activeTab == "joined" ? "bg-slate-100 dark:bg-on-primary/20 text-slate-900 dark:text-white font-bold" : "bg-slate-200/70 dark:bg-surface-container-high text-slate-600 dark:text-on-surface-variant")">@joinedCount</span>
                     </button>
                     <button type="button" @onclick='() => SetTab("browse")'
-                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md font-label-md text-label-md transition-colors cursor-pointer @(activeTab == "browse" ? "bg-primary text-on-primary font-bold" : "text-on-surface-variant hover:text-on-surface")">
-                        <span class="material-symbols-outlined text-sm">travel_explore</span>
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-label-md text-label-md font-semibold transition-all cursor-pointer @(activeTab == "browse" ? "bg-white dark:bg-primary text-slate-900 dark:text-on-primary shadow-xs" : "text-slate-600 dark:text-on-surface-variant hover:text-slate-900 dark:hover:text-white")">
+                        <span class="material-symbols-outlined text-sm text-indigo-500 dark:text-inherit">travel_explore</span>
                         <span>Browse</span>
-                        <span class="px-1.5 py-0.5 rounded font-mono text-label-sm @(activeTab == "browse" ? "bg-on-primary/20" : "bg-surface-container-high text-on-surface-variant")">@browseCount</span>
+                        <span class="px-1.5 py-0.5 rounded font-mono text-label-sm @(activeTab == "browse" ? "bg-slate-100 dark:bg-on-primary/20 text-slate-900 dark:text-white font-bold" : "bg-slate-200/70 dark:bg-surface-container-high text-slate-600 dark:text-on-surface-variant")">@browseCount</span>
                     </button>
                 </div>
 
                 <!-- Search Input -->
                 <div class="relative flex-1 sm:w-56">
-                    <span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-sm pointer-events-none">search</span>
+                    <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-500 dark:text-on-surface-variant text-sm pointer-events-none">search</span>
                     <input type="text"
-                           class="w-full bg-surface-container-low text-on-surface placeholder-on-surface-variant text-body-sm pl-9 pr-8 py-1.5 rounded-lg border border-surface-container-high/30 focus:outline-none focus:bg-surface-container-high focus:border-primary transition-colors"
+                           class="w-full bg-white dark:bg-surface-container-low text-slate-900 dark:text-on-surface placeholder:text-slate-500 dark:placeholder:text-on-surface-variant text-body-sm pl-9 pr-8 py-1.5 rounded-lg border border-slate-300 dark:border-surface-container-high/40 shadow-xs focus:outline-none focus:border-primary transition-colors"
                            placeholder="Search communities..."
                            @bind="searchTerm"
                            @bind:event="oninput"
@@ -136,7 +150,7 @@
                     @if (!string.IsNullOrEmpty(searchTerm))
                     {
                         <button type="button" @onclick="ClearSearch"
-                                class="absolute right-2 top-2 flex items-center text-on-surface-variant hover:text-on-surface transition-colors">
+                                class="absolute right-2 top-2 flex items-center text-slate-400 hover:text-slate-700 dark:text-on-surface-variant dark:hover:text-on-surface transition-colors cursor-pointer">
                             <span class="material-symbols-outlined text-sm">close</span>
                         </button>
                     }
@@ -144,9 +158,9 @@
 
                 <!-- Create Community Button -->
                 <button type="button" @onclick="OpenCreateModal"
-                        class="px-3.5 py-1.5 bg-primary text-on-primary hover:bg-primary-fixed-dim rounded-lg font-label-md text-label-md font-bold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer">
+                        class="px-3.5 py-1.5 bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-primary dark:hover:bg-primary-fixed-dim text-white dark:text-on-primary rounded-lg font-label-md text-label-md font-bold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer shadow-xs">
                     <span class="material-symbols-outlined text-sm">add</span>
-                    <span>Create Hub</span>
+                    <span class="text-white dark:text-on-primary font-bold">Create Hub</span>
                 </button>
             </div>
         </div>
@@ -197,27 +211,26 @@
                         var cardIndex = cIdx;
                         var bannerUrl = GetBannerUrl(community);
 
-                        <div class="group flex flex-col justify-between rounded-xl bg-surface-container-low hover:bg-surface-container transition-all duration-300 overflow-hidden relative border border-surface-container-highest/20 hover:border-primary/30">
+                        <div class="group flex flex-col justify-between rounded-xl bg-surface-container-low hover:bg-surface-container transition-all duration-300 overflow-hidden relative border border-slate-300 dark:border-[rgba(196,210,225,0.22)] shadow-sm hover:shadow-md hover:border-primary/50">
                             <div class="absolute inset-x-0 top-0 h-1 opacity-80 @GetGlowGradientForIndex(cardIndex)"></div>
 
                             <div class="p-space-md flex flex-col gap-space-sm">
-                                <!-- Banner -->
-                                <div class="relative h-32 rounded-lg overflow-hidden bg-surface-container-lowest">
+                                <!-- Banner (without gradient shadow overlay) -->
+                                <div class="relative h-36 rounded-lg overflow-hidden bg-surface-container-lowest border border-slate-200 dark:border-surface-container-high/30">
                                     <img src="@bannerUrl" alt="@community.Name"
                                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                                    <div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/60 to-transparent"></div>
 
                                     <div class="absolute top-3 left-3 flex items-center gap-2">
-                                        <span class="px-2 py-1 rounded-md bg-surface-container-lowest/90 backdrop-blur-md text-primary font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1 border border-primary/20 truncate max-w-[70%]">
-                                            <span class="material-symbols-outlined text-xs shrink-0">@GetCategoryIcon(isSub, cardIndex)</span>
+                                        <span class="px-2 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-[#0A1B2E] dark:text-primary font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1 border border-slate-300/80 dark:border-primary/20 truncate max-w-[70%] font-semibold shadow-xs">
+                                            <span class="material-symbols-outlined text-xs shrink-0 text-primary">@GetCategoryIcon(isSub, cardIndex)</span>
                                             <span class="truncate">@(community.CategoryName ?? (isSub ? "Sub-Community" : "Parent Hub"))</span>
                                         </span>
                                     </div>
 
-                                    <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2">
+                                    <div class="absolute bottom-2 left-2 right-2 p-2 rounded-lg bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md border border-slate-200/80 dark:border-surface-container-high/30 flex items-center justify-between gap-2 shadow-xs">
                                         <div class="min-w-0">
-                                            <span class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">@GetTierLabel(isSub)</span>
-                                            <div class="font-title-lg text-title-lg text-on-surface font-semibold tracking-tight truncate">@community.Name</div>
+                                            <span class="block font-label-sm text-[10px] text-slate-500 dark:text-on-surface-variant uppercase tracking-wider font-semibold truncate">@GetTierLabel(isSub)</span>
+                                            <div class="font-title-md text-sm text-slate-900 dark:text-on-surface font-bold tracking-tight truncate">@community.Name</div>
                                         </div>
 
                                         <div class="flex -space-x-2 shrink-0 items-center">
@@ -225,21 +238,21 @@
                                             {
                                                 @foreach (var avatar in community.MemberAvatarUrls.Take(2))
                                                 {
-                                                    <div class="w-7 h-7 rounded-full bg-surface-container-high overflow-hidden border-2 border-surface-container-lowest">
+                                                    <div class="w-7 h-7 rounded-full bg-surface-container-high overflow-hidden border-2 border-white dark:border-surface-container-lowest shadow-xs">
                                                         <img class="w-full h-full object-cover" src="@avatar" alt="Member Avatar" />
                                                     </div>
                                                 }
                                             }
                                             else
                                             {
-                                                <div class="w-7 h-7 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm flex items-center justify-center font-bold border-2 border-surface-container-lowest">
+                                                <div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-surface-container-highest text-slate-800 dark:text-on-surface-variant font-label-sm text-xs flex items-center justify-center font-bold border-2 border-white dark:border-surface-container-lowest shadow-xs">
                                                     @InitialOf(community.Name)
                                                 </div>
                                             }
 
                                             @if (community.ExtraMemberCount > 0)
                                             {
-                                                <div class="w-7 h-7 rounded-full bg-primary text-on-primary font-label-sm text-label-sm flex items-center justify-center font-bold border-2 border-surface-container-lowest">
+                                                <div class="w-7 h-7 rounded-full bg-primary text-on-primary font-label-sm text-[10px] flex items-center justify-center font-bold border-2 border-white dark:border-surface-container-lowest shadow-xs">
                                                     +@community.ExtraMemberCount
                                                 </div>
                                             }
@@ -255,7 +268,7 @@
                                 </p>
 
                                 <!-- Metrics -->
-                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-body-sm py-space-xs px-space-sm rounded-lg bg-surface-container-lowest/50 border border-surface-container-high/20">
+                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-body-sm py-space-xs px-space-sm rounded-lg bg-surface-container-lowest/50 border border-slate-200 dark:border-surface-container-high/20">
                                     <span class="flex items-center gap-1 text-on-surface font-semibold">
                                         <span class="material-symbols-outlined text-xs text-primary">groups</span>
                                         @FormatCompact(community.MemberCount) Members
@@ -285,7 +298,7 @@
                                             @for (var i = 0; i < Math.Min(3, community.TopChildItems.Count); i++)
                                             {
                                                 var child = community.TopChildItems[i];
-                                                <div class="flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-surface-container-lowest hover:bg-surface-container-high transition-colors border border-surface-container-high/10">
+                                                <div class="flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-surface-container-lowest hover:bg-surface-container-high transition-colors border border-slate-200 dark:border-surface-container-high/10">
                                                     <div class="flex items-center gap-2 min-w-0 pr-2">
                                                         <span class="material-symbols-outlined text-sm shrink-0 @(i % 2 == 0 ? "text-primary" : "text-secondary")">@GetChildIcon(i)</span>
                                                         <span class="font-body-sm text-body-sm text-on-surface truncate">@child.Name</span>
@@ -299,7 +312,7 @@
                                         }
                                         else
                                         {
-                                            <div class="px-space-sm py-3 rounded-lg bg-surface-container-lowest/50 border border-dashed border-surface-container-high/30 text-center font-body-sm text-body-sm text-on-surface-variant">
+                                            <div class="px-space-sm py-3 rounded-lg bg-surface-container-lowest/50 border border-dashed border-slate-300 dark:border-surface-container-high/30 text-center font-body-sm text-body-sm text-on-surface-variant">
                                                 No @(isSub ? "groups" : "sub-communities") registered yet.
                                             </div>
                                         }
@@ -309,7 +322,7 @@
 
                             <!-- Actions -->
                             <div class="p-space-md pt-0 flex items-stretch gap-space-sm">
-                                <a class="flex-1 py-2 px-space-sm rounded-lg bg-surface-container-high text-primary hover:bg-surface-container-highest font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all no-underline cursor-pointer border border-primary/20"
+                                <a class="flex-1 py-2 px-space-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-surface-container-high text-[#0A1B2E] dark:text-primary dark:hover:bg-surface-container-highest font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all no-underline cursor-pointer border border-slate-300 dark:border-primary/20 font-bold"
                                    href="@(isSub ? $"groups?subCommunityId={community.CommunityId}" : $"/sub-communities/{community.CommunityId}")">
                                     <span class="truncate">@(isSub ? "See Groups" : "See Sub_Community")</span>
                                     <span class="material-symbols-outlined text-sm">arrow_forward</span>
@@ -317,16 +330,16 @@
 
                                 @if (community.IsJoined)
                                 {
-                                    <button type="button" @onclick="() => JoinCommunity(community.CommunityId)"
-                                            class="flex-1 py-2 px-space-sm rounded-lg bg-surface-container-highest text-on-surface hover:bg-surface-container-high font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-surface-container-high font-bold">
-                                        <span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                        <span>Joined</span>
+                                    <button type="button" @onclick="() => PromptLeaveCommunity(community)"
+                                            class="flex-1 py-2 px-space-sm rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-rose-700 font-bold shadow-xs">
+                                        <span class="material-symbols-outlined text-sm">logout</span>
+                                        <span>Leave</span>
                                     </button>
                                 }
                                 else
                                 {
                                     <button type="button" @onclick="() => JoinCommunity(community.CommunityId)"
-                                            class="flex-1 py-2 px-space-sm rounded-lg bg-primary text-on-primary hover:bg-primary-fixed-dim font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all font-bold cursor-pointer">
+                                            class="flex-1 py-2 px-space-sm rounded-lg bg-primary text-on-primary hover:bg-primary-fixed-dim font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all font-bold cursor-pointer shadow-xs">
                                         <span class="material-symbols-outlined text-sm">lock_open</span>
                                         <span>Join</span>
                                     </button>
@@ -493,8 +506,29 @@
                         </div>
                     }
 
+                    <!-- Image URL input -->
+                    <div class="mt-2.5">
+                        <label class="block text-[11px] font-semibold text-slate-700 dark:text-[#CBD5E1] mb-1">
+                            Or Image Web URL
+                        </label>
+                        <div class="flex items-center gap-1.5">
+                            <input type="text"
+                                   class="flex-1 px-3 py-1.5 text-xs rounded-lg bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                   placeholder="https://example.com/image.jpg"
+                                   value="@uploadedBannerUrl"
+                                   @onchange="(ChangeEventArgs ev) => uploadedBannerUrl = ev.Value?.ToString()?.Trim()" />
+                            @if (!string.IsNullOrWhiteSpace(uploadedBannerUrl))
+                            {
+                                <button type="button" @onclick="RemoveUploadedBanner"
+                                        class="px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/40 rounded-lg border border-rose-200 dark:border-rose-900/40 transition">
+                                    Clear
+                                </button>
+                            }
+                        </div>
+                    </div>
+
                     <!-- Quick Preset Selectors -->
-                    <div class="mt-2">
+                    <div class="mt-2.5">
                         <span class="text-[10px] font-mono text-[#7A8CA6] uppercase tracking-wider block mb-1">Or choose an executive preset:</span>
                         <div class="grid grid-cols-4 gap-1.5">
                             @for (var i = 0; i < fallbackBanners.Length; i++)
@@ -526,15 +560,81 @@
     </div>
 }
 
+<!-- Leave Community / Sub-community Confirmation Modal -->
+@if (showLeaveConfirmModal && communityToLeave != null)
+{
+    var isSub = communityToLeave.ParentCommunityId.HasValue;
+    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#0A1B2E]/60 dark:bg-black/75 backdrop-blur-sm p-4">
+        <div class="relative bg-white dark:bg-[#112A46] rounded-xl shadow-2xl border border-slate-300 dark:border-[rgba(196,210,225,0.20)] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                <div class="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                    <span class="material-symbols-outlined text-xl">warning</span>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Leave @(isSub ? "Sub-Community" : "Community")</h3>
+                </div>
+                <button type="button" @onclick="CancelLeave" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded transition">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-5 space-y-3">
+                <p class="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                    Are you sure you are going to leave this @(isSub ? "sub-community" : "community")?
+                </p>
+                <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600">
+                        <img src="@GetBannerUrl(communityToLeave)" alt="@communityToLeave.Name" class="w-full h-full object-cover" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-xs font-semibold text-slate-900 dark:text-white truncate">@communityToLeave.Name</div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400">@FormatCompact(communityToLeave.MemberCount) members</div>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    You can rejoin this @(isSub ? "sub-community" : "community") anytime from the directory.
+                </p>
+            </div>
+
+            <!-- Modal Actions -->
+            <div class="px-5 py-4 bg-slate-50 dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-end gap-2.5">
+                <button type="button" @onclick="CancelLeave" disabled="@isLeaving"
+                        class="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 rounded-lg border border-slate-300 dark:border-slate-600 transition">
+                    Cancel
+                </button>
+                <button type="button" @onclick="ConfirmLeaveCommunityAsync" disabled="@isLeaving"
+                        class="px-4 py-1.5 text-xs font-semibold rounded-lg text-white bg-rose-600 hover:bg-rose-700 transition shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5">
+                    @if (isLeaving)
+                    {
+                        <div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Leaving...</span>
+                    }
+                    else
+                    {
+                        <span class="material-symbols-outlined text-xs">logout</span>
+                        <span>Confirm Leave</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private IReadOnlyList<CommunityModel>? communities;
     private string? searchTerm;
     private bool isLoading = true;
     private string activeTab = "joined";
+    private string selectedTypeFilter = "ALL";
 
     // Parent Filter
     private int? filterParentId;
     private string? filterParentName;
+
+    // Leave confirmation modal state
+    private bool showLeaveConfirmModal;
+    private CommunityModel? communityToLeave;
+    private bool isLeaving;
 
     // Create modal state
     private bool showCreateModal;
@@ -554,6 +654,11 @@
         "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80"
     ];
 
+    private void OnTypeFilterChanged()
+    {
+        StateHasChanged();
+    }
+
     private IReadOnlyList<CommunityModel> ActiveCommunities
     {
         get
@@ -567,12 +672,21 @@
                 list = list.Where(c => c.ParentCommunityId == filterParentId.Value);
             }
 
+            if (selectedTypeFilter == "COMMUNITIES")
+            {
+                list = list.Where(c => !c.ParentCommunityId.HasValue);
+            }
+            else if (selectedTypeFilter == "SUB_COMMUNITIES")
+            {
+                list = list.Where(c => c.ParentCommunityId.HasValue);
+            }
+
             return list.ToList();
         }
     }
 
-    private int joinedCount => communities?.Count(c => c.IsJoined && (!filterParentId.HasValue || c.ParentCommunityId == filterParentId.Value)) ?? 0;
-    private int browseCount => communities?.Count(c => !c.IsJoined && (!filterParentId.HasValue || c.ParentCommunityId == filterParentId.Value)) ?? 0;
+    private int joinedCount => communities?.Count(c => c.IsJoined && (!filterParentId.HasValue || c.ParentCommunityId == filterParentId.Value) && (selectedTypeFilter == "ALL" || (selectedTypeFilter == "COMMUNITIES" ? !c.ParentCommunityId.HasValue : c.ParentCommunityId.HasValue))) ?? 0;
+    private int browseCount => communities?.Count(c => !c.IsJoined && (!filterParentId.HasValue || c.ParentCommunityId == filterParentId.Value) && (selectedTypeFilter == "ALL" || (selectedTypeFilter == "COMMUNITIES" ? !c.ParentCommunityId.HasValue : c.ParentCommunityId.HasValue))) ?? 0;
 
     private int totalHubCount => communities?.Count ?? 0;
     private int rootHubCount => communities?.Count(c => !c.ParentCommunityId.HasValue) ?? 0;
@@ -744,26 +858,33 @@
         var file = e.File;
         if (file == null) return;
 
-        if (file.Size > 5 * 1024 * 1024)
+        if (file.Size > 10 * 1024 * 1024)
         {
-            modalError = "Banner image cannot exceed 5 MB.";
+            modalError = "Banner image cannot exceed 10 MB.";
             return;
         }
 
         try
         {
             isUploadingBanner = true;
-            using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
-            var result = await CommunityApi.UploadBannerAsync(stream, file.Name, file.ContentType);
-            if (result.IsSuccess && !string.IsNullOrWhiteSpace(result.Data))
+            var uploadsDir = Path.Combine(Environment.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsDir))
             {
-                uploadedBannerUrl = result.Data;
-                Toast.Success("Banner photo uploaded successfully!");
+                Directory.CreateDirectory(uploadsDir);
             }
-            else
-            {
-                modalError = result.Message ?? "Failed to upload banner photo.";
-            }
+
+            var extension = Path.GetExtension(file.Name);
+            if (string.IsNullOrEmpty(extension)) extension = ".jpg";
+
+            var uniqueFileName = $"comm_{Guid.NewGuid():N}_{DateTime.UtcNow.Ticks}{extension}";
+            var fullPath = Path.Combine(uploadsDir, uniqueFileName);
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            using var fileStream = new FileStream(fullPath, FileMode.Create);
+            await stream.CopyToAsync(fileStream);
+
+            uploadedBannerUrl = $"/uploads/{uniqueFileName}";
+            Toast.Success("Banner photo uploaded successfully!");
         }
         catch (Exception ex)
         {
@@ -795,7 +916,7 @@
             Name: communityName.Trim(),
             Slug: null,
             Description: string.IsNullOrWhiteSpace(communityDesc) ? null : communityDesc.Trim(),
-            AvatarUrl: null,
+            AvatarUrl: uploadedBannerUrl,
             BannerUrl: uploadedBannerUrl,
             Visibility: "PUBLIC",
             JoinPolicy: "INSTANT",
@@ -828,6 +949,48 @@
         else
         {
             Toast.Error(res.Message ?? "Could not join hub.");
+        }
+    }
+
+    private void PromptLeaveCommunity(CommunityModel community)
+    {
+        communityToLeave = community;
+        showLeaveConfirmModal = true;
+    }
+
+    private void CancelLeave()
+    {
+        showLeaveConfirmModal = false;
+        communityToLeave = null;
+        isLeaving = false;
+    }
+
+    private async Task ConfirmLeaveCommunityAsync()
+    {
+        if (communityToLeave == null) return;
+
+        try
+        {
+            isLeaving = true;
+            var res = await CommunityApi.LeaveCommunityAsync(communityToLeave.CommunityId);
+            if (res.IsSuccess)
+            {
+                Toast.Success(res.Message ?? $"Left {communityToLeave.Name}.");
+                CancelLeave();
+                await LoadCommunitiesAsync();
+            }
+            else
+            {
+                Toast.Error(res.Message ?? "Could not leave hub.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Error leaving hub: {ex.Message}");
+        }
+        finally
+        {
+            isLeaving = false;
         }
     }
 }

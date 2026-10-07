@@ -12,7 +12,7 @@ namespace CommunityLink.Domain.Features.Post;
 
 public interface IPostService
 {
-    Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, int page = 1, int pageSize = 15, CancellationToken cancellationToken = default);
     Task<Result<PostModel>> CreatePostAsync(CreatePostRequestModel request, CancellationToken cancellationToken = default);
     Task<Result> LikePostAsync(int postId, CancellationToken cancellationToken = default);
     Task<Result<CommentModel>> AddCommentAsync(CreateCommentRequestModel request, CancellationToken cancellationToken = default);
@@ -30,7 +30,7 @@ public sealed class PostService(
     IPermissionEvaluator permissionEvaluator,
     IUserActivityService userActivityService) : IPostService
 {
-    public async Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, int page = 1, int pageSize = 15, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -86,9 +86,13 @@ public sealed class PostService(
                     .ToListAsync(cancellationToken);
             }
 
+            var safePageSize = Math.Clamp(pageSize, 1, 50);
+            var safePage = Math.Max(1, page);
+            var fetchLimit = Math.Max(100, safePage * safePageSize + 50);
+
             var rawPosts = await query
                 .OrderByDescending(p => p.CreatedAt)
-                .Take(50)
+                .Take(fetchLimit)
                 .Select(p => new
                 {
                     p.PostId,
@@ -115,20 +119,143 @@ public sealed class PostService(
                     p.CreatedAt,
                     p.CodeSnippet,
                     p.CodeFileName,
-                    p.CodeLanguage
+                    p.CodeLanguage,
+                    p.PostType,
+                    p.Subtitle,
+                    SharedByUserName = (string?)null,
+                    SharedByDisplayName = (string?)null,
+                    SharedAt = (DateTime?)null,
+                    EffectiveDate = p.CreatedAt
                 })
                 .ToListAsync(cancellationToken);
 
-            var list = rawPosts
-                .OrderByDescending(p => followedAuthorIds.Contains(p.AuthorId) || (p.GroupId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)))
-                .ThenByDescending(p => p.CreatedAt)
-                .Select(p =>
+            // Collect root post IDs for any SHARED posts
+            var rootPostIdsToFetch = new HashSet<int>();
+            foreach (var rp in rawPosts)
+            {
+                if (rp.PostType == "SHARED" && !string.IsNullOrWhiteSpace(rp.Subtitle) && rp.Subtitle.StartsWith("ROOT:", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (int.TryParse(rp.Subtitle["ROOT:".Length..], out int rId))
+                    {
+                        rootPostIdsToFetch.Add(rId);
+                    }
+                }
+            }
+
+            var rootPostsDict = new Dictionary<int, OriginalPostSummaryModel>();
+            if (rootPostIdsToFetch.Count > 0)
+            {
+                var fetchedRoots = await dbContext.TblPosts
+                    .Where(p => rootPostIdsToFetch.Contains(p.PostId) && !p.IsDeleted)
+                    .Select(p => new
+                    {
+                        p.PostId,
+                        p.AuthorId,
+                        AuthorDisplayName = p.Author != null ? p.Author.DisplayName : null,
+                        AuthorUserName = p.Author != null ? p.Author.UserName : null,
+                        AuthorAvatar = p.Author != null ? p.Author.AvatarUrl : null,
+                        p.Content,
+                        p.CreatedAt,
+                        CommunityName = p.Community != null ? p.Community.Name : null,
+                        GroupName = p.Group != null ? p.Group.Name : null,
+                        Images = p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
+                        p.CodeSnippet,
+                        p.CodeFileName,
+                        p.CodeLanguage
+                    })
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                foreach (var r in fetchedRoots)
+                {
+                    var aName = !string.IsNullOrWhiteSpace(r.AuthorDisplayName)
+                        ? r.AuthorDisplayName
+                        : (!string.IsNullOrWhiteSpace(r.AuthorUserName) ? r.AuthorUserName : "Unknown");
+
+                    rootPostsDict[r.PostId] = new OriginalPostSummaryModel(
+                        r.PostId,
+                        r.AuthorId,
+                        aName,
+                        r.AuthorUserName,
+                        r.AuthorAvatar,
+                        r.Content,
+                        r.CreatedAt,
+                        r.CommunityName,
+                        r.GroupName,
+                        r.Images,
+                        r.CodeSnippet,
+                        r.CodeFileName,
+                        r.CodeLanguage);
+                }
+            }
+
+            // Fetch posts shared by users the current user follows via TblPostShares (legacy shares)
+            var sharedItems = new List<PostModel>();
+            if (followedAuthorIds.Count > 0 && !groupId.HasValue && !communityId.HasValue)
+            {
+                var rawShares = await dbContext.TblPostShares
+                    .Where(s => followedAuthorIds.Contains(s.UserId) && !s.IsDeleted && !s.Post.IsDeleted && !s.Post.HasPoll && !rootPostIdsToFetch.Contains(s.PostId))
+                    .OrderByDescending(s => s.CreatedAt)
+                    .Take(30)
+                    .Select(s => new
+                    {
+                        s.Post.PostId,
+                        s.Post.CommunityId,
+                        CommunityName = s.Post.Community != null ? s.Post.Community.Name : null,
+                        s.Post.GroupId,
+                        GroupName = s.Post.Group != null ? s.Post.Group.Name : null,
+                        s.Post.AuthorId,
+                        AuthorDisplayName = s.Post.Author != null ? s.Post.Author.DisplayName : null,
+                        AuthorUserName = s.Post.Author != null ? s.Post.Author.UserName : null,
+                        AuthorAvatar = s.Post.Author != null ? s.Post.Author.AvatarUrl : null,
+                        AuthorIsVerified = s.Post.Author != null && s.Post.Author.IsVerified,
+                        AuthorRoleCode = s.Post.Author != null
+                            ? s.Post.Author.TblUserRoles.Where(ur => !ur.IsDeleted).Select(ur => ur.Role.RoleCode).FirstOrDefault()
+                            : null,
+                        s.Post.Content,
+                        s.Post.HasPoll,
+                        Images = s.Post.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
+                        LikeCount = s.Post.TblPostLikes.Count(l => !l.IsDeleted),
+                        CommentCount = s.Post.TblComments.Count(c => !c.IsDeleted),
+                        ShareCount = s.Post.TblPostShares.Count(sh => !sh.IsDeleted),
+                        IsLiked = currentUserId.HasValue && s.Post.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
+                        IsSaved = currentUserId.HasValue && s.Post.TblSavedPosts.Any(sp => sp.UserId == currentUserId.Value && !sp.IsDeleted),
+                        s.Post.CreatedAt,
+                        s.Post.CodeSnippet,
+                        s.Post.CodeFileName,
+                        s.Post.CodeLanguage,
+                        s.ShareNote,
+                        SharedByUserName = s.User.UserName,
+                        SharedByDisplayName = s.User.DisplayName,
+                        SharedByUserId = s.UserId,
+                        SharedAt = (DateTime?)s.CreatedAt,
+                        EffectiveDate = s.CreatedAt
+                    })
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                sharedItems = rawShares.Select(p =>
                 {
                     var roleCode = p.AuthorRoleCode;
                     var isVerified = p.AuthorIsVerified || (roleCode == "DOMAIN_PRO" || roleCode == "PUBLIC_FIGURE");
                     var authorName = !string.IsNullOrWhiteSpace(p.AuthorDisplayName)
                         ? p.AuthorDisplayName
                         : (!string.IsNullOrWhiteSpace(p.AuthorUserName) ? p.AuthorUserName : "Unknown");
+
+                    var origSummary = new OriginalPostSummaryModel(
+                        p.PostId,
+                        p.AuthorId,
+                        authorName,
+                        p.AuthorUserName,
+                        p.AuthorAvatar,
+                        p.Content,
+                        p.CreatedAt,
+                        p.CommunityName,
+                        p.GroupName,
+                        p.Images,
+                        p.CodeSnippet,
+                        p.CodeFileName,
+                        p.CodeLanguage);
 
                     return new PostModel(
                         p.PostId,
@@ -139,21 +266,103 @@ public sealed class PostService(
                         p.AuthorId,
                         authorName,
                         p.AuthorAvatar,
-                        p.Content,
+                        p.ShareNote ?? string.Empty,
                         p.HasPoll,
-                        p.Images,
+                        [],
                         p.LikeCount,
                         p.CommentCount,
                         p.ShareCount,
                         p.IsLiked,
                         p.IsSaved,
                         p.CreatedAt,
-                        p.CodeSnippet,
-                        p.CodeFileName,
-                        p.CodeLanguage,
+                        null,
+                        null,
+                        null,
                         roleCode,
-                        isVerified);
+                        isVerified,
+                        p.SharedByUserName,
+                        p.SharedByDisplayName,
+                        p.SharedAt,
+                        origSummary);
                 }).ToList();
+            }
+
+            var directItems = rawPosts.Select(p =>
+            {
+                var roleCode = p.AuthorRoleCode;
+                var isVerified = p.AuthorIsVerified || (roleCode == "DOMAIN_PRO" || roleCode == "PUBLIC_FIGURE");
+                var authorName = !string.IsNullOrWhiteSpace(p.AuthorDisplayName)
+                    ? p.AuthorDisplayName
+                    : (!string.IsNullOrWhiteSpace(p.AuthorUserName) ? p.AuthorUserName : "Unknown");
+
+                OriginalPostSummaryModel? origSummary = null;
+                string? sharedByUser = null;
+                string? sharedByDisplay = null;
+                DateTime? sharedTime = null;
+
+                if (p.PostType == "SHARED" && !string.IsNullOrWhiteSpace(p.Subtitle) && p.Subtitle.StartsWith("ROOT:", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (int.TryParse(p.Subtitle["ROOT:".Length..], out int rId) && rootPostsDict.TryGetValue(rId, out var rootPost))
+                    {
+                        origSummary = rootPost;
+                        sharedByUser = p.AuthorUserName;
+                        sharedByDisplay = p.AuthorDisplayName;
+                        sharedTime = p.CreatedAt;
+                    }
+                }
+
+                return new PostModel(
+                    p.PostId,
+                    p.CommunityId,
+                    p.CommunityName,
+                    p.GroupId,
+                    p.GroupName,
+                    p.AuthorId,
+                    authorName,
+                    p.AuthorAvatar,
+                    p.Content,
+                    p.HasPoll,
+                    p.Images,
+                    p.LikeCount,
+                    p.CommentCount,
+                    p.ShareCount,
+                    p.IsLiked,
+                    p.IsSaved,
+                    p.CreatedAt,
+                    p.CodeSnippet,
+                    p.CodeFileName,
+                    p.CodeLanguage,
+                    roleCode,
+                    isVerified,
+                    sharedByUser,
+                    sharedByDisplay,
+                    sharedTime,
+                    origSummary);
+            }).ToList();
+
+            // 3-Tier Sorting Hierarchy:
+            // Tier 1: Following user's posts & shares (newest first)
+            // Tier 2: Joined group posts (newest first)
+            // Tier 3: Non-following public posts (newest first)
+            int GetPostTier(PostModel item)
+            {
+                // If the post author is followed, or if the sharer is followed
+                if (followedAuthorIds.Contains(item.AuthorId)) return 1;
+                // If it's a shared post where current user follows the sharer
+                if (!string.IsNullOrWhiteSpace(item.SharedByUserName) && directItems.Any(d => d.PostId == item.PostId && followedAuthorIds.Contains(d.AuthorId))) return 1;
+                // If it belongs to a joined group
+                if (item.GroupId.HasValue && joinedGroupIds.Contains(item.GroupId.Value)) return 2;
+                // Everything else
+                return 3;
+            }
+
+            var list = directItems
+                .Concat(sharedItems)
+                .OrderBy(p => GetPostTier(p))
+                .ThenByDescending(p => p.SharedAt ?? p.CreatedAt)
+                .Skip((safePage - 1) * safePageSize)
+                .Take(safePageSize)
+                .ToList();
 
             return Result<IReadOnlyList<PostModel>>.Success(list);
         }
@@ -244,6 +453,16 @@ public sealed class PostService(
         var user = await dbContext.TblUsers.FindAsync([currentUser.UserId.Value], cancellationToken);
         var community = communityId.HasValue ? await dbContext.TblCommunities.FindAsync([communityId.Value], cancellationToken) : null;
         var group = request.GroupId.HasValue ? await dbContext.TblGroups.FindAsync([request.GroupId.Value], cancellationToken) : null;
+
+        // Record User Activity for creating a post
+        var targetContextName = group?.Name ?? community?.Name ?? "public feed";
+        await userActivityService.RecordActivityAsync(
+            currentUser.UserId.Value,
+            "POST",
+            $"You published a new post to {targetContextName}",
+            "POST",
+            post.PostId,
+            cancellationToken);
 
         var response = new PostModel(
             post.PostId,
@@ -429,21 +648,69 @@ public sealed class PostService(
     {
         if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
 
-        var post = await dbContext.TblPosts.FirstOrDefaultAsync(p => p.PostId == postId && !p.IsDeleted, cancellationToken);
+        var post = await dbContext.TblPosts
+            .Include(p => p.TblPostImages)
+            .FirstOrDefaultAsync(p => p.PostId == postId && !p.IsDeleted, cancellationToken);
         if (post == null) return Result.Failure("Post not found.", ResultStatus.NotFound);
 
+        // Identify the root original post
+        int rootPostId = postId;
+        if (post.PostType == "SHARED" && !string.IsNullOrWhiteSpace(post.Subtitle) && post.Subtitle.StartsWith("ROOT:", StringComparison.OrdinalIgnoreCase))
+        {
+            if (int.TryParse(post.Subtitle["ROOT:".Length..], out int parsedRootId))
+            {
+                rootPostId = parsedRootId;
+            }
+        }
+
+        var rootPost = (rootPostId == postId)
+            ? post
+            : await dbContext.TblPosts.Include(p => p.TblPostImages).FirstOrDefaultAsync(p => p.PostId == rootPostId && !p.IsDeleted, cancellationToken);
+
+        if (rootPost == null)
+        {
+            rootPost = post;
+            rootPostId = postId;
+        }
+
+        // Increment share count on the post being viewed
+        post.ShareCount += 1;
+        // If sharing a shared post, also increment share count on the root post
+        if (rootPost.PostId != post.PostId)
+        {
+            rootPost.ShareCount += 1;
+        }
+
+        // Record a TblPostShare entry linking to the root post
         var share = new TblPostShare
         {
-            PostId = postId,
+            PostId = rootPostId,
             UserId = currentUser.UserId.Value,
             ShareNote = string.IsNullOrWhiteSpace(request.ShareNote) ? null : request.ShareNote.Trim(),
             TargetCommunityId = request.TargetCommunityId,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = currentUser.UserId.Value
         };
-
         dbContext.TblPostShares.Add(share);
-        post.ShareCount += 1;
+
+        // Create a new post representing this share (Facebook-style standalone post with independent likes/comments)
+        var sharedPostRecord = new TblPost
+        {
+            AuthorId = currentUser.UserId.Value,
+            CommunityId = request.TargetCommunityId ?? rootPost.CommunityId,
+            GroupId = null,
+            Content = string.IsNullOrWhiteSpace(request.ShareNote) ? string.Empty : request.ShareNote.Trim(),
+            PostType = "SHARED",
+            Subtitle = $"ROOT:{rootPostId}",
+            HasPoll = false,
+            LikeCount = 0,
+            CommentCount = 0,
+            ShareCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = currentUser.UserId.Value,
+            IsDeleted = false
+        };
+        dbContext.TblPosts.Add(sharedPostRecord);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

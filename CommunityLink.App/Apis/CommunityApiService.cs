@@ -25,6 +25,9 @@ public sealed class CommunityApiService(IHttpClientFactory clientFactory, IHttpC
     public Task<Result> JoinCommunityAsync(int communityId, CancellationToken cancellationToken = default) =>
         PostAsync($"api/communities/{communityId}/join", new { }, cancellationToken);
 
+    public Task<Result> LeaveCommunityAsync(int communityId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/communities/{communityId}/leave", new { }, cancellationToken);
+
     public async Task<Result<string>> UploadBannerAsync(Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default)
     {
         try

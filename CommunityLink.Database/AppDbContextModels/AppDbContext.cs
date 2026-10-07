@@ -13,21 +13,37 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblAdmin> TblAdmins { get; set; }
 
-    public virtual DbSet<TblAdminRole> TblAdminRoles { get; set; }
-
     public virtual DbSet<TblAdminInvite> TblAdminInvites { get; set; }
+
+    public virtual DbSet<TblAdminRole> TblAdminRoles { get; set; }
 
     public virtual DbSet<TblAuditLog> TblAuditLogs { get; set; }
 
     public virtual DbSet<TblChatGroup> TblChatGroups { get; set; }
 
+    public virtual DbSet<TblChatGroupBan> TblChatGroupBans { get; set; }
+
+    public virtual DbSet<TblChatGroupInvite> TblChatGroupInvites { get; set; }
+
+    public virtual DbSet<TblChatGroupInviteLink> TblChatGroupInviteLinks { get; set; }
+
+    public virtual DbSet<TblChatGroupJoinRequest> TblChatGroupJoinRequests { get; set; }
+
     public virtual DbSet<TblChatGroupMember> TblChatGroupMembers { get; set; }
 
     public virtual DbSet<TblChatGroupMessage> TblChatGroupMessages { get; set; }
 
+    public virtual DbSet<TblChatGroupMessageReaction> TblChatGroupMessageReactions { get; set; }
+
+    public virtual DbSet<TblChatGroupMessageUserState> TblChatGroupMessageUserStates { get; set; }
+
     public virtual DbSet<TblChatGroupPaymentTransaction> TblChatGroupPaymentTransactions { get; set; }
 
     public virtual DbSet<TblChatMessage> TblChatMessages { get; set; }
+
+    public virtual DbSet<TblChatMessageReaction> TblChatMessageReactions { get; set; }
+
+    public virtual DbSet<TblChatMessageUserState> TblChatMessageUserStates { get; set; }
 
     public virtual DbSet<TblComment> TblComments { get; set; }
 
@@ -41,6 +57,10 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblConversation> TblConversations { get; set; }
 
+    public virtual DbSet<TblCreatorChatSetting> TblCreatorChatSettings { get; set; }
+
+    public virtual DbSet<TblCreatorPayoutRequest> TblCreatorPayoutRequests { get; set; }
+
     public virtual DbSet<TblGroup> TblGroups { get; set; }
 
     public virtual DbSet<TblGroupJoinRequest> TblGroupJoinRequests { get; set; }
@@ -48,6 +68,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<TblGroupMember> TblGroupMembers { get; set; }
 
     public virtual DbSet<TblGroupRating> TblGroupRatings { get; set; }
+
+    public virtual DbSet<TblIdentityVerification> TblIdentityVerifications { get; set; }
 
     public virtual DbSet<TblLinkDropPackage> TblLinkDropPackages { get; set; }
 
@@ -83,6 +105,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblPostShare> TblPostShares { get; set; }
 
+    public virtual DbSet<TblPrivateChatPaymentTransaction> TblPrivateChatPaymentTransactions { get; set; }
+
     public virtual DbSet<TblRole> TblRoles { get; set; }
 
     public virtual DbSet<TblRolePermission> TblRolePermissions { get; set; }
@@ -93,7 +117,13 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblSkillEndorsement> TblSkillEndorsements { get; set; }
 
+    public virtual DbSet<TblSubscriptionPlan> TblSubscriptionPlans { get; set; }
+
     public virtual DbSet<TblUser> TblUsers { get; set; }
+
+    public virtual DbSet<TblUserActivity> TblUserActivities { get; set; }
+
+    public virtual DbSet<TblUserBlock> TblUserBlocks { get; set; }
 
     public virtual DbSet<TblUserFollow> TblUserFollows { get; set; }
 
@@ -103,41 +133,12 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblUserSkill> TblUserSkills { get; set; }
 
-    public virtual DbSet<TblUserVerificationAudit> TblUserVerificationAudits { get; set; }
-
-    public virtual DbSet<TblSubscriptionPlan> TblSubscriptionPlans { get; set; }
-
     public virtual DbSet<TblUserSubscription> TblUserSubscriptions { get; set; }
 
-    public virtual DbSet<TblIdentityVerification> TblIdentityVerifications { get; set; }
+    public virtual DbSet<TblUserVerificationAudit> TblUserVerificationAudits { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<TblSubscriptionPlan>(entity =>
-        {
-            entity.HasKey(e => e.PlanId);
-            entity.ToTable("TblSubscriptionPlan");
-            entity.Property(e => e.PriceAmount).HasPrecision(18, 2);
-        });
-
-        modelBuilder.Entity<TblUserSubscription>(entity =>
-        {
-            entity.HasKey(e => e.SubscriptionId);
-            entity.ToTable("TblUserSubscription");
-            entity.HasOne(e => e.Plan).WithMany(p => p.TblUserSubscriptions).HasForeignKey(e => e.PlanId);
-            entity.HasOne(e => e.Role).WithMany().HasForeignKey(e => e.RoleId);
-            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId);
-        });
-
-        modelBuilder.Entity<TblIdentityVerification>(entity =>
-        {
-            entity.HasKey(e => e.VerificationId);
-            entity.ToTable("TblIdentityVerification");
-            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId);
-            entity.HasOne(e => e.Plan).WithMany().HasForeignKey(e => e.PlanId);
-            entity.HasOne(e => e.ReviewedByAdmin).WithMany().HasForeignKey(e => e.ReviewedByAdminId);
-        });
-
         modelBuilder.Entity<TblAdmin>(entity =>
         {
             entity.HasKey(e => e.AdminId).HasName("PK__TblAdmin__719FE4886930D3D8");
@@ -154,6 +155,24 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();
+        });
+
+        modelBuilder.Entity<TblAdminInvite>(entity =>
+        {
+            entity.HasKey(e => e.InviteId);
+
+            entity.ToTable("TblAdminInvite");
+
+            entity.HasIndex(e => e.Token, "IX_TblAdminInvite_Token").IsUnique();
+
+            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_TblAdminInvite_CreatedAtUtc");
+            entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.Token).HasMaxLength(200);
+
+            entity.HasOne(d => d.Role).WithMany(p => p.TblAdminInvites)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblAdminInvite_Role");
         });
 
         modelBuilder.Entity<TblAdminRole>(entity =>
@@ -176,20 +195,6 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblAdminRole_Role");
-        });
-
-        modelBuilder.Entity<TblAdminInvite>(entity =>
-        {
-            entity.HasKey(e => e.InviteId);
-            entity.ToTable("TblAdminInvite");
-            entity.Property(e => e.Email).HasMaxLength(256);
-            entity.Property(e => e.Token).HasMaxLength(200);
-            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(getutcdate())");
-            entity.HasOne(d => d.Role)
-                .WithMany()
-                .HasForeignKey(d => d.RoleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TblAdminInvite_Role");
         });
 
         modelBuilder.Entity<TblAuditLog>(entity =>
@@ -218,12 +223,14 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.CreatorId, "IX_TblChatGroup_CreatorId");
 
-            entity.Property(e => e.AvatarUrl).HasMaxLength(500);
-            entity.Property(e => e.BannerUrl).HasMaxLength(500);
             entity.Property(e => e.ChatType)
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasDefaultValue("FREE", "DF_TblChatGroup_ChatType");
+            entity.Property(e => e.AccessMode)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PUBLIC", "DF_TblChatGroup_AccessMode");
             entity.Property(e => e.CommissionPercentageSnapshot).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroup_CreatedAt");
             entity.Property(e => e.Description).HasMaxLength(1000);
@@ -237,6 +244,149 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.CreatorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblChatGroup_TblUser_Creator");
+        });
+
+        modelBuilder.Entity<TblChatGroupJoinRequest>(entity =>
+        {
+            entity.HasKey(e => e.ChatGroupJoinRequestId);
+
+            entity.ToTable("TblChatGroupJoinRequest");
+
+            entity.HasIndex(e => new { e.UserId, e.Status }, "IX_TblChatGroupJoinRequest_User_Status");
+
+            entity.HasIndex(e => new { e.ChatGroupId, e.UserId }, "UQ_TblChatGroupJoinRequest_Group_User")
+                .IsUnique()
+                .HasFilter("([Status]='PENDING_APPROVAL' OR [Status]='APPROVED_WAITING_PAYMENT')");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupJoinRequest_CreatedAt");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING_APPROVAL");
+
+            entity.HasOne(d => d.ChatGroup).WithMany(p => p.TblChatGroupJoinRequests)
+                .HasForeignKey(d => d.ChatGroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupJoinRequest_ChatGroup");
+
+            entity.HasOne(d => d.ReviewedByNavigation).WithMany(p => p.TblChatGroupJoinRequestReviewedByNavigations)
+                .HasForeignKey(d => d.ReviewedBy)
+                .HasConstraintName("FK_TblChatGroupJoinRequest_Reviewer");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatGroupJoinRequestUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupJoinRequest_User");
+        });
+
+        modelBuilder.Entity<TblChatGroupBan>(entity =>
+        {
+            entity.HasKey(e => e.ChatGroupBanId);
+
+            entity.ToTable("TblChatGroupBan");
+
+            entity.HasIndex(e => new { e.ChatGroupId, e.UserId }, "UQ_TblChatGroupBan_Group_User")
+                .IsUnique()
+                .HasFilter("([IsDeleted]=(0))");
+
+            entity.Property(e => e.BannedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupBan_BannedAt");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupBan_CreatedAt");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasOne(d => d.BannedByUser).WithMany(p => p.TblChatGroupBanBannedByUsers)
+                .HasForeignKey(d => d.BannedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupBan_TblUser_BannedBy");
+
+            entity.HasOne(d => d.ChatGroup).WithMany(p => p.TblChatGroupBans)
+                .HasForeignKey(d => d.ChatGroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupBan_TblChatGroup");
+
+            entity.HasOne(d => d.RevokedByUser).WithMany(p => p.TblChatGroupBanRevokedByUsers)
+                .HasForeignKey(d => d.RevokedByUserId)
+                .HasConstraintName("FK_TblChatGroupBan_TblUser_RevokedBy");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatGroupBanUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupBan_TblUser_User");
+        });
+
+        modelBuilder.Entity<TblChatGroupInvite>(entity =>
+        {
+            entity.HasKey(e => e.ChatGroupInviteId);
+
+            entity.ToTable("TblChatGroupInvite");
+
+            entity.HasIndex(e => new { e.UserId, e.Status, e.InvitedAt }, "IX_TblChatGroupInvite_User_Status").IsDescending(false, false, true);
+
+            entity.HasIndex(e => new { e.ChatGroupId, e.UserId }, "UQ_TblChatGroupInvite_Group_User")
+                .IsUnique()
+                .HasFilter("([Status]='PENDING')");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupInvite_CreatedAt");
+            entity.Property(e => e.InvitedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupInvite_InvitedAt");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.ChatGroup).WithMany(p => p.TblChatGroupInvites)
+                .HasForeignKey(d => d.ChatGroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupInvite_TblChatGroup");
+
+            entity.HasOne(d => d.DeletedByNavigation).WithMany(p => p.TblChatGroupInviteDeletedByNavigations).HasForeignKey(d => d.DeletedBy);
+
+            entity.HasOne(d => d.InvitedByUser).WithMany(p => p.TblChatGroupInviteInvitedByUsers)
+                .HasForeignKey(d => d.InvitedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupInvite_TblUser_InvitedBy");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatGroupInviteUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupInvite_TblUser_User");
+        });
+
+        modelBuilder.Entity<TblChatGroupInviteLink>(entity =>
+        {
+            entity.HasKey(e => e.ChatGroupInviteLinkId);
+
+            entity.ToTable("TblChatGroupInviteLink");
+
+            entity.HasIndex(e => e.ChatGroupId, "UQ_TblChatGroupInviteLink_Primary")
+                .IsUnique()
+                .HasFilter("([IsPrimary]=(1) AND [IsDeleted]=(0) AND [IsRevoked]=(0))");
+
+            entity.HasIndex(e => e.Token, "UQ_TblChatGroupInviteLink_Token").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupInviteLink_CreatedAt");
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.Token)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.ChatGroup).WithOne(p => p.TblChatGroupInviteLink)
+                .HasForeignKey<TblChatGroupInviteLink>(d => d.ChatGroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupInviteLink_TblChatGroup");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.TblChatGroupInviteLinks)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupInviteLink_TblUser_CreatedBy");
         });
 
         modelBuilder.Entity<TblChatGroupMember>(entity =>
@@ -272,12 +422,22 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("TblChatGroupMessage");
 
+            entity.HasIndex(e => new { e.ChatGroupId, e.PinnedAt }, "IX_TblChatGroupMessage_ChatGroupId_PinnedAt")
+                .IsDescending(false, true)
+                .HasFilter("([IsPinned]=(1))");
+
             entity.HasIndex(e => new { e.ChatGroupId, e.CreatedAt }, "IX_TblChatGroupMessage_Group_CreatedAt");
+
+            entity.HasIndex(e => e.ReplyToChatGroupMessageId, "IX_TblChatGroupMessage_ReplyToChatGroupMessageId");
 
             entity.HasIndex(e => e.SenderId, "IX_TblChatGroupMessage_SenderId");
 
             entity.Property(e => e.Content).HasMaxLength(4000);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupMessage_CreatedAt");
+            entity.Property(e => e.FileName).HasMaxLength(255);
+            entity.Property(e => e.MessageType)
+                .HasMaxLength(20)
+                .HasDefaultValue("TEXT", "DF_TblChatGroupMessage_MessageType");
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();
@@ -287,10 +447,101 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblChatGroupMessage_TblChatGroup");
 
-            entity.HasOne(d => d.Sender).WithMany(p => p.TblChatGroupMessages)
+            entity.HasOne(d => d.PinnedByUser).WithMany(p => p.TblChatGroupMessagePinnedByUsers)
+                .HasForeignKey(d => d.PinnedByUserId)
+                .HasConstraintName("FK_TblChatGroupMessage_PinnedBy");
+
+            entity.HasOne(d => d.ReplyToChatGroupMessage).WithMany(p => p.InverseReplyToChatGroupMessage)
+                .HasForeignKey(d => d.ReplyToChatGroupMessageId)
+                .HasConstraintName("FK_TblChatGroupMessage_ReplyTo");
+
+            entity.HasOne(d => d.Sender).WithMany(p => p.TblChatGroupMessageSenders)
                 .HasForeignKey(d => d.SenderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblChatGroupMessage_TblUser_Sender");
+        });
+
+        modelBuilder.Entity<TblChatGroupMessageReaction>(entity =>
+        {
+            entity.HasKey(e => e.ChatGroupMessageReactionId);
+
+            entity.ToTable("TblChatGroupMessageReaction");
+
+            entity.HasIndex(e => new { e.ChatGroupMessageId, e.UserId }, "UQ_TblChatGroupMessageReaction_Message_User").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupMessageReaction_CreatedAt");
+            entity.Property(e => e.Emoji).HasMaxLength(16);
+            entity.Property(e => e.RowVersion)
+                .HasMaxLength(8)
+                .HasDefaultValueSql("(CONVERT([varbinary](8),newid()))", "DF_TblChatGroupMessageReaction_RowVersion");
+
+            entity.HasOne(d => d.ChatGroupMessage).WithMany(p => p.TblChatGroupMessageReactions)
+                .HasForeignKey(d => d.ChatGroupMessageId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupMessageReaction_TblChatGroupMessage");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatGroupMessageReactions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupMessageReaction_TblUser");
+        });
+
+        modelBuilder.Entity<TblChatGroupMessageUserState>(entity =>
+        {
+            entity.HasKey(e => e.ChatGroupMessageUserStateId);
+
+            entity.ToTable("TblChatGroupMessageUserState");
+
+            entity.HasIndex(e => new { e.ChatGroupMessageId, e.UserId }, "UQ_TblChatGroupMessageUserState_Message_User").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatGroupMessageUserState_CreatedAt");
+            entity.Property(e => e.RowVersion)
+                .HasMaxLength(8)
+                .HasDefaultValueSql("(CONVERT([varbinary](8),newid()))", "DF_TblChatGroupMessageUserState_RowVersion");
+
+            entity.HasOne(d => d.ChatGroupMessage).WithMany(p => p.TblChatGroupMessageUserStates)
+                .HasForeignKey(d => d.ChatGroupMessageId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupMessageUserState_TblChatGroupMessage");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatGroupMessageUserStates)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupMessageUserState_TblUser");
+        });
+
+        modelBuilder.Entity<TblChatGroupPaymentTransaction>(entity =>
+        {
+            entity.HasKey(e => e.PaymentTransactionId).HasName("PK__TblChatG__C22AEFE031278210");
+
+            entity.ToTable("TblChatGroupPaymentTransaction");
+
+            entity.Property(e => e.CommissionPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("COMPLETED");
+
+            entity.HasOne(d => d.ChatGroup).WithMany(p => p.TblChatGroupPaymentTransactions)
+                .HasForeignKey(d => d.ChatGroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupPaymentTransaction_TblChatGroup");
+
+            entity.HasOne(d => d.CreatorUser).WithMany(p => p.TblChatGroupPaymentTransactionCreatorUsers)
+                .HasForeignKey(d => d.CreatorUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupPaymentTransaction_TblUser_Creator");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatGroupPaymentTransactionUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatGroupPaymentTransaction_TblUser");
         });
 
         modelBuilder.Entity<TblChatMessage>(entity =>
@@ -299,7 +550,13 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("TblChatMessage");
 
+            entity.HasIndex(e => e.ReplyToMessageId, "IX_TblChatMessage_ReplyToMessageId");
+
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.FileName).HasMaxLength(255);
+            entity.Property(e => e.MessageType)
+                .HasMaxLength(20)
+                .HasDefaultValue("TEXT", "DF_TblChatMessage_MessageType");
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();
@@ -309,10 +566,63 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblChatMessage_Conversation");
 
+            entity.HasOne(d => d.ReplyToMessage).WithMany(p => p.InverseReplyToMessage)
+                .HasForeignKey(d => d.ReplyToMessageId)
+                .HasConstraintName("FK_TblChatMessage_ReplyTo");
+
             entity.HasOne(d => d.Sender).WithMany(p => p.TblChatMessages)
                 .HasForeignKey(d => d.SenderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblChatMessage_Sender");
+        });
+
+        modelBuilder.Entity<TblChatMessageReaction>(entity =>
+        {
+            entity.HasKey(e => e.ChatMessageReactionId);
+
+            entity.ToTable("TblChatMessageReaction");
+
+            entity.HasIndex(e => new { e.ChatMessageId, e.UserId }, "UQ_TblChatMessageReaction_Message_User").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatMessageReaction_CreatedAt");
+            entity.Property(e => e.Emoji).HasMaxLength(16);
+            entity.Property(e => e.RowVersion)
+                .HasMaxLength(8)
+                .HasDefaultValueSql("(CONVERT([varbinary](8),newid()))", "DF_TblChatMessageReaction_RowVersion");
+
+            entity.HasOne(d => d.ChatMessage).WithMany(p => p.TblChatMessageReactions)
+                .HasForeignKey(d => d.ChatMessageId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatMessageReaction_TblChatMessage");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatMessageReactions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatMessageReaction_TblUser");
+        });
+
+        modelBuilder.Entity<TblChatMessageUserState>(entity =>
+        {
+            entity.HasKey(e => e.ChatMessageUserStateId);
+
+            entity.ToTable("TblChatMessageUserState");
+
+            entity.HasIndex(e => new { e.ChatMessageId, e.UserId }, "UQ_TblChatMessageUserState_Message_User").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblChatMessageUserState_CreatedAt");
+            entity.Property(e => e.RowVersion)
+                .HasMaxLength(8)
+                .HasDefaultValueSql("(CONVERT([varbinary](8),newid()))", "DF_TblChatMessageUserState_RowVersion");
+
+            entity.HasOne(d => d.ChatMessage).WithMany(p => p.TblChatMessageUserStates)
+                .HasForeignKey(d => d.ChatMessageId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatMessageUserState_TblChatMessage");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblChatMessageUserStates)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblChatMessageUserState_TblUser");
         });
 
         modelBuilder.Entity<TblComment>(entity =>
@@ -471,6 +781,53 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_TblConversation_UserTwo");
         });
 
+        modelBuilder.Entity<TblCreatorChatSetting>(entity =>
+        {
+            entity.HasKey(e => e.CreatorChatSettingId);
+
+            entity.ToTable("TblCreatorChatSetting");
+
+            entity.HasIndex(e => e.CreatorUserId, "UQ_TblCreatorChatSetting_CreatorUserId").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblCreatorChatSetting_CreatedAt");
+            entity.Property(e => e.RowVersion)
+                .HasMaxLength(8)
+                .HasDefaultValueSql("(CONVERT([varbinary](8),newid()))", "DF_TblCreatorChatSetting_RowVersion");
+
+            entity.HasOne(d => d.CreatorUser).WithOne(p => p.TblCreatorChatSetting)
+                .HasForeignKey<TblCreatorChatSetting>(d => d.CreatorUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblCreatorChatSetting_TblUser_Creator");
+        });
+
+        modelBuilder.Entity<TblCreatorPayoutRequest>(entity =>
+        {
+            entity.HasKey(e => e.CreatorPayoutRequestId);
+
+            entity.ToTable("TblCreatorPayoutRequest");
+
+            entity.HasIndex(e => e.CreatorUserId, "IX_TblCreatorPayoutRequest_CreatorUserId");
+
+            entity.HasIndex(e => e.Status, "IX_TblCreatorPayoutRequest_Status");
+
+            entity.Property(e => e.AmountMmk)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("AmountMMK");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.PaymentAccountName).HasMaxLength(100);
+            entity.Property(e => e.PaymentAccountNumber).HasMaxLength(100);
+            entity.Property(e => e.PaymentMethod).HasMaxLength(50);
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING");
+
+            entity.HasOne(d => d.CreatorUser).WithMany(p => p.TblCreatorPayoutRequests)
+                .HasForeignKey(d => d.CreatorUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblCreatorPayoutRequest_TblUser");
+        });
+
         modelBuilder.Entity<TblGroup>(entity =>
         {
             entity.HasKey(e => e.GroupId);
@@ -601,6 +958,42 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TblGroupRating_User");
+        });
+
+        modelBuilder.Entity<TblIdentityVerification>(entity =>
+        {
+            entity.HasKey(e => e.VerificationId);
+
+            entity.ToTable("TblIdentityVerification");
+
+            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_TblIdVerif_CreatedAtUtc");
+            entity.Property(e => e.FullLegalName).HasMaxLength(200);
+            entity.Property(e => e.IdCardBackUrl).HasMaxLength(1000);
+            entity.Property(e => e.IdCardFrontUrl).HasMaxLength(1000);
+            entity.Property(e => e.PaymentMethod)
+                .HasMaxLength(50)
+                .HasDefaultValue("LinkDropPoints", "DF_TblIdVerif_PaymentMethod");
+            entity.Property(e => e.ProfessionalUrl).HasMaxLength(500);
+            entity.Property(e => e.ReviewNotes).HasMaxLength(1000);
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .HasDefaultValue("PendingReview", "DF_TblIdVerif_Status");
+            entity.Property(e => e.TargetRoleCode).HasMaxLength(50);
+            entity.Property(e => e.WorkEmail).HasMaxLength(256);
+
+            entity.HasOne(d => d.Plan).WithMany(p => p.TblIdentityVerifications)
+                .HasForeignKey(d => d.PlanId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblIdentityVerification_Plan");
+
+            entity.HasOne(d => d.ReviewedByAdmin).WithMany(p => p.TblIdentityVerifications)
+                .HasForeignKey(d => d.ReviewedByAdminId)
+                .HasConstraintName("FK_TblIdentityVerification_Admin");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblIdentityVerifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblIdentityVerification_User");
         });
 
         modelBuilder.Entity<TblLinkDropPackage>(entity =>
@@ -995,6 +1388,43 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_TblPostShare_User");
         });
 
+        modelBuilder.Entity<TblPrivateChatPaymentTransaction>(entity =>
+        {
+            entity.HasKey(e => e.PrivateChatPaymentTransactionId);
+
+            entity.ToTable("TblPrivateChatPaymentTransaction");
+
+            entity.HasIndex(e => e.BuyerUserId, "IX_TblPrivateChatPaymentTransaction_BuyerUserId");
+
+            entity.HasIndex(e => e.ConversationId, "IX_TblPrivateChatPaymentTransaction_ConversationId");
+
+            entity.HasIndex(e => e.CreatorUserId, "IX_TblPrivateChatPaymentTransaction_CreatorUserId");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblPrivateChatPaymentTransaction_CreatedAt");
+            entity.Property(e => e.RowVersion)
+                .HasMaxLength(8)
+                .HasDefaultValueSql("(CONVERT([varbinary](8),newid()))", "DF_TblPrivateChatPaymentTransaction_RowVersion");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("COMPLETED", "DF_TblPrivateChatPaymentTransaction_Status");
+
+            entity.HasOne(d => d.BuyerUser).WithMany(p => p.TblPrivateChatPaymentTransactionBuyerUsers)
+                .HasForeignKey(d => d.BuyerUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblPrivateChatPaymentTransaction_TblUser_Buyer");
+
+            entity.HasOne(d => d.Conversation).WithMany(p => p.TblPrivateChatPaymentTransactions)
+                .HasForeignKey(d => d.ConversationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblPrivateChatPaymentTransaction_TblConversation");
+
+            entity.HasOne(d => d.CreatorUser).WithMany(p => p.TblPrivateChatPaymentTransactionCreatorUsers)
+                .HasForeignKey(d => d.CreatorUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblPrivateChatPaymentTransaction_TblUser_Creator");
+        });
+
         modelBuilder.Entity<TblRole>(entity =>
         {
             entity.HasKey(e => e.RoleId).HasName("PK__TblRole__8AFACE1A6BD796E4");
@@ -1100,6 +1530,23 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_TblSkillEndorsement_TblUserSkill");
         });
 
+        modelBuilder.Entity<TblSubscriptionPlan>(entity =>
+        {
+            entity.HasKey(e => e.PlanId);
+
+            entity.ToTable("TblSubscriptionPlan");
+
+            entity.Property(e => e.BillingInterval)
+                .HasMaxLength(20)
+                .HasDefaultValue("Monthly", "DF_TblSubPlan_BillingInterval");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())", "DF_TblSubPlan_CreatedAt");
+            entity.Property(e => e.DurationDays).HasDefaultValue(30, "DF_TblSubPlan_DurationDays");
+            entity.Property(e => e.IsActive).HasDefaultValue(true, "DF_TblSubPlan_IsActive");
+            entity.Property(e => e.PlanName).HasMaxLength(150);
+            entity.Property(e => e.PriceAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TargetRoleCode).HasMaxLength(50);
+        });
+
         modelBuilder.Entity<TblUser>(entity =>
         {
             entity.HasKey(e => e.UserId).HasName("PK__TblUser__1788CC4C528B3DC4");
@@ -1131,6 +1578,48 @@ public partial class AppDbContext : DbContext
                 .IsRowVersion()
                 .IsConcurrencyToken();
             entity.Property(e => e.UserName).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<TblUserActivity>(entity =>
+        {
+            entity.HasKey(e => e.ActivityId);
+
+            entity.ToTable("TblUserActivity");
+
+            entity.HasIndex(e => e.UserId, "IX_TblUserActivity_UserId");
+
+            entity.HasIndex(e => new { e.UserId, e.IsDeleted, e.CreatedAt }, "IX_TblUserActivity_User_Status").IsDescending(false, false, true);
+
+            entity.Property(e => e.ActivityType).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())", "DF_TblUserActivity_CreatedAt");
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.TargetEntityType).HasMaxLength(50);
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblUserActivities)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblUserActivity_TblUser");
+        });
+
+        modelBuilder.Entity<TblUserBlock>(entity =>
+        {
+            entity.HasKey(e => e.UserBlockId);
+
+            entity.ToTable("TblUserBlock");
+
+            entity.HasIndex(e => new { e.BlockerUserId, e.BlockedUserId }, "UQ_TblUserBlock_Blocker_Blocked").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())", "DF_TblUserBlock_CreatedAt");
+
+            entity.HasOne(d => d.BlockedUser).WithMany(p => p.TblUserBlockBlockedUsers)
+                .HasForeignKey(d => d.BlockedUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblUserBlock_BlockedUser");
+
+            entity.HasOne(d => d.BlockerUser).WithMany(p => p.TblUserBlockBlockerUsers)
+                .HasForeignKey(d => d.BlockerUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblUserBlock_BlockerUser");
         });
 
         modelBuilder.Entity<TblUserFollow>(entity =>
@@ -1209,51 +1698,6 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<TblUserSkill>(entity =>
         {
-            entity.HasKey(e => e.SkillId);
-            entity.ToTable("TblUserSkill");
-
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
-
-            entity.HasOne(d => d.User).WithMany(p => p.TblUserSkills)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK_TblUserSkill_TblUser");
-        });
-
-        modelBuilder.Entity<TblSkillEndorsement>(entity =>
-        {
-            entity.HasKey(e => e.EndorsementId);
-            entity.ToTable("TblSkillEndorsement");
-
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
-
-            entity.HasOne(d => d.Skill).WithMany(p => p.TblSkillEndorsements)
-                .HasForeignKey(d => d.SkillId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK_TblSkillEndorsement_TblUserSkill");
-
-            entity.HasOne(d => d.EndorserUser).WithMany(p => p.TblSkillEndorsements)
-                .HasForeignKey(d => d.EndorserUserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TblSkillEndorsement_TblUser");
-        });
-
-        modelBuilder.Entity<TblUserVerificationAudit>(entity =>
-        {
-            entity.HasKey(e => e.AuditId);
-            entity.ToTable("TblUserVerificationAudit");
-
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
-            entity.Property(e => e.AuditedAt).HasDefaultValueSql("(getutcdate())");
-
-            entity.HasOne(d => d.User).WithMany(p => p.TblUserVerificationAudits)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK_TblUserVerificationAudit_TblUser");
-        });
-
-        modelBuilder.Entity<TblUserSkill>(entity =>
-        {
             entity.HasKey(e => e.SkillId).HasName("PK__TblUserS__DFA09187469766C6");
 
             entity.ToTable("TblUserSkill");
@@ -1264,6 +1708,37 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.TblUserSkills)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_TblUserSkill_TblUser");
+        });
+
+        modelBuilder.Entity<TblUserSubscription>(entity =>
+        {
+            entity.HasKey(e => e.SubscriptionId);
+
+            entity.ToTable("TblUserSubscription");
+
+            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_TblUserSub_CreatedAtUtc");
+            entity.Property(e => e.PaymentMethod)
+                .HasMaxLength(50)
+                .HasDefaultValue("LinkDropPoints", "DF_TblUserSub_PaymentMethod");
+            entity.Property(e => e.StartDateUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_TblUserSub_StartDateUtc");
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .HasDefaultValue("Active", "DF_TblUserSub_Status");
+
+            entity.HasOne(d => d.Plan).WithMany(p => p.TblUserSubscriptions)
+                .HasForeignKey(d => d.PlanId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblUserSubscription_Plan");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.TblUserSubscriptions)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblUserSubscription_Role");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TblUserSubscriptions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TblUserSubscription_User");
         });
 
         modelBuilder.Entity<TblUserVerificationAudit>(entity =>

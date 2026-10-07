@@ -1,10 +1,8 @@
+﻿using System;
+using System.Collections.Generic;
+
 namespace CommunityLink.Database.AppDbContextModels;
 
-/// <summary>
-/// An emoji reaction on a 1:1 chat message. The unique index on
-/// (ChatMessageId, UserId) enforces the Telegram rule that a person may hold only one
-/// reaction per message; picking another emoji updates this row rather than adding one.
-/// </summary>
 public partial class TblChatMessageReaction
 {
     public int ChatMessageReactionId { get; set; }

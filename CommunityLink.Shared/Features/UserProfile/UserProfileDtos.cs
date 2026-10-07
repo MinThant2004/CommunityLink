@@ -137,10 +137,33 @@ public class UserPostItemDto
     public string? AuthorAvatarUrl { get; set; }
     public int LikeCount { get; set; }
     public int CommentCount { get; set; }
+    public int ShareCount { get; set; }
+    public bool IsLikedByCurrentUser { get; set; }
     public List<string> ImageUrls { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
     public int? DaysRemaining => DeletedAt.HasValue ? Math.Max(0, 10 - (int)(DateTime.UtcNow - DeletedAt.Value).TotalDays) : null;
+    public string? SharedByUserName { get; set; }
+    public string? SharedByDisplayName { get; set; }
+    public DateTime? SharedAt { get; set; }
+    public OriginalPostSummaryDto? OriginalPost { get; set; }
+}
+
+public class OriginalPostSummaryDto
+{
+    public int PostId { get; set; }
+    public int AuthorUserId { get; set; }
+    public string AuthorUserName { get; set; } = string.Empty;
+    public string AuthorDisplayName { get; set; } = string.Empty;
+    public string? AuthorAvatarUrl { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public string? CommunityName { get; set; }
+    public string? GroupName { get; set; }
+    public List<string> ImageUrls { get; set; } = new();
+    public string? CodeSnippet { get; set; }
+    public string? CodeFileName { get; set; }
+    public string? CodeLanguage { get; set; }
 }
 
 public class UserPollDetailDto
@@ -209,6 +232,16 @@ public class FollowUserItemDto
     public string? Bio { get; set; }
     public bool IsVerified { get; set; }
     public DateTime FollowedAt { get; set; }
+}
+
+public class UserSearchResultDto
+{
+    public int UserId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
+    public string? Headline { get; set; }
+    public bool IsVerified { get; set; }
 }
 
 public class UserSharedPostItemDto

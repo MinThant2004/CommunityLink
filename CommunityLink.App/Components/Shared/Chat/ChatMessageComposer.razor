@@ -1,21 +1,31 @@
+@using CommunityLink.App.Apis
+@using CommunityLink.Shared.Features.Chat
+@using CommunityLink.Shared.Utils
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject ChatApiService ChatApi
+
 @*
-    Message composer. Model-agnostic: it emits text and optional replyToId, so the unified page
-    routes the result to the 1:1 or the group endpoint depending on the active thread.
+    Message composer. Model-agnostic: it emits text, optional replyToId, and attachment details (IMAGE, FILE, VIDEO),
+    so the unified page routes the result to the 1:1 or group endpoint depending on active thread.
+
+    Attachments are uploaded to /api/chat/attachments first and the resulting short URL travels with the
+    message. The file bytes are never inlined into the message payload.
 *@
 
-<div class="shrink-0 border-t border-slate-200 bg-white px-3 py-3 sm:px-4">
+<div class="shrink-0 border-t border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46] px-3 py-3 sm:px-4">
     @if (ReplyToMessage is not null)
     {
-        <div class="mx-auto mb-2.5 flex max-w-3xl items-center justify-between rounded-xl border border-indigo-200 bg-indigo-50/80 px-3.5 py-2 text-xs">
+        <div class="mx-auto mb-2.5 flex max-w-3xl items-center justify-between rounded-xl border border-indigo-200 dark:border-indigo-800/40 bg-indigo-50/80 dark:bg-indigo-950/40 px-3.5 py-2 text-xs">
             <div class="min-w-0 flex-1 border-l-2 border-indigo-600 pl-2.5">
-                <span class="font-semibold text-indigo-900">Replying to @ReplyToMessage.SenderName</span>
-                <p class="truncate text-slate-600">@ReplyToMessage.Content</p>
+                <span class="font-semibold text-indigo-900 dark:text-indigo-200">Replying to @ReplyToMessage.SenderName</span>
+                <p class="truncate text-slate-600 dark:text-[#C4D2E1]">@ReplyToMessage.Content</p>
             </div>
             <button type="button"
                     @onclick="CancelReply"
                     title="Cancel reply"
                     aria-label="Cancel reply"
-                    class="ml-2 rounded-md p-1 text-slate-400 transition hover:bg-indigo-100 hover:text-slate-700">
+                    class="ml-2 rounded-md p-1 text-slate-400 dark:text-[#C4D2E1] transition hover:bg-indigo-100 dark:hover:bg-indigo-900/50 hover:text-slate-700 dark:hover:text-white">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -23,26 +33,90 @@
         </div>
     }
 
+    @if (attachmentError is not null)
+    {
+        <p class="mx-auto mb-2.5 max-w-3xl text-xs font-medium text-red-600 dark:text-red-400">@attachmentError</p>
+    }
+    else if (attachedFile is not null)
+    {
+        <div class="mx-auto mb-2.5 flex max-w-3xl items-center justify-between rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-950/40 px-3.5 py-2 text-xs">
+            <div class="flex min-w-0 items-center gap-2">
+                <span class="rounded bg-emerald-600 px-1.5 py-0.5 font-bold uppercase text-white">@attachmentType</span>
+                <span class="truncate font-medium text-slate-800 dark:text-[#E1E8F0]">@attachedFileName</span>
+                <span class="shrink-0 text-slate-500 dark:text-[#C4D2E1]">(@formattedFileSize)</span>
+            </div>
+            <button type="button"
+                    @onclick="ClearAttachment"
+                    title="Remove attachment"
+                    aria-label="Remove attachment"
+                    class="ml-2 rounded-md p-1 text-slate-400 dark:text-[#C4D2E1] transition hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:text-slate-700 dark:hover:text-white">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    }
+
     <div class="mx-auto flex max-w-3xl items-end gap-2">
-        <div class="relative shrink-0">
+        <div class="relative shrink-0 flex items-center gap-1">
             <button type="button"
                     @onclick="ToggleEmojiPicker"
                     title="Insert emoji"
                     aria-label="Insert emoji"
                     aria-expanded="@showEmojiPicker.ToString().ToLowerInvariant()"
-                    class="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.12)] p-2 text-slate-600 dark:text-[#C4D2E1] transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] hover:text-slate-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
                 </svg>
             </button>
 
+            <label title="Attach image, video, or file" class="cursor-pointer rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.12)] p-2 text-slate-600 dark:text-[#C4D2E1] transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] hover:text-slate-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                </svg>
+                <InputFile OnChange="HandleFileSelected" accept="@ChatAttachmentPolicy.AcceptAttribute" class="hidden" disabled="@(IsSubmitting || Disabled)" />
+            </label>
+
             @if (showEmojiPicker)
             {
-                <div class="absolute bottom-12 left-0 z-20 flex gap-1 rounded-xl border border-slate-200 bg-white p-2 text-xl shadow-lg">
+                <div class="absolute bottom-12 left-0 z-20 flex gap-1 rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46] p-2 text-xl shadow-lg">
                     @foreach (var emoji in quickEmojis)
                     {
-                        <button type="button" @onclick="() => AddEmoji(emoji)" class="cursor-pointer rounded-lg p-1.5 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button type="button" @onclick="() => AddEmoji(emoji)" class="cursor-pointer rounded-lg p-1.5 transition hover:bg-slate-100 dark:hover:bg-[#1B3B5A] focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             @emoji
+                        </button>
+                    }
+                </div>
+            }
+
+            <!-- Sticker Picker Button -->
+            <button type="button"
+                    @onclick="ToggleStickerPicker"
+                    title="Send sticker"
+                    aria-label="Send sticker"
+                    aria-expanded="@showStickerPicker.ToString().ToLowerInvariant()"
+                    class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.12)] p-2 text-slate-600 dark:text-[#C4D2E1] transition hover:bg-indigo-50 dark:hover:bg-[#1B3B5A] hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+                    <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                    <path d="M9 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" fill="currentColor"/>
+                    <path d="M15 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" fill="currentColor"/>
+                    <path d="M10 16c.8 1 3.2 1 4 0"/>
+                </svg>
+            </button>
+
+            @if (showStickerPicker)
+            {
+                <div class="absolute bottom-12 left-8 z-30 flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46] p-2.5 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+                    <div class="text-[11px] font-semibold text-slate-400 dark:text-[#C4D2E1] uppercase tracking-wider px-1">Stickers</div>
+                    @foreach (var s in availableStickers)
+                    {
+                        <button type="button"
+                                @onclick="() => SendSticker(s.Url)"
+                                title="@s.Name"
+                                disabled="@(IsSubmitting || Disabled)"
+                                class="group relative flex h-12 w-12 items-center justify-center rounded-xl p-1 transition hover:scale-110 hover:bg-indigo-50 dark:hover:bg-[#1B3B5A] focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <img src="@s.Url" alt="@s.Name" class="h-10 w-10 object-contain drop-shadow-sm transition group-hover:drop-shadow-md" />
                         </button>
                     }
                 </div>
@@ -56,18 +130,18 @@
                   @onkeydown="HandleKeyDown"
                   rows="1"
                   placeholder="@Placeholder"
-                  disabled="@(IsSubmitting || Disabled)"
-                  class="max-h-32 min-h-[42px] w-full resize-none rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm leading-relaxed text-slate-900 placeholder-slate-400 transition focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600 disabled:bg-slate-100 disabled:text-slate-400"></textarea>
+                  disabled="@(IsSubmitting || isUploading || Disabled)"
+                  class="max-h-32 min-h-[42px] w-full resize-none rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E] px-3.5 py-2.5 text-sm leading-relaxed text-slate-900 dark:text-[#E1E8F0] placeholder-slate-400 dark:placeholder-slate-500 transition focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600 disabled:bg-slate-100 dark:disabled:bg-[#112A46] disabled:text-slate-400 dark:disabled:text-slate-500"></textarea>
 
         <button type="button"
                 @onclick="SubmitMessage"
-                disabled="@(IsSubmitting || Disabled || string.IsNullOrWhiteSpace(messageText))"
+                disabled="@(IsSubmitting || isUploading || Disabled || (!HasContentToSubmit))"
                 aria-label="Send message"
                 class="flex h-[42px] shrink-0 items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-            @if (IsSubmitting)
+            @if (IsSubmitting || isUploading)
             {
                 <span class="h-3.5 w-3.5 animate-spin rounded-full border-b-2 border-white"></span>
-                <span class="hidden sm:inline">Sending</span>
+                <span class="hidden sm:inline">@(isUploading ? "Uploading" : "Sending")</span>
             }
             else
             {
@@ -81,7 +155,7 @@
 
     @if (Disabled && !string.IsNullOrWhiteSpace(DisabledReason))
     {
-        <p class="mx-auto mt-2 max-w-3xl text-xs text-slate-500">@DisabledReason</p>
+        <p class="mx-auto mt-2 max-w-3xl text-xs text-slate-500 dark:text-[#C4D2E1]">@DisabledReason</p>
     }
 </div>
 
@@ -97,12 +171,51 @@
 
     private string messageText = "";
     private bool showEmojiPicker;
+    private bool showStickerPicker;
     private bool _isCurrentlyTyping;
     private System.Threading.Timer? _typingTimer;
 
+    private IBrowserFile? attachedFile;
+    private string? attachedFileName;
+    private long? attachedFileSize;
+    private string formattedFileSize = "0 B";
+    private string? attachmentError;
+    private string attachmentType = ChatAttachmentPolicy.MessageTypeText;
+    private bool isUploading;
+
+    private bool HasContentToSubmit => !string.IsNullOrWhiteSpace(messageText) || attachedFile is not null;
+
     private static readonly string[] quickEmojis = ["👍", "❤️", "🔥", "😊", "🎉", "👏", "🚀", "💡"];
 
-    private void ToggleEmojiPicker() => showEmojiPicker = !showEmojiPicker;
+    private record StickerItem(string Name, string Url);
+    private static readonly StickerItem[] availableStickers =
+    [
+        new("Like", "/stickers/like.svg"),
+        new("Love", "/stickers/love.svg"),
+        new("Fire", "/stickers/fire.svg"),
+        new("Party", "/stickers/party.svg"),
+        new("Cool", "/stickers/cool.svg")
+    ];
+
+    private void ToggleEmojiPicker()
+    {
+        showEmojiPicker = !showEmojiPicker;
+        if (showEmojiPicker) showStickerPicker = false;
+    }
+
+    private void ToggleStickerPicker()
+    {
+        showStickerPicker = !showStickerPicker;
+        if (showStickerPicker) showEmojiPicker = false;
+    }
+
+    private async Task SendSticker(string stickerUrl)
+    {
+        if (IsSubmitting || Disabled) return;
+        showStickerPicker = false;
+        var payload = new SendMessagePayload($"[sticker:{stickerUrl}]", ReplyToMessage?.Id);
+        await OnSend.InvokeAsync(payload);
+    }
 
     private async Task AddEmoji(string emoji)
     {
@@ -115,6 +228,58 @@
     {
         messageText = e.Value?.ToString() ?? "";
         await NotifyTypingAsync(!string.IsNullOrWhiteSpace(messageText));
+    }
+
+    private Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file is null) return Task.CompletedTask;
+
+        attachmentError = null;
+
+        if (!ChatAttachmentPolicy.IsAllowed(file.Name))
+        {
+            ResetAttachmentState();
+            attachmentError = $"Unsupported file type. Allowed: {ChatAttachmentPolicy.AllowedExtensionsDisplay}.";
+            return Task.CompletedTask;
+        }
+
+        if (file.Size > ChatAttachmentPolicy.MaxBytes)
+        {
+            ResetAttachmentState();
+            attachmentError = $"\"{file.Name}\" is {FileSizeFormatter.FormatFileSize(file.Size)}. The maximum is 25 MB.";
+            return Task.CompletedTask;
+        }
+
+        if (file.Size == 0)
+        {
+            ResetAttachmentState();
+            attachmentError = $"\"{file.Name}\" is empty.";
+            return Task.CompletedTask;
+        }
+
+        attachedFile = file;
+        attachedFileName = file.Name;
+        attachedFileSize = file.Size;
+        formattedFileSize = FileSizeFormatter.FormatFileSize(file.Size);
+        attachmentType = ChatAttachmentPolicy.Classify(file.Name, file.ContentType);
+
+        return Task.CompletedTask;
+    }
+
+    private void ClearAttachment()
+    {
+        ResetAttachmentState();
+        attachmentError = null;
+    }
+
+    private void ResetAttachmentState()
+    {
+        attachedFile = null;
+        attachedFileName = null;
+        attachedFileSize = null;
+        formattedFileSize = "0 B";
+        attachmentType = ChatAttachmentPolicy.MessageTypeText;
     }
 
     private async Task NotifyTypingAsync(bool isTyping)
@@ -148,7 +313,7 @@
 
     private async Task SubmitMessage()
     {
-        if (IsSubmitting || Disabled || string.IsNullOrWhiteSpace(messageText))
+        if (IsSubmitting || Disabled || isUploading || !HasContentToSubmit)
         {
             return;
         }
@@ -160,11 +325,56 @@
             await OnTyping.InvokeAsync(false);
         }
 
-        var payload = new SendMessagePayload(messageText.Trim(), ReplyToMessage?.Id);
+        var text = messageText.Trim();
+        var replyToId = ReplyToMessage?.Id;
+        var file = attachedFile;
+
+        // Upload the attachment first so the message we post carries a short URL. Doing it
+        // the other way round would leave an orphaned upload whenever the send is rejected.
+        string? attachmentUrl = null;
+        var messageType = ChatAttachmentPolicy.MessageTypeText;
+
+        if (file is not null)
+        {
+            isUploading = true;
+            StateHasChanged();
+
+            var upload = await ChatApi.UploadAttachmentAsync(file);
+            isUploading = false;
+
+            if (upload.IsFailure || upload.Data is null)
+            {
+                attachmentError = upload.Message ?? "The file could not be uploaded.";
+                StateHasChanged();
+                return;
+            }
+
+            attachmentUrl = upload.Data.Url;
+            messageType = upload.Data.MessageType;
+        }
+
+        var payload = new SendMessagePayload(
+            Text: text,
+            ReplyToId: replyToId,
+            MessageType: messageType,
+            AttachmentUrl: attachmentUrl,
+            FileName: file?.Name,
+            FileSizeByte: attachedFileSize
+        );
+
         messageText = "";
         showEmojiPicker = false;
+        ClearAttachment();
+        StateHasChanged();
         await OnSend.InvokeAsync(payload);
     }
 
-    public record SendMessagePayload(string Text, int? ReplyToId);
+    public record SendMessagePayload(
+        string Text,
+        int? ReplyToId,
+        string MessageType = ChatAttachmentPolicy.MessageTypeText,
+        string? AttachmentUrl = null,
+        string? FileName = null,
+        long? FileSizeByte = null
+    );
 }

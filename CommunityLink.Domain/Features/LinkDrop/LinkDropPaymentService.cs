@@ -114,8 +114,17 @@ public class LinkDropPaymentService : ILinkDropPaymentService
             }
 
             purchase.SnapshotPackageName = "Custom Purchase";
-            purchase.SnapshotCurrency = LinkDropPricing.DefaultCurrency;
+            purchase.SnapshotCurrency = !string.IsNullOrWhiteSpace(request.Currency) ? request.Currency.ToUpperInvariant() : LinkDropPricing.DefaultCurrency;
             purchase.SnapshotConversionRate = LinkDropPricing.MmkPerDrop;
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Currency))
+        {
+            purchase.SnapshotCurrency = request.Currency.ToUpperInvariant();
+        }
+        if (request.CustomRealMoneyAmount.HasValue && request.CustomRealMoneyAmount.Value > 0)
+        {
+            purchase.SnapshotRealMoneyAmount = request.CustomRealMoneyAmount.Value;
         }
 
         _db.TblLinkDropPurchases.Add(purchase);
@@ -503,7 +512,7 @@ public class LinkDropPaymentService : ILinkDropPaymentService
             LinkDropAmount = request.LinkDropAmount,
             BonusAmount = request.BonusAmount >= 0 ? request.BonusAmount : 0,
             RealMoneyAmount = request.RealMoneyAmount,
-            Currency = string.IsNullOrWhiteSpace(request.Currency) ? "USD" : request.Currency.Trim().ToUpper(),
+            Currency = string.IsNullOrWhiteSpace(request.Currency) ? "MMK" : request.Currency.Trim().ToUpper(),
             DisplayOrder = request.DisplayOrder,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
@@ -530,7 +539,7 @@ public class LinkDropPaymentService : ILinkDropPaymentService
         package.LinkDropAmount = request.LinkDropAmount;
         package.BonusAmount = request.BonusAmount >= 0 ? request.BonusAmount : 0;
         package.RealMoneyAmount = request.RealMoneyAmount;
-        package.Currency = string.IsNullOrWhiteSpace(request.Currency) ? "USD" : request.Currency.Trim().ToUpper();
+        package.Currency = string.IsNullOrWhiteSpace(request.Currency) ? "MMK" : request.Currency.Trim().ToUpper();
         package.DisplayOrder = request.DisplayOrder;
         package.IsActive = request.IsActive;
         package.UpdatedAt = DateTime.UtcNow;
