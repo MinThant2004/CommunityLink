@@ -384,11 +384,16 @@ public class UserProfileService : IUserProfileService
                 .Include(p => p.TblPostLikes)
                 .Include(p => p.TblComments)
                 .Include(p => p.TblPostShares)
+                .Include(p => p.TblSavedPosts)
                 .Include(p => p.TblPolls)
                     .ThenInclude(poll => poll.TblPollOptions)
                 .Include(p => p.TblPolls)
                     .ThenInclude(poll => poll.TblPollVotes)
                 .Where(p => p.AuthorId == targetUserId && !p.IsDeleted)
+                // Privacy: if private, only author can see it
+                .Where(p => !p.IsPrivate || (currentUserId.HasValue && p.AuthorId == currentUserId.Value))
+                // Banned (IsActive == false): only author can see it on user profile
+                .Where(p => p.IsActive || (currentUserId.HasValue && p.AuthorId == currentUserId.Value))
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync(cancellationToken);
 
@@ -470,12 +475,17 @@ public class UserProfileService : IUserProfileService
                 .Include(s => s.Post)
                     .ThenInclude(p => p.TblComments)
                 .Include(s => s.Post)
+                    .ThenInclude(p => p.TblSavedPosts)
+                .Include(s => s.Post)
                     .ThenInclude(p => p.TblPolls)
                         .ThenInclude(poll => poll.TblPollOptions)
                 .Include(s => s.Post)
                     .ThenInclude(p => p.TblPolls)
                         .ThenInclude(poll => poll.TblPollVotes)
                 .Where(s => s.UserId == targetUserId && !s.IsDeleted && !s.Post.IsDeleted && !rootPostIdsToFetch.Contains(s.PostId))
+                // Privacy & Ban filter on shared target post
+                .Where(s => !s.Post.IsPrivate || (currentUserId.HasValue && s.Post.AuthorId == currentUserId.Value))
+                .Where(s => s.Post.IsActive || (currentUserId.HasValue && s.Post.AuthorId == currentUserId.Value))
                 .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync(cancellationToken);
 
@@ -538,6 +548,8 @@ public class UserProfileService : IUserProfileService
                     .ThenInclude(p => p.TblPostLikes)
                 .Include(sp => sp.Post)
                     .ThenInclude(p => p.TblComments)
+                .Include(sp => sp.Post)
+                    .ThenInclude(p => p.TblSavedPosts)
                 .Include(sp => sp.Post)
                     .ThenInclude(p => p.TblPolls)
                         .ThenInclude(poll => poll.TblPollOptions)
@@ -1174,9 +1186,13 @@ public class UserProfileService : IUserProfileService
             CommentCount = p.TblComments != null ? p.TblComments.Count(c => !c.IsDeleted) : p.CommentCount,
             ShareCount = p.TblPostShares != null ? p.TblPostShares.Count(s => !s.IsDeleted) : p.ShareCount,
             IsLikedByCurrentUser = currentUserId.HasValue && p.TblPostLikes != null && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
+            IsSaved = currentUserId.HasValue && p.TblSavedPosts != null && p.TblSavedPosts.Any(s => s.UserId == currentUserId.Value && !s.IsDeleted),
             ImageUrls = p.TblPostImages != null ? p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList() : new List<string>(),
             CreatedAt = p.CreatedAt,
-            DeletedAt = p.DeletedAt
+            DeletedAt = p.DeletedAt,
+            IsActive = p.IsActive,
+            IsPrivate = p.IsPrivate,
+            ModerationReason = p.ModerationReason
         };
     }
 }

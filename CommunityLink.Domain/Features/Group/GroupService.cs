@@ -92,7 +92,9 @@ public sealed class GroupService(
                 isMember,
                 joinStatus,
                 rData?.Avg,
-                rData?.Count ?? 0
+                rData?.Count ?? 0,
+                g.IsActive,
+                g.ModerationReason
             );
         }).ToList();
 
@@ -139,7 +141,9 @@ public sealed class GroupService(
             isMember,
             joinStatus,
             avgRating,
-            ratingCount
+            ratingCount,
+            g.IsActive,
+            g.ModerationReason
         );
 
         return Result<GroupModel>.Success(model);

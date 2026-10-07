@@ -157,12 +157,37 @@
                                 <div class="space-y-1">
                                     <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/dashboard">
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                                        <span>Overview Stats</span>
+                                        <span>Dashboard</span>
                                     </NavLink>
                                     <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/communities">
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
                                         <span>Hub Moderation</span>
                                     </NavLink>
+                                    <div>
+                                        <button type="button" @onclick="ToggleContentModerationMenu"
+                                                class="w-full px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center justify-between cursor-pointer">
+                                            <div class="flex items-center gap-2.5">
+                                                <svg class="w-4 h-4 shrink-0 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                <span>Content Moderation</span>
+                                            </div>
+                                            <svg class="w-3.5 h-3.5 transform transition-transform duration-200 @(isContentModerationOpen ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                        @if (isContentModerationOpen)
+                                        {
+                                            <div class="pl-6 pr-1 py-1 space-y-1 mt-0.5 border-l-2 border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] ml-4">
+                                                <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/content-moderation?tab=posts">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/></svg>
+                                                    <span>Post</span>
+                                                </NavLink>
+                                                <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/content-moderation?tab=groups">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                    <span>Group</span>
+                                                </NavLink>
+                                            </div>
+                                        }
+                                    </div>
                                     <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/users">
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                         <span>User Directory</span>
@@ -277,9 +302,15 @@
 @code {
     [Parameter] public EventCallback OnClose { get; set; }
     private bool isReportOpen = true;
+    private bool isContentModerationOpen = true;
 
     private void ToggleReportMenu()
     {
         isReportOpen = !isReportOpen;
+    }
+
+    private void ToggleContentModerationMenu()
+    {
+        isContentModerationOpen = !isContentModerationOpen;
     }
 }

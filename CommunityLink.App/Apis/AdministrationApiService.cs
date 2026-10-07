@@ -72,4 +72,28 @@ public sealed class AdministrationApiService(IHttpClientFactory clientFactory, I
 
     public Task<Result<PlatformCommissionSettingDto>> UpdatePlatformCommissionAsync(UpdateCommissionSettingRequestDto request, CancellationToken cancellationToken = default) =>
         PutAsync<PlatformCommissionSettingDto, UpdateCommissionSettingRequestDto>("api/admin/settings/commission", request, cancellationToken);
+
+    // Content Reporting & Moderation
+    public Task<Result> SubmitContentReportAsync(CreateContentReportRequestModel request, CancellationToken cancellationToken = default) =>
+        PostAsync("api/admin/reports", request, cancellationToken);
+
+    public Task<Result<IReadOnlyList<ContentReportModel>>> GetContentReportsAsync(string? status = null, CancellationToken cancellationToken = default)
+    {
+        var url = "api/admin/reports";
+        if (!string.IsNullOrWhiteSpace(status)) url += $"?status={WebUtility.UrlEncode(status)}";
+        return GetAsync<IReadOnlyList<ContentReportModel>>(url, cancellationToken);
+    }
+
+    public Task<Result<IReadOnlyList<ContentItemAdminModel>>> GetModeratedContentListAsync(string? filter = "ALL", CancellationToken cancellationToken = default)
+    {
+        var url = "api/admin/moderated-content";
+        if (!string.IsNullOrWhiteSpace(filter)) url += $"?filter={WebUtility.UrlEncode(filter)}";
+        return GetAsync<IReadOnlyList<ContentItemAdminModel>>(url, cancellationToken);
+    }
+
+    public Task<Result<IReadOnlyList<GroupItemAdminModel>>> GetModeratedGroupsListAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<GroupItemAdminModel>>("api/admin/moderated-groups", cancellationToken);
+
+    public Task<Result> ModerateContentAsync(ModerateContentRequestModel request, CancellationToken cancellationToken = default) =>
+        PostAsync("api/admin/moderate-content", request, cancellationToken);
 }

@@ -41,4 +41,7 @@ public sealed class PostApiService(IHttpClientFactory clientFactory, IHttpContex
 
     public Task<Result<bool>> ToggleSavePostAsync(int postId, CancellationToken cancellationToken = default) =>
         PostAsync<bool, object>($"api/posts/{postId}/save", new { }, cancellationToken);
+
+    public Task<Result<bool>> TogglePostPrivacyAsync(int postId, CancellationToken cancellationToken = default) =>
+        PostAsync<bool, object>($"api/posts/{postId}/toggle-privacy", new { }, cancellationToken);
 }

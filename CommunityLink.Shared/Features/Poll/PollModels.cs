@@ -25,7 +25,14 @@ public sealed record PollModel(
     int ShareCount,
     bool IsLikedByCurrentUser,
     DateTime CreatedAt,
-    string? AuthorUserName = null);
+    string? AuthorUserName = null,
+    bool IsActive = true,
+    bool IsPrivate = false,
+    string? ModerationReason = null)
+{
+    public bool IsPrivate { get; set; } = IsPrivate;
+    public bool IsActive { get; set; } = IsActive;
+}
 
 public sealed record CreatePollRequestModel(
     int? CommunityId,

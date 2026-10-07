@@ -9,13 +9,24 @@ public sealed record AdminDashboardStatsModel(
     int TotalPosts,
     int TotalPolls,
     int ActiveConversations,
-    int TotalAuditLogs);
+    int TotalAuditLogs,
+    // Modernized Ecosystem & LinkDrop Economy Metrics
+    long TotalLinkDropCirculation = 0,
+    long TotalLinkDropPurchasesCount = 0,
+    decimal TotalLinkDropRevenueMmk = 0,
+    int TotalGroups = 0,
+    int TotalCreatorPayoutsPending = 0,
+    int TotalVerificationsPending = 0,
+    int TotalChatGroups = 0,
+    long CurrentMonthLinkDropSold = 0,
+    string CurrentMonthName = "");
 
 public sealed record TrendPointModel(
     DateTime Date,
     int NewUsers,
     int NewPosts,
-    int ActiveUsers);
+    int ActiveUsers,
+    long LinkDropVolume = 0);
 
 public sealed record JoinRequestModel(
     int RequestId,

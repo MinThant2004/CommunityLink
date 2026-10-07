@@ -35,13 +35,21 @@ public interface IAdministrationService
     Task<Result<VerifyAdminInviteResponseModel>> VerifyAdminInviteTokenAsync(string token, CancellationToken cancellationToken = default);
     Task<Result> SetupAdminPasswordAsync(SetupAdminPasswordRequestModel request, CancellationToken cancellationToken = default);
     Task<Result> ToggleAdminStatusAsync(int adminId, CancellationToken cancellationToken = default);
+
+    // Content Moderation & Reporting
+    Task<Result> SubmitContentReportAsync(CreateContentReportRequestModel request, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ContentReportModel>>> GetContentReportsAsync(string? status = null, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ContentItemAdminModel>>> GetModeratedContentListAsync(string? filter = "ALL", CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<GroupItemAdminModel>>> GetModeratedGroupsListAsync(CancellationToken cancellationToken = default);
+    Task<Result> ModerateContentAsync(ModerateContentRequestModel request, CancellationToken cancellationToken = default);
 }
 
 public sealed class AdministrationService(
     AppDbContext dbContext,
     IEmailSender emailSender,
     IConfiguration configuration,
-    ICurrentUserContext currentUser) : IAdministrationService
+    ICurrentUserContext currentUser,
+    CommunityLink.Domain.Features.Notification.INotificationService notificationService) : IAdministrationService
 {
     public async Task<Result> AssignUserRoleAsync(AssignUserRoleRequestModel request, CancellationToken cancellationToken = default)
     {
@@ -86,11 +94,30 @@ public sealed class AdministrationService(
     public async Task<Result<AdminDashboardStatsModel>> GetDashboardStatsAsync(CancellationToken cancellationToken = default)
     {
         var totalUsers = await dbContext.TblUsers.CountAsync(u => !u.IsDeleted, cancellationToken);
-        var totalCommunities = await dbContext.TblCommunities.CountAsync(c => !c.IsDeleted, cancellationToken);
+        var totalCommunities = await dbContext.TblCommunities.CountAsync(c => !c.IsDeleted && c.ParentCommunityId == null, cancellationToken);
         var totalPosts = await dbContext.TblPosts.CountAsync(p => !p.IsDeleted, cancellationToken);
         var totalPolls = await dbContext.TblPolls.CountAsync(p => !p.IsDeleted, cancellationToken);
         var activeConversations = await dbContext.TblConversations.CountAsync(c => !c.IsDeleted, cancellationToken);
         var totalAuditLogs = await dbContext.TblAuditLogs.CountAsync(cancellationToken);
+
+        // Modernized LinkDrop Economy & Ecosystem Metrics
+        var totalCirculation = await dbContext.TblLinkDropWallets.SumAsync(w => (long?)w.Balance, cancellationToken) ?? 0L;
+        var approvedPurchases = dbContext.TblLinkDropPurchases.Where(p => !p.IsDeleted && p.Status == "APPROVED");
+        var totalPurchasesCount = await approvedPurchases.CountAsync(cancellationToken);
+        var totalRevenueMmk = await approvedPurchases.SumAsync(p => (decimal?)p.SnapshotRealMoneyAmount, cancellationToken) ?? 0m;
+
+        // Current month LinkDrop sold
+        var nowUtc = DateTime.UtcNow;
+        var currentMonthStart = new DateTime(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var currentMonthName = nowUtc.ToString("MMMM");
+        var currentMonthLinkDropSold = await approvedPurchases
+            .Where(p => p.CreatedAt >= currentMonthStart)
+            .SumAsync(p => (long?)p.SnapshotLinkDropAmount, cancellationToken) ?? 0L;
+
+        var totalGroups = await dbContext.TblGroups.CountAsync(g => !g.IsDeleted, cancellationToken);
+        var totalCreatorPayoutsPending = await dbContext.TblCreatorPayoutRequests.CountAsync(r => !r.IsDeleted && r.Status == "PENDING", cancellationToken);
+        var totalVerificationsPending = await dbContext.TblIdentityVerifications.CountAsync(v => v.Status == "PENDING", cancellationToken);
+        var totalChatGroups = await dbContext.TblChatGroups.CountAsync(g => !g.IsDeleted, cancellationToken);
 
         var model = new AdminDashboardStatsModel(
             totalUsers,
@@ -98,7 +125,16 @@ public sealed class AdministrationService(
             totalPosts,
             totalPolls,
             activeConversations,
-            totalAuditLogs);
+            totalAuditLogs,
+            totalCirculation,
+            totalPurchasesCount,
+            totalRevenueMmk,
+            totalGroups,
+            totalCreatorPayoutsPending,
+            totalVerificationsPending,
+            totalChatGroups,
+            currentMonthLinkDropSold,
+            currentMonthName);
 
         return Result<AdminDashboardStatsModel>.Success(model);
     }
@@ -122,13 +158,20 @@ public sealed class AdministrationService(
             .Select(g => new { Date = g.Key, Count = g.Count() })
             .ToListAsync(cancellationToken);
 
+        var linkDropTxGrouped = await dbContext.TblLinkDropTransactions
+            .Where(tx => tx.CreatedAt >= thirtyDaysAgo)
+            .GroupBy(tx => tx.CreatedAt.Date)
+            .Select(g => new { Date = g.Key, Volume = g.Sum(tx => (long)tx.Amount) })
+            .ToListAsync(cancellationToken);
+
         var trends = new List<TrendPointModel>();
         for (int i = 29; i >= 0; i--)
         {
             var date = DateTime.UtcNow.Date.AddDays(-i);
             var usersCount = newUsersGrouped.FirstOrDefault(x => x.Date == date)?.Count ?? 0;
             var postsCount = newPostsGrouped.FirstOrDefault(x => x.Date == date)?.Count ?? 0;
-            trends.Add(new TrendPointModel(date, usersCount, postsCount, usersCount + postsCount));
+            var txVolume = linkDropTxGrouped.FirstOrDefault(x => x.Date == date)?.Volume ?? 0L;
+            trends.Add(new TrendPointModel(date, usersCount, postsCount, usersCount + postsCount, txVolume));
         }
 
         var pendingReqsRes = await GetPendingJoinRequestsAsync(cancellationToken);
@@ -566,4 +609,498 @@ public sealed class AdministrationService(
         var status = targetAdmin.IsActive ? "activated" : "deactivated";
         return Result.Success($"Admin account '{targetAdmin.Email}' has been {status}.");
     }
+
+    #region Content Moderation & Reporting
+
+    public async Task<Result> SubmitContentReportAsync(CreateContentReportRequestModel request, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.UserId.HasValue)
+            return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
+
+        if (string.IsNullOrWhiteSpace(request.ReasonCategory))
+            return Result.Failure("Please select a reason for reporting.", ResultStatus.ValidationError);
+
+        var report = new TblContentReport
+        {
+            ContentType = request.ContentType.ToUpperInvariant(),
+            ContentId = request.ContentId,
+            ReporterUserId = currentUser.UserId.Value,
+            ReasonCategory = request.ReasonCategory.Trim(),
+            Details = string.IsNullOrWhiteSpace(request.Details) ? null : request.Details.Trim(),
+            Status = "PENDING",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        dbContext.TblContentReports.Add(report);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return Result.Success("Report submitted successfully. Our administration team has been notified and will review it promptly.");
+    }
+
+    public async Task<Result<IReadOnlyList<ContentReportModel>>> GetContentReportsAsync(string? status = null, CancellationToken cancellationToken = default)
+    {
+        var query = dbContext.TblContentReports
+            .Include(r => r.ReporterUser)
+            .AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(status) && status != "ALL")
+        {
+            query = query.Where(r => r.Status == status);
+        }
+
+        var reports = await query
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(100)
+            .ToListAsync(cancellationToken);
+
+        var list = new List<ContentReportModel>();
+
+        foreach (var r in reports)
+        {
+            int authorId = 0;
+            string authorName = "Unknown";
+            string? authorAvatar = null;
+            string summary = "Content unavailable";
+            string? commName = null;
+            string? grpName = null;
+            bool isActive = true;
+            bool isPrivate = false;
+            DateTime contentCreatedAt = r.CreatedAt;
+
+            if (r.ContentType == "POST")
+            {
+                var post = await dbContext.TblPosts
+                    .Include(p => p.Author)
+                    .Include(p => p.Community)
+                    .Include(p => p.Group)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.PostId == r.ContentId, cancellationToken);
+
+                if (post != null)
+                {
+                    authorId = post.AuthorId;
+                    authorName = post.Author.DisplayName ?? post.Author.UserName;
+                    authorAvatar = post.Author.AvatarUrl;
+                    summary = post.Content;
+                    commName = post.Community?.Name;
+                    grpName = post.Group?.Name;
+                    isActive = post.IsActive && !post.IsDeleted;
+                    isPrivate = post.IsPrivate;
+                    contentCreatedAt = post.CreatedAt;
+                }
+            }
+            else if (r.ContentType == "POLL")
+            {
+                var poll = await dbContext.TblPolls
+                    .Include(p => p.Post).ThenInclude(pt => pt.Author)
+                    .Include(p => p.Post).ThenInclude(pt => pt.Community)
+                    .Include(p => p.Post).ThenInclude(pt => pt.Group)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.PollId == r.ContentId, cancellationToken);
+
+                if (poll != null)
+                {
+                    authorId = poll.Post?.AuthorId ?? (poll.CreatedBy ?? 0);
+                    authorName = poll.Post?.Author?.DisplayName ?? poll.Post?.Author?.UserName ?? "Author";
+                    authorAvatar = poll.Post?.Author?.AvatarUrl;
+                    summary = $"Q: {poll.Question}" + (string.IsNullOrWhiteSpace(poll.Post?.Content) ? "" : $" — {poll.Post.Content}");
+                    commName = poll.Post?.Community?.Name;
+                    grpName = poll.Post?.Group?.Name;
+                    isActive = poll.IsActive && !poll.IsDeleted;
+                    isPrivate = poll.IsPrivate;
+                    contentCreatedAt = poll.CreatedAt;
+                }
+            }
+            else if (r.ContentType == "GROUP")
+            {
+                var grp = await dbContext.TblGroups
+                    .Include(g => g.Creator)
+                    .Include(g => g.SubCommunity)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(g => g.GroupId == r.ContentId, cancellationToken);
+
+                if (grp != null)
+                {
+                    authorId = grp.CreatorId;
+                    authorName = grp.Creator?.DisplayName ?? grp.Creator?.UserName ?? "Group Creator";
+                    authorAvatar = grp.AvatarUrl;
+                    summary = $"Group: {grp.Name}" + (string.IsNullOrWhiteSpace(grp.Description) ? "" : $" — {grp.Description}");
+                    commName = grp.SubCommunity?.Name;
+                    grpName = grp.Name;
+                    isActive = grp.IsActive && !grp.IsDeleted;
+                    isPrivate = grp.Visibility == "PRIVATE";
+                    contentCreatedAt = grp.CreatedAt;
+                }
+            }
+
+            list.Add(new ContentReportModel(
+                r.ContentReportId,
+                r.ContentType,
+                r.ContentId,
+                r.ReporterUserId,
+                r.ReporterUser?.DisplayName ?? r.ReporterUser?.UserName ?? "Reporter",
+                r.ReporterUser?.AvatarUrl,
+                r.ReasonCategory,
+                r.Details,
+                r.Status,
+                r.HandledByAdminId,
+                r.AdminNote,
+                r.HandledAt,
+                r.CreatedAt,
+                authorId,
+                authorName,
+                authorAvatar,
+                summary,
+                commName,
+                grpName,
+                isActive,
+                isPrivate,
+                contentCreatedAt
+            ));
+        }
+
+        return Result<IReadOnlyList<ContentReportModel>>.Success(list);
+    }
+
+    public async Task<Result<IReadOnlyList<ContentItemAdminModel>>> GetModeratedContentListAsync(string? filter = "ALL", CancellationToken cancellationToken = default)
+    {
+        var list = new List<ContentItemAdminModel>();
+
+        // Query posts (Note: When a post/poll is Private, even admins cannot view it)
+        if (filter == "ALL" || filter == "POST")
+        {
+            var posts = await dbContext.TblPosts
+                .Include(p => p.Author)
+                .Include(p => p.Community)
+                .Include(p => p.Group)
+                .Include(p => p.TblPostImages)
+                .Where(p => !p.IsDeleted && !p.HasPoll && !p.IsPrivate && p.GroupId == null)
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(60)
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            var postIds = posts.Select(p => p.PostId).ToList();
+            var reportCounts = await dbContext.TblContentReports
+                .Where(r => r.ContentType == "POST" && postIds.Contains(r.ContentId))
+                .GroupBy(r => r.ContentId)
+                .Select(g => new { ContentId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.ContentId, g => g.Count, cancellationToken);
+
+            foreach (var p in posts)
+            {
+                list.Add(new ContentItemAdminModel(
+                    p.PostId,
+                    "POST",
+                    p.AuthorId,
+                    p.Author?.DisplayName ?? p.Author?.UserName ?? "User",
+                    p.Author?.AvatarUrl,
+                    p.Content,
+                    null,
+                    p.CreatedAt,
+                    p.Community?.Name,
+                    p.Group?.Name,
+                    p.IsActive,
+                    p.IsPrivate,
+                    p.ModerationReason,
+                    reportCounts.GetValueOrDefault(p.PostId, 0),
+                    p.TblPostImages.Where(i => !i.IsDeleted).Select(i => i.ImageUrl).ToList(),
+                    p.CodeSnippet,
+                    p.CodeFileName,
+                    null
+                ));
+            }
+        }
+
+        // Query polls (Note: When a poll is Private, even admins cannot view it)
+        if (filter == "ALL" || filter == "POLL")
+        {
+            var polls = await dbContext.TblPolls
+                .Include(p => p.TblPollOptions)
+                .Include(p => p.Post).ThenInclude(pt => pt!.Author)
+                .Include(p => p.Post).ThenInclude(pt => pt!.Community)
+                .Include(p => p.Post).ThenInclude(pt => pt!.Group)
+                .Where(p => !p.IsDeleted && !p.IsPrivate && (p.Post == null || p.Post.GroupId == null))
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(60)
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            var pollIds = polls.Select(p => p.PollId).ToList();
+            var reportCounts = await dbContext.TblContentReports
+                .Where(r => r.ContentType == "POLL" && pollIds.Contains(r.ContentId))
+                .GroupBy(r => r.ContentId)
+                .Select(g => new { ContentId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.ContentId, g => g.Count, cancellationToken);
+
+            foreach (var p in polls)
+            {
+                list.Add(new ContentItemAdminModel(
+                    p.PollId,
+                    "POLL",
+                    p.Post?.AuthorId ?? (p.CreatedBy ?? 0),
+                    p.Post?.Author?.DisplayName ?? p.Post?.Author?.UserName ?? "Author",
+                    p.Post?.Author?.AvatarUrl,
+                    p.Post?.Content ?? string.Empty,
+                    p.Question,
+                    p.CreatedAt,
+                    p.Post?.Community?.Name,
+                    p.Post?.Group?.Name,
+                    p.IsActive,
+                    p.IsPrivate,
+                    p.ModerationReason,
+                    reportCounts.GetValueOrDefault(p.PollId, 0),
+                    ImageUrls: null,
+                    CodeSnippet: null,
+                    CodeFileName: null,
+                    PollOptions: p.TblPollOptions.Where(o => !o.IsDeleted).OrderBy(o => o.PollOptionId).Select(o => o.OptionText).ToList()
+                ));
+            }
+        }
+
+        var ordered = list.OrderByDescending(x => x.ReportCount).ThenByDescending(x => x.CreatedAt).ToList();
+        return Result<IReadOnlyList<ContentItemAdminModel>>.Success(ordered);
+    }
+
+    public async Task<Result<IReadOnlyList<GroupItemAdminModel>>> GetModeratedGroupsListAsync(CancellationToken cancellationToken = default)
+    {
+        var groups = await dbContext.TblGroups
+            .Include(g => g.Creator)
+            .Include(g => g.SubCommunity)
+            .Where(g => !g.IsDeleted)
+            .OrderByDescending(g => g.CreatedAt)
+            .Take(100)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var groupIds = groups.Select(g => g.GroupId).ToList();
+        var reportCounts = await dbContext.TblContentReports
+            .Where(r => r.ContentType == "GROUP" && groupIds.Contains(r.ContentId))
+            .GroupBy(r => r.ContentId)
+            .Select(g => new { ContentId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(g => g.ContentId, g => g.Count, cancellationToken);
+
+        var list = groups.Select(g => new GroupItemAdminModel(
+            g.GroupId,
+            g.Name,
+            g.Slug,
+            g.Description,
+            g.AvatarUrl,
+            g.SubCommunity?.Name,
+            g.CreatorId,
+            g.Creator?.DisplayName ?? g.Creator?.UserName ?? "Admin",
+            g.Visibility,
+            g.MemberCount,
+            g.PostCount,
+            g.IsActive,
+            g.ModerationReason,
+            reportCounts.GetValueOrDefault(g.GroupId, 0),
+            g.CreatedAt
+        ))
+        .OrderByDescending(x => x.ReportCount)
+        .ThenByDescending(x => x.CreatedAt)
+        .ToList();
+
+        return Result<IReadOnlyList<GroupItemAdminModel>>.Success(list);
+    }
+
+    public async Task<Result> ModerateContentAsync(ModerateContentRequestModel request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Action))
+            return Result.Failure("Action is required.", ResultStatus.ValidationError);
+
+        var adminUserId = currentUser.UserId;
+
+        // If target was identified via a ReportId
+        string contentType = "";
+        int contentId = 0;
+
+        TblContentReport? report = null;
+        if (request.ReportId.HasValue && request.ReportId.Value > 0)
+        {
+            report = await dbContext.TblContentReports.FirstOrDefaultAsync(r => r.ContentReportId == request.ReportId.Value, cancellationToken);
+            if (report != null)
+            {
+                contentType = report.ContentType;
+                contentId = report.ContentId;
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(request.ContentType) && request.ContentId.HasValue)
+        {
+            contentType = request.ContentType.ToUpperInvariant();
+            contentId = request.ContentId.Value;
+        }
+
+        if (string.IsNullOrWhiteSpace(contentType))
+        {
+            return Result.Failure("Content report reference or target not found.", ResultStatus.NotFound);
+        }
+
+        int authorId = 0;
+        string contentTitle = contentType == "POST" ? "Post" : (contentType == "POLL" ? "Poll" : "Group");
+
+        var actionUpper = request.Action.ToUpperInvariant();
+        var reasonText = !string.IsNullOrWhiteSpace(request.ReasonNote)
+            ? request.ReasonNote.Trim()
+            : (!string.IsNullOrWhiteSpace(request.ReasonCategory) ? request.ReasonCategory.Trim() : "Violation of community safety standards");
+
+        if (contentType == "POST")
+        {
+            var post = await dbContext.TblPosts.FirstOrDefaultAsync(p => p.PostId == contentId, cancellationToken);
+            if (post == null) return Result.Failure("Post not found.", ResultStatus.NotFound);
+
+            authorId = post.AuthorId;
+
+            switch (actionUpper)
+            {
+                case "BAN":
+                case "DEACTIVATE":
+                    post.IsActive = false;
+                    post.ModeratedBy = adminUserId;
+                    post.ModeratedAt = DateTime.UtcNow;
+                    post.ModerationReason = reasonText;
+                    break;
+                case "UNBAN":
+                case "ACTIVATE":
+                    post.IsActive = true;
+                    post.ModerationReason = null;
+                    break;
+                case "SET_PRIVATE":
+                    post.IsPrivate = true;
+                    post.ModeratedBy = adminUserId;
+                    post.ModeratedAt = DateTime.UtcNow;
+                    post.ModerationReason = reasonText;
+                    break;
+                case "SET_PUBLIC":
+                    post.IsPrivate = false;
+                    post.ModerationReason = null;
+                    break;
+            }
+        }
+        else if (contentType == "POLL")
+        {
+            var poll = await dbContext.TblPolls
+                .Include(p => p.Post)
+                .FirstOrDefaultAsync(p => p.PollId == contentId, cancellationToken);
+            if (poll == null) return Result.Failure("Poll not found.", ResultStatus.NotFound);
+
+            authorId = poll.Post?.AuthorId ?? (poll.CreatedBy ?? 0);
+
+            switch (actionUpper)
+            {
+                case "BAN":
+                case "DEACTIVATE":
+                    poll.IsActive = false;
+                    poll.ModeratedBy = adminUserId;
+                    poll.ModeratedAt = DateTime.UtcNow;
+                    poll.ModerationReason = reasonText;
+                    if (poll.Post != null) { poll.Post.IsActive = false; poll.Post.ModerationReason = reasonText; }
+                    break;
+                case "UNBAN":
+                case "ACTIVATE":
+                    poll.IsActive = true;
+                    poll.ModerationReason = null;
+                    if (poll.Post != null) { poll.Post.IsActive = true; poll.Post.ModerationReason = null; }
+                    break;
+                case "SET_PRIVATE":
+                    poll.IsPrivate = true;
+                    poll.ModeratedBy = adminUserId;
+                    poll.ModeratedAt = DateTime.UtcNow;
+                    poll.ModerationReason = reasonText;
+                    if (poll.Post != null) { poll.Post.IsPrivate = true; poll.Post.ModerationReason = reasonText; }
+                    break;
+                case "SET_PUBLIC":
+                    poll.IsPrivate = false;
+                    poll.ModerationReason = null;
+                    if (poll.Post != null) { poll.Post.IsPrivate = false; poll.Post.ModerationReason = null; }
+                    break;
+            }
+        }
+        else if (contentType == "GROUP")
+        {
+            var grp = await dbContext.TblGroups.FirstOrDefaultAsync(g => g.GroupId == contentId && !g.IsDeleted, cancellationToken);
+            if (grp == null) return Result.Failure("Group not found.", ResultStatus.NotFound);
+
+            authorId = grp.CreatorId;
+
+            switch (actionUpper)
+            {
+                case "DEACTIVATE":
+                case "BAN":
+                    grp.IsActive = false;
+                    grp.ModeratedBy = adminUserId;
+                    grp.ModeratedAt = DateTime.UtcNow;
+                    grp.ModerationReason = reasonText;
+                    grp.UpdatedAt = DateTime.UtcNow;
+                    grp.UpdatedBy = adminUserId;
+                    break;
+                case "ACTIVATE":
+                case "UNBAN":
+                    grp.IsActive = true;
+                    grp.ModerationReason = null;
+                    grp.UpdatedAt = DateTime.UtcNow;
+                    grp.UpdatedBy = adminUserId;
+                    break;
+            }
+        }
+
+        // Mark report as resolved or dismissed
+        if (report != null)
+        {
+            report.Status = actionUpper == "DISMISS" ? "DISMISSED" : "RESOLVED";
+            report.HandledByAdminId = adminUserId;
+            report.AdminNote = reasonText;
+            report.HandledAt = DateTime.UtcNow;
+        }
+
+        // Also resolve any other pending reports for the same content if action taken
+        if (actionUpper != "DISMISS")
+        {
+            var otherReports = await dbContext.TblContentReports
+                .Where(r => r.ContentType == contentType && r.ContentId == contentId && r.Status == "PENDING")
+                .ToListAsync(cancellationToken);
+
+            foreach (var r in otherReports)
+            {
+                r.Status = "RESOLVED";
+                r.HandledByAdminId = adminUserId;
+                r.AdminNote = reasonText;
+                r.HandledAt = DateTime.UtcNow;
+            }
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify content/group owner if moderated into inactive or banned mode
+        if (authorId > 0 && (actionUpper == "BAN" || actionUpper == "DEACTIVATE" || actionUpper == "SET_PRIVATE"))
+        {
+            var actionTitle = actionUpper switch
+            {
+                "BAN" => $"Your {contentTitle} was banned by moderators",
+                "DEACTIVATE" => contentType == "GROUP" ? "Your group has been made inactive by administration" : $"Your {contentTitle} has been deactivated",
+                "SET_PRIVATE" => $"{contentTitle} set to Private Mode",
+                _ => $"{contentTitle} Moderation Update"
+            };
+
+            var actionDesc = contentType == "GROUP"
+                ? $"Your group has been set to Inactive status by administration due to: \"{reasonText}\". Members cannot post or poll, but existing content remains available."
+                : (actionUpper == "BAN"
+                    ? $"Your {contentTitle.ToLower()} was banned by administration: \"{reasonText}\". Only you and administrators can view it."
+                    : $"Your {contentTitle.ToLower()} was moderated: \"{reasonText}\".");
+
+            await notificationService.CreateNotificationAsync(
+                authorId,
+                adminUserId,
+                "MODERATION",
+                actionTitle,
+                actionDesc,
+                contentType,
+                contentId,
+                cancellationToken);
+        }
+
+        return Result.Success($"Action '{actionUpper}' applied successfully.");
+    }
+
+    #endregion
 }

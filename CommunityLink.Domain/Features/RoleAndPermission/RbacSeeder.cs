@@ -289,6 +289,30 @@ public static class RbacSeeder
                     END;
                 END
             ");
+
+            // Ensure IDENTITY current values match or exceed existing data to prevent duplicate key violations (e.g. PK (1))
+            await db.Database.ExecuteSqlRawAsync(@"
+                IF OBJECT_ID(N'dbo.TblPermission', N'U') IS NOT NULL
+                BEGIN
+                    DECLARE @MaxPermId INT = ISNULL((SELECT MAX(PermissionId) FROM dbo.TblPermission), 0);
+                    IF @MaxPermId > 0
+                        DBCC CHECKIDENT (N'dbo.TblPermission', RESEED, @MaxPermId);
+                END;
+
+                IF OBJECT_ID(N'dbo.TblRole', N'U') IS NOT NULL
+                BEGIN
+                    DECLARE @MaxRoleId INT = ISNULL((SELECT MAX(RoleId) FROM dbo.TblRole), 0);
+                    IF @MaxRoleId > 0
+                        DBCC CHECKIDENT (N'dbo.TblRole', RESEED, @MaxRoleId);
+                END;
+
+                IF OBJECT_ID(N'dbo.TblRolePermission', N'U') IS NOT NULL
+                BEGIN
+                    DECLARE @MaxRolePermId INT = ISNULL((SELECT MAX(RolePermissionId) FROM dbo.TblRolePermission), 0);
+                    IF @MaxRolePermId > 0
+                        DBCC CHECKIDENT (N'dbo.TblRolePermission', RESEED, @MaxRolePermId);
+                END;
+            ");
         }
 
         // 1. Seed Permissions from Catalog

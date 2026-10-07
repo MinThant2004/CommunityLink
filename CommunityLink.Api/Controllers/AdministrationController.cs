@@ -164,4 +164,48 @@ public class AdministrationController : ControllerBase
         var result = await _adminService.ToggleAdminStatusAsync(id, cancellationToken);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
+
+    #region Content Moderation & Reporting
+
+    [HttpPost("reports")]
+    [Authorize]
+    public async Task<IActionResult> SubmitContentReport([FromBody] CommunityLink.Shared.Features.Administration.CreateContentReportRequestModel request, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.SubmitContentReportAsync(request, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("reports")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+    public async Task<IActionResult> GetContentReports([FromQuery] string? status = null, CancellationToken cancellationToken = default)
+    {
+        var result = await _adminService.GetContentReportsAsync(status, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("moderated-content")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+    public async Task<IActionResult> GetModeratedContentList([FromQuery] string? filter = "ALL", CancellationToken cancellationToken = default)
+    {
+        var result = await _adminService.GetModeratedContentListAsync(filter, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("moderated-groups")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.GroupManagement)]
+    public async Task<IActionResult> GetModeratedGroups(CancellationToken cancellationToken = default)
+    {
+        var result = await _adminService.GetModeratedGroupsListAsync(cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPost("moderate-content")]
+    [Authorize]
+    public async Task<IActionResult> ModerateContent([FromBody] CommunityLink.Shared.Features.Administration.ModerateContentRequestModel request, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.ModerateContentAsync(request, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    #endregion
 }

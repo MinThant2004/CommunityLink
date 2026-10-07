@@ -147,6 +147,10 @@ public class UserPostItemDto
     public string? SharedByDisplayName { get; set; }
     public DateTime? SharedAt { get; set; }
     public OriginalPostSummaryDto? OriginalPost { get; set; }
+    public bool IsActive { get; set; } = true;
+    public bool IsPrivate { get; set; } = false;
+    public bool IsSaved { get; set; } = false;
+    public string? ModerationReason { get; set; }
 }
 
 public class OriginalPostSummaryDto

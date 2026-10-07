@@ -97,6 +97,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblPollVote> TblPollVotes { get; set; }
 
+    public virtual DbSet<TblContentReport> TblContentReports { get; set; }
+
     public virtual DbSet<TblPost> TblPosts { get; set; }
 
     public virtual DbSet<TblPostImage> TblPostImages { get; set; }
@@ -856,6 +858,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Visibility)
                 .HasMaxLength(50)
                 .HasDefaultValue("PUBLIC");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
+            entity.Property(e => e.ModerationReason).HasMaxLength(500);
 
             entity.HasOne(d => d.Creator).WithMany(p => p.TblGroups)
                 .HasForeignKey(d => d.CreatorId)
@@ -1234,6 +1239,9 @@ public partial class AppDbContext : DbContext
             entity.ToTable("TblPoll");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsPrivate).HasDefaultValue(false);
+            entity.Property(e => e.ModerationReason).HasMaxLength(500);
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();
@@ -1309,6 +1317,10 @@ public partial class AppDbContext : DbContext
                 .IsConcurrencyToken();
             entity.Property(e => e.Subtitle).HasMaxLength(300);
 
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsPrivate).HasDefaultValue(false);
+            entity.Property(e => e.ModerationReason).HasMaxLength(500);
+
             entity.HasOne(d => d.Author).WithMany(p => p.TblPosts)
                 .HasForeignKey(d => d.AuthorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -1321,6 +1333,25 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Group).WithMany(p => p.TblPosts)
                 .HasForeignKey(d => d.GroupId)
                 .HasConstraintName("FK_TblPost_Group");
+        });
+
+        modelBuilder.Entity<TblContentReport>(entity =>
+        {
+            entity.HasKey(e => e.ContentReportId);
+            entity.ToTable("TblContentReport");
+
+            entity.Property(e => e.ContentType).HasMaxLength(20);
+            entity.Property(e => e.ReasonCategory).HasMaxLength(100);
+            entity.Property(e => e.Details).HasMaxLength(1000);
+            entity.Property(e => e.Status).HasMaxLength(20).HasDefaultValue("PENDING");
+            entity.Property(e => e.AdminNote).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.RowVersion).IsRowVersion().IsConcurrencyToken();
+
+            entity.HasOne(d => d.ReporterUser)
+                .WithMany()
+                .HasForeignKey(d => d.ReporterUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<TblPostImage>(entity =>

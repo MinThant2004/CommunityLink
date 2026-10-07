@@ -101,6 +101,7 @@ using (var scope = app.Services.CreateScope())
     await ChatGroupInviteLinkDatabaseSeeder.SeedAsync(db);
     await ChatGroupModerationDatabaseSeeder.SeedAsync(db);
     await ChatGroupAccessModeDatabaseSeeder.SeedAsync(db);
+    await CommunityLink.Domain.Features.Post.ContentModerationDatabaseSeeder.SeedAsync(db);
 }
 
 // Middleware Pipeline

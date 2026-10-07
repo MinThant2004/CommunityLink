@@ -33,4 +33,9 @@ public sealed class PollController(IPollService pollService) : BaseController
     [Authorize]
     public async Task<IActionResult> DeletePoll(int pollId, CancellationToken cancellationToken) =>
         ToActionResult(await pollService.DeletePollAsync(pollId, cancellationToken));
+
+    [HttpPost("{pollId:int}/toggle-privacy")]
+    [Authorize]
+    public async Task<IActionResult> TogglePollPrivacy(int pollId, CancellationToken cancellationToken) =>
+        ToActionResult(await pollService.TogglePollPrivacyAsync(pollId, cancellationToken));
 }

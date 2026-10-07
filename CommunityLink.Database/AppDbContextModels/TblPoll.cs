@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -30,6 +30,16 @@ public partial class TblPoll
     public DateTime? DeletedAt { get; set; }
 
     public int? DeletedBy { get; set; }
+
+    public bool IsActive { get; set; } = true;
+
+    public bool IsPrivate { get; set; }
+
+    public int? ModeratedBy { get; set; }
+
+    public DateTime? ModeratedAt { get; set; }
+
+    public string? ModerationReason { get; set; }
 
     public byte[] RowVersion { get; set; } = null!;
 

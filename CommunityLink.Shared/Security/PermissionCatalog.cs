@@ -18,6 +18,7 @@ public static class PermissionCatalog
     public const string PostCreate = "POST.CREATE";
     public const string PostDelete = "POST.DELETE";
     public const string PostStandaloneCreate = "POST.STANDALONE.CREATE";
+    public const string PostManagement = "POST.MANAGEMENT";
 
     // Polls
     public const string PollView = "POLL.VIEW";
@@ -28,6 +29,7 @@ public static class PermissionCatalog
     public const string GroupView = "GROUP.VIEW";
     public const string GroupCreate = "GROUP.CREATE";
     public const string GroupManage = "GROUP.MANAGE";
+    public const string GroupManagement = "GROUP.MANAGEMENT";
 
     // Chat & Messaging
     public const string ChatAccess = "CHAT.ACCESS";
@@ -57,10 +59,12 @@ public static class PermissionCatalog
         new(GroupView, "View Groups", "Group", "/groups", true, true),
         new(GroupCreate, "Create Group", "Group", "/groups", true, true),
         new(GroupManage, "Manage Group Settings", "Group", null, true, false),
+        new(GroupManagement, "Group Moderation & Active Status", "Content Moderation", "/admin/content-moderation?tab=groups", true, false),
         new(PostView, "View Feed Posts", "Post", "/feed", true, true),
         new(PostCreate, "Create Post", "Post", "/feed", true, true),
         new(PostDelete, "Delete Post / Moderation", "Post", null, true, false),
         new(PostStandaloneCreate, "Create Standalone Post & Poll", "Post", null, true, false),
+        new(PostManagement, "Post & Poll Moderation", "Content Moderation", "/admin/content-moderation?tab=posts", true, false),
         new(PollView, "View Polls", "Poll", "/polls", true, true),
         new(PollVote, "Vote on Polls", "Poll", "/polls", true, true),
         new(PollCreate, "Create Polls", "Poll", "/polls/create", true, false),
