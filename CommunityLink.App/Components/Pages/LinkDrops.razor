@@ -13,7 +13,7 @@
 
 <PageTitle>LinkDrop Treasury &amp; Top-Up — CommunityLink</PageTitle>
 
-<div class="min-h-screen bg-[#F1F5F9] dark:bg-background font-body-md text-body-md text-on-surface antialiased transition-colors duration-200">
+<div class="min-h-screen bg-[#F4F6F8] dark:bg-background font-body-md text-body-md text-on-surface antialiased transition-colors duration-200">
     <!-- Top System Directory Strip -->
     <section class="bg-surface-container-lowest/80 backdrop-blur-md border-b border-slate-200 dark:border-surface-container-high/30">
         <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-2 flex items-center justify-between gap-3">
@@ -195,7 +195,7 @@
                             {
                                 var isSelected = !isCustomPurchase && selectedPackage?.PackageId == pkg.PackageId;
                                 <div @onclick="() => SelectPackage(pkg)"
-                                     class="p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2 relative shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] @(isSelected ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-600 dark:border-indigo-400 ring-1 ring-inset ring-indigo-500/40" : "bg-white dark:bg-surface-container-low border-black/10 dark:border-surface-container-high/40 hover:border-indigo-400 dark:hover:border-indigo-400/60")">
+                                     class="p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2 relative shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] @(isSelected ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-600 dark:border-indigo-400 ring-1 ring-inset ring-indigo-500/40" : "bg-white dark:bg-surface-container-low border-[#E2E8F0] dark:border-surface-container-high/40 hover:border-indigo-400 dark:hover:border-indigo-400/60")">
                                     
                                     <div class="flex items-center justify-between">
                                         <span class="text-[10px] font-bold uppercase tracking-wider @(isSelected ? "text-indigo-600 dark:text-indigo-400" : "text-slate-600 dark:text-on-surface-variant")">
@@ -227,7 +227,7 @@
                         </div>
 
                         <!-- Custom Amount Calculator Card -->
-                        <div class="p-4 rounded-lg border-2 transition-all space-y-2.5 @(isCustomPurchase ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-600 dark:border-indigo-400 ring-1 ring-inset ring-indigo-500/40" : "bg-white dark:bg-surface-container-low border-black/10 dark:border-surface-container-high/40")">
+                        <div class="p-4 rounded-lg border-2 transition-all space-y-2.5 @(isCustomPurchase ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-600 dark:border-indigo-400 ring-1 ring-inset ring-indigo-500/40" : "bg-white dark:bg-surface-container-low border-[#E2E8F0] dark:border-surface-container-high/40")">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div class="flex items-center gap-2">
                                     <button type="button" @onclick="EnableCustomPurchase"
@@ -254,7 +254,7 @@
                                     <span class="text-xs font-bold text-on-surface-variant">MMK</span>
                                     <input type="number" min="10" step="100"
                                            @bind="customMmkAmount" @bind:after="OnCustomAmountChanged"
-                                           class="w-full h-8 bg-white dark:bg-surface-container-lowest border border-slate-300 dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs font-bold text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 focus:outline-none transition-colors"
+                                           class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-lowest border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs font-bold text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:shadow-[0_1px_3px_rgba(79,70,229,0.18)] focus:outline-none transition-colors"
                                            placeholder="e.g. 10000 MMK" />
                                 </div>
                                 <div class="flex items-center justify-between sm:justify-start gap-2 bg-surface-container px-3 py-1.5 rounded-lg border border-slate-200 dark:border-surface-container-high/30">
@@ -285,7 +285,7 @@
                             {
                                 var isSelected = selectedPaymentMethod?.PaymentMethodId == method.PaymentMethodId;
                                 <div @onclick="() => SelectPaymentMethod(method)"
-                                     class="p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer flex items-center justify-between shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] @(isSelected ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-600 dark:border-indigo-400 ring-1 ring-inset ring-indigo-500/40" : "bg-white dark:bg-surface-container-low border-black/10 dark:border-surface-container-high/40 hover:border-indigo-400 dark:hover:border-indigo-400/60")">
+                                     class="p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer flex items-center justify-between shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] @(isSelected ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-600 dark:border-indigo-400 ring-1 ring-inset ring-indigo-500/40" : "bg-white dark:bg-surface-container-low border-[#E2E8F0] dark:border-surface-container-high/40 hover:border-indigo-400 dark:hover:border-indigo-400/60")">
                                     <div class="flex items-center gap-3">
                                         @if (!string.IsNullOrWhiteSpace(method.PaymentLogoUrl))
                                         {
@@ -319,7 +319,7 @@
                         <!-- Instructions & QR Code Panel -->
                         @if (selectedPaymentMethod != null)
                         {
-                            <div class="bg-indigo-50/60 dark:bg-surface-container-low border border-slate-200 dark:border-surface-container-high/50 border-l-[3px] border-l-indigo-600 dark:border-l-indigo-500/70 rounded-lg p-3 space-y-2.5">
+                            <div class="bg-[#F0F4FF] dark:bg-surface-container-low border border-slate-200 dark:border-surface-container-high/50 border-l-[3px] border-l-indigo-600 dark:border-l-indigo-500/70 rounded-lg p-3 space-y-2.5">
                                 <div class="font-bold text-on-surface text-xs flex items-center gap-1.5">
                                     <span class="material-symbols-outlined text-sm text-indigo-600 dark:text-indigo-400">info</span>
                                     <span>Transfer Instructions &bull; @selectedPaymentMethod.MethodName</span>
@@ -327,12 +327,12 @@
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                                     <div class="md:col-span-8 space-y-2 text-xs">
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                            <div class="flex items-center justify-between gap-2 bg-white dark:bg-surface-container-lowest border border-slate-200 dark:border-surface-container-high/40 rounded px-2.5 py-1.5">
-                                                <span class="text-on-surface-variant whitespace-nowrap">Account Name:</span>
+                                            <div class="flex items-center justify-between gap-2 bg-[#F8FAFC] dark:bg-surface-container-lowest border border-[#E2E8F0] dark:border-surface-container-high/40 rounded px-2.5 py-1.5">
+                                                <span class="text-slate-800 dark:text-on-surface-variant whitespace-nowrap">Account Name:</span>
                                                 <span class="font-bold text-on-surface text-right">@selectedPaymentMethod.AccountName</span>
                                             </div>
-                                            <div class="flex items-center justify-between gap-2 bg-white dark:bg-surface-container-lowest border border-slate-200 dark:border-surface-container-high/40 rounded px-2.5 py-1.5">
-                                                <span class="text-on-surface-variant whitespace-nowrap">Account / Phone:</span>
+                                            <div class="flex items-center justify-between gap-2 bg-[#F8FAFC] dark:bg-surface-container-lowest border border-[#E2E8F0] dark:border-surface-container-high/40 rounded px-2.5 py-1.5">
+                                                <span class="text-slate-800 dark:text-on-surface-variant whitespace-nowrap">Account / Phone:</span>
                                                 <div class="flex items-center gap-1.5 min-w-0">
                                                     <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400 truncate">@selectedPaymentMethod.AccountNumber</span>
                                                     <button type="button" @onclick='() => CopyToClipboard(selectedPaymentMethod.AccountNumber, "Account number")'
@@ -390,21 +390,21 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="space-y-1">
-                                <label class="block text-xs font-bold text-on-surface">
+                                <label class="block text-xs font-bold text-slate-800 dark:text-on-surface">
                                     Transaction Reference ID <span class="text-rose-500">*</span>
                                 </label>
                                 <input type="text" @bind="transactionRefNo"
-                                       class="w-full h-8 bg-white dark:bg-surface-container-low border border-slate-300 dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs font-mono font-bold text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 focus:outline-none transition-colors"
+                                       class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-low border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs font-mono font-bold text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:shadow-[0_1px_3px_rgba(79,70,229,0.18)] focus:outline-none transition-colors"
                                        placeholder="e.g. TXN9841203 or KBZ-892147" />
                                 <span class="text-[10px] text-slate-600 dark:text-on-surface-variant block">Copy reference ID from your banking app receipt</span>
                             </div>
 
                             <div class="space-y-1">
-                                <label class="block text-xs font-bold text-on-surface">
+                                <label class="block text-xs font-bold text-slate-800 dark:text-on-surface">
                                     Upload Payment Slip Screenshot <span class="text-rose-500">*</span>
                                 </label>
                                 <InputFile OnChange="OnFileInputChange" accept=".jpg,.jpeg,.png,.webp,.pdf"
-                                           class="w-full h-8 px-2 text-xs text-on-surface-variant bg-white dark:bg-surface-container-low border border-slate-300 dark:border-surface-container-high/60 rounded-lg file:mr-2.5 file:py-0.5 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-surface-container file:text-on-surface hover:file:bg-surface-container-high hover:border-slate-400 dark:hover:border-surface-container-high focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 focus:outline-none cursor-pointer transition-colors" />
+                                           class="w-full h-8 px-2 text-xs text-on-surface-variant bg-[#F8FAFC] dark:bg-surface-container-low border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg file:mr-2.5 file:py-0.5 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-surface-container file:text-on-surface hover:file:bg-surface-container-high hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:shadow-[0_1px_3px_rgba(79,70,229,0.18)] focus:outline-none cursor-pointer transition-colors" />
 
                                 @if (!string.IsNullOrEmpty(localPreviewDataUrl))
                                 {
@@ -430,9 +430,9 @@
                         </div>
 
                         <div class="space-y-1">
-                            <label class="block text-xs font-bold text-on-surface">Optional Notes for Admin</label>
+                            <label class="block text-xs font-bold text-slate-800 dark:text-on-surface">Optional Notes for Admin</label>
                             <input type="text" @bind="userNotes"
-                                   class="w-full h-8 bg-white dark:bg-surface-container-low border border-slate-300 dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 focus:outline-none transition-colors"
+                                   class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-low border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:shadow-[0_1px_3px_rgba(79,70,229,0.18)] focus:outline-none transition-colors"
                                    placeholder="Additional information or sender account details..." />
                             <span class="text-[10px] text-slate-600 dark:text-on-surface-variant block">Optional — visible to admin only</span>
                         </div>
@@ -586,20 +586,20 @@
             <div class="space-y-3">
                 <!-- Balance Summary Row -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs">
+                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-indigo-400/50 dark:hover:border-surface-container-high active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
                         <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Current Balance</span>
                         <div class="text-xl font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 mt-0.5">
                             <LinkDropIcon Class="w-4 h-4 shrink-0 drop-shadow-[0_1px_3px_rgba(79,70,229,0.45)]" />
                             <span>@(wallet?.Balance.ToString("N0") ?? "0") Drops</span>
                         </div>
                     </div>
-                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs">
+                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-indigo-400/50 dark:hover:border-surface-container-high active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
                         <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Total Purchased</span>
                         <div class="text-xl font-black text-on-surface mt-0.5">
                             @(wallet?.PurchasedBalance.ToString("N0") ?? "0") Drops
                         </div>
                     </div>
-                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs">
+                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-indigo-400/50 dark:hover:border-surface-container-high active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
                         <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Total Earned</span>
                         <div class="text-xl font-black text-on-surface mt-0.5">
                             @(wallet?.EarnedBalance.ToString("N0") ?? "0") Drops
