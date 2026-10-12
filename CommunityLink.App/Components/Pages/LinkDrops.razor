@@ -504,7 +504,14 @@
                     </div>
                 </div>
 
-                @if (!FilteredPurchases.Any())
+                @if (isLoadingPurchases)
+                {
+                    <div class="py-12 text-center text-on-surface-variant space-y-2">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600"></div>
+                        <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">Loading purchase requests...</p>
+                    </div>
+                }
+                else if (!FilteredPurchases.Any())
                 {
                     <div class="py-8 text-center text-on-surface-variant space-y-1">
                         <span class="material-symbols-outlined text-3xl text-on-surface-variant/40">receipt_long</span>
@@ -614,7 +621,14 @@
                         <p class="text-on-surface-variant text-xs">Immutable audit trail of all debits, credits, and platform settlements</p>
                     </div>
 
-                    @if (userTransactions.Count == 0)
+                    @if (isLoadingTransactions)
+                    {
+                        <div class="py-12 text-center text-on-surface-variant space-y-2">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600"></div>
+                            <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">Loading wallet ledger...</p>
+                        </div>
+                    }
+                    else if (userTransactions.Count == 0)
                     {
                         <div class="py-8 text-center text-on-surface-variant text-xs">No transactions logged on this wallet yet.</div>
                     }
@@ -849,25 +863,51 @@
             }
         }
 
-        await LoadPurchasesAsync();
-        await LoadTransactionsAsync();
+        // NOTE: LoadPurchasesAsync() and LoadTransactionsAsync() are lazy-loaded when the user switches to their tabs
     }
+
+    private bool isLoadingPurchases = false;
+    private bool isLoadingTransactions = false;
 
     private async Task LoadPurchasesAsync()
     {
-        var res = await LinkDropApi.GetUserPurchasesAsync();
-        if (res.IsSuccess && res.Data != null) userPurchases = res.Data.ToList();
+        isLoadingPurchases = true;
+        try
+        {
+            var res = await LinkDropApi.GetUserPurchasesAsync();
+            if (res.IsSuccess && res.Data != null) userPurchases = res.Data.ToList();
+        }
+        finally
+        {
+            isLoadingPurchases = false;
+        }
     }
 
     private async Task LoadTransactionsAsync()
     {
-        var res = await LinkDropApi.GetUserTransactionsAsync();
-        if (res.IsSuccess && res.Data != null) userTransactions = res.Data.ToList();
+        isLoadingTransactions = true;
+        try
+        {
+            var res = await LinkDropApi.GetUserTransactionsAsync();
+            if (res.IsSuccess && res.Data != null) userTransactions = res.Data.ToList();
+        }
+        finally
+        {
+            isLoadingTransactions = false;
+        }
     }
 
-    private void SetTab(string tab)
+    private async Task SetTab(string tab)
     {
         activeTab = tab;
+        if (tab == "purchases" && userPurchases.Count == 0)
+        {
+            await LoadPurchasesAsync();
+        }
+        else if (tab == "ledger" && userTransactions.Count == 0)
+        {
+            await LoadTransactionsAsync();
+        }
     }
 
     private void SelectPackage(LinkDropPackageDto pkg)

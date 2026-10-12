@@ -109,187 +109,252 @@
     }
     else
     {
-        <!-- SUMMARY CARDS GRID -->
+        <!-- SUMMARY CARDS GRID (4 Clean Financial Pillars) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Gross Revenue -->
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-2">
+            <!-- 1. Total Platform Revenue -->
+            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-3">
                 <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                    <span class="text-xs font-bold uppercase tracking-wider">Gross Revenue</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Total Revenue</span>
                     <span class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M14.8 9A2 2 0 0 0 13 8h-2a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-2a2 2 0 0 1-1.8-1"/><path d="M12 6v12"/></svg>
                     </span>
                 </div>
-                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
-                    @(summary?.GrossChatGroupRevenueLinkDrops ?? 0) <span class="text-xs font-normal text-slate-500 dark:text-slate-400">Link Drops</span>
+                <div>
+                    <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
+                        @(summary?.GrossChatGroupRevenueLinkDrops ?? 0) <span class="text-xs font-normal text-slate-500 dark:text-slate-400">LD</span>
+                    </div>
+                    <div class="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 rounded px-1.5 py-0.5 inline-block mt-1">
+                        ≈ @(((summary?.GrossChatGroupRevenueLinkDrops ?? 0) * 100m).ToString("N0")) MMK
+                    </div>
                 </div>
-                <div class="text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 rounded-md px-2 py-0.5 inline-block">
-                    ≈ @(((summary?.GrossChatGroupRevenueLinkDrops ?? 0) * 100m).ToString("N0")) MMK
+                <!-- Breakdown sub-details -->
+                <div class="border-t border-slate-100 dark:border-[rgba(196,210,225,0.08)] pt-2 space-y-1 text-xs">
+                    <div class="flex justify-between text-slate-600 dark:text-slate-300">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span> Group Joins:
+                        </span>
+                        <span class="font-bold text-slate-900 dark:text-white">@(summary?.GroupRevenueLinkDrops ?? 0) LD <span class="text-[10px] text-slate-400">(@(summary?.GroupTxCount ?? 0))</span></span>
+                    </div>
+                    <div class="flex justify-between text-slate-600 dark:text-slate-300">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-purple-500"></span> Private Chats:
+                        </span>
+                        <span class="font-bold text-slate-900 dark:text-white">@(summary?.PrivateChatRevenueLinkDrops ?? 0) LD <span class="text-[10px] text-slate-400">(@(summary?.PrivateChatTxCount ?? 0))</span></span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Platform Commission -->
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-2">
+            <!-- 2. Platform Commission -->
+            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-3">
                 <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                    <span class="text-xs font-bold uppercase tracking-wider">Platform Commission</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Platform Cut</span>
                     <span class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/40 text-indigo-700 dark:text-indigo-400 flex items-center justify-center">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
                     </span>
                 </div>
-                <div class="text-2xl font-extrabold text-indigo-900 dark:text-indigo-300">
-                    @(summary?.PlatformCommissionLinkDrops ?? 0) <span class="text-xs font-normal text-slate-500 dark:text-slate-400">Link Drops</span>
+                <div>
+                    <div class="text-2xl font-extrabold text-indigo-900 dark:text-indigo-300">
+                        @(summary?.PlatformCommissionLinkDrops ?? 0) <span class="text-xs font-normal text-slate-500 dark:text-slate-400">LD</span>
+                    </div>
+                    <div class="text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/40 rounded px-1.5 py-0.5 inline-block mt-1">
+                        ≈ @(((summary?.PlatformCommissionLinkDrops ?? 0) * 100m).ToString("N0")) MMK
+                    </div>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Net platform revenue</p>
+                <div class="border-t border-slate-100 dark:border-[rgba(196,210,225,0.08)] pt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                    <span>Net Platform Earnings</span>
+                    <span class="font-bold text-indigo-600 dark:text-indigo-400">@(summary != null && summary.GrossChatGroupRevenueLinkDrops > 0 ? $"{(summary.PlatformCommissionLinkDrops * 100.0 / summary.GrossChatGroupRevenueLinkDrops):F0}%" : "0%")</span>
+                </div>
             </div>
 
-            <!-- Creator Net Earnings -->
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-2">
+            <!-- 3. Creator Net Earnings -->
+            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-3">
                 <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                    <span class="text-xs font-bold uppercase tracking-wider">Creator Net Earnings</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Creator Earnings</span>
                     <span class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 text-blue-700 dark:text-blue-400 flex items-center justify-center">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </span>
                 </div>
-                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
-                    @(summary?.CreatorNetEarningsLinkDrops ?? 0) <span class="text-xs font-normal text-slate-500 dark:text-slate-400">Link Drops</span>
+                <div>
+                    <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
+                        @(summary?.CreatorNetEarningsLinkDrops ?? 0) <span class="text-xs font-normal text-slate-500 dark:text-slate-400">LD</span>
+                    </div>
+                    <div class="text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 rounded px-1.5 py-0.5 inline-block mt-1">
+                        ≈ @(((summary?.CreatorNetEarningsLinkDrops ?? 0) * 100m).ToString("N0")) MMK
+                    </div>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Earned by creators</p>
+                <div class="border-t border-slate-100 dark:border-[rgba(196,210,225,0.08)] pt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                    <span>Credited to Creators</span>
+                    <span class="font-bold text-blue-600 dark:text-blue-400">@(summary != null && summary.GrossChatGroupRevenueLinkDrops > 0 ? $"{(summary.CreatorNetEarningsLinkDrops * 100.0 / summary.GrossChatGroupRevenueLinkDrops):F0}%" : "0%")</span>
+                </div>
             </div>
 
-            <!-- Completed Creator Payouts -->
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-2">
+            <!-- 4. Creator Cash-Out Payouts -->
+            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-3">
                 <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                    <span class="text-xs font-bold uppercase tracking-wider">Completed Payouts</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Creator Payouts</span>
                     <span class="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/40 text-teal-700 dark:text-teal-400 flex items-center justify-center">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     </span>
                 </div>
-                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
-                    @(summary?.CompletedCreatorPayoutsLinkDrops ?? 0) <span class="text-xs font-normal text-slate-500 dark:text-slate-400">Link Drops</span>
+                <div>
+                    <div class="text-2xl font-extrabold text-teal-900 dark:text-teal-300">
+                        @(summary?.CompletedCreatorPayoutsLinkDrops ?? 0) <span class="text-xs font-normal text-slate-500 dark:text-slate-400">LD</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                        @(summary?.CompletedPayoutCount ?? 0) completed cash-outs
+                    </div>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Cashed out by creators</p>
-            </div>
-
-            <!-- Pending Creator Payouts -->
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-2">
-                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                    <span class="text-xs font-bold uppercase tracking-wider">Pending Payouts</span>
-                    <span class="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-400 flex items-center justify-center">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    </span>
+                <div class="border-t border-slate-100 dark:border-[rgba(196,210,225,0.08)] pt-2 text-xs flex items-center justify-between">
+                    @if ((summary?.PendingPayoutCount ?? 0) > 0)
+                    {
+                        <span class="font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                            @(summary?.PendingPayoutCount ?? 0) pending review
+                        </span>
+                        <span class="font-bold text-amber-700 dark:text-amber-400">@(summary?.PendingCreatorPayoutsLinkDrops ?? 0) LD</span>
+                    }
+                    else
+                    {
+                        <span class="text-slate-400">No pending payouts</span>
+                        <span class="text-emerald-600 dark:text-emerald-400 font-semibold">✓ Clear</span>
+                    }
                 </div>
-                <div class="text-2xl font-extrabold text-amber-900 dark:text-amber-400">
-                    @(summary?.PendingCreatorPayoutsLinkDrops ?? 0) <span class="text-xs font-normal text-slate-500 dark:text-slate-400">Link Drops</span>
-                </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Awaiting admin review</p>
-            </div>
-
-            <!-- Completed Revenue Tx Count -->
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-2">
-                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                    <span class="text-xs font-bold uppercase tracking-wider">Revenue Tx Count</span>
-                    <span class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.2)] text-slate-700 dark:text-slate-300 flex items-center justify-center">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                    </span>
-                </div>
-                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
-                    @(summary?.GrossTransactionCount ?? 0)
-                </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Paid group joins</p>
-            </div>
-
-            <!-- Completed Payout Count -->
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-2">
-                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                    <span class="text-xs font-bold uppercase tracking-wider">Completed Payout Count</span>
-                    <span class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.2)] text-slate-700 dark:text-slate-300 flex items-center justify-center">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                    </span>
-                </div>
-                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
-                    @(summary?.CompletedPayoutCount ?? 0)
-                </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Processed cash-outs</p>
-            </div>
-
-            <!-- Pending Payout Count -->
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-xl p-5 shadow-sm space-y-2">
-                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                    <span class="text-xs font-bold uppercase tracking-wider">Pending Payout Count</span>
-                    <span class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.2)] text-slate-700 dark:text-slate-300 flex items-center justify-center">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    </span>
-                </div>
-                <div class="text-2xl font-extrabold text-amber-800 dark:text-amber-400">
-                    @(summary?.PendingPayoutCount ?? 0)
-                </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Pending reviews</p>
             </div>
         </div>
 
-        <!-- GROUP FINANCE BREAKDOWN TABLE -->
+        <!-- REVENUE BREAKDOWN SECTION (Tabbed: Group Chat & Private Chat) -->
         <div class="bg-white dark:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-xl p-6 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-4">
                 <div>
-                    <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">Chat Group Finance Breakdown</h2>
-                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Group revenue metrics (click a row to filter transaction history table below)</p>
+                    <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">Revenue Stream Breakdown</h2>
+                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Inspect revenue generated by Chat Groups vs. 1-on-1 Private Chats</p>
                 </div>
-                @if (selectedChatGroupId.HasValue && selectedChatGroupId.Value > 0)
-                {
-                    <button type="button" @onclick="ClearGroupFilter" class="px-3 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40 rounded-lg text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/50 transition">
-                        ✕ Clear Selected Group Filter
-                    </button>
-                }
+                <div class="flex items-center gap-2">
+                    <!-- Tab Switcher -->
+                    <div class="inline-flex rounded-lg p-1 bg-slate-100 dark:bg-[#0A1B2E] border border-slate-200 dark:border-[rgba(196,210,225,0.12)]">
+                        <button type="button" @onclick="() => activeBreakdownTab = BreakdownTab.GroupChat"
+                                class="px-3 py-1.5 rounded-md text-xs font-bold transition cursor-pointer @(activeBreakdownTab == BreakdownTab.GroupChat ? "bg-white dark:bg-[#1B3B5A] text-indigo-600 dark:text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:text-slate-900")">
+                            Chat Groups (@groups.Count)
+                        </button>
+                        <button type="button" @onclick="() => activeBreakdownTab = BreakdownTab.PrivateChat"
+                                class="px-3 py-1.5 rounded-md text-xs font-bold transition cursor-pointer @(activeBreakdownTab == BreakdownTab.PrivateChat ? "bg-white dark:bg-[#1B3B5A] text-purple-600 dark:text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:text-slate-900")">
+                            Private Chats (@privateChats.Count)
+                        </button>
+                    </div>
+
+                    @if (selectedChatGroupId.HasValue && selectedChatGroupId.Value > 0)
+                    {
+                        <button type="button" @onclick="ClearGroupFilter" class="px-3 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40 rounded-lg text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/50 transition cursor-pointer">
+                            ✕ Clear Filter
+                        </button>
+                    }
+                </div>
             </div>
 
-            @if (groups.Count == 0)
+            @if (activeBreakdownTab == BreakdownTab.GroupChat)
             {
-                <div class="py-8 text-center bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-xl">
-                    <p class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">No completed group financial data for the selected period.</p>
-                </div>
+                <!-- Group Chat Table -->
+                @if (groups.Count == 0)
+                {
+                    <div class="py-8 text-center bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-xl">
+                        <p class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">No completed group financial data for the selected period.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-[#0A1B2E] dark:text-[#E1E8F0] border-collapse">
+                            <thead>
+                                <tr class="bg-[#F8FAFC] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-xs uppercase font-semibold text-[#557392] dark:text-[#C4D2E1] tracking-wider">
+                                    <th class="py-3 px-4">Chat Group</th>
+                                    <th class="py-3 px-4 text-right">Gross Revenue (LD)</th>
+                                    <th class="py-3 px-4 text-right">Commission (LD)</th>
+                                    <th class="py-3 px-4 text-right">Creator Net (LD)</th>
+                                    <th class="py-3 px-4 text-center">Paid Joins</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.08)]">
+                                @foreach (var g in groups)
+                                {
+                                    bool isSelected = selectedChatGroupId == g.ChatGroupId;
+                                    <tr @onclick="() => SelectGroupFilter(g.ChatGroupId)"
+                                        class="cursor-pointer transition @(isSelected ? "bg-indigo-50/90 dark:bg-indigo-950/50 font-medium border-l-4 border-l-indigo-600" : "hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]")">
+                                        <td class="py-3.5 px-4 font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                            @g.ChatGroupName
+                                            @if (isSelected)
+                                            {
+                                                <span class="ml-2 text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Filtered</span>
+                                            }
+                                        </td>
+                                        <td class="py-3.5 px-4 text-right font-extrabold text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                            @g.GrossRevenueLinkDrops LD
+                                        </td>
+                                        <td class="py-3.5 px-4 text-right font-bold text-indigo-600 dark:text-indigo-400">
+                                            @g.PlatformCommissionLinkDrops LD
+                                        </td>
+                                        <td class="py-3.5 px-4 text-right font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                            @g.CreatorNetEarningsLinkDrops LD
+                                        </td>
+                                        <td class="py-3.5 px-4 text-center font-semibold text-[#557392] dark:text-[#C4D2E1]">
+                                            @g.CompletedTransactionCount
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
             }
             else
             {
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-[#0A1B2E] dark:text-[#E1E8F0] border-collapse">
-                        <thead>
-                            <tr class="bg-[#F8FAFC] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-xs uppercase font-semibold text-[#557392] dark:text-[#C4D2E1] tracking-wider">
-                                <th class="py-3 px-4">Chat Group</th>
-                                <th class="py-3 px-4 text-right">Gross Revenue (LD)</th>
-                                <th class="py-3 px-4 text-right">Commission (LD)</th>
-                                <th class="py-3 px-4 text-right">Creator Net (LD)</th>
-                                <th class="py-3 px-4 text-center">Transactions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.08)]">
-                            @foreach (var g in groups)
-                            {
-                                bool isSelected = selectedChatGroupId == g.ChatGroupId;
-                                <tr @onclick="() => SelectGroupFilter(g.ChatGroupId)"
-                                    class="cursor-pointer transition @(isSelected ? "bg-indigo-50/90 dark:bg-indigo-950/50 font-medium border-l-4 border-l-indigo-600" : "hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]")">
-                                    <td class="py-3.5 px-4 font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">
-                                        @g.ChatGroupName
-                                        @if (isSelected)
-                                        {
-                                            <span class="ml-2 text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Filtered</span>
-                                        }
-                                    </td>
-                                    <td class="py-3.5 px-4 text-right font-extrabold text-[#0A1B2E] dark:text-[#E1E8F0]">
-                                        @g.GrossRevenueLinkDrops LD
-                                    </td>
-                                    <td class="py-3.5 px-4 text-right font-bold text-indigo-600 dark:text-indigo-400">
-                                        @g.PlatformCommissionLinkDrops LD
-                                    </td>
-                                    <td class="py-3.5 px-4 text-right font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">
-                                        @g.CreatorNetEarningsLinkDrops LD
-                                    </td>
-                                    <td class="py-3.5 px-4 text-center font-semibold text-[#557392] dark:text-[#C4D2E1]">
-                                        @g.CompletedTransactionCount
-                                    </td>
+                <!-- Private Chat Table -->
+                @if (privateChats.Count == 0)
+                {
+                    <div class="py-8 text-center bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] rounded-xl">
+                        <p class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">No private chat revenue data for the selected period.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-[#0A1B2E] dark:text-[#E1E8F0] border-collapse">
+                            <thead>
+                                <tr class="bg-[#F8FAFC] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-xs uppercase font-semibold text-[#557392] dark:text-[#C4D2E1] tracking-wider">
+                                    <th class="py-3 px-4">Creator</th>
+                                    <th class="py-3 px-4 text-right">Gross Revenue (LD)</th>
+                                    <th class="py-3 px-4 text-right">Commission (LD)</th>
+                                    <th class="py-3 px-4 text-right">Creator Net (LD)</th>
+                                    <th class="py-3 px-4 text-center">Unlocked Chats</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.08)]">
+                                @foreach (var p in privateChats)
+                                {
+                                    <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A] transition">
+                                        <td class="py-3.5 px-4 font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2">
+                                            <span class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-xs flex items-center justify-center font-bold">
+                                                @(string.IsNullOrEmpty(p.CreatorName) ? "C" : p.CreatorName[0].ToString().ToUpper())
+                                            </span>
+                                            <span>@p.CreatorName</span>
+                                        </td>
+                                        <td class="py-3.5 px-4 text-right font-extrabold text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                            @p.GrossRevenueLinkDrops LD
+                                        </td>
+                                        <td class="py-3.5 px-4 text-right font-bold text-purple-600 dark:text-purple-400">
+                                            @p.PlatformCommissionLinkDrops LD
+                                        </td>
+                                        <td class="py-3.5 px-4 text-right font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                            @p.CreatorNetEarningsLinkDrops LD
+                                        </td>
+                                        <td class="py-3.5 px-4 text-center font-semibold text-[#557392] dark:text-[#C4D2E1]">
+                                            @p.CompletedTransactionCount
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
             }
         </div>
 
@@ -298,15 +363,16 @@
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-4">
                 <div>
                     <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">Financial Transactions History</h2>
-                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Platform financial events and payout requests</p>
+                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Audit log of Group Joins, Private Chats, and Creator Cash-Outs</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <!-- Transaction Type Dropdown -->
                     <select @bind="selectedTransactionType" @bind:after="ApplyTransactionFilters"
                             class="bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] rounded-lg px-3 py-1.5 text-xs text-[#0A1B2E] dark:text-[#E1E8F0] focus:bg-white dark:focus:bg-[#112A46] focus:border-indigo-600 focus:outline-none">
                         <option value="">All Transaction Types</option>
-                        <option value="CHAT_GROUP_JOIN">Group Join Revenue</option>
-                        <option value="CREATOR_PAYOUT">Creator Payout Cash-out</option>
+                        <option value="CHAT_GROUP_JOIN">Group Join (CHAT_GROUP_JOIN)</option>
+                        <option value="PRIVATE_CHAT_UNLOCK">Private Chat (PRIVATE_CHAT_UNLOCK)</option>
+                        <option value="CREATOR_PAYOUT">Creator Payout (CREATOR_PAYOUT)</option>
                     </select>
 
                     <!-- Status Dropdown -->
@@ -318,7 +384,16 @@
                         <option value="REJECTED">Rejected</option>
                     </select>
 
-                    <button type="button" @onclick="ClearTransactionFilters" class="px-3 py-1.5 bg-slate-100 dark:bg-[#1B3B5A] text-slate-700 dark:text-[#E1E8F0] border border-slate-300 dark:border-[rgba(196,210,225,0.20)] rounded-lg text-xs font-semibold hover:bg-slate-200 dark:hover:bg-[#234970] transition">
+                    <!-- Page Size Dropdown -->
+                    <select @onchange="OnPageSizeChanged" value="@pageSize"
+                            class="bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] rounded-lg px-3 py-1.5 text-xs text-[#0A1B2E] dark:text-[#E1E8F0] focus:bg-white dark:focus:bg-[#112A46] focus:border-indigo-600 focus:outline-none">
+                        <option value="10">10 rows</option>
+                        <option value="25">25 rows</option>
+                        <option value="50">50 rows</option>
+                        <option value="100">100 rows</option>
+                    </select>
+
+                    <button type="button" @onclick="ClearTransactionFilters" class="px-3 py-1.5 bg-slate-100 dark:bg-[#1B3B5A] text-slate-700 dark:text-[#E1E8F0] border border-slate-300 dark:border-[rgba(196,210,225,0.20)] rounded-lg text-xs font-semibold hover:bg-slate-200 dark:hover:bg-[#234970] transition cursor-pointer">
                         Clear Filters
                     </button>
                 </div>
@@ -365,16 +440,22 @@
                                     <td class="py-3.5 px-4 font-mono text-xs text-[#557392] dark:text-[#C4D2E1]">
                                         @tx.Date.ToString("MMM dd, yyyy HH:mm")
                                     </td>
-                                    <td class="py-3.5 px-4">
+                                     <td class="py-3.5 px-4">
                                         @if (tx.TransactionType == "CHAT_GROUP_JOIN")
                                         {
-                                            <span class="inline-block px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300">
+                                            <span class="inline-block px-2.5 py-0.5 rounded text-xs font-semibold bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 text-blue-800 dark:text-blue-300">
                                                 Group Join
+                                            </span>
+                                        }
+                                        else if (tx.TransactionType == "PRIVATE_CHAT_UNLOCK")
+                                        {
+                                            <span class="inline-block px-2.5 py-0.5 rounded text-xs font-semibold bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/40 text-purple-800 dark:text-purple-300">
+                                                Private Chat
                                             </span>
                                         }
                                         else
                                         {
-                                            <span class="inline-block px-2.5 py-0.5 rounded text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/40 text-indigo-800 dark:text-indigo-300">
+                                            <span class="inline-block px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300">
                                                 Creator Payout
                                             </span>
                                         }
@@ -433,9 +514,24 @@
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@tx.CreatorOrUserName</span>
-                                <span class="text-xs px-2 py-0.5 rounded font-semibold bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#557392] dark:text-[#C4D2E1]">
-                                    @tx.TransactionType
-                                </span>
+                                @if (tx.TransactionType == "CHAT_GROUP_JOIN")
+                                {
+                                    <span class="text-[11px] px-2 py-0.5 rounded font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/40">
+                                        Group Join
+                                    </span>
+                                }
+                                else if (tx.TransactionType == "PRIVATE_CHAT_UNLOCK")
+                                {
+                                    <span class="text-[11px] px-2 py-0.5 rounded font-semibold bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40">
+                                        Private Chat
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-[11px] px-2 py-0.5 rounded font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+                                        Creator Payout
+                                    </span>
+                                }
                             </div>
                             @if (!string.IsNullOrWhiteSpace(tx.ChatGroupName))
                             {
@@ -459,31 +555,44 @@
                     }
                 </div>
 
-                <!-- Pagination Controls (Compact for Mobile) -->
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                    <div class="text-xs text-[#557392] dark:text-[#C4D2E1] font-medium">
+                <!-- Modern Pagination Bar (Matching User Directory) -->
+                <div class="px-6 py-3.5 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-[#F8FAFC] dark:bg-[#0A1B2E] rounded-b-xl">
+                    <!-- Item Range Stats -->
+                    <div class="text-[#557392] dark:text-[#C4D2E1] font-medium">
                         @if (totalCount > 0)
                         {
-                            var start = (currentPage - 1) * pageSize + 1;
-                            var end = Math.Min(currentPage * pageSize, totalCount);
-                            <span>Showing @start–@end of @totalCount</span>
+                            var startItem = (currentPage - 1) * pageSize + 1;
+                            var endItem = Math.Min(currentPage * pageSize, totalCount);
+                            <span>Showing <strong class="text-[#0A1B2E] dark:text-[#E1E8F0]">@startItem</strong> to <strong class="text-[#0A1B2E] dark:text-[#E1E8F0]">@endItem</strong> of <strong class="text-[#0A1B2E] dark:text-[#E1E8F0]">@totalCount</strong> transaction records</span>
                         }
                         else
                         {
-                            <span>Showing 0 of 0</span>
+                            <span>No transaction records available</span>
                         }
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button type="button" @onclick="PreviousPage" disabled="@(currentPage <= 1 || isLoading)"
-                                class="px-3 py-1.5 bg-slate-100 dark:bg-[#1B3B5A] border border-slate-300 dark:border-[rgba(196,210,225,0.20)] text-slate-700 dark:text-[#E1E8F0] rounded-lg text-xs font-semibold hover:bg-slate-200 dark:hover:bg-[#234970] transition disabled:opacity-40 disabled:cursor-not-allowed">
-                            Previous
+
+                    <!-- Pagination Navigation Controls -->
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" @onclick="GoToFirstPage" disabled="@(currentPage <= 1 || isLoading)" title="First Page"
+                                class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                            &laquo; First
                         </button>
-                        <span class="text-xs font-semibold text-slate-700 px-2">
+                        <button type="button" @onclick="PreviousPage" disabled="@(currentPage <= 1 || isLoading)" title="Previous Page"
+                                class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                            &larr; Prev
+                        </button>
+                        
+                        <span class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] font-mono font-bold">
                             Page @currentPage of @(totalPages == 0 ? 1 : totalPages)
                         </span>
-                        <button type="button" @onclick="NextPage" disabled="@(currentPage >= totalPages || totalPages == 0 || isLoading)"
-                                class="px-3 py-1.5 bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-200 transition disabled:opacity-40 disabled:cursor-not-allowed">
-                            Next
+
+                        <button type="button" @onclick="NextPage" disabled="@(currentPage >= totalPages || totalPages == 0 || isLoading)" title="Next Page"
+                                class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                            Next &rarr;
+                        </button>
+                        <button type="button" @onclick="GoToLastPage" disabled="@(currentPage >= totalPages || totalPages == 0 || isLoading)" title="Last Page"
+                                class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                            Last &raquo;
                         </button>
                     </div>
                 </div>
@@ -510,8 +619,12 @@
     private int totalCount = 0;
     private int totalPages = 0;
 
+    private enum BreakdownTab { GroupChat, PrivateChat }
+    private BreakdownTab activeBreakdownTab = BreakdownTab.GroupChat;
+
     private AdminFinanceSummaryModel? summary;
     private List<AdminFinanceGroupBreakdownModel> groups = new();
+    private List<AdminFinancePrivateChatBreakdownModel> privateChats = new();
     private List<AdminFinanceTransactionModel> transactions = new();
 
     protected override async Task OnInitializedAsync()
@@ -547,6 +660,12 @@
             if (groupsRes.IsSuccess && groupsRes.Data != null)
             {
                 groups = groupsRes.Data.ToList();
+            }
+
+            var privateChatsRes = await FinanceApi.GetPrivateChatsAsync(fromDateInput, toDateInput);
+            if (privateChatsRes.IsSuccess && privateChatsRes.Data != null)
+            {
+                privateChats = privateChatsRes.Data.ToList();
             }
 
             await LoadTransactionsOnly();
@@ -640,6 +759,34 @@
         selectedStatus = "";
         selectedChatGroupId = null;
         await LoadTransactionsOnly();
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var newSize) && newSize > 0)
+        {
+            pageSize = newSize;
+            currentPage = 1;
+            await LoadTransactionsOnly();
+        }
+    }
+
+    private async Task GoToFirstPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage = 1;
+            await LoadTransactionsOnly();
+        }
+    }
+
+    private async Task GoToLastPage()
+    {
+        if (currentPage < totalPages)
+        {
+            currentPage = totalPages;
+            await LoadTransactionsOnly();
+        }
     }
 
     private async Task PreviousPage()
