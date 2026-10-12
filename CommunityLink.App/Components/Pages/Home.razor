@@ -983,16 +983,20 @@ else if (dashboard != null)
                                                 }
                                                 @if (post.IsAuthorVerified)
                                                 {
-                                                    <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-blue-600 ring-1 ring-surface-container-low flex items-center justify-center">
-                                                        <span class="material-symbols-outlined text-[8px] text-white font-black">check</span>
+                                                    <span class="absolute -bottom-0.5 -right-0.5 flex items-center justify-center">
+                                                        <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
                                                     </span>
                                                 }
                                             </div>
 
                                             <div class="flex flex-col">
                                                 <div class="flex items-center gap-1.5 flex-wrap">
-                                                    <a href="u/@post.AuthorName" class="text-xs sm:text-sm font-bold text-on-surface hover:text-secondary transition-colors">
-                                                        @post.AuthorName
+                                                    <a href="u/@post.AuthorName" class="text-xs sm:text-sm font-bold text-on-surface hover:text-secondary transition-colors inline-flex items-center gap-1">
+                                                        <span>@post.AuthorName</span>
+                                                        @if (post.IsAuthorVerified)
+                                                        {
+                                                            <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
+                                                        }
                                                     </a>
                                                     @if (post.AuthorRoleCode == "PUBLIC_FIGURE")
                                                     {
@@ -1250,8 +1254,12 @@ else if (dashboard != null)
                                                     </span>
                                                 </div>
                                                 <div class="flex flex-col min-w-0">
-                                                    <a href="u/@person.UserName" class="text-xs font-bold text-on-surface group-hover:text-secondary transition-colors truncate">
-                                                        @(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)
+                                                    <a href="u/@person.UserName" class="text-xs font-bold text-on-surface group-hover:text-secondary transition-colors truncate inline-flex items-center gap-1">
+                                                        <span class="truncate">@(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)</span>
+                                                        @if (person.IsVerified)
+                                                        {
+                                                            <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
+                                                        }
                                                     </a>
                                                     <span class="text-[11px] text-outline truncate">
                                                         @(string.IsNullOrWhiteSpace(person.Headline) ? GetRoleBadgeText(person) : person.Headline)
@@ -1276,7 +1284,13 @@ else if (dashboard != null)
                                         }
 
                                         <div class="flex items-center justify-between pt-0.5">
-                                            <span class="text-outline text-[10px]">@(person.IsVerified ? "Verified Member" : "Active Member")</span>
+                                            <span class="text-outline text-[10px] inline-flex items-center gap-1">
+                                                @if (person.IsVerified)
+                                                {
+                                                    <VerifiedBadge CssClass="w-3 h-3 shrink-0" />
+                                                }
+                                                <span>@(person.IsVerified ? "Verified Member" : "Active Member")</span>
+                                            </span>
                                             <a href="u/@person.UserName" class="px-2.5 py-0.5 rounded-md bg-surface-container-highest hover:bg-secondary hover:text-white text-on-surface text-xs font-semibold transition-colors">
                                                 Connect
                                             </a>
@@ -1384,8 +1398,15 @@ else if (dashboard != null)
                                             }
                                             else
                                             {
-                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-surface-container-high text-on-surface-variant font-mono text-[10px] uppercase tracking-wider font-semibold border border-slate-200/60 dark:border-white/5">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full @(person.IsVerified ? "bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200/60 dark:border-sky-800/40" : "bg-slate-100 dark:bg-surface-container-high text-on-surface-variant border-slate-200/60 dark:border-white/5") font-mono text-[10px] uppercase tracking-wider font-semibold border">
+                                                    @if (person.IsVerified)
+                                                    {
+                                                        <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                                                    }
                                                     VERIFIED MEMBER
                                                 </span>
                                             }
@@ -1414,9 +1435,15 @@ else if (dashboard != null)
                                                 </a>
                                             </div>
                                             <div class="min-w-0 flex-1">
-                                                <a href="u/@person.UserName" class="text-sm sm:text-base font-bold text-on-surface group-hover:text-secondary dark:group-hover:text-[#D4AF37] transition-colors truncate block">
-                                                    @(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)
-                                                </a>
+                                                <div class="flex items-center gap-1.5 truncate">
+                                                    <a href="u/@person.UserName" class="text-sm sm:text-base font-bold text-on-surface group-hover:text-secondary dark:group-hover:text-[#D4AF37] transition-colors truncate">
+                                                        @(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)
+                                                    </a>
+                                                    @if (person.IsVerified)
+                                                    {
+                                                        <VerifiedBadge CssClass="w-4 h-4 shrink-0" />
+                                                    }
+                                                </div>
                                                 <p class="text-xs text-on-surface-variant font-medium truncate mt-0.5">
                                                     @(string.IsNullOrWhiteSpace(person.Headline) ? $"@{person.UserName}" : person.Headline)
                                                 </p>

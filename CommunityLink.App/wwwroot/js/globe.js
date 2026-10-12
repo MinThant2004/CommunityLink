@@ -34,11 +34,12 @@ window.initGlobe = function () {
     // No directional lights — every globe element uses unlit materials so the
     // globe stays clean, matte and dark, with no glossy "water ball" reflections.
 
-    // 1. Matte Dark Core Sphere
+    // 1. Solid Matte Dark Core Sphere
     const sphereRadius = 6.9;
     const sphereGeo = new THREE.SphereGeometry(sphereRadius, 64, 64);
     const sphereMat = new THREE.MeshBasicMaterial({
-        color: 0x0a1528
+        color: 0x0a1528,
+        transparent: false
     });
     const coreGlobe = new THREE.Mesh(sphereGeo, sphereMat);
     globeGroup.add(coreGlobe);
