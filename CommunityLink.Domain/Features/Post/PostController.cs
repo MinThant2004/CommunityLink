@@ -34,6 +34,11 @@ public sealed class PostController(IPostService postService) : BaseController
     public async Task<IActionResult> DeletePost(int postId, CancellationToken cancellationToken) =>
         ToActionResult(await postService.DeletePostAsync(postId, cancellationToken));
 
+    [HttpPost("{postId:int}/toggle-privacy")]
+    [Authorize]
+    public async Task<IActionResult> TogglePostPrivacy(int postId, CancellationToken cancellationToken) =>
+        ToActionResult(await postService.TogglePostPrivacyAsync(postId, cancellationToken));
+
     [HttpPost("{postId:int}/share")]
     [Authorize]
     public async Task<IActionResult> SharePost(int postId, [FromBody] SharePostRequestModel request, CancellationToken cancellationToken) =>

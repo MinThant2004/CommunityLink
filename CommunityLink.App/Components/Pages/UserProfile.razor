@@ -11,6 +11,7 @@
 @inject ChatApiService ChatApi
 @inject LinkDropApiService LinkDropApi
 @inject IWebHostEnvironment Environment
+@inject AuthenticationStateProvider AuthStateProvider
 @using System.Text.Json
 @using CommunityLink.Shared.Features.Post
 
@@ -644,19 +645,20 @@
                                 <p class="font-mono text-[10px] tracking-wider uppercase">SYNCHRONIZING TAB DATA...</p>
                             </div>
                         }
-                        else if (activeTab == "posts")
+                        else if (activeTab == "posts" || (activeTab == "saved-posts" && isOwner))
                         {
-                            @if (!postsList.Any())
+                            var currentDisplayList = activeTab == "saved-posts" ? savedPostsList : postsList;
+                            @if (!currentDisplayList.Any())
                             {
                                 <div class="card-executive py-12 text-center">
                                     <svg class="w-8 h-8 text-slate-400 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-                                    <p class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white mt-2">No publications found</p>
-                                    <p class="text-[11px] text-[#64748B] dark:text-[#7A8CA6] mt-0.5">Technical guides, memos, and active polls will appear here.</p>
+                                    <p class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white mt-2">@(activeTab == "saved-posts" ? "No saved publications" : "No publications found")</p>
+                                    <p class="text-[11px] text-[#64748B] dark:text-[#7A8CA6] mt-0.5">@(activeTab == "saved-posts" ? "Posts and polls you bookmark will appear here." : "Technical guides, memos, and active polls will appear here.")</p>
                                 </div>
                             }
                             else
                             {
-                                @foreach (var post in postsList)
+                                @foreach (var post in currentDisplayList)
                                 {
                                     <article class="card-executive p-4 sm:p-5 space-y-3">
                                         @if (!string.IsNullOrWhiteSpace(post.SharedByUserName))
@@ -670,6 +672,22 @@
                                                 }
                                             </div>
                                         }
+                                        @if (!post.IsActive && currentUserId.HasValue && post.AuthorUserId == currentUserId.Value)
+                                        {
+                                            <!-- Post Banned Banner for Author -->
+                                            <div @onclick="() => OpenProfileBannedReasonModal(post)"
+                                                 class="cursor-pointer bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded-lg p-2.5 flex items-center justify-between text-xs font-bold transition">
+                                                <div class="flex items-center gap-2">
+                                                    <svg class="w-4 h-4 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                                    <span>Your post got banned</span>
+                                                </div>
+                                                <span class="text-[11px] underline font-semibold flex items-center gap-1">
+                                                    <span>View reason</span>
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                                </span>
+                                            </div>
+                                        }
+
                                         <!-- Post Meta Header -->
                                         <div class="flex items-center justify-between pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                             <div class="flex items-center gap-2.5">
@@ -698,12 +716,70 @@
                                                 </div>
                                             </div>
 
-                                            @if (post.HasPoll)
-                                            {
-                                                <span class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-[0.25rem] bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
-                                                    POLL
-                                                </span>
-                                            }
+                                            <div class="flex items-center gap-2">
+                                                @if (post.IsPrivate)
+                                                {
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1" title="Only you can view this post">
+                                                        <span class="material-symbols-outlined text-[12px]">lock</span>
+                                                        <span>Private</span>
+                                                    </span>
+                                                }
+
+                                                @if (post.HasPoll)
+                                                {
+                                                    <span class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-[0.25rem] bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                                                        POLL
+                                                    </span>
+                                                }
+
+                                                <!-- Bookmark / Save Post Button -->
+                                                <button type="button" @onclick="() => ToggleSaveProfilePostAsync(post)"
+                                                        class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-md transition-colors cursor-pointer"
+                                                        title="@(post.IsSaved ? "Unsave Post" : "Save Post")">
+                                                    <span class="material-symbols-outlined text-[18px] @(post.IsSaved ? "text-blue-600 dark:text-blue-400" : "")">
+                                                        @(post.IsSaved ? "bookmark" : "bookmark_border")
+                                                    </span>
+                                                </button>
+
+                                                <!-- Three-dot options menu -->
+                                                <div class="relative">
+                                                    <button type="button" @onclick="() => ToggleProfilePostMenu(post.PostId)"
+                                                            class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-md transition-colors cursor-pointer"
+                                                            title="Options">
+                                                        <span class="material-symbols-outlined text-[18px]">more_vert</span>
+                                                    </button>
+
+                                                    @if (openProfilePostMenuId == post.PostId)
+                                                    {
+                                                        <div class="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-[#112A46] rounded-xl shadow-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] p-1 z-30 space-y-0.5">
+                                                            <button type="button" @onclick='() => OpenProfileReportModal(post.PostId, "POST")'
+                                                                    class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-2 cursor-pointer">
+                                                                <span class="material-symbols-outlined text-[16px] text-rose-500">flag</span>
+                                                                <span>Report Post</span>
+                                                            </button>
+
+                                                            @if (currentUserId.HasValue && post.AuthorUserId == currentUserId.Value)
+                                                            {
+                                                                <button type="button" @onclick="() => OpenEditProfilePost(post)"
+                                                                        class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center gap-2 cursor-pointer">
+                                                                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                                                                    <span>Edit Post</span>
+                                                                </button>
+                                                                <button type="button" @onclick="() => ToggleProfilePostPrivacyAsync(post)"
+                                                                        class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center gap-2 cursor-pointer">
+                                                                    <span class="material-symbols-outlined text-[16px] text-amber-500">@(post.IsPrivate ? "public" : "lock")</span>
+                                                                    <span>@(post.IsPrivate ? "Make Public" : "Make Private")</span>
+                                                                </button>
+                                                                <button type="button" @onclick="() => RecycleProfilePostAsync(post.PostId)"
+                                                                        class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition flex items-center gap-2 cursor-pointer">
+                                                                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                                                                    <span>Recycle Post</span>
+                                                                </button>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <!-- Title & Body -->
@@ -799,38 +875,51 @@
                                         <!-- Embedded Original Post for Shared Posts -->
                                         @if (post.OriginalPost != null)
                                         {
-                                            <div class="mt-3 p-3.5 rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.18)] bg-[#F8FAFC] dark:bg-[#0A1B2E]/70 space-y-2.5">
-                                                <div class="flex items-center gap-2 pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.10)]">
-                                                    @if (!string.IsNullOrWhiteSpace(post.OriginalPost.AuthorAvatarUrl))
-                                                    {
-                                                        <img src="@post.OriginalPost.AuthorAvatarUrl" alt="@post.OriginalPost.AuthorDisplayName" class="w-7 h-7 rounded-full object-cover ring-1 ring-[#CBD5E1]" />
-                                                    }
-                                                    else
-                                                    {
-                                                        <div class="w-7 h-7 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-bold text-[11px] flex items-center justify-center font-mono">
-                                                            @(string.IsNullOrWhiteSpace(post.OriginalPost.AuthorDisplayName) ? "U" : post.OriginalPost.AuthorDisplayName.Substring(0, 1).ToUpper())
-                                                        </div>
-                                                    }
-                                                    <div>
-                                                        <div class="flex items-center gap-1.5">
-                                                            <a href="u/@(string.IsNullOrWhiteSpace(post.OriginalPost.AuthorUserName) ? post.OriginalPost.AuthorDisplayName : post.OriginalPost.AuthorUserName)" class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0] hover:underline">
-                                                                @post.OriginalPost.AuthorDisplayName
-                                                            </a>
-                                                            @if (!string.IsNullOrWhiteSpace(post.OriginalPost.CommunityName))
-                                                            {
-                                                                <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.OriginalPost.CommunityName</span>
-                                                            }
-                                                        </div>
-                                                        <span class="text-[10px] text-[#7A8CA6] font-mono">@post.OriginalPost.CreatedAt.ToString("g")</span>
+                                            @if (post.OriginalPost.AuthorDisplayName == "CommunityLink" && (post.OriginalPost.Content?.StartsWith("This content is no longer available") ?? false))
+                                            {
+                                                <div class="mt-3 p-4 rounded-xl border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-[#F1F5F9]/60 dark:bg-[#0A1B2E]/60 text-center space-y-2">
+                                                    <div class="inline-flex p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-[#557392] dark:text-[#C4D2E1]">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    </div>
+                                                    <div class="text-xs text-[#557392] dark:text-[#C4D2E1] font-medium leading-relaxed max-w-md mx-auto">
+                                                        @post.OriginalPost.Content
                                                     </div>
                                                 </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="mt-3 p-3.5 rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.18)] bg-[#F8FAFC] dark:bg-[#0A1B2E]/70 space-y-2.5">
+                                                    <div class="flex items-center gap-2 pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.10)]">
+                                                        @if (!string.IsNullOrWhiteSpace(post.OriginalPost.AuthorAvatarUrl))
+                                                        {
+                                                            <img src="@post.OriginalPost.AuthorAvatarUrl" alt="@post.OriginalPost.AuthorDisplayName" class="w-7 h-7 rounded-full object-cover ring-1 ring-[#CBD5E1]" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="w-7 h-7 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-bold text-[11px] flex items-center justify-center font-mono">
+                                                                @(string.IsNullOrWhiteSpace(post.OriginalPost.AuthorDisplayName) ? "U" : post.OriginalPost.AuthorDisplayName.Substring(0, 1).ToUpper())
+                                                            </div>
+                                                        }
+                                                        <div>
+                                                            <div class="flex items-center gap-1.5">
+                                                                <a href="u/@(string.IsNullOrWhiteSpace(post.OriginalPost.AuthorUserName) ? post.OriginalPost.AuthorDisplayName : post.OriginalPost.AuthorUserName)" class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0] hover:underline">
+                                                                    @post.OriginalPost.AuthorDisplayName
+                                                                </a>
+                                                                @if (!string.IsNullOrWhiteSpace(post.OriginalPost.CommunityName))
+                                                                {
+                                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.OriginalPost.CommunityName</span>
+                                                                }
+                                                            </div>
+                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@post.OriginalPost.CreatedAt.ToString("g")</span>
+                                                        </div>
+                                                    </div>
 
-                                                @if (!string.IsNullOrWhiteSpace(post.OriginalPost.Content))
-                                                {
-                                                    <p class="font-body text-xs text-[#475569] dark:text-[#C4D2E1] leading-relaxed whitespace-pre-line">
-                                                        @post.OriginalPost.Content
-                                                    </p>
-                                                }
+                                                    @if (!string.IsNullOrWhiteSpace(post.OriginalPost.Content))
+                                                    {
+                                                        <p class="font-body text-xs text-[#475569] dark:text-[#C4D2E1] leading-relaxed whitespace-pre-line">
+                                                            @post.OriginalPost.Content
+                                                        </p>
+                                                    }
 
                                                 @if (!string.IsNullOrWhiteSpace(post.OriginalPost.CodeSnippet))
                                                 {
@@ -853,7 +942,8 @@
                                                         <img src="@post.OriginalPost.ImageUrls.First()" alt="Original attachment" class="w-full h-full object-contain max-h-60" />
                                                     </div>
                                                 }
-                                            </div>
+                                                </div>
+                                            }
                                         }
 
                                         <!-- Diagram Image -->
@@ -1857,6 +1947,94 @@
     </div>
 }
 
+<ReportContentModal IsOpen="@showProfileReportModal"
+                    IsOpenChanged="@((bool val) => showProfileReportModal = val)"
+                    ContentType="@profileReportContentType"
+                    ContentId="@profileReportContentId" />
+
+<!-- Profile Post Banned Reason Modal -->
+@if (showProfileBannedReasonModal && profileBannedPostTarget != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div class="bg-white dark:bg-[#112A46] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-red-200 dark:border-red-900/50 space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                <div class="flex items-center gap-2">
+                    <span class="p-1.5 rounded-lg bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    </span>
+                    <h3 class="text-base font-bold text-red-600 dark:text-red-400">Your post got banned</h3>
+                </div>
+                <button type="button" @onclick="CloseProfileBannedReasonModal" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <p class="text-xs text-[#557392] dark:text-[#C4D2E1] leading-relaxed">
+                    This post was removed from public community feeds by platform moderators because it violated community standards.
+                </p>
+
+                <div class="bg-red-50 dark:bg-red-950/30 p-3.5 rounded-xl border border-red-200 dark:border-red-900/40 space-y-1">
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-red-700 dark:text-red-300 font-mono">Moderation Reason</span>
+                    <p class="text-xs text-red-900 dark:text-red-200 font-medium">
+                        @(string.IsNullOrWhiteSpace(profileBannedPostTarget.ModerationReason) ? "Violation of community safety and conduct guidelines." : profileBannedPostTarget.ModerationReason)
+                    </p>
+                </div>
+
+                <p class="text-[11px] text-[#7A8CA6]">
+                    Only you and site administrators can view this post. Other community members cannot see or interact with it.
+                </p>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                <button type="button" @onclick="CloseProfileBannedReasonModal"
+                        class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:opacity-90 transition cursor-pointer">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Edit Profile Post Modal -->
+@if (showEditProfilePostModal && editingProfilePost != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-[#112A46] rounded-xl max-w-lg w-full p-6 shadow-2xl border border-[#C4D2E1] dark:border-[rgba(196,210,225,0.15)] space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                <h3 class="font-display font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-base flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-[#1B3B5A] dark:text-[#C4D2E1]">edit</span>
+                    <span>Edit Post Description</span>
+                </h3>
+                <button type="button" @onclick="CloseEditProfilePostModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-lg font-bold">&times;</button>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="font-mono text-xs text-[#557392] dark:text-[#C4D2E1]">POST CONTENT</label>
+                <textarea @bind="editingProfilePostContent" rows="5" class="w-full bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl p-3 text-xs resize-none leading-relaxed outline-none focus:ring-2 focus:ring-[#0A1B2E]/20" placeholder="Update your post description..."></textarea>
+                <p class="text-[11px] text-[#7A8CA6]">Note: Post image attachments and polls cannot be modified.</p>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                <button type="button" @onclick="CloseEditProfilePostModal" class="btn-exec-secondary text-xs">
+                    Cancel
+                </button>
+                <button type="button" @onclick="SaveEditProfilePostAsync" disabled="@(isSavingEditProfilePost || string.IsNullOrWhiteSpace(editingProfilePostContent))" class="btn-exec-primary text-xs">
+                    @if (isSavingEditProfilePost)
+                    {
+                        <span class="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span>Save Changes</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     public sealed record AttachedTextFileItem(string FileName, string Content);
 
@@ -1955,8 +2133,175 @@
     private bool isDeletingRating;
     private string? ratingErrorMessage;
     private RateUserRequestDto ratingModel = new() { Score = 5 };
-
     private readonly CancellationTokenSource _cts = new();
+
+    private int? currentUserId;
+    private int? openProfilePostMenuId;
+    private bool showProfileBannedReasonModal;
+    private UserPostItemDto? profileBannedPostTarget;
+    private bool showProfileReportModal;
+    private int profileReportContentId;
+    private string profileReportContentType = "POST";
+
+    private void ToggleProfilePostMenu(int postId)
+    {
+        openProfilePostMenuId = openProfilePostMenuId == postId ? null : postId;
+    }
+
+    private void OpenProfileBannedReasonModal(UserPostItemDto post)
+    {
+        profileBannedPostTarget = post;
+        showProfileBannedReasonModal = true;
+    }
+
+    private void CloseProfileBannedReasonModal()
+    {
+        showProfileBannedReasonModal = false;
+        profileBannedPostTarget = null;
+    }
+
+    private void OpenProfileReportModal(int postId, string type)
+    {
+        profileReportContentId = postId;
+        profileReportContentType = type;
+        showProfileReportModal = true;
+        openProfilePostMenuId = null;
+    }
+
+    private async Task ToggleProfilePostPrivacyAsync(UserPostItemDto post)
+    {
+        openProfilePostMenuId = null;
+        try
+        {
+            var res = await PostApi.TogglePostPrivacyAsync(post.PostId);
+            if (res.IsSuccess)
+            {
+                post.IsPrivate = !post.IsPrivate;
+                Toast.Success(post.IsPrivate ? "Post set to private (only you can see it)." : "Post is now public.");
+            }
+            else
+            {
+                Toast.Error(res.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to update privacy: {ex.Message}");
+        }
+    }
+
+    private async Task RecycleProfilePostAsync(int postId)
+    {
+        openProfilePostMenuId = null;
+        try
+        {
+            var res = await PostApi.DeletePostAsync(postId);
+            if (res.IsSuccess)
+            {
+                var target = postsList.FirstOrDefault(p => p.PostId == postId);
+                if (target != null)
+                {
+                    postsList.Remove(target);
+                    recycledPostsList.Insert(0, target);
+                }
+                Toast.Success("Post moved to recycle bin.");
+                StateHasChanged();
+            }
+            else
+            {
+                Toast.Error(res.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to recycle post: {ex.Message}");
+        }
+    }
+
+    private bool showEditProfilePostModal;
+    private UserPostItemDto? editingProfilePost;
+    private string editingProfilePostContent = string.Empty;
+    private bool isSavingEditProfilePost;
+
+    private void OpenEditProfilePost(UserPostItemDto post)
+    {
+        openProfilePostMenuId = null;
+        editingProfilePost = post;
+        editingProfilePostContent = post.Content;
+        showEditProfilePostModal = true;
+    }
+
+    private void CloseEditProfilePostModal()
+    {
+        showEditProfilePostModal = false;
+        editingProfilePost = null;
+        editingProfilePostContent = string.Empty;
+    }
+
+    private async Task SaveEditProfilePostAsync()
+    {
+        if (editingProfilePost == null || string.IsNullOrWhiteSpace(editingProfilePostContent)) return;
+
+        isSavingEditProfilePost = true;
+        try
+        {
+            var req = new UpdatePostRequestModel(editingProfilePostContent.Trim(), null);
+            var res = await PostApi.UpdatePostAsync(editingProfilePost.PostId, req, _cts.Token);
+            if (res.IsSuccess)
+            {
+                editingProfilePost.Content = editingProfilePostContent.Trim();
+                Toast.Success("Post updated successfully!");
+                CloseEditProfilePostModal();
+                StateHasChanged();
+            }
+            else
+            {
+                Toast.Error(res.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to update post: {ex.Message}");
+        }
+        finally
+        {
+            isSavingEditProfilePost = false;
+        }
+    }
+
+    private async Task ToggleSaveProfilePostAsync(UserPostItemDto post)
+    {
+        openProfilePostMenuId = null;
+        try
+        {
+            var res = await PostApi.ToggleSavePostAsync(post.PostId, _cts.Token);
+            if (res.IsSuccess)
+            {
+                post.IsSaved = res.Data;
+                if (post.IsSaved)
+                {
+                    if (!savedPostsList.Any(p => p.PostId == post.PostId))
+                    {
+                        savedPostsList.Insert(0, post);
+                    }
+                }
+                else
+                {
+                    savedPostsList.RemoveAll(p => p.PostId == post.PostId);
+                }
+                Toast.Success(post.IsSaved ? "Saved to your bookmarks!" : "Removed from saved.");
+                StateHasChanged();
+            }
+            else
+            {
+                Toast.Error(res.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -1983,6 +2328,21 @@
             {
                 profile = res.Data;
                 isOwner = profile.Relationship.IsSelf || string.IsNullOrWhiteSpace(UserNameOrId);
+
+                try
+                {
+                    var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                    var user = authState.User;
+                    var idClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                                  ?? user.FindFirst("sub")?.Value
+                                  ?? user.FindFirst("userId")?.Value;
+                    if (int.TryParse(idClaim, out var parsedId))
+                    {
+                        currentUserId = parsedId;
+                    }
+                }
+                catch { }
+
                 // Fetch communities for the Affiliated Hubs widget
                 try
                 {

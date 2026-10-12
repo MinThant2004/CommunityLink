@@ -19,6 +19,7 @@ public interface IPostService
     Task<Result<IReadOnlyList<CommentModel>>> GetCommentsAsync(int postId, CancellationToken cancellationToken = default);
     Task<Result<PostModel>> UpdatePostAsync(int postId, UpdatePostRequestModel request, CancellationToken cancellationToken = default);
     Task<Result> DeletePostAsync(int postId, CancellationToken cancellationToken = default);
+    Task<Result<bool>> TogglePostPrivacyAsync(int postId, CancellationToken cancellationToken = default);
     Task<Result> SharePostAsync(int postId, SharePostRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<bool>> ToggleSavePostAsync(int postId, CancellationToken cancellationToken = default);
 }
@@ -62,6 +63,31 @@ public sealed class PostService(
                 .Where(p => !p.IsDeleted && !p.HasPoll)
                 .AsNoTracking();
 
+            // Privacy & Ban Filter according to policy:
+            // 1. If post IsPrivate: ONLY the post author can view it (even admin cannot see private user posts).
+            // 2. If post IsActive == false (Banned): ONLY the post author and admin can see it.
+            // 3. Normal active public posts are viewable by all.
+            if (currentUser.IsAdmin)
+            {
+                // Admin can see public posts (active or banned), but cannot see private posts of other users
+                query = query.Where(p => !p.IsPrivate || (currentUserId.HasValue && p.AuthorId == currentUserId.Value));
+            }
+            else
+            {
+                if (currentUserId.HasValue)
+                {
+                    query = query.Where(p =>
+                        // If private, only author
+                        (!p.IsPrivate || p.AuthorId == currentUserId.Value) &&
+                        // If inactive (banned), only author
+                        (p.IsActive || p.AuthorId == currentUserId.Value));
+                }
+                else
+                {
+                    query = query.Where(p => !p.IsPrivate && p.IsActive);
+                }
+            }
+
             if (groupId.HasValue && groupId.Value > 0)
             {
                 query = query.Where(p => p.GroupId == groupId.Value);
@@ -73,6 +99,7 @@ public sealed class PostService(
 
             List<int> followedAuthorIds = [];
             List<int> joinedGroupIds = [];
+            List<int> joinedCommunityIds = [];
             if (currentUserId.HasValue)
             {
                 followedAuthorIds = await dbContext.TblUserFollows
@@ -84,6 +111,41 @@ public sealed class PostService(
                     .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
                     .Select(m => m.GroupId)
                     .ToListAsync(cancellationToken);
+
+                joinedCommunityIds = await dbContext.TblCommunityMembers
+                    .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
+                    .Select(m => m.CommunityId)
+                    .ToListAsync(cancellationToken);
+            }
+
+            // General Feed Visibility Rule:
+            // 1. Group posts: only show if current user has joined the group (or is self author)
+            // 2. Community/SubCommunity posts: only show if current user has joined that community/sub-community (or is self author)
+            // 3. Standalone posts (no group and no community): show if followed, self, or public feed
+            if (!groupId.HasValue || groupId.Value <= 0)
+            {
+                if (!communityId.HasValue || communityId.Value <= 0)
+                {
+                    // General feed (no specific group or community filtered)
+                    if (currentUserId.HasValue)
+                    {
+                        query = query.Where(p =>
+                            p.AuthorId == currentUserId.Value ||
+                            (p.GroupId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)) ||
+                            (p.CommunityId.HasValue && !p.GroupId.HasValue && joinedCommunityIds.Contains(p.CommunityId.Value)) ||
+                            (!p.GroupId.HasValue && !p.CommunityId.HasValue && (followedAuthorIds.Contains(p.AuthorId) || p.AuthorId == currentUserId.Value)));
+                    }
+                    else
+                    {
+                        // Unauthenticated or guest: only standalone public posts with no group and no community
+                        query = query.Where(p => p.GroupId == null && p.CommunityId == null);
+                    }
+                }
+                else
+                {
+                    // Community filtered: only if member (or author)
+                    query = query.Where(p => p.GroupId == null || (currentUserId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)));
+                }
             }
 
             var safePageSize = Math.Clamp(pageSize, 1, 50);
@@ -122,6 +184,9 @@ public sealed class PostService(
                     p.CodeLanguage,
                     p.PostType,
                     p.Subtitle,
+                    p.IsActive,
+                    p.IsPrivate,
+                    p.ModerationReason,
                     SharedByUserName = (string?)null,
                     SharedByDisplayName = (string?)null,
                     SharedAt = (DateTime?)null,
@@ -161,31 +226,50 @@ public sealed class PostService(
                         Images = p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
                         p.CodeSnippet,
                         p.CodeFileName,
-                        p.CodeLanguage
+                        p.CodeLanguage,
+                        p.IsActive,
+                        p.IsPrivate
                     })
                     .AsNoTracking()
                     .ToListAsync(cancellationToken);
 
                 foreach (var r in fetchedRoots)
                 {
-                    var aName = !string.IsNullOrWhiteSpace(r.AuthorDisplayName)
-                        ? r.AuthorDisplayName
-                        : (!string.IsNullOrWhiteSpace(r.AuthorUserName) ? r.AuthorUserName : "Unknown");
+                    // If root post is made private by admin or inactive, and current user is not author or admin, show unavailable placeholder
+                    bool isHidden = (!r.IsActive || r.IsPrivate) && !currentUser.IsAdmin && (!currentUserId.HasValue || currentUserId.Value != r.AuthorId);
 
-                    rootPostsDict[r.PostId] = new OriginalPostSummaryModel(
-                        r.PostId,
-                        r.AuthorId,
-                        aName,
-                        r.AuthorUserName,
-                        r.AuthorAvatar,
-                        r.Content,
-                        r.CreatedAt,
-                        r.CommunityName,
-                        r.GroupName,
-                        r.Images,
-                        r.CodeSnippet,
-                        r.CodeFileName,
-                        r.CodeLanguage);
+                    if (isHidden)
+                    {
+                        rootPostsDict[r.PostId] = new OriginalPostSummaryModel(
+                            r.PostId,
+                            r.AuthorId,
+                            "CommunityLink",
+                            null,
+                            null,
+                            "This content is no longer available. When this happens, it's usually because the owner only shared it with a small group of people, changed who can see it or it's been taken down by moderators.",
+                            r.CreatedAt);
+                    }
+                    else
+                    {
+                        var aName = !string.IsNullOrWhiteSpace(r.AuthorDisplayName)
+                            ? r.AuthorDisplayName
+                            : (!string.IsNullOrWhiteSpace(r.AuthorUserName) ? r.AuthorUserName : "Unknown");
+
+                        rootPostsDict[r.PostId] = new OriginalPostSummaryModel(
+                            r.PostId,
+                            r.AuthorId,
+                            aName,
+                            r.AuthorUserName,
+                            r.AuthorAvatar,
+                            r.Content,
+                            r.CreatedAt,
+                            r.CommunityName,
+                            r.GroupName,
+                            r.Images,
+                            r.CodeSnippet,
+                            r.CodeFileName,
+                            r.CodeLanguage);
+                    }
                 }
             }
 
@@ -337,23 +421,32 @@ public sealed class PostService(
                     sharedByUser,
                     sharedByDisplay,
                     sharedTime,
-                    origSummary);
+                    origSummary,
+                    p.IsActive,
+                    p.IsPrivate,
+                    p.ModerationReason);
             }).ToList();
 
-            // 3-Tier Sorting Hierarchy:
+            // 4-Tier Sorting Hierarchy:
             // Tier 1: Following user's posts & shares (newest first)
             // Tier 2: Joined group posts (newest first)
-            // Tier 3: Non-following public posts (newest first)
+            // Tier 3: Joined community/sub-community posts (newest first)
+            // Tier 4: Self posts and other public posts (newest first)
             int GetPostTier(PostModel item)
             {
-                // If the post author is followed, or if the sharer is followed
+                // Tier 1: Followed user's post or share
                 if (followedAuthorIds.Contains(item.AuthorId)) return 1;
-                // If it's a shared post where current user follows the sharer
                 if (!string.IsNullOrWhiteSpace(item.SharedByUserName) && directItems.Any(d => d.PostId == item.PostId && followedAuthorIds.Contains(d.AuthorId))) return 1;
-                // If it belongs to a joined group
+
+                // Tier 2: Joined group posts
                 if (item.GroupId.HasValue && joinedGroupIds.Contains(item.GroupId.Value)) return 2;
-                // Everything else
-                return 3;
+
+                // Tier 3: Joined community/sub-community posts
+                if (item.CommunityId.HasValue && joinedCommunityIds.Contains(item.CommunityId.Value)) return 3;
+
+                // Tier 4: Self posts and other posts
+                if (currentUserId.HasValue && item.AuthorId == currentUserId.Value) return 4;
+                return 5;
             }
 
             var list = directItems
@@ -397,6 +490,11 @@ public sealed class PostService(
             if (grp == null)
             {
                 return Result<PostModel>.Failure("Group not found.", ResultStatus.NotFound);
+            }
+
+            if (!grp.IsActive)
+            {
+                return Result<PostModel>.Failure("This group is currently inactive/deactivated. New posts cannot be published at this time.", ResultStatus.Forbidden);
             }
 
             var isMember = grp.TblGroupMembers.Any(m => m.UserId == currentUser.UserId.Value && !m.IsDeleted);
@@ -585,6 +683,26 @@ public sealed class PostService(
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success("Post deleted successfully.");
+    }
+
+    public async Task<Result<bool>> TogglePostPrivacyAsync(int postId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result<bool>.Failure("Unauthorized", ResultStatus.Unauthorized);
+
+        var post = await dbContext.TblPosts.FirstOrDefaultAsync(p => p.PostId == postId && !p.IsDeleted, cancellationToken);
+        if (post == null)
+            return Result<bool>.Failure("Post not found.", ResultStatus.NotFound);
+
+        // Only author can toggle their own post between Public and Private
+        if (post.AuthorId != currentUser.UserId.Value)
+            return Result<bool>.Failure("Only the post author can change the privacy of this post.", ResultStatus.Forbidden);
+
+        post.IsPrivate = !post.IsPrivate;
+        post.UpdatedAt = DateTime.UtcNow;
+        post.UpdatedBy = currentUser.UserId.Value;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result<bool>.Success(post.IsPrivate, post.IsPrivate ? "Post changed to Private mode." : "Post changed to Public mode.");
     }
 
     public async Task<Result> LikePostAsync(int postId, CancellationToken cancellationToken = default)

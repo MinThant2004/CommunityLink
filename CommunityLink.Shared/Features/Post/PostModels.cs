@@ -41,7 +41,14 @@ public sealed record PostModel(
     string? SharedByUserName = null,
     string? SharedByDisplayName = null,
     DateTime? SharedAt = null,
-    OriginalPostSummaryModel? OriginalPost = null);
+    OriginalPostSummaryModel? OriginalPost = null,
+    bool IsActive = true,
+    bool IsPrivate = false,
+    string? ModerationReason = null)
+{
+    public bool IsPrivate { get; set; } = IsPrivate;
+    public bool IsActive { get; set; } = IsActive;
+}
 
 public sealed record CreatePostRequestModel(
     int? CommunityId,

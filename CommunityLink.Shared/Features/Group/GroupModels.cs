@@ -19,7 +19,9 @@ public sealed record GroupModel(
     bool IsJoined = false,
     string UserJoinStatus = "NONE", // NONE | PENDING | JOINED
     double? AverageRating = null,
-    int RatingCount = 0
+    int RatingCount = 0,
+    bool IsActive = true,
+    string? ModerationReason = null
 );
 
 public sealed record GroupRatingDto(
