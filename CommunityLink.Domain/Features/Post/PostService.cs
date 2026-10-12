@@ -99,6 +99,7 @@ public sealed class PostService(
 
             List<int> followedAuthorIds = [];
             List<int> joinedGroupIds = [];
+            List<int> joinedCommunityIds = [];
             if (currentUserId.HasValue)
             {
                 followedAuthorIds = await dbContext.TblUserFollows
@@ -110,14 +111,41 @@ public sealed class PostService(
                     .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
                     .Select(m => m.GroupId)
                     .ToListAsync(cancellationToken);
+
+                joinedCommunityIds = await dbContext.TblCommunityMembers
+                    .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
+                    .Select(m => m.CommunityId)
+                    .ToListAsync(cancellationToken);
             }
 
-            // Group Visibility Rule:
-            // When browsing general feed (no specific group selected), posts belonging to a group
-            // must only appear if the current user has joined that related group.
+            // General Feed Visibility Rule:
+            // 1. Group posts: only show if current user has joined the group (or is self author)
+            // 2. Community/SubCommunity posts: only show if current user has joined that community/sub-community (or is self author)
+            // 3. Standalone posts (no group and no community): show if followed, self, or public feed
             if (!groupId.HasValue || groupId.Value <= 0)
             {
-                query = query.Where(p => p.GroupId == null || (currentUserId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)));
+                if (!communityId.HasValue || communityId.Value <= 0)
+                {
+                    // General feed (no specific group or community filtered)
+                    if (currentUserId.HasValue)
+                    {
+                        query = query.Where(p =>
+                            p.AuthorId == currentUserId.Value ||
+                            (p.GroupId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)) ||
+                            (p.CommunityId.HasValue && !p.GroupId.HasValue && joinedCommunityIds.Contains(p.CommunityId.Value)) ||
+                            (!p.GroupId.HasValue && !p.CommunityId.HasValue && (followedAuthorIds.Contains(p.AuthorId) || p.AuthorId == currentUserId.Value)));
+                    }
+                    else
+                    {
+                        // Unauthenticated or guest: only standalone public posts with no group and no community
+                        query = query.Where(p => p.GroupId == null && p.CommunityId == null);
+                    }
+                }
+                else
+                {
+                    // Community filtered: only if member (or author)
+                    query = query.Where(p => p.GroupId == null || (currentUserId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)));
+                }
             }
 
             var safePageSize = Math.Clamp(pageSize, 1, 50);
@@ -399,20 +427,26 @@ public sealed class PostService(
                     p.ModerationReason);
             }).ToList();
 
-            // 3-Tier Sorting Hierarchy:
+            // 4-Tier Sorting Hierarchy:
             // Tier 1: Following user's posts & shares (newest first)
             // Tier 2: Joined group posts (newest first)
-            // Tier 3: Non-following public posts (newest first)
+            // Tier 3: Joined community/sub-community posts (newest first)
+            // Tier 4: Self posts and other public posts (newest first)
             int GetPostTier(PostModel item)
             {
-                // If the post author is followed, or if the sharer is followed
+                // Tier 1: Followed user's post or share
                 if (followedAuthorIds.Contains(item.AuthorId)) return 1;
-                // If it's a shared post where current user follows the sharer
                 if (!string.IsNullOrWhiteSpace(item.SharedByUserName) && directItems.Any(d => d.PostId == item.PostId && followedAuthorIds.Contains(d.AuthorId))) return 1;
-                // If it belongs to a joined group
+
+                // Tier 2: Joined group posts
                 if (item.GroupId.HasValue && joinedGroupIds.Contains(item.GroupId.Value)) return 2;
-                // Everything else
-                return 3;
+
+                // Tier 3: Joined community/sub-community posts
+                if (item.CommunityId.HasValue && joinedCommunityIds.Contains(item.CommunityId.Value)) return 3;
+
+                // Tier 4: Self posts and other posts
+                if (currentUserId.HasValue && item.AuthorId == currentUserId.Value) return 4;
+                return 5;
             }
 
             var list = directItems

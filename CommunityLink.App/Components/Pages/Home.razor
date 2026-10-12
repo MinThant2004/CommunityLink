@@ -849,113 +849,7 @@ else if (dashboard != null)
                             </div>
                         </div>
                     }
-
-                    <!-- 3. LIVE COMMUNITY POLL CARDS -->
-                    @if (dashboard.ActivePolls != null && dashboard.ActivePolls.Any())
-                    {
-                        @foreach (var poll in dashboard.ActivePolls.Take(2))
-                        {
-                            <div class="bg-surface-container-low p-3.5 sm:p-4 rounded-xl shadow-xs flex flex-col gap-2.5 relative overflow-hidden border border-white/5">
-                                <div class="absolute top-0 right-0 w-48 h-24 bg-secondary/5 rounded-bl-full pointer-events-none"></div>
-                                <!-- Poll Header -->
-                                <div class="flex items-start justify-between gap-3">
-                                    <div class="flex flex-col gap-0.5">
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-container-highest text-primary font-mono text-[10px] uppercase tracking-wider font-bold">
-                                                <span class="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
-                                                Active Ballot
-                                            </span>
-                                            <span class="text-outline font-mono text-[10px]">#@poll.PollId</span>
-                                        </div>
-                                        <h2 class="text-sm sm:text-base text-on-surface font-bold mt-1">
-                                            @poll.Question
-                                        </h2>
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        <button type="button" @onclick="() => ToggleSavePoll(poll)"
-                                                class="p-1 text-outline hover:text-on-surface rounded-md transition-colors cursor-pointer"
-                                                title="@(IsPollSaved(poll) ? "Unsave" : "Save")">
-                                            <span class="material-symbols-outlined text-[18px] @(IsPollSaved(poll) ? "text-blue-600 dark:text-blue-400" : "")">
-                                                @(IsPollSaved(poll) ? "bookmark" : "bookmark_border")
-                                            </span>
-                                        </button>
-                                        <a href="polls" class="text-outline hover:text-on-surface p-1 rounded-md transition-colors" title="View poll details">
-                                            <span class="material-symbols-outlined text-[18px]">open_in_new</span>
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <!-- Originator Subtext -->
-                                <div class="flex items-center gap-2 text-on-surface-variant text-xs flex-wrap">
-                                    <div class="flex items-center gap-1.5">
-                                        @if (!string.IsNullOrWhiteSpace(poll.AuthorAvatar))
-                                        {
-                                            <img src="@poll.AuthorAvatar" alt="@poll.AuthorName" class="w-5 h-5 rounded-full object-cover ring-1 ring-white/10" />
-                                        }
-                                        else
-                                        {
-                                            <div class="w-5 h-5 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center font-bold text-[9px]">
-                                                @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName[..1].ToUpperInvariant())
-                                            </div>
-                                        }
-                                        <a href="u/@poll.AuthorName" class="text-on-surface font-semibold text-xs hover:underline cursor-pointer">@poll.AuthorName</a>
-                                    </div>
-                                </div>
-
-                                <!-- Interactive Voting Bars -->
-                                <div class="flex flex-col gap-1.5 pt-0.5" id="poll-container">
-                                    @for (int optIdx = 0; optIdx < poll.Options.Count; optIdx++)
-                                    {
-                                        var opt = poll.Options[optIdx];
-                                        var letter = (char)('A' + (optIdx % 26));
-                                        var hasUserVotedThis = opt.IsVotedByCurrentUser;
-                                        var canVote = !poll.HasVoted && !poll.IsExpired;
-
-                                        <div class="cursor-pointer group relative p-2 sm:p-2.5 rounded-lg bg-surface-container-lowest hover:bg-surface-container overflow-hidden transition-all duration-200 border border-white/5"
-                                             @onclick="async () => { if (canVote) await VotePollFromHomeAsync(poll.PollId, opt.OptionId); }">
-                                            <!-- Progress fill -->
-                                            <div class="absolute inset-y-0 left-0 @(hasUserVotedThis ? "bg-secondary/20" : "bg-surface-container-high") rounded-lg transition-all duration-500" style="width: @(opt.Percentage)%;"></div>
-                                            <div class="relative flex items-center justify-between z-10 gap-2">
-                                                <div class="flex items-center gap-2 min-w-0">
-                                                    @if (hasUserVotedThis)
-                                                    {
-                                                        <div class="w-4 h-4 rounded-full bg-secondary text-white flex items-center justify-center text-[10px] shadow-xs shrink-0">
-                                                            <span class="material-symbols-outlined text-[12px]">check</span>
-                                                        </div>
-                                                    }
-                                                    else
-                                                    {
-                                                        <div class="w-4 h-4 rounded-full bg-surface-container text-outline flex items-center justify-center text-[10px] shrink-0 font-bold">
-                                                            @letter
-                                                        </div>
-                                                    }
-                                                    <span class="text-xs sm:text-[13px] text-on-surface font-medium group-hover:text-secondary transition-colors truncate">
-                                                        @opt.Text
-                                                    </span>
-                                                </div>
-                                                <div class="flex items-center gap-2 shrink-0">
-                                                    <span class="text-[11px] text-outline">@opt.VoteCount votes</span>
-                                                    <span class="text-xs @(hasUserVotedThis ? "text-secondary font-bold" : "text-on-surface-variant") font-bold">@opt.Percentage%</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-
-                                <!-- Poll Footer -->
-                                <div class="flex items-center justify-between pt-1 text-outline text-[11px]">
-                                    <span class="flex items-center gap-1.5 text-on-surface-variant font-medium">
-                                        <span>@(poll.TotalVotes) votes</span>
-                                        <span>•</span>
-                                        <span>@(poll.IsExpired ? "Closed" : "Open")</span>
-                                    </span>
-                                    <a href="polls" class="text-on-surface-variant hover:text-on-surface hover:underline font-semibold">Audit Ballot →</a>
-                                </div>
-                            </div>
-                        }
-                    }
-
-                    <!-- 4. EXECUTIVE BROADCAST STREAM (POSTS FEED) -->
+                    <!-- EXECUTIVE BROADCAST STREAM (POSTS FEED) -->
                     <div class="flex flex-col gap-3.5" id="feed-stream">
                         @if (!feedPosts.Any())
                         {
@@ -1119,6 +1013,13 @@ else if (dashboard != null)
                                                 <p class="text-xs text-[#0A1B2E] dark:text-[#E1E8F0] whitespace-pre-line leading-relaxed">
                                                     @post.OriginalPost.Content
                                                 </p>
+
+                                                @if (post.OriginalPost.ImageUrls != null && post.OriginalPost.ImageUrls.Any())
+                                                {
+                                                    <div class="rounded-lg overflow-hidden border border-white/5 bg-black/20 mt-2">
+                                                        <img src="@post.OriginalPost.ImageUrls[0]" alt="Shared attachment" class="w-full max-h-64 object-cover" />
+                                                    </div>
+                                                }
                                             }
                                         </div>
                                     }
@@ -1398,6 +1299,73 @@ else if (dashboard != null)
                             }
                         </div>
                     </div>
+
+                    <!-- LIVE COMMUNITY BALLOTS & POLLS WIDGET -->
+                    @if (dashboard.ActivePolls != null && dashboard.ActivePolls.Any())
+                    {
+                        <div class="bg-surface-container-low p-3.5 sm:p-4 rounded-xl shadow-xs flex flex-col gap-2.5 border border-white/5">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-primary text-[17px]">how_to_vote</span>
+                                    <h3 class="text-xs sm:text-sm font-bold text-on-surface">Active Ballots & Polls</h3>
+                                </div>
+                                <a href="polls" class="text-xs text-secondary hover:underline font-semibold cursor-pointer">
+                                    View all
+                                </a>
+                            </div>
+
+                            <div class="flex flex-col gap-3">
+                                @foreach (var poll in dashboard.ActivePolls.Take(2))
+                                {
+                                    <div class="p-3 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors flex flex-col gap-2 border border-white/5">
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="flex flex-col min-w-0">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
+                                                    <span class="text-[10px] font-mono text-primary font-bold uppercase">Poll</span>
+                                                </div>
+                                                <h4 class="text-xs font-bold text-on-surface mt-0.5 line-clamp-2">@poll.Question</h4>
+                                            </div>
+                                            <button type="button" @onclick="() => ToggleSavePoll(poll)"
+                                                    class="p-1 text-outline hover:text-on-surface rounded transition-colors cursor-pointer shrink-0"
+                                                    title="@(IsPollSaved(poll) ? "Unsave" : "Save")">
+                                                <span class="material-symbols-outlined text-[16px] @(IsPollSaved(poll) ? "text-blue-600 dark:text-blue-400" : "")">
+                                                    @(IsPollSaved(poll) ? "bookmark" : "bookmark_border")
+                                                </span>
+                                            </button>
+                                        </div>
+
+                                        <div class="flex flex-col gap-1.5">
+                                            @for (int optIdx = 0; optIdx < poll.Options.Count; optIdx++)
+                                            {
+                                                var opt = poll.Options[optIdx];
+                                                var letter = (char)('A' + (optIdx % 26));
+                                                var hasUserVotedThis = opt.IsVotedByCurrentUser;
+                                                var canVote = !poll.HasVoted && !poll.IsExpired;
+
+                                                <div class="cursor-pointer group relative p-1.5 sm:p-2 rounded bg-surface-container-lowest hover:bg-surface-container overflow-hidden transition-all duration-200 border border-white/5"
+                                                     @onclick="async () => { if (canVote) await VotePollFromHomeAsync(poll.PollId, opt.OptionId); }">
+                                                    <div class="absolute inset-y-0 left-0 @(hasUserVotedThis ? "bg-secondary/20" : "bg-surface-container-high") rounded transition-all duration-500" style="width: @(opt.Percentage)%;"></div>
+                                                    <div class="relative flex items-center justify-between z-10 gap-2 text-[11px]">
+                                                        <div class="flex items-center gap-1.5 min-w-0 truncate">
+                                                            <span class="font-bold @(hasUserVotedThis ? "text-secondary" : "text-outline")">@letter.</span>
+                                                            <span class="text-on-surface font-medium truncate">@opt.Text</span>
+                                                        </div>
+                                                        <span class="font-mono text-[10px] @(hasUserVotedThis ? "text-secondary font-bold" : "text-outline") shrink-0">@opt.Percentage%</span>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <div class="flex items-center justify-between text-[10px] text-outline pt-0.5">
+                                            <span>@(poll.TotalVotes) votes • @(poll.IsExpired ? "Closed" : "Open")</span>
+                                            <a href="polls" class="text-secondary hover:underline font-semibold">Audit →</a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
                 </aside>
             </div>
         }

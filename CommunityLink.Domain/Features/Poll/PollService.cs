@@ -76,6 +76,27 @@ public sealed class PollService(
                 }
             }
 
+            List<int> followedAuthorIds = [];
+            List<int> joinedGroupIds = [];
+            List<int> joinedCommunityIds = [];
+            if (currentUserId.HasValue)
+            {
+                followedAuthorIds = await dbContext.TblUserFollows
+                    .Where(f => f.FollowerId == currentUserId.Value && !f.IsDeleted)
+                    .Select(f => f.FolloweeId)
+                    .ToListAsync(cancellationToken);
+
+                joinedGroupIds = await dbContext.TblGroupMembers
+                    .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
+                    .Select(m => m.GroupId)
+                    .ToListAsync(cancellationToken);
+
+                joinedCommunityIds = await dbContext.TblCommunityMembers
+                    .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
+                    .Select(m => m.CommunityId)
+                    .ToListAsync(cancellationToken);
+            }
+
             if (groupId.HasValue && groupId.Value > 0)
             {
                 baseQuery = baseQuery.Where(p => p.Post != null && p.Post.GroupId == groupId.Value);
@@ -86,17 +107,22 @@ public sealed class PollService(
             }
             else
             {
-                // When in general feed, only show group polls if user has joined that group
-                List<int> joinedGroupIds = [];
+                // When in general feed:
+                // 1. Group polls: user must have joined the group (or is author)
+                // 2. Community polls: user must have joined the community (or is author)
+                // 3. Standalone polls: show if followed, self, or author
                 if (currentUserId.HasValue)
                 {
-                    joinedGroupIds = await dbContext.TblGroupMembers
-                        .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
-                        .Select(m => m.GroupId)
-                        .ToListAsync(cancellationToken);
+                    baseQuery = baseQuery.Where(p =>
+                        ((p.Post != null && p.Post.AuthorId == currentUserId.Value) || p.CreatedBy == currentUserId.Value) ||
+                        (p.Post != null && p.Post.GroupId.HasValue && joinedGroupIds.Contains(p.Post.GroupId.Value)) ||
+                        (p.Post != null && p.Post.CommunityId.HasValue && !p.Post.GroupId.HasValue && joinedCommunityIds.Contains(p.Post.CommunityId.Value)) ||
+                        ((p.Post == null || (!p.Post.GroupId.HasValue && !p.Post.CommunityId.HasValue)) && (followedAuthorIds.Contains(p.Post != null ? p.Post.AuthorId : (p.CreatedBy ?? 0)) || (p.Post != null ? p.Post.AuthorId : p.CreatedBy) == currentUserId.Value)));
                 }
-
-                baseQuery = baseQuery.Where(p => p.Post == null || p.Post.GroupId == null || (currentUserId.HasValue && joinedGroupIds.Contains(p.Post.GroupId.Value)));
+                else
+                {
+                    baseQuery = baseQuery.Where(p => p.Post == null || (p.Post.GroupId == null && p.Post.CommunityId == null));
+                }
             }
 
             // 1. Fetch polls with post metadata and precomputed scalar counts
@@ -205,7 +231,26 @@ public sealed class PollService(
                 );
             }).ToList();
 
-            return Result<IReadOnlyList<PollModel>>.Success(list);
+            // 4-Tier Sorting Hierarchy for Polls:
+            // Tier 1: Followed authors (newest first)
+            // Tier 2: Joined group polls (newest first)
+            // Tier 3: Joined community/sub-community polls (newest first)
+            // Tier 4: Self polls and other polls (newest first)
+            int GetPollTier(PollModel item)
+            {
+                if (followedAuthorIds.Contains(item.AuthorId)) return 1;
+                if (item.GroupId.HasValue && joinedGroupIds.Contains(item.GroupId.Value)) return 2;
+                if (item.CommunityId.HasValue && joinedCommunityIds.Contains(item.CommunityId.Value)) return 3;
+                if (currentUserId.HasValue && item.AuthorId == currentUserId.Value) return 4;
+                return 5;
+            }
+
+            var sortedList = list
+                .OrderBy(p => GetPollTier(p))
+                .ThenByDescending(p => p.CreatedAt)
+                .ToList();
+
+            return Result<IReadOnlyList<PollModel>>.Success(sortedList);
         }
         catch (Exception ex) when (ex is OperationCanceledException ||
                                    (ex is Microsoft.Data.SqlClient.SqlException sqlEx && (cancellationToken.IsCancellationRequested || sqlEx.Message.Contains("Operation cancelled by user", StringComparison.OrdinalIgnoreCase))))
