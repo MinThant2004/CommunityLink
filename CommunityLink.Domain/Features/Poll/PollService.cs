@@ -128,7 +128,7 @@ public sealed class PollService(
             // 1. Fetch polls with post metadata and precomputed scalar counts
             var rawPolls = await baseQuery
                 .OrderByDescending(p => p.CreatedAt)
-                .Take(30)
+                .Take(100)
                 .Select(p => new
                 {
                     p.PollId,
@@ -232,16 +232,24 @@ public sealed class PollService(
             }).ToList();
 
             // 4-Tier Sorting Hierarchy for Polls:
-            // Tier 1: Followed authors (newest first)
-            // Tier 2: Joined group polls (newest first)
-            // Tier 3: Joined community/sub-community polls (newest first)
-            // Tier 4: Self polls and other polls (newest first)
+            // 1. Followed authors (newest first)
+            // 2. Joined group polls (newest first)
+            // 3. Joined community/sub-community polls (newest first)
+            // 4. Self polls and other polls (placed last)
             int GetPollTier(PollModel item)
             {
-                if (followedAuthorIds.Contains(item.AuthorId)) return 1;
-                if (item.GroupId.HasValue && joinedGroupIds.Contains(item.GroupId.Value)) return 2;
-                if (item.CommunityId.HasValue && joinedCommunityIds.Contains(item.CommunityId.Value)) return 3;
+                // Self polls placed last (Tier 4)
                 if (currentUserId.HasValue && item.AuthorId == currentUserId.Value) return 4;
+
+                // Tier 1: Followed authors
+                if (followedAuthorIds.Contains(item.AuthorId)) return 1;
+
+                // Tier 2: Joined group polls
+                if (item.GroupId.HasValue && joinedGroupIds.Contains(item.GroupId.Value)) return 2;
+
+                // Tier 3: Joined community/sub-community polls
+                if (item.CommunityId.HasValue && joinedCommunityIds.Contains(item.CommunityId.Value)) return 3;
+
                 return 5;
             }
 

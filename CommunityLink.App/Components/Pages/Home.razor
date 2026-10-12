@@ -851,21 +851,24 @@ else if (dashboard != null)
                     }
                     <!-- EXECUTIVE BROADCAST STREAM (POSTS FEED) -->
                     <div class="flex flex-col gap-3.5" id="feed-stream">
-                        @if (!feedPosts.Any())
+                        @if (!unifiedFeedItems.Any())
                         {
                             <div class="bg-surface-container-low p-6 sm:p-8 rounded-xl text-center flex flex-col items-center gap-2 shadow-xs border border-white/5">
                                 <span class="w-10 h-10 rounded-lg bg-surface-container text-secondary flex items-center justify-center">
                                     <span class="material-symbols-outlined text-[20px]">terminal</span>
                                 </span>
                                 <h3 class="text-sm font-bold text-on-surface">No broadcasts published yet</h3>
-                                <p class="text-xs text-outline max-w-sm">Publish your first dispatch above to start the discussion.</p>
+                                <p class="text-xs text-outline max-w-sm">Publish your first dispatch or poll above to start the discussion.</p>
                             </div>
                         }
                         else
                         {
-                            @foreach (var post in feedPosts)
+                            @foreach (var feedItem in unifiedFeedItems)
                             {
-                                <article class="bg-surface-container-low p-3.5 sm:p-4 rounded-xl shadow-xs flex flex-col gap-2.5 border border-white/5 relative">
+                                @if (feedItem.Post != null)
+                                {
+                                    var post = feedItem.Post;
+                                    <article class="bg-surface-container-low p-3.5 sm:p-4 rounded-xl shadow-xs flex flex-col gap-2.5 border border-white/5 relative" @key="feedItem.UniqueKey">
                                     @if (!post.IsActive && currentUserId.HasValue && post.AuthorId == currentUserId.Value)
                                     {
                                         <!-- Post Banned Banner for Author -->
@@ -1159,7 +1162,119 @@ else if (dashboard != null)
                                             }
                                         </div>
                                     }
-                                </article>
+                                    </article>
+                                }
+                                else if (feedItem.Poll != null)
+                                {
+                                    var poll = feedItem.Poll;
+                                    <article class="bg-surface-container-low p-3.5 sm:p-4 rounded-xl shadow-xs flex flex-col gap-2.5 border border-white/5 relative" @key="feedItem.UniqueKey">
+                                        <!-- Poll Header -->
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="relative shrink-0">
+                                                    @if (!string.IsNullOrWhiteSpace(poll.AuthorAvatar))
+                                                    {
+                                                        <img src="@poll.AuthorAvatar" alt="@poll.AuthorName" class="w-9 h-9 rounded-full object-cover ring-1 ring-white/10" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="w-9 h-9 rounded-full bg-surface-container text-on-surface font-bold text-xs flex items-center justify-center ring-1 ring-white/10">
+                                                            @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName[..1].ToUpperInvariant())
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                <div class="flex flex-col">
+                                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                                        <a href="u/@(!string.IsNullOrWhiteSpace(poll.AuthorUserName) ? poll.AuthorUserName : poll.AuthorName)" class="text-xs sm:text-sm font-bold text-on-surface hover:text-secondary transition-colors">
+                                                            @poll.AuthorName
+                                                        </a>
+                                                        <span class="px-1.5 py-0.2 rounded-full bg-primary/10 text-primary font-mono text-[9px] uppercase font-bold flex items-center gap-0.5">
+                                                            <span class="material-symbols-outlined text-[11px]">poll</span>
+                                                            <span>Poll</span>
+                                                        </span>
+                                                        @if (!string.IsNullOrWhiteSpace(poll.GroupName))
+                                                        {
+                                                            <span class="text-[10px] text-outline font-mono">• @poll.GroupName</span>
+                                                        }
+                                                        else if (!string.IsNullOrWhiteSpace(poll.CommunityName))
+                                                        {
+                                                            <span class="text-[10px] text-outline font-mono">• @poll.CommunityName</span>
+                                                        }
+                                                    </div>
+                                                    <span class="text-[10px] text-outline font-mono">@GetRelativeTime(poll.CreatedAt)</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center gap-1">
+                                                <button type="button" @onclick="() => ToggleSavePoll(poll)"
+                                                        class="p-1 text-outline hover:text-on-surface rounded-md transition-colors cursor-pointer"
+                                                        title="@(IsPollSaved(poll) ? "Unsave" : "Save")">
+                                                    <span class="material-symbols-outlined text-[18px] @(IsPollSaved(poll) ? "text-blue-600 dark:text-blue-400" : "")">
+                                                        @(IsPollSaved(poll) ? "bookmark" : "bookmark_border")
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Poll Question & Description -->
+                                        <div class="flex flex-col gap-1">
+                                            <h3 class="text-xs sm:text-[14px] font-bold text-on-surface leading-snug">
+                                                @poll.Question
+                                            </h3>
+                                            @if (!string.IsNullOrWhiteSpace(poll.Content) && poll.Content != poll.Question)
+                                            {
+                                                <p class="text-xs text-on-surface-variant leading-relaxed whitespace-pre-line">
+                                                    @poll.Content
+                                                </p>
+                                            }
+                                        </div>
+
+                                        <!-- Poll Options Vote Strips -->
+                                        <div class="flex flex-col gap-2 pt-1">
+                                            @for (int optIdx = 0; optIdx < poll.Options.Count; optIdx++)
+                                            {
+                                                var opt = poll.Options[optIdx];
+                                                var letter = (char)('A' + (optIdx % 26));
+                                                var hasUserVotedThis = opt.IsVotedByCurrentUser;
+                                                var canVote = !poll.HasVoted && !poll.IsExpired;
+
+                                                <div class="cursor-pointer group relative p-2.5 sm:p-3 rounded-lg bg-surface-container hover:bg-surface-container-high overflow-hidden transition-all duration-200 border border-white/5"
+                                                     @onclick="async () => { if (canVote) await VotePollFromHomeAsync(poll.PollId, opt.OptionId); }">
+                                                    <div class="absolute inset-y-0 left-0 @(hasUserVotedThis ? "bg-secondary/25" : "bg-surface-container-high") rounded transition-all duration-500" style="width: @(opt.Percentage)%;"></div>
+                                                    <div class="relative flex items-center justify-between z-10 gap-2 text-xs">
+                                                        <div class="flex items-center gap-2 min-w-0 truncate">
+                                                            <span class="font-bold @(hasUserVotedThis ? "text-secondary" : "text-outline")">@letter.</span>
+                                                            <span class="text-on-surface font-medium truncate">@opt.Text</span>
+                                                            @if (hasUserVotedThis)
+                                                            {
+                                                                <span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span>
+                                                            }
+                                                        </div>
+                                                        <span class="font-mono text-xs @(hasUserVotedThis ? "text-secondary font-bold" : "text-outline") shrink-0">@opt.Percentage%</span>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <!-- Poll Meta & Footer -->
+                                        <div class="flex items-center justify-between pt-2 border-t border-white/5 text-[11px] text-outline font-mono">
+                                            <div class="flex items-center gap-2">
+                                                <span>@(poll.TotalVotes) total votes</span>
+                                                <span>•</span>
+                                                <span class="@(poll.IsExpired ? "text-amber-500 font-semibold" : "text-emerald-500 font-semibold")">@(poll.IsExpired ? "Closed" : "Active")</span>
+                                                @if (poll.IsMultipleChoice)
+                                                {
+                                                    <span>• Multiple choices</span>
+                                                }
+                                            </div>
+                                            <a href="polls" class="text-secondary hover:underline font-semibold flex items-center gap-0.5">
+                                                <span>Audit ballot</span>
+                                                <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+                                            </a>
+                                        </div>
+                                    </article>
+                                }
                             }
 
                             <!-- Infinite Scroll Loading Indicator & Sentinel -->
@@ -1167,10 +1282,10 @@ else if (dashboard != null)
                             {
                                 <div class="py-4 flex items-center justify-center gap-2 text-on-surface-variant text-xs font-medium">
                                     <div class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                                    <span>Loading more posts...</span>
+                                    <span>Loading more broadcasts...</span>
                                 </div>
                             }
-                            else if (!hasMoreFeedPosts && feedPosts.Count > 0)
+                            else if (!hasMoreFeedPosts && unifiedFeedItems.Count > 0)
                             {
                                 <div class="py-4 text-center">
                                     <span class="font-mono text-[11px] text-outline">You've reached the end of the feed</span>
@@ -2511,6 +2626,77 @@ else if (dashboard != null)
     private bool IsPollSaved(PollModel poll) =>
         savedPostIds.Contains(poll.PostId);
 
+    private sealed class HomeFeedItem
+    {
+        public string UniqueKey { get; init; } = string.Empty;
+        public PostModel? Post { get; init; }
+        public PollModel? Poll { get; init; }
+        public int Tier { get; init; }
+        public DateTime CreatedAt { get; init; }
+    }
+
+    private List<HomeFeedItem> unifiedFeedItems = new();
+
+    private int GetFeedItemTier(int authorId, int? groupId, int? communityId)
+    {
+        // 4. Self posts and polls always placed last (Tier 4)
+        if (currentUserId.HasValue && authorId == currentUserId.Value) return 4;
+
+        // 1. Follow to user post and polls first (Tier 1)
+        var followed = dashboard?.People?.Where(p => p.IsFollowedByCurrentUser).Select(p => p.UserId).ToHashSet() ?? new HashSet<int>();
+        if (followed.Contains(authorId)) return 1;
+
+        // 2. Group, show the Post and Polls from the joined group (Tier 2)
+        var joinedGroups = dashboard?.Groups?.Where(g => g.IsJoined).Select(g => g.GroupId).ToHashSet() ?? new HashSet<int>();
+        if (groupId.HasValue && joinedGroups.Contains(groupId.Value)) return 2;
+
+        // 3. Community/SubCommunity (Public post/polls of Joined Community) (Tier 3)
+        var joinedCommunities = dashboard?.JoinedCommunities?.Select(c => c.CommunityId).ToHashSet() ?? new HashSet<int>();
+        if (communityId.HasValue && joinedCommunities.Contains(communityId.Value)) return 3;
+
+        return 5;
+    }
+
+    private void BuildUnifiedFeed()
+    {
+        var items = new List<HomeFeedItem>();
+
+        if (feedPosts != null && feedPosts.Count > 0)
+        {
+            foreach (var post in feedPosts)
+            {
+                var tier = GetFeedItemTier(post.AuthorId, post.GroupId, post.CommunityId);
+                items.Add(new HomeFeedItem
+                {
+                    UniqueKey = $"post-{post.PostId}",
+                    Post = post,
+                    Tier = tier,
+                    CreatedAt = post.CreatedAt
+                });
+            }
+        }
+
+        if (dashboard?.ActivePolls != null && dashboard.ActivePolls.Count > 0)
+        {
+            foreach (var poll in dashboard.ActivePolls)
+            {
+                var tier = GetFeedItemTier(poll.AuthorId, poll.GroupId, poll.CommunityId);
+                items.Add(new HomeFeedItem
+                {
+                    UniqueKey = $"poll-{poll.PollId}",
+                    Poll = poll,
+                    Tier = tier,
+                    CreatedAt = poll.CreatedAt
+                });
+            }
+        }
+
+        unifiedFeedItems = items
+            .OrderBy(x => x.Tier)
+            .ThenByDescending(x => x.CreatedAt)
+            .ToList();
+    }
+
     private Task ToggleSavePoll(PollModel poll) =>
         ToggleSavePost(poll.PostId);
 
@@ -2889,6 +3075,8 @@ else if (dashboard != null)
                 }
             }
             catch { }
+
+            BuildUnifiedFeed();
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
@@ -3572,6 +3760,7 @@ else if (dashboard != null)
                     var existingIds = new HashSet<int>(feedPosts.Select(p => p.PostId));
                     var toAdd = newItems.Where(p => !existingIds.Contains(p.PostId)).ToList();
                     feedPosts.AddRange(toAdd);
+                    BuildUnifiedFeed();
                     currentFeedPage = nextPage;
                     hasMoreFeedPosts = newItems.Count >= FeedPageSize;
                 }

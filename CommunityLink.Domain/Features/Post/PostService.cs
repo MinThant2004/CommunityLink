@@ -428,12 +428,15 @@ public sealed class PostService(
             }).ToList();
 
             // 4-Tier Sorting Hierarchy:
-            // Tier 1: Following user's posts & shares (newest first)
-            // Tier 2: Joined group posts (newest first)
-            // Tier 3: Joined community/sub-community posts (newest first)
-            // Tier 4: Self posts and other public posts (newest first)
+            // 1. Followed user's posts & shares (newest first)
+            // 2. Joined group posts (newest first)
+            // 3. Joined community/sub-community posts (newest first)
+            // 4. Self posts and other public posts (placed last)
             int GetPostTier(PostModel item)
             {
+                // Self posts are placed last (Tier 4)
+                if (currentUserId.HasValue && item.AuthorId == currentUserId.Value) return 4;
+
                 // Tier 1: Followed user's post or share
                 if (followedAuthorIds.Contains(item.AuthorId)) return 1;
                 if (!string.IsNullOrWhiteSpace(item.SharedByUserName) && directItems.Any(d => d.PostId == item.PostId && followedAuthorIds.Contains(d.AuthorId))) return 1;
@@ -444,8 +447,6 @@ public sealed class PostService(
                 // Tier 3: Joined community/sub-community posts
                 if (item.CommunityId.HasValue && joinedCommunityIds.Contains(item.CommunityId.Value)) return 3;
 
-                // Tier 4: Self posts and other posts
-                if (currentUserId.HasValue && item.AuthorId == currentUserId.Value) return 4;
                 return 5;
             }
 
