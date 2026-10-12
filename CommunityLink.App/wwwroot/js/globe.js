@@ -1,9 +1,10 @@
-// FiberNeonGlobe — Three.js interactive globe animation with Continental Coastlines
-// Adapted from FiberNeonGlobe3.txt for Blazor JS Interop
+// FiberNeonGlobe — High-performance Three.js interactive globe animation
+// Adapted for Blazor JS Interop with full lifecycle management
 
 let _globeRenderer = null;
 let _globeAnimationId = null;
 let _globeResizeHandler = null;
+let _globeCleanups = [];
 
 window.initGlobe = function () {
     // Prevent double-init
@@ -11,7 +12,7 @@ window.initGlobe = function () {
         window.disposeGlobe();
     }
 
-    const container = document.getElementById('globe-canvas');
+    const container = document.getElementById('globe-canvas') || document.getElementById('threejs-container');
     if (!container || typeof THREE === 'undefined') return;
 
     const width = container.clientWidth || window.innerWidth;
@@ -19,7 +20,7 @@ window.initGlobe = function () {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 1.5, 22);
+    camera.position.set(0, 2, 22);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     renderer.setSize(width, height);
@@ -31,168 +32,40 @@ window.initGlobe = function () {
     const globeGroup = new THREE.Group();
     scene.add(globeGroup);
 
-    // No directional lights — every globe element uses unlit materials so the
-    // globe stays clean, matte and dark, with no glossy "water ball" reflections.
+    // Soft, balanced ambient & directional lighting
+    const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.75);
+    scene.add(ambientLight);
 
-    // 1. Solid Matte Dark Core Sphere
-    const sphereRadius = 6.9;
+    const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.2);
+    dirLight1.position.set(12, 10, 15);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0xd4af37, 0.85);
+    dirLight2.position.set(-15, -8, -10);
+    scene.add(dirLight2);
+
+    // 1. Sleek Translucent Inner Core Sphere
+    const sphereRadius = 6.2;
     const sphereGeo = new THREE.SphereGeometry(sphereRadius, 64, 64);
-    const sphereMat = new THREE.MeshBasicMaterial({
-        color: 0x0a1528,
-        transparent: false
+    const sphereMat = new THREE.MeshPhongMaterial({
+        color: 0x0c1427,
+        emissive: 0x081020,
+        shininess: 40,
+        transparent: true,
+        opacity: 0.85
     });
     const coreGlobe = new THREE.Mesh(sphereGeo, sphereMat);
     globeGroup.add(coreGlobe);
 
-    // Subtle Glass Atmosphere Rim
-    const glowGeo = new THREE.SphereGeometry(sphereRadius + 0.04, 48, 48);
-    const glowMat = new THREE.MeshBasicMaterial({
-        color: 0x38bdf8,
-        transparent: true,
-        opacity: 0.14,
-        side: THREE.BackSide
-    });
-    globeGroup.add(new THREE.Mesh(glowGeo, glowMat));
-
-    // Utility: Lat/Lon to 3D Cartesian coordinates on sphere
-    function latLonToVector3(lat, lon, radius) {
-        const phi = (90 - lat) * (Math.PI / 180);
-        const theta = (lon + 180) * (Math.PI / 180);
-        const x = -(radius * Math.sin(phi) * Math.cos(theta));
-        const z = radius * Math.sin(phi) * Math.sin(theta);
-        const y = radius * Math.cos(phi);
-        return new THREE.Vector3(x, y, z);
-    }
-
-    // 2. Soft Tactile Geographical Maplines & Continental Coastlines (Surface Contours)
-    const continentOutlines = [
-        // North America
-        [
-            [70, -160], [71, -130], [68, -100], [62, -75], [58, -60], [47, -53], [44, -64], [35, -75], [25, -80],
-            [29, -90], [26, -97], [18, -95], [15, -92], [9, -79], [13, -87], [20, -105], [28, -112], [34, -119],
-            [48, -124], [58, -136], [60, -148], [65, -168], [70, -160]
-        ],
-        // South America
-        [
-            [11, -75], [8, -60], [4, -51], [-3, -40], [-10, -36], [-22, -41], [-34, -53], [-46, -65], [-54, -68],
-            [-50, -74], [-40, -73], [-20, -70], [-5, -80], [4, -77], [11, -75]
-        ],
-        // Europe & Mediterranean
-        [
-            [71, 28], [60, 25], [55, 12], [54, 5], [48, -4], [43, -9], [37, -9], [36, -5], [38, 0], [43, 4],
-            [40, 18], [37, 23], [41, 29], [46, 30], [46, 38], [55, 38], [65, 40], [70, 32], [71, 28]
-        ],
-        // British Isles
-        [
-            [58, -5], [54, 0], [51, 1], [50, -5], [54, -4], [58, -5]
-        ],
-        // Africa
-        [
-            [36, -5], [37, 10], [32, 25], [31, 32], [22, 37], [12, 44], [12, 51], [5, 48], [-11, 40], [-26, 33],
-            [-34, 26], [-34, 18], [-22, 14], [-12, 13], [4, 9], [5, 1], [4, -7], [12, -16], [21, -17], [32, -9], [36, -5]
-        ],
-        // Asia Main Coastline & Subcontinents
-        [
-            [75, 105], [72, 135], [70, 175], [60, 165], [52, 142], [42, 131], [38, 122], [30, 122], [22, 114],
-            [16, 108], [10, 105], [3, 102], [1, 104], [10, 99], [16, 96], [21, 91], [22, 88], [15, 80], [8, 77],
-            [13, 74], [21, 70], [25, 62], [25, 57], [15, 53], [12, 44], [25, 55], [30, 48], [40, 50], [42, 70],
-            [50, 85], [55, 100], [65, 105], [75, 105]
-        ],
-        // Japan Archipelago
-        [
-            [44, 145], [40, 140], [35, 135], [33, 130], [35, 133], [39, 142], [44, 145]
-        ],
-        // Australia
-        [
-            [-12, 132], [-14, 136], [-12, 142], [-22, 150], [-33, 152], [-38, 145], [-35, 136], [-32, 129],
-            [-34, 118], [-26, 113], [-20, 118], [-15, 125], [-12, 132]
-        ],
-        // Southeast Asia / Maritime Indonesian Island Chain
-        [
-            [5, 96], [0, 102], [-5, 106], [-7, 112], [-8, 116], [-8, 122], [-4, 120], [-1, 117], [4, 118], [6, 115], [5, 96]
-        ],
-        // Philippines
-        [
-            [18, 121], [14, 124], [7, 125], [10, 122], [15, 120], [18, 121]
-        ],
-        // Scandinavia
-        [
-            [71, 26], [68, 15], [62, 5], [58, 8], [56, 13], [60, 18], [65, 23], [71, 26]
-        ],
-        // Greenland
-        [
-            [83, -32], [81, -20], [76, -18], [70, -22], [60, -44], [67, -52], [74, -58], [80, -55], [84, -38], [83, -32]
-        ],
-        // Iceland
-        [
-            [66, -24], [65, -14], [63, -13], [63, -21], [64, -24], [66, -24]
-        ],
-        // Madagascar
-        [
-            [-12, 49], [-16, 50], [-22, 48], [-25, 45], [-22, 44], [-18, 44], [-13, 48], [-12, 49]
-        ],
-        // New Zealand
-        [
-            [-34, 173], [-37, 176], [-41, 175], [-44, 171], [-46, 167], [-44, 169], [-39, 178], [-35, 174], [-34, 173]
-        ],
-        // Central America & Mexico
-        [
-            [32, -117], [27, -111], [23, -110], [19, -105], [17, -102], [16, -97], [14, -92], [9, -83], [8, -82],
-            [10, -84], [15, -88], [16, -94], [18, -91], [21, -88], [21, -91], [18, -95], [24, -98], [28, -98], [32, -117]
-        ],
-        // Caribbean
-        [
-            [20, -75], [22, -74], [20, -72], [18, -69], [18, -66], [16, -64], [13, -61], [11, -63], [10, -62],
-            [12, -69], [15, -68], [18, -74], [20, -84]
-        ],
-        // Hawaii
-        [
-            [20, -156], [21, -158], [20, -160], [19, -157], [20, -156]
-        ],
-        // Svalbard
-        [
-            [80, 16], [80, 28], [78, 26], [77, 18], [78, 12], [80, 16]
-        ]
-    ];
-
-    // Draw soft glowing maplines right on the surface of the globe
-    const mapLineMat = new THREE.LineBasicMaterial({
-        color: 0x5bb7f3,
-        transparent: true,
-        opacity: 0.72,
-        linewidth: 2
-    });
-
-    continentOutlines.forEach(polygon => {
-        const pts = [];
-        for (let i = 0; i < polygon.length - 1; i++) {
-            const p1 = polygon[i];
-            const p2 = polygon[i + 1];
-            const steps = 6;
-            for (let s = 0; s < steps; s++) {
-                const t = s / steps;
-                const lat = p1[0] + (p2[0] - p1[0]) * t;
-                const lon = p1[1] + (p2[1] - p1[1]) * t;
-                pts.push(latLonToVector3(lat, lon, sphereRadius + 0.035));
-            }
-        }
-        const lastPt = polygon[polygon.length - 1];
-        pts.push(latLonToVector3(lastPt[0], lastPt[1], sphereRadius + 0.035));
-
-        const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
-        const lineMesh = new THREE.Line(lineGeo, mapLineMat);
-        globeGroup.add(lineMesh);
-    });
-
-    // 3. Subtle Meridian & Latitude Wireframe Grid
+    // 2. Minimal Wireframe Latitude & Longitude Meridian Grid
     const wireMat = new THREE.LineBasicMaterial({
         color: 0x38bdf8,
         transparent: true,
-        opacity: 0.22
+        opacity: 0.16
     });
 
     // Latitude rings
-    for (let lat = -70; lat <= 70; lat += 15) {
+    for (let lat = -70; lat <= 70; lat += 20) {
         const phi = (90 - lat) * (Math.PI / 180);
         const r = sphereRadius * Math.sin(phi);
         const y = sphereRadius * Math.cos(phi);
@@ -207,8 +80,8 @@ window.initGlobe = function () {
         globeGroup.add(ring);
     }
 
-    // Longitude meridians
-    for (let lon = 0; lon < 180; lon += 20) {
+    // Longitude rings
+    for (let lon = 0; lon < 180; lon += 30) {
         const circleGeo = new THREE.BufferGeometry();
         const pts = [];
         for (let i = 0; i <= 64; i++) {
@@ -224,33 +97,100 @@ window.initGlobe = function () {
         globeGroup.add(meridian);
     }
 
-    // 4. Soft Continental Point Cloud Clusters
+    // Utility: Lat/Lon to 3D Cartesian coordinates
+    function latLonToVector3(lat, lon, radius) {
+        const phi = (90 - lat) * (Math.PI / 180);
+        const theta = (lon + 180) * (Math.PI / 180);
+        const x = -(radius * Math.sin(phi) * Math.cos(theta));
+        const z = radius * Math.sin(phi) * Math.sin(theta);
+        const y = radius * Math.cos(phi);
+        return new THREE.Vector3(x, y, z);
+    }
+
+    // Global Hub Nodes
+    const hubs = [
+        // North America
+        { name: 'San Francisco', lat: 37.77, lon: -122.41, color: 0x38bdf8 },
+        { name: 'Los Angeles', lat: 34.05, lon: -118.24, color: 0x38bdf8 },
+        { name: 'Seattle', lat: 47.60, lon: -122.33, color: 0x38bdf8 },
+        { name: 'Austin', lat: 30.26, lon: -97.74, color: 0x38bdf8 },
+        { name: 'Chicago', lat: 41.87, lon: -87.62, color: 0x38bdf8 },
+        { name: 'New York', lat: 40.71, lon: -74.00, color: 0x38bdf8 },
+        { name: 'Miami', lat: 25.76, lon: -80.19, color: 0x38bdf8 },
+        { name: 'Toronto', lat: 43.65, lon: -79.38, color: 0x38bdf8 },
+        { name: 'Vancouver', lat: 49.28, lon: -123.12, color: 0x38bdf8 },
+        { name: 'Honolulu', lat: 21.30, lon: -157.85, color: 0x38bdf8 },
+
+        // Europe
+        { name: 'London', lat: 51.50, lon: -0.12, color: 0xd4af37 },
+        { name: 'Paris', lat: 48.85, lon: 2.35, color: 0x38bdf8 },
+        { name: 'Amsterdam', lat: 52.37, lon: 4.90, color: 0x38bdf8 },
+        { name: 'Frankfurt', lat: 50.11, lon: 8.68, color: 0x38bdf8 },
+        { name: 'Berlin', lat: 52.52, lon: 13.40, color: 0x38bdf8 },
+        { name: 'Zurich', lat: 47.37, lon: 8.54, color: 0xd4af37 },
+        { name: 'Stockholm', lat: 59.33, lon: 18.06, color: 0x38bdf8 },
+        { name: 'Madrid', lat: 40.41, lon: -3.70, color: 0x38bdf8 },
+
+        // Middle East & Africa
+        { name: 'Dubai', lat: 25.20, lon: 55.27, color: 0xd4af37 },
+        { name: 'Riyadh', lat: 24.71, lon: 46.67, color: 0xd4af37 },
+        { name: 'Doha', lat: 25.28, lon: 51.53, color: 0xd4af37 },
+        { name: 'Cairo', lat: 30.04, lon: 31.23, color: 0xd4af37 },
+        { name: 'Istanbul', lat: 41.01, lon: 28.97, color: 0x38bdf8 },
+        { name: 'Johannesburg', lat: -26.20, lon: 28.04, color: 0xd4af37 },
+        { name: 'Nairobi', lat: -1.29, lon: 36.82, color: 0xd4af37 },
+
+        // Asia
+        { name: 'Bengaluru', lat: 12.97, lon: 77.59, color: 0x38bdf8 },
+        { name: 'Mumbai', lat: 19.07, lon: 72.87, color: 0x38bdf8 },
+        { name: 'Singapore', lat: 1.35, lon: 103.81, color: 0x38bdf8 },
+        { name: 'Yangon', lat: 16.86, lon: 96.19, color: 0xd4af37 },
+        { name: 'Bangkok', lat: 13.75, lon: 100.50, color: 0x38bdf8 },
+        { name: 'Jakarta', lat: -6.20, lon: 106.84, color: 0x38bdf8 },
+        { name: 'Manila', lat: 14.59, lon: 120.98, color: 0x38bdf8 },
+        { name: 'Hong Kong', lat: 22.31, lon: 114.16, color: 0x38bdf8 },
+        { name: 'Taipei', lat: 25.03, lon: 121.56, color: 0x38bdf8 },
+        { name: 'Tokyo', lat: 35.67, lon: 139.65, color: 0x38bdf8 },
+        { name: 'Seoul', lat: 37.56, lon: 126.97, color: 0x38bdf8 },
+
+        // Oceania
+        { name: 'Sydney', lat: -33.86, lon: 151.20, color: 0x38bdf8 },
+        { name: 'Melbourne', lat: -37.81, lon: 144.96, color: 0x38bdf8 },
+        { name: 'Auckland', lat: -36.84, lon: 174.76, color: 0x38bdf8 },
+
+        // South & Latin America
+        { name: 'São Paulo', lat: -23.55, lon: -46.63, color: 0x38bdf8 },
+        { name: 'Buenos Aires', lat: -34.60, lon: -58.38, color: 0x38bdf8 },
+        { name: 'Santiago', lat: -33.44, lon: -70.66, color: 0x38bdf8 },
+        { name: 'Bogota', lat: 4.71, lon: -74.07, color: 0x38bdf8 }
+    ];
+
+    // Minimal continent point cloud clusters
     const particlePts = [];
     const particleColors = [];
 
     const landmasses = [
-        { lat: 45, lon: -100, spanLat: 22, spanLon: 35, count: 260 },
-        { lat: -15, lon: -55, spanLat: 22, spanLon: 22, count: 180 },
-        { lat: 50, lon: 15, spanLat: 14, spanLon: 22, count: 200 },
-        { lat: 5, lon: 20, spanLat: 28, spanLon: 22, count: 220 },
-        { lat: 35, lon: 95, spanLat: 28, spanLon: 40, count: 330 },
-        { lat: -25, lon: 135, spanLat: 14, spanLon: 18, count: 130 },
-        { lat: 18, lon: 96, spanLat: 10, spanLon: 10, count: 120 },
-        { lat: 30, lon: -55, spanLat: 10, spanLon: 10, count: 70 }
+        { lat: 45, lon: -100, spanLat: 25, spanLon: 40, count: 200 }, // North America
+        { lat: -15, lon: -55, spanLat: 25, spanLon: 25, count: 140 }, // South America
+        { lat: 50, lon: 15, spanLat: 15, spanLon: 25, count: 160 },  // Europe
+        { lat: 5, lon: 20, spanLat: 30, spanLon: 25, count: 180 },   // Africa
+        { lat: 35, lon: 95, spanLat: 30, spanLon: 45, count: 280 },  // Asia
+        { lat: -25, lon: 135, spanLat: 15, spanLon: 20, count: 100 }, // Australia
+        { lat: 18, lon: 96, spanLat: 10, spanLon: 10, count: 80 }    // SE Asia / Myanmar
     ];
 
     landmasses.forEach(land => {
         for (let i = 0; i < land.count; i++) {
             const lat = land.lat + (Math.random() - 0.5) * land.spanLat * 2;
             const lon = land.lon + (Math.random() - 0.5) * land.spanLon * 2;
-            const v = latLonToVector3(lat, lon, sphereRadius + 0.04);
+            const v = latLonToVector3(lat, lon, sphereRadius + 0.03);
             particlePts.push(v.x, v.y, v.z);
 
             const isGold = Math.random() < 0.12;
             if (isGold) {
-                particleColors.push(1.0, 0.82, 0.35);
+                particleColors.push(0.83, 0.68, 0.21); // #d4af37
             } else {
-                particleColors.push(0.35, 0.85, 1.0);
+                particleColors.push(0.22, 0.74, 0.97); // #38bdf8
             }
         }
     });
@@ -260,59 +200,15 @@ window.initGlobe = function () {
     dotGeo.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
 
     const dotMat = new THREE.PointsMaterial({
-        size: 0.13,
+        size: 0.12,
         vertexColors: true,
         transparent: true,
-        opacity: 0.9
+        opacity: 0.65
     });
-    globeGroup.add(new THREE.Points(dotGeo, dotMat));
+    const dotParticles = new THREE.Points(dotGeo, dotMat);
+    globeGroup.add(dotParticles);
 
-    // 5. Global Hub Nodes
-    const hubs = [
-        { name: 'San Francisco', lat: 37.77, lon: -122.41, color: 0x38bdf8 },
-        { name: 'Seattle', lat: 47.60, lon: -122.33, color: 0x38bdf8 },
-        { name: 'Austin', lat: 30.26, lon: -97.74, color: 0x38bdf8 },
-        { name: 'New York', lat: 40.71, lon: -74.00, color: 0x38bdf8 },
-        { name: 'Toronto', lat: 43.65, lon: -79.38, color: 0x38bdf8 },
-        { name: 'London', lat: 51.50, lon: -0.12, color: 0xd4af37 },
-        { name: 'Paris', lat: 48.85, lon: 2.35, color: 0x38bdf8 },
-        { name: 'Zurich', lat: 47.37, lon: 8.54, color: 0xd4af37 },
-        { name: 'Frankfurt', lat: 50.11, lon: 8.68, color: 0x38bdf8 },
-        { name: 'Stockholm', lat: 59.33, lon: 18.06, color: 0x38bdf8 },
-        { name: 'Dubai', lat: 25.20, lon: 55.27, color: 0xd4af37 },
-        { name: 'Riyadh', lat: 24.71, lon: 46.67, color: 0xd4af37 },
-        { name: 'Bengaluru', lat: 12.97, lon: 77.59, color: 0x38bdf8 },
-        { name: 'Mumbai', lat: 19.07, lon: 72.87, color: 0x38bdf8 },
-        { name: 'Singapore', lat: 1.35, lon: 103.81, color: 0x38bdf8 },
-        { name: 'Yangon', lat: 16.86, lon: 96.19, color: 0xd4af37 },
-        { name: 'Bangkok', lat: 13.75, lon: 100.50, color: 0x38bdf8 },
-        { name: 'Hong Kong', lat: 22.31, lon: 114.16, color: 0x38bdf8 },
-        { name: 'Taipei', lat: 25.03, lon: 121.56, color: 0x38bdf8 },
-        { name: 'Tokyo', lat: 35.67, lon: 139.65, color: 0x38bdf8 },
-        { name: 'Seoul', lat: 37.56, lon: 126.97, color: 0x38bdf8 },
-        { name: 'Sydney', lat: -33.86, lon: 151.20, color: 0x38bdf8 },
-        { name: 'Melbourne', lat: -37.81, lon: 144.96, color: 0x38bdf8 },
-        { name: 'São Paulo', lat: -23.55, lon: -46.63, color: 0x38bdf8 },
-        { name: 'Buenos Aires', lat: -34.60, lon: -58.38, color: 0x38bdf8 },
-        { name: 'Johannesburg', lat: -26.20, lon: 28.04, color: 0xd4af37 },
-        { name: 'Nairobi', lat: -1.29, lon: 36.82, color: 0xd4af37 },
-        { name: 'Vancouver', lat: 49.28, lon: -123.12, color: 0x38bdf8 },
-        { name: 'Honolulu', lat: 21.31, lon: -157.86, color: 0x38bdf8 },
-        { name: 'Anchorage', lat: 61.22, lon: -149.90, color: 0x38bdf8 },
-        { name: 'Mexico City', lat: 19.43, lon: -99.13, color: 0x38bdf8 },
-        { name: 'Lagos', lat: 6.52, lon: 3.38, color: 0xd4af37 },
-        { name: 'Cairo', lat: 30.04, lon: 31.24, color: 0xd4af37 },
-        { name: 'Istanbul', lat: 41.01, lon: 28.98, color: 0x38bdf8 },
-        { name: 'Moscow', lat: 55.76, lon: 37.62, color: 0x38bdf8 },
-        { name: 'Auckland', lat: -36.85, lon: 174.76, color: 0x38bdf8 },
-        { name: 'Bogotá', lat: 4.71, lon: -74.07, color: 0x38bdf8 },
-        { name: 'Los Angeles', lat: 34.05, lon: -118.24, color: 0x38bdf8 },
-        { name: 'Beijing', lat: 39.90, lon: 116.40, color: 0x38bdf8 },
-        { name: 'Shanghai', lat: 31.23, lon: 121.47, color: 0x38bdf8 },
-        { name: 'Kuala Lumpur', lat: 3.14, lon: 101.69, color: 0x38bdf8 },
-        { name: 'Jakarta', lat: -6.21, lon: 106.85, color: 0x38bdf8 }
-    ];
-
+    // 4. Hub Nodes (Clean small spheres + tiny halo rings)
     const hubMeshes = [];
     hubs.forEach(hub => {
         const pos = latLonToVector3(hub.lat, hub.lon, sphereRadius + 0.08);
@@ -320,17 +216,17 @@ window.initGlobe = function () {
         hubGroup.position.copy(pos);
         hubGroup.lookAt(new THREE.Vector3(0, 0, 0));
 
-        const nGeo = new THREE.SphereGeometry(0.16, 16, 16);
+        const nGeo = new THREE.SphereGeometry(0.14, 16, 16);
         const nMat = new THREE.MeshBasicMaterial({ color: hub.color });
         const nMesh = new THREE.Mesh(nGeo, nMat);
         hubGroup.add(nMesh);
 
         // Subtle pulsing halo ring
-        const rGeo = new THREE.RingGeometry(0.24, 0.32, 24);
+        const rGeo = new THREE.RingGeometry(0.22, 0.29, 24);
         const rMat = new THREE.MeshBasicMaterial({
             color: hub.color,
             transparent: true,
-            opacity: 0.7,
+            opacity: 0.45,
             side: THREE.DoubleSide
         });
         const rMesh = new THREE.Mesh(rGeo, rMat);
@@ -340,89 +236,164 @@ window.initGlobe = function () {
         hubMeshes.push({ group: hubGroup, ring: rMesh, mat: rMat, basePos: pos });
     });
 
-    // 6. Neon Fiber Lines with Traveling Data Packets
+    // 5. Enriched, Well-Distributed Neon Fiber Lines
     const connections = [
-        ['San Francisco', 'Tokyo'],
+        // North America Intercity Mesh
+        ['San Francisco', 'Seattle'],
+        ['San Francisco', 'Los Angeles'],
+        ['San Francisco', 'Austin'],
+        ['San Francisco', 'Chicago'],
         ['San Francisco', 'New York'],
-        ['Seattle', 'Tokyo'],
-        ['Seattle', 'San Francisco'],
+        ['Los Angeles', 'Seattle'],
+        ['Los Angeles', 'Austin'],
+        ['Los Angeles', 'Chicago'],
+        ['Los Angeles', 'Honolulu'],
+        ['Seattle', 'Vancouver'],
+        ['Vancouver', 'Toronto'],
+        ['Vancouver', 'San Francisco'],
+        ['Austin', 'Chicago'],
+        ['Austin', 'Miami'],
         ['Austin', 'New York'],
-        ['Austin', 'San Francisco'],
+        ['Chicago', 'Toronto'],
+        ['Chicago', 'New York'],
+        ['New York', 'Toronto'],
+        ['New York', 'Miami'],
+        ['Miami', 'Bogota'],
+
+        // Trans-Atlantic Trunks
         ['New York', 'London'],
+        ['New York', 'Paris'],
+        ['New York', 'Frankfurt'],
+        ['New York', 'Amsterdam'],
         ['Toronto', 'London'],
         ['Toronto', 'Frankfurt'],
+        ['Miami', 'Madrid'],
+        ['Miami', 'London'],
+
+        // European Mesh
         ['London', 'Paris'],
+        ['London', 'Amsterdam'],
+        ['London', 'Frankfurt'],
         ['London', 'Zurich'],
+        ['London', 'Stockholm'],
+        ['Paris', 'Amsterdam'],
+        ['Paris', 'Frankfurt'],
         ['Paris', 'Zurich'],
-        ['Zurich', 'Frankfurt'],
+        ['Paris', 'Madrid'],
+        ['Amsterdam', 'Berlin'],
+        ['Amsterdam', 'Frankfurt'],
+        ['Berlin', 'Frankfurt'],
+        ['Berlin', 'Stockholm'],
+        ['Frankfurt', 'Zurich'],
         ['Frankfurt', 'Stockholm'],
-        ['Stockholm', 'London'],
-        ['Zurich', 'Dubai'],
-        ['Frankfurt', 'Dubai'],
+        ['Frankfurt', 'Istanbul'],
+        ['Zurich', 'Madrid'],
+        ['Madrid', 'London'],
+
+        // Europe <-> Middle East & Africa
         ['London', 'Dubai'],
+        ['Paris', 'Dubai'],
+        ['Frankfurt', 'Dubai'],
+        ['Zurich', 'Dubai'],
+        ['Stockholm', 'Dubai'],
+        ['Amsterdam', 'Dubai'],
+        ['Istanbul', 'Dubai'],
+        ['Istanbul', 'Cairo'],
+        ['Cairo', 'Dubai'],
+        ['Cairo', 'Riyadh'],
+        ['London', 'Johannesburg'],
+        ['Paris', 'Johannesburg'],
+        ['Zurich', 'Johannesburg'],
+        ['Dubai', 'Johannesburg'],
         ['Dubai', 'Riyadh'],
+        ['Dubai', 'Doha'],
+        ['Riyadh', 'Doha'],
+        ['Johannesburg', 'Nairobi'],
+        ['Nairobi', 'Dubai'],
+        ['Nairobi', 'Cairo'],
+
+        // Middle East <-> South & Southeast Asia
         ['Dubai', 'Mumbai'],
         ['Dubai', 'Bengaluru'],
         ['Dubai', 'Singapore'],
+        ['Doha', 'Mumbai'],
         ['Riyadh', 'Bengaluru'],
+        ['Riyadh', 'Mumbai'],
         ['Mumbai', 'Bengaluru'],
         ['Bengaluru', 'Yangon'],
         ['Bengaluru', 'Singapore'],
-        ['Yangon', 'Singapore'],
+        ['Bengaluru', 'Bangkok'],
+        ['Mumbai', 'Singapore'],
+        ['Mumbai', 'Yangon'],
+
+        // Southeast Asia & East Asia Regional Trunks
         ['Yangon', 'Bangkok'],
+        ['Yangon', 'Singapore'],
         ['Bangkok', 'Singapore'],
+        ['Bangkok', 'Hong Kong'],
+        ['Bangkok', 'Jakarta'],
+        ['Singapore', 'Jakarta'],
+        ['Singapore', 'Manila'],
         ['Singapore', 'Hong Kong'],
+        ['Singapore', 'Taipei'],
         ['Singapore', 'Tokyo'],
-        ['Singapore', 'Sydney'],
+        ['Jakarta', 'Manila'],
+        ['Jakarta', 'Sydney'],
+        ['Manila', 'Hong Kong'],
+        ['Manila', 'Taipei'],
+        ['Manila', 'Tokyo'],
         ['Hong Kong', 'Taipei'],
+        ['Hong Kong', 'Seoul'],
         ['Hong Kong', 'Tokyo'],
         ['Taipei', 'Tokyo'],
-        ['Tokyo', 'Seoul'],
-        ['Seoul', 'San Francisco'],
-        ['Tokyo', 'Sydney'],
-        ['Sydney', 'Melbourne'],
-        ['San Francisco', 'Sydney'],
-        ['London', 'São Paulo'],
-        ['New York', 'São Paulo'],
-        ['São Paulo', 'Buenos Aires'],
-        ['Zurich', 'Johannesburg'],
-        ['Dubai', 'Johannesburg'],
-        ['Johannesburg', 'Nairobi'],
-        ['Nairobi', 'Dubai'],
-        ['Singapore', 'Melbourne'],
-        ['Dubai', 'Stockholm'],
-        ['Frankfurt', 'Seoul'],
-        ['San Francisco', 'Hong Kong'],
-        ['London', 'Singapore'],
-        ['Vancouver', 'Seattle'],
-        ['Vancouver', 'Anchorage'],
-        ['Anchorage', 'Tokyo'],
-        ['Anchorage', 'Honolulu'],
-        ['Honolulu', 'Sydney'],
-        ['Honolulu', 'San Francisco'],
-        ['San Francisco', 'Mexico City'],
-        ['Mexico City', 'New York'],
-        ['Mexico City', 'Bogotá'],
-        ['Los Angeles', 'Tokyo'],
-        ['Los Angeles', 'Sydney'],
-        ['New York', 'Frankfurt'],
-        ['Tokyo', 'Seoul'],
-        ['Beijing', 'Tokyo'],
-        ['Shanghai', 'Hong Kong'],
-        ['Shanghai', 'Tokyo'],
         ['Taipei', 'Seoul'],
-        ['Kuala Lumpur', 'Singapore'],
-        ['Jakarta', 'Singapore'],
-        ['Cairo', 'Istanbul'],
-        ['Istanbul', 'Frankfurt'],
-        ['Istanbul', 'Mumbai'],
-        ['Moscow', 'Frankfurt'],
-        ['Moscow', 'Tokyo'],
-        ['Lagos', 'Cairo'],
-        ['Lagos', 'London'],
-        ['Auckland', 'Sydney'],
-        ['Auckland', 'Melbourne'],
-        ['Stockholm', 'Istanbul']
+        ['Seoul', 'Tokyo'],
+
+        // Trans-Pacific Trunks (Asia -> Americas)
+        ['Tokyo', 'Seattle'],
+        ['Tokyo', 'San Francisco'],
+        ['Tokyo', 'Los Angeles'],
+        ['Tokyo', 'Vancouver'],
+        ['Tokyo', 'Honolulu'],
+        ['Honolulu', 'San Francisco'],
+        ['Honolulu', 'Sydney'],
+        ['Seoul', 'San Francisco'],
+        ['Seoul', 'Seattle'],
+        ['Hong Kong', 'San Francisco'],
+        ['Taipei', 'San Francisco'],
+        ['Singapore', 'San Francisco'],
+
+        // Asia-Pacific & Oceania Trunks
+        ['Tokyo', 'Sydney'],
+        ['Singapore', 'Sydney'],
+        ['Singapore', 'Melbourne'],
+        ['Manila', 'Sydney'],
+        ['Sydney', 'Melbourne'],
+        ['Sydney', 'Auckland'],
+        ['Melbourne', 'Auckland'],
+
+        // Latin America & South Atlantic Trunks
+        ['Miami', 'São Paulo'],
+        ['New York', 'São Paulo'],
+        ['Los Angeles', 'Bogota'],
+        ['Bogota', 'Santiago'],
+        ['Bogota', 'São Paulo'],
+        ['São Paulo', 'Buenos Aires'],
+        ['São Paulo', 'Santiago'],
+        ['Buenos Aires', 'Santiago'],
+        ['São Paulo', 'London'],
+        ['São Paulo', 'Madrid'],
+        ['São Paulo', 'Johannesburg'],
+        ['Buenos Aires', 'Johannesburg'],
+        ['Santiago', 'Sydney'],
+        ['Auckland', 'Santiago'],
+
+        // Transcontinental Global Highways (Europe -> Asia)
+        ['Frankfurt', 'Seoul'],
+        ['Frankfurt', 'Tokyo'],
+        ['London', 'Singapore'],
+        ['Zurich', 'Singapore'],
+        ['Dubai', 'Tokyo']
     ];
 
     const hubMap = {};
@@ -441,31 +412,38 @@ window.initGlobe = function () {
 
         const dist = v1.distanceTo(v2);
         const mid = new THREE.Vector3().addVectors(v1, v2).multiplyScalar(0.5);
+        // Smooth parabolic altitude based on distance
         const arcAltitude = Math.max(1.06, 1.0 + (dist / (sphereRadius * 2)) * 0.38);
         mid.normalize().multiplyScalar(sphereRadius * arcAltitude);
 
         const curve = new THREE.QuadraticBezierCurve3(v1, mid, v2);
         arcCurves.push(curve);
 
+        // Sovereign direct routes highlighted in gold, balance in luminous cyan
         const isGold = (fromName === 'New York' && toName === 'London') ||
-            (fromName === 'Singapore' && toName === 'Yangon') ||
-            (fromName === 'Yangon' && toName === 'Bangkok') ||
-            (fromName === 'Zurich' && toName === 'Dubai') ||
-            (fromName === 'Bengaluru' && toName === 'Yangon') ||
-            (fromName === 'Dubai' && toName === 'Johannesburg') ||
-            (fromName === 'London' && toName === 'Singapore') ||
-            (fromName === 'San Francisco' && toName === 'Tokyo');
+                       (fromName === 'Singapore' && toName === 'Yangon') ||
+                       (fromName === 'Yangon' && toName === 'Bangkok') ||
+                       (fromName === 'Zurich' && toName === 'Dubai') ||
+                       (fromName === 'Bengaluru' && toName === 'Yangon') ||
+                       (fromName === 'Dubai' && toName === 'Johannesburg') ||
+                       (fromName === 'London' && toName === 'Singapore') ||
+                       (fromName === 'San Francisco' && toName === 'Tokyo') ||
+                       (fromName === 'Hong Kong' && toName === 'Tokyo') ||
+                       (fromName === 'São Paulo' && toName === 'London');
 
-        const tubeGeo = new THREE.TubeGeometry(curve, 36, 0.025, 6, false);
+        // Refined slender neon fiber line tube
+        const tubeGeo = new THREE.TubeGeometry(curve, 36, 0.022, 6, false);
         const tubeMat = new THREE.MeshBasicMaterial({
-            color: isGold ? 0xf5c94a : 0x38bdf8,
+            color: isGold ? 0xd4af37 : 0x38bdf8,
             transparent: true,
-            opacity: isGold ? 0.85 : 0.6
+            opacity: isGold ? 0.75 : 0.52
         });
-        globeGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
+        const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+        globeGroup.add(tubeMesh);
 
+        // Subtle moving packet on key lines (every 2nd connection to prevent visual clutter)
         if (idx % 2 === 0) {
-            const pGeo = new THREE.SphereGeometry(0.06, 8, 8);
+            const pGeo = new THREE.SphereGeometry(0.05, 8, 8);
             const pMat = new THREE.MeshBasicMaterial({ color: isGold ? 0xfffae0 : 0xffffff });
             const pMesh = new THREE.Mesh(pGeo, pMat);
             globeGroup.add(pMesh);
@@ -493,21 +471,21 @@ window.initGlobe = function () {
     const dom = renderer.domElement;
     dom.style.cursor = 'grab';
 
-    dom.addEventListener('mousedown', (e) => {
+    const onMouseDown = (e) => {
         isDragging = true;
         autoRotate = false;
         dom.style.cursor = 'grabbing';
         prevMousePos = { x: e.clientX, y: e.clientY };
-    });
+    };
 
-    window.addEventListener('mouseup', () => {
+    const onMouseUp = () => {
         if (isDragging) {
             isDragging = false;
             dom.style.cursor = 'grab';
         }
-    });
+    };
 
-    window.addEventListener('mousemove', (e) => {
+    const onMouseMove = (e) => {
         if (!isDragging) return;
         const deltaX = e.clientX - prevMousePos.x;
         const deltaY = e.clientY - prevMousePos.y;
@@ -517,18 +495,17 @@ window.initGlobe = function () {
         targetRotX = Math.max(-1.1, Math.min(1.1, targetRotX));
 
         prevMousePos = { x: e.clientX, y: e.clientY };
-    });
+    };
 
-    // Touch controls
-    dom.addEventListener('touchstart', (e) => {
+    const onTouchStart = (e) => {
         if (e.touches.length === 1) {
             isDragging = true;
             autoRotate = false;
             prevMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         }
-    }, { passive: true });
+    };
 
-    window.addEventListener('touchmove', (e) => {
+    const onTouchMove = (e) => {
         if (!isDragging || e.touches.length !== 1) return;
         const deltaX = e.touches[0].clientX - prevMousePos.x;
         const deltaY = e.touches[0].clientY - prevMousePos.y;
@@ -538,18 +515,35 @@ window.initGlobe = function () {
         targetRotX = Math.max(-1.1, Math.min(1.1, targetRotX));
 
         prevMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }, { passive: true });
+    };
 
-    window.addEventListener('touchend', () => {
+    const onTouchEnd = () => {
         isDragging = false;
-    });
+    };
 
-    // Wheel to Zoom
-    dom.addEventListener('wheel', (e) => {
+    const onWheel = (e) => {
         e.preventDefault();
         camera.position.z += e.deltaY * 0.012;
         camera.position.z = Math.max(14, Math.min(32, camera.position.z));
-    }, { passive: false });
+    };
+
+    dom.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('mousemove', onMouseMove);
+    dom.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
+    dom.addEventListener('wheel', onWheel, { passive: false });
+
+    _globeCleanups.push(() => {
+        dom.removeEventListener('mousedown', onMouseDown);
+        window.removeEventListener('mouseup', onMouseUp);
+        window.removeEventListener('mousemove', onMouseMove);
+        dom.removeEventListener('touchstart', onTouchStart);
+        window.removeEventListener('touchmove', onTouchMove);
+        window.removeEventListener('touchend', onTouchEnd);
+        dom.removeEventListener('wheel', onWheel);
+    });
 
     // Animation Loop
     let time = 0;
@@ -557,7 +551,7 @@ window.initGlobe = function () {
         _globeAnimationId = requestAnimationFrame(animate);
         time += 0.015;
 
-        // Rotation dampening
+        // Smooth rotation dampening
         globeGroup.rotation.y += (targetRotY - globeGroup.rotation.y) * 0.08;
         globeGroup.rotation.x += (targetRotX - globeGroup.rotation.x) * 0.08;
 
@@ -565,7 +559,7 @@ window.initGlobe = function () {
             targetRotY += 0.0018;
         }
 
-        // Pulse hub halos
+        // Gentle pulse for hub halos
         hubMeshes.forEach((h, i) => {
             const scale = 1 + Math.sin(time * 2.5 + i) * 0.2;
             h.ring.scale.set(scale, scale, 1);
@@ -602,6 +596,10 @@ window.disposeGlobe = function () {
     if (_globeResizeHandler) {
         window.removeEventListener('resize', _globeResizeHandler);
         _globeResizeHandler = null;
+    }
+    while (_globeCleanups.length > 0) {
+        const cleanup = _globeCleanups.pop();
+        try { cleanup(); } catch (e) { }
     }
     if (_globeRenderer) {
         _globeRenderer.dispose();
