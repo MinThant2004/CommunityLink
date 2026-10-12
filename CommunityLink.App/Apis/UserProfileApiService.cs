@@ -27,6 +27,9 @@ public sealed class UserProfileApiService(IHttpClientFactory clientFactory, IHtt
     public Task<Result<UserProfileDto>> UpdateProfileAsync(UpdateUserProfileRequestDto dto, CancellationToken cancellationToken = default) =>
         PutAsync<UserProfileDto, UpdateUserProfileRequestDto>("api/users/me", dto, cancellationToken);
 
+    public Task<Result> DeleteMyAccountAsync(CancellationToken cancellationToken = default) =>
+        DeleteAsync("api/users/me/account", cancellationToken);
+
     public async Task<Result<UploadAvatarResponseDto>> UploadAvatarAsync(Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default)
     {
         try

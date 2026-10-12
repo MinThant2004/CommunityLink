@@ -371,6 +371,31 @@ public class UserProfileService : IUserProfileService
         return Result<UserProfileDto>.Success(profile, "Review removed successfully.");
     }
 
+    private async Task<HashSet<int>> GetLikedPostIdsAsync(IEnumerable<int> postIds, int? currentUserId, CancellationToken cancellationToken)
+    {
+        if (!currentUserId.HasValue) return [];
+        var idsList = postIds.Distinct().ToList();
+        if (idsList.Count == 0) return [];
+
+        var liked = await _dbContext.TblPostLikes
+            .AsNoTracking()
+            .Where(l => l.UserId == currentUserId.Value && !l.IsDeleted && idsList.Contains(l.PostId))
+            .Select(l => l.PostId)
+            .ToListAsync(cancellationToken);
+
+        return liked.ToHashSet();
+    }
+
+    private static bool IsCancellationException(Exception ex)
+    {
+        if (ex is OperationCanceledException) return true;
+        if (ex is Microsoft.Data.SqlClient.SqlException sqlEx && (sqlEx.Number == 0 || sqlEx.Message.Contains("cancelled", StringComparison.OrdinalIgnoreCase) || sqlEx.Message.Contains("canceled", StringComparison.OrdinalIgnoreCase)))
+            return true;
+        if (ex.InnerException != null)
+            return IsCancellationException(ex.InnerException);
+        return false;
+    }
+
     public async Task<Result<List<UserPostItemDto>>> GetUserPostsAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default)
     {
         try
@@ -397,8 +422,6 @@ public class UserProfileService : IUserProfileService
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync(cancellationToken);
 
-            var list = rawPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
-
             // Collect root post IDs for any SHARED posts
             var rootPostIdsToFetch = new HashSet<int>();
             foreach (var p in rawPosts)
@@ -416,12 +439,13 @@ public class UserProfileService : IUserProfileService
             if (rootPostIdsToFetch.Count > 0)
             {
                 var fetchedRoots = await _dbContext.TblPosts
+                    .AsNoTracking()
+                    .AsSplitQuery()
                     .Include(p => p.Author)
                     .Include(p => p.Community)
                     .Include(p => p.Group)
                     .Include(p => p.TblPostImages)
                     .Where(p => rootPostIdsToFetch.Contains(p.PostId) && !p.IsDeleted)
-                    .AsNoTracking()
                     .ToListAsync(cancellationToken);
 
                 foreach (var r in fetchedRoots)
@@ -442,17 +466,6 @@ public class UserProfileService : IUserProfileService
                         CodeFileName = r.CodeFileName,
                         CodeLanguage = r.CodeLanguage
                     };
-                }
-            }
-
-            foreach (var dto in list)
-            {
-                if (dto.PostType == "SHARED" && !string.IsNullOrWhiteSpace(dto.Subtitle) && dto.Subtitle.StartsWith("ROOT:", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (int.TryParse(dto.Subtitle["ROOT:".Length..], out int rId) && rootPostsDict.TryGetValue(rId, out var rootDto))
-                    {
-                        dto.OriginalPost = rootDto;
-                    }
                 }
             }
 
@@ -489,9 +502,27 @@ public class UserProfileService : IUserProfileService
                 .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync(cancellationToken);
 
+            var allPostIds = rawPosts.Select(p => p.PostId)
+                .Concat(sharedPosts.Select(s => s.Post.PostId))
+                .Distinct();
+
+            var likedPostIds = await GetLikedPostIdsAsync(allPostIds, currentUserId, cancellationToken);
+
+            var list = rawPosts.Select(p => MapPostToDto(p, currentUserId, likedPostIds)).ToList();
+            foreach (var dto in list)
+            {
+                if (dto.PostType == "SHARED" && !string.IsNullOrWhiteSpace(dto.Subtitle) && dto.Subtitle.StartsWith("ROOT:", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (int.TryParse(dto.Subtitle["ROOT:".Length..], out int rId) && rootPostsDict.TryGetValue(rId, out var rootDto))
+                    {
+                        dto.OriginalPost = rootDto;
+                    }
+                }
+            }
+
             var sharedList = sharedPosts.Select(s =>
             {
-                var dto = MapPostToDto(s.Post, currentUserId);
+                var dto = MapPostToDto(s.Post, currentUserId, likedPostIds);
                 dto.SharedByUserName = s.User.UserName;
                 dto.SharedByDisplayName = s.User.DisplayName;
                 dto.SharedAt = s.CreatedAt;
@@ -525,7 +556,7 @@ public class UserProfileService : IUserProfileService
 
             return Result<List<UserPostItemDto>>.Success(combinedList);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (Exception ex) when (cancellationToken.IsCancellationRequested || IsCancellationException(ex))
         {
             return Result<List<UserPostItemDto>>.Success([], "Request was canceled.");
         }
@@ -561,10 +592,11 @@ public class UserProfileService : IUserProfileService
                 .Select(sp => sp.Post)
                 .ToListAsync(cancellationToken);
 
-            var list = rawPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
+            var likedPostIds = await GetLikedPostIdsAsync(rawPosts.Select(p => p.PostId), currentUserId, cancellationToken);
+            var list = rawPosts.Select(p => MapPostToDto(p, currentUserId, likedPostIds)).ToList();
             return Result<List<UserPostItemDto>>.Success(list);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (Exception ex) when (cancellationToken.IsCancellationRequested || IsCancellationException(ex))
         {
             return Result<List<UserPostItemDto>>.Success([], "Request was canceled.");
         }
@@ -593,8 +625,6 @@ public class UserProfileService : IUserProfileService
                 .Include(p => p.Author)
                 .Include(p => p.Community)
                 .Include(p => p.TblPostImages)
-                .Include(p => p.TblPostLikes)
-                .Include(p => p.TblComments)
                 .Include(p => p.TblPolls)
                     .ThenInclude(poll => poll.TblPollOptions)
                 .Include(p => p.TblPolls)
@@ -603,10 +633,11 @@ public class UserProfileService : IUserProfileService
                 .OrderByDescending(p => p.DeletedAt ?? p.CreatedAt)
                 .ToListAsync(cancellationToken);
 
-            var list = recycledPosts.Select(p => MapPostToDto(p, currentUserId)).ToList();
+            var likedPostIds = await GetLikedPostIdsAsync(recycledPosts.Select(p => p.PostId), currentUserId, cancellationToken);
+            var list = recycledPosts.Select(p => MapPostToDto(p, currentUserId, likedPostIds)).ToList();
             return Result<List<UserPostItemDto>>.Success(list);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (Exception ex) when (cancellationToken.IsCancellationRequested || IsCancellationException(ex))
         {
             return Result<List<UserPostItemDto>>.Success([], "Request was canceled.");
         }
@@ -1129,17 +1160,17 @@ public class UserProfileService : IUserProfileService
         return Result<bool>.Success(true, "Vote cast successfully.");
     }
 
-    private static UserPostItemDto MapPostToDto(TblPost p, int? currentUserId)
+    private static UserPostItemDto MapPostToDto(TblPost p, int? currentUserId, HashSet<int>? likedPostIds = null)
     {
         UserPollDetailDto? pollDto = null;
-        if (p.HasPoll && p.TblPolls.Any(pl => !pl.IsDeleted))
+        if (p.HasPoll && p.TblPolls != null && p.TblPolls.Any(pl => !pl.IsDeleted))
         {
             var poll = p.TblPolls.First(pl => !pl.IsDeleted);
-            var myVote = currentUserId.HasValue
+            var myVote = currentUserId.HasValue && poll.TblPollVotes != null
                 ? poll.TblPollVotes.FirstOrDefault(v => v.UserId == currentUserId.Value && !v.IsDeleted)
                 : null;
 
-            int totalVotes = poll.TotalVotes > 0 ? poll.TotalVotes : poll.TblPollOptions.Sum(o => o.VoteCount);
+            int totalVotes = poll.TotalVotes > 0 ? poll.TotalVotes : (poll.TblPollOptions != null ? poll.TblPollOptions.Sum(o => o.VoteCount) : 0);
             bool isPollActive = !poll.IsDeleted && (!poll.ExpiresAt.HasValue || poll.ExpiresAt.Value > DateTime.UtcNow);
 
             pollDto = new UserPollDetailDto
@@ -1151,16 +1182,20 @@ public class UserProfileService : IUserProfileService
                 ExpiresAt = poll.ExpiresAt,
                 HasVoted = myVote != null,
                 MyVotedOptionId = myVote?.PollOptionId,
-                Options = poll.TblPollOptions.Where(o => !o.IsDeleted).OrderBy(o => o.DisplayOrder).Select(o => new UserPollOptionDto
-                {
-                    OptionId = o.PollOptionId,
-                    OptionText = o.OptionText,
-                    VoteCount = o.VoteCount,
-                    VotePercentage = totalVotes > 0 ? (int)Math.Round((double)o.VoteCount * 100 / totalVotes) : 0,
-                    IsSelectedByMe = myVote != null && myVote.PollOptionId == o.PollOptionId
-                }).ToList()
+                Options = poll.TblPollOptions != null
+                    ? poll.TblPollOptions.Where(o => !o.IsDeleted).OrderBy(o => o.DisplayOrder).Select(o => new UserPollOptionDto
+                    {
+                        OptionId = o.PollOptionId,
+                        OptionText = o.OptionText,
+                        VoteCount = o.VoteCount,
+                        VotePercentage = totalVotes > 0 ? (int)Math.Round((double)o.VoteCount * 100 / totalVotes) : 0,
+                        IsSelectedByMe = myVote != null && myVote.PollOptionId == o.PollOptionId
+                    }).ToList()
+                    : new List<UserPollOptionDto>()
             };
         }
+
+        bool isLiked = currentUserId.HasValue && (likedPostIds != null ? likedPostIds.Contains(p.PostId) : (p.TblPostLikes != null && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted)));
 
         return new UserPostItemDto
         {
@@ -1179,13 +1214,13 @@ public class UserProfileService : IUserProfileService
             CommunityId = p.CommunityId ?? 0,
             CommunityName = p.Community != null ? p.Community.Name : "General",
             AuthorUserId = p.AuthorId,
-            AuthorUserName = p.Author.UserName,
-            AuthorDisplayName = p.Author.DisplayName,
-            AuthorAvatarUrl = p.Author.AvatarUrl,
-            LikeCount = p.TblPostLikes != null ? p.TblPostLikes.Count(l => !l.IsDeleted) : p.LikeCount,
-            CommentCount = p.TblComments != null ? p.TblComments.Count(c => !c.IsDeleted) : p.CommentCount,
-            ShareCount = p.TblPostShares != null ? p.TblPostShares.Count(s => !s.IsDeleted) : p.ShareCount,
-            IsLikedByCurrentUser = currentUserId.HasValue && p.TblPostLikes != null && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
+            AuthorUserName = p.Author != null ? p.Author.UserName : "unknown",
+            AuthorDisplayName = p.Author != null ? (p.Author.DisplayName ?? p.Author.UserName) : "Unknown",
+            AuthorAvatarUrl = p.Author != null ? p.Author.AvatarUrl : null,
+            LikeCount = (p.TblPostLikes != null && p.TblPostLikes.Count > 0) ? p.TblPostLikes.Count(l => !l.IsDeleted) : p.LikeCount,
+            CommentCount = (p.TblComments != null && p.TblComments.Count > 0) ? p.TblComments.Count(c => !c.IsDeleted) : p.CommentCount,
+            ShareCount = (p.TblPostShares != null && p.TblPostShares.Count > 0) ? p.TblPostShares.Count(s => !s.IsDeleted) : p.ShareCount,
+            IsLikedByCurrentUser = isLiked,
             IsSaved = currentUserId.HasValue && p.TblSavedPosts != null && p.TblSavedPosts.Any(s => s.UserId == currentUserId.Value && !s.IsDeleted),
             ImageUrls = p.TblPostImages != null ? p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList() : new List<string>(),
             CreatedAt = p.CreatedAt,
@@ -1194,5 +1229,35 @@ public class UserProfileService : IUserProfileService
             IsPrivate = p.IsPrivate,
             ModerationReason = p.ModerationReason
         };
+    }
+
+    public async Task<Result> DeleteMyAccountAsync(int currentUserId, CancellationToken cancellationToken = default)
+    {
+        var user = await _dbContext.TblUsers.FirstOrDefaultAsync(u => u.UserId == currentUserId && !u.IsDeleted, cancellationToken);
+        if (user == null)
+            return Result.Failure("User profile not found.", ResultStatus.NotFound);
+
+        // Perform soft delete in database to preserve historical user records
+        user.IsDeleted = true;
+        user.IsActive = false;
+        user.DeletedAt = DateTime.UtcNow;
+        user.DeletedBy = currentUserId;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        _dbContext.TblAuditLogs.Add(new TblAuditLog
+        {
+            ActorType = "USER",
+            ActorId = currentUserId,
+            Action = "DELETE",
+            EntityName = "USER",
+            EntityId = currentUserId,
+            OldValues = "IsDeleted: False, IsActive: True",
+            NewValues = "IsDeleted: True, IsActive: False",
+            ChangedColumns = "IsDeleted,IsActive,DeletedAt,DeletedBy",
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success("Your account has been closed successfully.");
     }
 }

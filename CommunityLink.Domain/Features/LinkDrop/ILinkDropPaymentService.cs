@@ -29,7 +29,7 @@ public interface ILinkDropPaymentService
     Task<bool> TogglePackageStatusAsync(int adminId, int packageId);
 
     Task<List<PaymentMethodDto>> GetAllPaymentMethodsAsync();
-    Task<PaymentMethodDto> CreatePaymentMethodAsync(int adminId, CreatePaymentMethodRequestDto request);
-    Task<PaymentMethodDto> UpdatePaymentMethodAsync(int adminId, int paymentMethodId, UpdatePaymentMethodRequestDto request);
+    Task<PaymentMethodDto> CreatePaymentMethodAsync(int adminId, CreatePaymentMethodRequestDto request, Stream? qrCodeStream = null, string? qrCodeFileName = null, Stream? logoStream = null, string? logoFileName = null);
+    Task<PaymentMethodDto> UpdatePaymentMethodAsync(int adminId, int paymentMethodId, UpdatePaymentMethodRequestDto request, Stream? qrCodeStream = null, string? qrCodeFileName = null, Stream? logoStream = null, string? logoFileName = null);
     Task<bool> TogglePaymentMethodStatusAsync(int adminId, int paymentMethodId);
 }

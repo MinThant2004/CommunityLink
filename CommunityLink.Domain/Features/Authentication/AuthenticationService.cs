@@ -172,12 +172,15 @@ public class AuthenticationService : IAuthenticationService
             .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.NormalizedEmail == request.Email.ToUpperInvariant());
 
-        if (user == null || !user.IsActive || user.IsDeleted)
+        if (user == null || user.IsDeleted)
             return Result<LoginResponseModel>.Failure("Invalid email or password.", ResultStatus.Unauthorized);
 
         bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
         if (!isValidPassword)
             return Result<LoginResponseModel>.Failure("Invalid email or password.", ResultStatus.Unauthorized);
+
+        if (!user.IsActive)
+            return Result<LoginResponseModel>.Failure("Your account has been deactivated. Please contact support or an administrator for assistance.", ResultStatus.Unauthorized);
 
         user.LastLoginAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
@@ -203,12 +206,15 @@ public class AuthenticationService : IAuthenticationService
             .ThenInclude(ar => ar.Role)
             .FirstOrDefaultAsync(a => a.NormalizedEmail == normalizedEmail);
 
-        if (admin == null || !admin.IsActive || admin.IsDeleted)
-            return Result<LoginResponseModel>.Failure("Invalid admin credentials or account is deactivated.", ResultStatus.Unauthorized);
+        if (admin == null || admin.IsDeleted)
+            return Result<LoginResponseModel>.Failure("Invalid admin credentials.", ResultStatus.Unauthorized);
 
         bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, admin.PasswordHash);
         if (!isValidPassword)
             return Result<LoginResponseModel>.Failure("Invalid admin credentials.", ResultStatus.Unauthorized);
+
+        if (!admin.IsActive)
+            return Result<LoginResponseModel>.Failure("Your administrator account has been deactivated. Please contact a system administrator for assistance.", ResultStatus.Unauthorized);
 
         var roleMapping = admin.TblAdminRoles.FirstOrDefault(ar => !ar.IsDeleted);
         var roleCode = admin.IsSuperAdmin ? SuperAdminRoleCode : (roleMapping?.Role?.RoleCode ?? AdminRoleCode);

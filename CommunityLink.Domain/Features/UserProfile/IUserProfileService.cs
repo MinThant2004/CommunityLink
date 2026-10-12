@@ -30,4 +30,5 @@ public interface IUserProfileService
     Task<Result<List<UserSharedPostItemDto>>> GetUserSharesAsync(int targetUserId, int? currentUserId, CancellationToken cancellationToken = default);
     Task<Result<bool>> EndorseSkillAsync(int currentUserId, int skillId, CancellationToken cancellationToken = default);
     Task<Result<bool>> VotePollAsync(int currentUserId, int pollId, int optionId, CancellationToken cancellationToken = default);
+    Task<Result> DeleteMyAccountAsync(int currentUserId, CancellationToken cancellationToken = default);
 }
