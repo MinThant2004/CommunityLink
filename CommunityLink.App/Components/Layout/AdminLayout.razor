@@ -20,12 +20,37 @@
             <nav class="flex flex-col gap-1">
                 <NavLink href="admin/dashboard" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
                     <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                    <span>Overview Stats</span>
+                    <span>Dashboard</span>
                 </NavLink>
                 <NavLink href="admin/communities" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
                     <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
                     <span>Hub Moderation</span>
                 </NavLink>
+                <div>
+                    <button type="button" @onclick="() => isContentModerationOpen = !isContentModerationOpen"
+                            class="w-full px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center justify-between cursor-pointer">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-4 h-4 shrink-0 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span>Content Moderation</span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transform transition-transform duration-200 @(isContentModerationOpen ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    @if (isContentModerationOpen)
+                    {
+                        <div class="pl-6 pr-1 py-1 space-y-1 mt-0.5 border-l-2 border-slate-700 dark:border-slate-800 ml-4">
+                            <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition flex items-center gap-2" ActiveClass="!bg-indigo-600 !text-white shadow-sm" href="admin/content-moderation?tab=posts">
+                                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/></svg>
+                                <span>Post</span>
+                            </NavLink>
+                            <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition flex items-center gap-2" ActiveClass="!bg-indigo-600 !text-white shadow-sm" href="admin/content-moderation?tab=groups">
+                                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <span>Group</span>
+                            </NavLink>
+                        </div>
+                    }
+                </div>
                 <NavLink href="admin/users" Match="NavLinkMatch.Prefix" class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 dark:hover:bg-[#182030] hover:text-white transition-colors flex items-center gap-2.5" ActiveClass="!bg-indigo-600 !text-white shadow-sm">
                     <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     <span>User Directory</span>
@@ -136,6 +161,7 @@
 
 @code {
     private bool isDarkMode = false;
+    private bool isContentModerationOpen = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

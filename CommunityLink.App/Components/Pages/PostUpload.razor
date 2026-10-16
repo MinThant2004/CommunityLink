@@ -76,6 +76,21 @@
             @foreach (var post in posts)
             {
                 <div class="bg-white dark:bg-[#112A46] rounded-2xl shadow-sm border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] hover:border-[#0A1B2E]/20 dark:hover:border-[rgba(196,210,225,0.35)] overflow-hidden transition duration-200">
+                    @if (!post.IsActive && currentUserId.HasValue && post.AuthorId == currentUserId.Value)
+                    {
+                        <!-- Post Banned Banner for Author -->
+                        <div @onclick="() => OpenBannedReasonModal(post)"
+                             class="cursor-pointer bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border-b border-red-500/30 px-4 py-2.5 flex items-center justify-between text-xs font-bold transition">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                <span>Your post got banned</span>
+                            </div>
+                            <span class="text-[11px] underline font-semibold flex items-center gap-1">
+                                <span>View reason</span>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </span>
+                        </div>
+                    }
                     <!-- Post Header -->
                     <div class="p-4 sm:p-5 flex items-start justify-between">
                         <div class="flex items-center gap-3">
@@ -106,26 +121,54 @@
                             </div>
                         </div>
 
-                        <!-- Self-post Options (Edit & Delete only for Author) -->
-                        @if (currentUserId.HasValue && post.AuthorId == currentUserId.Value)
-                        {
-                            <div class="flex items-center gap-1">
-                                <button type="button" @onclick="() => OpenEditPostModal(post)"
-                                        title="Edit your post"
-                                        class="p-1.5 text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
+                        <div class="flex items-center gap-1.5">
+                            @if (post.IsPrivate)
+                            {
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                    <span>Private</span>
+                                </span>
+                            }
+
+                            <!-- Three Dots Dropdown -->
+                            <div class="relative">
+                                <button type="button" @onclick="() => TogglePostMenu(post.PostId)"
+                                        title="Post options"
+                                        class="p-1.5 text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                                 </button>
-                                <button type="button" @onclick="() => PromptRecyclePost(post.PostId)"
-                                        title="Move to Recycle Bin"
-                                        class="p-1.5 text-[#7A8CA6] hover:text-amber-600 dark:hover:text-amber-400 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/40 transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
+
+                                @if (openPostMenuId == post.PostId)
+                                {
+                                    <div class="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-[#112A46] rounded-xl shadow-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] p-1 z-30 space-y-0.5">
+                                        <button type="button" @onclick='() => OpenReportModal(post.PostId, "POST")'
+                                                class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-2 cursor-pointer">
+                                            <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
+                                            <span>Report Post</span>
+                                        </button>
+
+                                        @if (currentUserId.HasValue && post.AuthorId == currentUserId.Value)
+                                        {
+                                            <button type="button" @onclick="() => TogglePostPrivacyAsync(post)"
+                                                    class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center gap-2 cursor-pointer">
+                                                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                                <span>@(post.IsPrivate ? "Make Public" : "Make Private")</span>
+                                            </button>
+                                            <button type="button" @onclick="() => OpenEditPostModal(post)"
+                                                    class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center gap-2 cursor-pointer">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                <span>Edit Post</span>
+                                            </button>
+                                            <button type="button" @onclick="() => PromptRecyclePost(post.PostId)"
+                                                    class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition flex items-center gap-2 cursor-pointer">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                <span>Recycle Post</span>
+                                            </button>
+                                        }
+                                    </div>
+                                }
                             </div>
-                        }
+                        </div>
                     </div>
 
                     <!-- Post Body Text -->
@@ -600,11 +643,112 @@
     </div>
 }
 
+<!-- ================= REPORT CONTENT MODAL ================= -->
+<ReportContentModal IsOpen="@showReportModal"
+                    IsOpenChanged="@((bool val) => showReportModal = val)"
+                    ContentType="@reportContentType"
+                    ContentId="@reportContentId" />
+
+<!-- Post Banned Reason Modal -->
+@if (showBannedReasonModal && bannedPostTarget != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div class="bg-white dark:bg-[#112A46] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-red-200 dark:border-red-900/50 space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                <div class="flex items-center gap-2">
+                    <span class="p-1.5 rounded-lg bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    </span>
+                    <h3 class="text-base font-bold text-red-600 dark:text-red-400">Your post got banned</h3>
+                </div>
+                <button type="button" @onclick="CloseBannedReasonModal" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <p class="text-xs text-[#557392] dark:text-[#C4D2E1] leading-relaxed">
+                    This post was removed from public community feeds by platform moderators because it violated community standards.
+                </p>
+
+                <div class="bg-red-50 dark:bg-red-950/30 p-3.5 rounded-xl border border-red-200 dark:border-red-900/40 space-y-1">
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-red-700 dark:text-red-300 font-mono">Moderation Reason</span>
+                    <p class="text-xs text-red-900 dark:text-red-200 font-medium">
+                        @(string.IsNullOrWhiteSpace(bannedPostTarget.ModerationReason) ? "Violation of community safety and conduct guidelines." : bannedPostTarget.ModerationReason)
+                    </p>
+                </div>
+
+                <p class="text-[11px] text-[#7A8CA6]">
+                    Only you and site administrators can view this post. Other community members cannot see or interact with it.
+                </p>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                <button type="button" @onclick="CloseBannedReasonModal"
+                        class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:opacity-90 transition cursor-pointer">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private IReadOnlyList<PostModel>? posts;
     private List<CommunityModel> allCommunities = [];
     private List<CommunityModel> mainCommunities = [];
     private List<CommunityModel> filteredSubCommunities = [];
+
+    // Report modal state
+    private bool showReportModal = false;
+    private string reportContentType = "POST";
+    private int reportContentId = 0;
+    private int? openPostMenuId = null;
+
+    // Banned reason modal state
+    private bool showBannedReasonModal = false;
+    private PostModel? bannedPostTarget = null;
+
+    private void OpenBannedReasonModal(PostModel post)
+    {
+        bannedPostTarget = post;
+        showBannedReasonModal = true;
+    }
+
+    private void CloseBannedReasonModal()
+    {
+        showBannedReasonModal = false;
+        bannedPostTarget = null;
+    }
+
+    private async Task TogglePostPrivacyAsync(PostModel post)
+    {
+        openPostMenuId = null;
+        var res = await PostApi.TogglePostPrivacyAsync(post.PostId);
+        if (res.IsSuccess)
+        {
+            post.IsPrivate = !post.IsPrivate;
+            Toast.Success(post.IsPrivate ? "Post set to Private mode." : "Post set to Public mode.");
+            StateHasChanged();
+        }
+        else
+        {
+            Toast.Error(res.Message ?? "Failed to toggle post privacy.");
+        }
+    }
+
+    private void TogglePostMenu(int postId)
+    {
+        openPostMenuId = (openPostMenuId == postId) ? null : postId;
+    }
+
+    private void OpenReportModal(int id, string type)
+    {
+        openPostMenuId = null;
+        reportContentId = id;
+        reportContentType = type;
+        showReportModal = true;
+    }
 
     private int? currentUserId;
     private bool isLoadingFeed = true;

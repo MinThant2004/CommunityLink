@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -14,6 +14,8 @@ public partial class TblPaymentMethod
     public string AccountNumber { get; set; } = null!;
 
     public string? QrCodeImageUrl { get; set; }
+
+    public string? PaymentLogoUrl { get; set; }
 
     public string? Instructions { get; set; }
 

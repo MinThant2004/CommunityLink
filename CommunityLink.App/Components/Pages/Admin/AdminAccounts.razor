@@ -1,6 +1,7 @@
 @page "/admin/accounts"
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
 @inject AdministrationApiService AdminApi
+@inject RoleAndPermissionApiService RoleApi
 @inject ToastService Toast
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JS
@@ -190,24 +191,21 @@
                 </div>
 
                 <div class="space-y-1.5">
-                    <label class="block text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0] uppercase font-mono tracking-wider">Administrator Type</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex flex-col p-3 rounded-lg border cursor-pointer transition @(!inviteIsSuperAdmin ? "border-[#0A1B2E] dark:border-[#E1E8F0] bg-[#F1F5F9] dark:bg-[#1B3B5A]" : "border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#0A1B2E]")">
-                            <div class="flex items-center gap-2">
-                                <input type="radio" name="adminType" checked="@(!inviteIsSuperAdmin)" @onchange="() => inviteIsSuperAdmin = false" />
-                                <span class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0]">ADMIN</span>
-                            </div>
-                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] mt-1">Standard operator access without status toggle permissions.</span>
-                        </label>
-
-                        <label class="flex flex-col p-3 rounded-lg border cursor-pointer transition @(inviteIsSuperAdmin ? "border-[#0A1B2E] dark:border-[#E1E8F0] bg-[#F1F5F9] dark:bg-[#1B3B5A]" : "border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#0A1B2E]")">
-                            <div class="flex items-center gap-2">
-                                <input type="radio" name="adminType" checked="@(inviteIsSuperAdmin)" @onchange="() => inviteIsSuperAdmin = true" />
-                                <span class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0]">SYSTEMADMIN</span>
-                            </div>
-                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] mt-1">Can activate and deactivate other administrator accounts.</span>
-                        </label>
-                    </div>
+                    <label class="block text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0] uppercase font-mono tracking-wider">Assigned Admin Role *</label>
+                    <select @bind="selectedAdminRoleId" class="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] transition">
+                        @if (adminRoles.Count == 0)
+                        {
+                            <option value="0">Loading admin roles...</option>
+                        }
+                        else
+                        {
+                            @foreach (var r in adminRoles)
+                            {
+                                <option value="@r.RoleId">@r.Name (@r.Code)</option>
+                            }
+                        }
+                    </select>
+                    <p class="text-[11px] text-[#557392] dark:text-[#C4D2E1]">Select the explicit Admin Role to assign to this account. Only admin domain roles are eligible.</p>
                 </div>
 
                 <div class="p-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-xs text-[#557392] dark:text-[#C4D2E1] space-y-1">
@@ -240,6 +238,7 @@
 
 @code {
     private List<AdminAccountModel> adminAccounts = [];
+    private List<RoleModel> adminRoles = [];
     private bool isLoading = true;
     private string searchFilter = "";
     private bool isCurrentCallerSuperAdmin;
@@ -247,7 +246,7 @@
     // Modal state
     private bool showInviteModal;
     private string targetEmail = "";
-    private bool inviteIsSuperAdmin = false;
+    private int selectedAdminRoleId = 0;
     private string? modalError;
     private bool isInviting;
 
@@ -265,9 +264,11 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         var roleCode = user.FindFirst("role")?.Value ?? user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-        isCurrentCallerSuperAdmin = string.Equals(roleCode, "SUPERADMIN", StringComparison.OrdinalIgnoreCase);
+        isCurrentCallerSuperAdmin = string.Equals(roleCode, "SUPERADMIN", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(roleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase);
 
         await LoadDataAsync();
+        await LoadAdminRolesAsync();
     }
 
     private async Task LoadDataAsync()
@@ -282,10 +283,28 @@
         isLoading = false;
     }
 
+    private async Task LoadAdminRolesAsync()
+    {
+        var rolesRes = await RoleApi.GetRolesAsync(roleType: 1);
+        if (rolesRes.IsSuccess && rolesRes.Data != null)
+        {
+            adminRoles = rolesRes.Data.ToList();
+            if (selectedAdminRoleId == 0 && adminRoles.Count > 0)
+            {
+                var defaultAdmin = adminRoles.FirstOrDefault(r => r.Code == "ADMIN") ?? adminRoles[0];
+                selectedAdminRoleId = defaultAdmin.RoleId;
+            }
+        }
+    }
+
     private void OpenInviteModal()
     {
         targetEmail = "";
-        inviteIsSuperAdmin = false;
+        if (adminRoles.Count > 0 && selectedAdminRoleId == 0)
+        {
+            var defaultAdmin = adminRoles.FirstOrDefault(r => r.Code == "ADMIN") ?? adminRoles[0];
+            selectedAdminRoleId = defaultAdmin.RoleId;
+        }
         modalError = null;
         showInviteModal = true;
     }
@@ -304,8 +323,19 @@
             return;
         }
 
+        if (selectedAdminRoleId == 0 && adminRoles.Count > 0)
+        {
+            selectedAdminRoleId = adminRoles[0].RoleId;
+        }
+
+        var chosenRole = adminRoles.FirstOrDefault(r => r.RoleId == selectedAdminRoleId);
+        var isSuperAdmin = chosenRole != null &&
+            (string.Equals(chosenRole.Code, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(chosenRole.Code, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase));
+
         isInviting = true;
-        var result = await AdminApi.CreateAdminInviteAsync(new CreateAdminInviteRequestModel(targetEmail.Trim(), null, inviteIsSuperAdmin));
+        var req = new CreateAdminInviteRequestModel(targetEmail.Trim(), null, isSuperAdmin, selectedAdminRoleId);
+        var result = await AdminApi.CreateAdminInviteAsync(req);
         isInviting = false;
 
         if (!result.IsSuccess)

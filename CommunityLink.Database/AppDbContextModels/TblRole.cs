@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -14,6 +14,8 @@ public partial class TblRole
     public string? Description { get; set; }
 
     public bool IsSystemRole { get; set; }
+
+    public int RoleType { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

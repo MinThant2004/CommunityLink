@@ -232,12 +232,10 @@ public class PremiumGroupChatAuthorizationTests : IClassFixture<CommunityApiFact
     [Fact]
     public void PermissionCatalog_DefaultForRole_Admin_DoesNotIncludeGroupChatCreate()
     {
-        // Admin gets ALL permissions including GroupChatCreate since All.Select returns everything
-        // But the business rule is ADMIN is NOT premium. IsPremiumCreator is the gate, not the permission.
-        // This test verifies the permission is in the catalog, which Admin gets by default (all permissions).
+        // Admin domain roles only receive Admin permissions (Type == 1).
+        // GROUPCHAT.CREATE is a User-domain creator permission (Type == 0) and is not granted to Admin.
         var permissions = PermissionCatalog.DefaultForRole("ADMIN");
-        // Admin gets all — this is fine because we check IsPremiumCreator, not the permission, for eligibility.
-        Assert.Contains(PermissionCatalog.GroupChatCreate, permissions);
+        Assert.DoesNotContain(PermissionCatalog.GroupChatCreate, permissions);
     }
 
     [Fact]

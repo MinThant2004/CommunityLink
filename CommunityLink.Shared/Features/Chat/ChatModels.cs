@@ -11,7 +11,10 @@ public sealed record ConversationModel(
     bool IsBlockedByMe = false,
     bool IsBlockedByTarget = false,
     bool IsOnline = false,
-    DateTime? LastActiveAt = null);
+    DateTime? LastActiveAt = null,
+    bool IsPaidChat = false,
+    bool IsUnlocked = true,
+    long FeeLinkDrops = 0);
 
 public sealed record ChatMessageModel(
     int MessageId,

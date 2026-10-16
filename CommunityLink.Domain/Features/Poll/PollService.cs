@@ -17,6 +17,7 @@ public interface IPollService
     Task<Result<PollModel>> VoteAsync(VoteRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<PollModel>> UpdatePollAsync(int pollId, UpdatePollRequestModel request, CancellationToken cancellationToken = default);
     Task<Result> DeletePollAsync(int pollId, CancellationToken cancellationToken = default);
+    Task<Result<bool>> TogglePollPrivacyAsync(int pollId, CancellationToken cancellationToken = default);
 }
 
 public sealed class PollService(
@@ -56,19 +57,78 @@ public sealed class PollService(
             var baseQuery = dbContext.TblPolls
                 .Where(p => !p.IsDeleted);
 
+            // Privacy & Ban Filter according to policy:
+            if (currentUser.IsAdmin)
+            {
+                baseQuery = baseQuery.Where(p => !p.IsPrivate || (currentUserId.HasValue && ((p.Post != null && p.Post.AuthorId == currentUserId.Value) || p.CreatedBy == currentUserId.Value)));
+            }
+            else
+            {
+                if (currentUserId.HasValue)
+                {
+                    baseQuery = baseQuery.Where(p =>
+                        (!p.IsPrivate || (p.Post != null && p.Post.AuthorId == currentUserId.Value) || p.CreatedBy == currentUserId.Value) &&
+                        (p.IsActive || (p.Post != null && p.Post.AuthorId == currentUserId.Value) || p.CreatedBy == currentUserId.Value));
+                }
+                else
+                {
+                    baseQuery = baseQuery.Where(p => !p.IsPrivate && p.IsActive);
+                }
+            }
+
+            List<int> followedAuthorIds = [];
+            List<int> joinedGroupIds = [];
+            List<int> joinedCommunityIds = [];
+            if (currentUserId.HasValue)
+            {
+                followedAuthorIds = await dbContext.TblUserFollows
+                    .Where(f => f.FollowerId == currentUserId.Value && !f.IsDeleted)
+                    .Select(f => f.FolloweeId)
+                    .ToListAsync(cancellationToken);
+
+                joinedGroupIds = await dbContext.TblGroupMembers
+                    .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
+                    .Select(m => m.GroupId)
+                    .ToListAsync(cancellationToken);
+
+                joinedCommunityIds = await dbContext.TblCommunityMembers
+                    .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
+                    .Select(m => m.CommunityId)
+                    .ToListAsync(cancellationToken);
+            }
+
             if (groupId.HasValue && groupId.Value > 0)
             {
-                baseQuery = baseQuery.Where(p => p.Post.GroupId == groupId.Value);
+                baseQuery = baseQuery.Where(p => p.Post != null && p.Post.GroupId == groupId.Value);
             }
             else if (communityId.HasValue && communityId.Value > 0)
             {
-                baseQuery = baseQuery.Where(p => p.Post.CommunityId == communityId.Value);
+                baseQuery = baseQuery.Where(p => p.Post != null && p.Post.CommunityId == communityId.Value);
+            }
+            else
+            {
+                // When in general feed:
+                // 1. Group polls: user must have joined the group (or is author)
+                // 2. Community polls: user must have joined the community (or is author)
+                // 3. Standalone polls: show if followed, self, or author
+                if (currentUserId.HasValue)
+                {
+                    baseQuery = baseQuery.Where(p =>
+                        ((p.Post != null && p.Post.AuthorId == currentUserId.Value) || p.CreatedBy == currentUserId.Value) ||
+                        (p.Post != null && p.Post.GroupId.HasValue && joinedGroupIds.Contains(p.Post.GroupId.Value)) ||
+                        (p.Post != null && p.Post.CommunityId.HasValue && !p.Post.GroupId.HasValue && joinedCommunityIds.Contains(p.Post.CommunityId.Value)) ||
+                        ((p.Post == null || (!p.Post.GroupId.HasValue && !p.Post.CommunityId.HasValue)) && (followedAuthorIds.Contains(p.Post != null ? p.Post.AuthorId : (p.CreatedBy ?? 0)) || (p.Post != null ? p.Post.AuthorId : p.CreatedBy) == currentUserId.Value)));
+                }
+                else
+                {
+                    baseQuery = baseQuery.Where(p => p.Post == null || (p.Post.GroupId == null && p.Post.CommunityId == null));
+                }
             }
 
             // 1. Fetch polls with post metadata and precomputed scalar counts
             var rawPolls = await baseQuery
                 .OrderByDescending(p => p.CreatedAt)
-                .Take(30)
+                .Take(100)
                 .Select(p => new
                 {
                     p.PollId,
@@ -89,7 +149,10 @@ public sealed class PollService(
                     CommentCount = p.Post != null ? p.Post.TblComments.Count(c => !c.IsDeleted) : 0,
                     ShareCount = p.Post != null ? p.Post.TblPostShares.Count(s => !s.IsDeleted) : 0,
                     IsLiked = currentUserId.HasValue && p.Post != null && p.Post.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
-                    p.CreatedAt
+                    p.CreatedAt,
+                    p.IsActive,
+                    p.IsPrivate,
+                    p.ModerationReason
                 })
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
@@ -161,11 +224,41 @@ public sealed class PollService(
                     p.ShareCount,
                     p.IsLiked,
                     p.CreatedAt,
-                    p.AuthorUserName
+                    p.AuthorUserName,
+                    p.IsActive,
+                    p.IsPrivate,
+                    p.ModerationReason
                 );
             }).ToList();
 
-            return Result<IReadOnlyList<PollModel>>.Success(list);
+            // 4-Tier Sorting Hierarchy for Polls:
+            // 1. Followed authors (newest first)
+            // 2. Joined group polls (newest first)
+            // 3. Joined community/sub-community polls (newest first)
+            // 4. Self polls and other polls (placed last)
+            int GetPollTier(PollModel item)
+            {
+                // Self polls placed last (Tier 4)
+                if (currentUserId.HasValue && item.AuthorId == currentUserId.Value) return 4;
+
+                // Tier 1: Followed authors
+                if (followedAuthorIds.Contains(item.AuthorId)) return 1;
+
+                // Tier 2: Joined group polls
+                if (item.GroupId.HasValue && joinedGroupIds.Contains(item.GroupId.Value)) return 2;
+
+                // Tier 3: Joined community/sub-community polls
+                if (item.CommunityId.HasValue && joinedCommunityIds.Contains(item.CommunityId.Value)) return 3;
+
+                return 5;
+            }
+
+            var sortedList = list
+                .OrderBy(p => GetPollTier(p))
+                .ThenByDescending(p => p.CreatedAt)
+                .ToList();
+
+            return Result<IReadOnlyList<PollModel>>.Success(sortedList);
         }
         catch (Exception ex) when (ex is OperationCanceledException ||
                                    (ex is Microsoft.Data.SqlClient.SqlException sqlEx && (cancellationToken.IsCancellationRequested || sqlEx.Message.Contains("Operation cancelled by user", StringComparison.OrdinalIgnoreCase))))
@@ -210,6 +303,11 @@ public sealed class PollService(
             if (grp == null)
             {
                 return Result<PollModel>.Failure("Group not found.", ResultStatus.NotFound);
+            }
+
+            if (!grp.IsActive)
+            {
+                return Result<PollModel>.Failure("This group is currently inactive/deactivated. New polls cannot be published at this time.", ResultStatus.Forbidden);
             }
 
             var isMember = grp.TblGroupMembers.Any(m => m.UserId == currentUser.UserId.Value && !m.IsDeleted);
@@ -427,5 +525,29 @@ public sealed class PollService(
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success("Poll deleted successfully.");
+    }
+
+    public async Task<Result<bool>> TogglePollPrivacyAsync(int pollId, CancellationToken cancellationToken = default)
+    {
+        if (currentUser.UserId is null) return Result<bool>.Failure("Unauthorized", ResultStatus.Unauthorized);
+
+        var poll = await dbContext.TblPolls
+            .Include(p => p.Post)
+            .FirstOrDefaultAsync(p => p.PollId == pollId && !p.IsDeleted, cancellationToken);
+
+        if (poll is null)
+            return Result<bool>.Failure("Poll not found.", ResultStatus.NotFound);
+
+        var authorId = poll.Post?.AuthorId ?? poll.CreatedBy ?? 0;
+        if (authorId != currentUser.UserId.Value)
+            return Result<bool>.Failure("Only the poll creator can change the privacy of this poll.", ResultStatus.Forbidden);
+
+        poll.IsPrivate = !poll.IsPrivate;
+        if (poll.Post != null) poll.Post.IsPrivate = poll.IsPrivate;
+        poll.UpdatedAt = DateTime.UtcNow;
+        poll.UpdatedBy = currentUser.UserId.Value;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result<bool>.Success(poll.IsPrivate, poll.IsPrivate ? "Poll set to Private mode." : "Poll set to Public mode.");
     }
 }

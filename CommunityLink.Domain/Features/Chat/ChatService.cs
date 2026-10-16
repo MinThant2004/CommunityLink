@@ -76,12 +76,58 @@ public sealed class ChatService(
             .Select(g => g.First())
             .ToList();
 
+        var otherUserIds = rawConversations
+            .Select(c => c.UserOneId == currentUserId ? c.UserTwoId : c.UserOneId)
+            .Distinct()
+            .ToList();
+
+        var creatorSettingsDict = await dbContext.TblCreatorChatSettings
+            .AsNoTracking()
+            .Where(s => otherUserIds.Contains(s.CreatorUserId) && s.IsPrivateChatEnabled)
+            .ToDictionaryAsync(s => s.CreatorUserId, s => s.PrivateChatFeeLinkDrops, cancellationToken);
+
+        var paidCreatorUserIds = creatorSettingsDict.Keys.ToList();
+
+        var unlockedOtherUserIds = new HashSet<int>();
+        if (paidCreatorUserIds.Count > 0)
+        {
+            var unlockedTransactions = await dbContext.TblPrivateChatPaymentTransactions
+                .AsNoTracking()
+                .Where(t => ((t.BuyerUserId == currentUserId && paidCreatorUserIds.Contains(t.CreatorUserId)) ||
+                             (paidCreatorUserIds.Contains(t.BuyerUserId) && t.CreatorUserId == currentUserId)) &&
+                            t.Status == "COMPLETED")
+                .ToListAsync(cancellationToken);
+
+            foreach (var tx in unlockedTransactions)
+            {
+                if (tx.BuyerUserId == currentUserId)
+                {
+                    unlockedOtherUserIds.Add(tx.CreatorUserId);
+                }
+                if (tx.CreatorUserId == currentUserId)
+                {
+                    unlockedOtherUserIds.Add(tx.BuyerUserId);
+                }
+            }
+        }
+
         var resultList = new List<ConversationModel>();
 
         foreach (var c in rawConversations)
         {
             var otherUserId = c.UserOneId == currentUserId ? c.UserTwoId : c.UserOneId;
             var otherUser = c.UserOneId == currentUserId ? c.UserTwo : c.UserOne;
+
+            bool isPaidChat = false;
+            bool isUnlocked = true;
+            long feeLinkDrops = 0;
+
+            if (otherUserId != currentUserId && creatorSettingsDict.TryGetValue(otherUserId, out var fee))
+            {
+                isPaidChat = true;
+                feeLinkDrops = fee;
+                isUnlocked = unlockedOtherUserIds.Contains(otherUserId);
+            }
 
             var totalMessageCount = await dbContext.TblChatMessages
                 .AsNoTracking()
@@ -114,7 +160,10 @@ public sealed class ChatService(
                     IsBlockedByMe: blockedByMeSet.Contains(otherUserId),
                     IsBlockedByTarget: blockedTargetSet.Contains(otherUserId),
                     IsOnline: presenceTracker.IsUserOnline(otherUserId),
-                    LastActiveAt: otherUser.LastActiveAt));
+                    LastActiveAt: otherUser.LastActiveAt,
+                    IsPaidChat: isPaidChat,
+                    IsUnlocked: isUnlocked,
+                    FeeLinkDrops: feeLinkDrops));
             }
             else
             {
@@ -129,7 +178,10 @@ public sealed class ChatService(
                     IsBlockedByMe: blockedByMeSet.Contains(otherUserId),
                     IsBlockedByTarget: blockedTargetSet.Contains(otherUserId),
                     IsOnline: presenceTracker.IsUserOnline(otherUserId),
-                    LastActiveAt: otherUser.LastActiveAt));
+                    LastActiveAt: otherUser.LastActiveAt,
+                    IsPaidChat: isPaidChat,
+                    IsUnlocked: isUnlocked,
+                    FeeLinkDrops: feeLinkDrops));
             }
         }
 

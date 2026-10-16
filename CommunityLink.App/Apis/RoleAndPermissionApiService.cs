@@ -7,8 +7,11 @@ namespace CommunityLink.App.Apis;
 public sealed class RoleAndPermissionApiService(IHttpClientFactory clientFactory, IHttpContextAccessor httpContextAccessor)
     : ApiService(clientFactory, httpContextAccessor)
 {
-    public Task<Result<IReadOnlyList<RoleModel>>> GetRolesAsync(CancellationToken cancellationToken = default) =>
-        GetAsync<IReadOnlyList<RoleModel>>("api/roles", cancellationToken);
+    public Task<Result<IReadOnlyList<RoleModel>>> GetRolesAsync(int? roleType = null, CancellationToken cancellationToken = default)
+    {
+        var url = roleType.HasValue ? $"api/roles?roleType={roleType.Value}" : "api/roles";
+        return GetAsync<IReadOnlyList<RoleModel>>(url, cancellationToken);
+    }
 
     public Task<Result<RolePermissionMatrixResponseModel>> GetRolePermissionsAsync(int roleId, CancellationToken cancellationToken = default) =>
         GetAsync<RolePermissionMatrixResponseModel>($"api/roles/{roleId}/permissions", cancellationToken);

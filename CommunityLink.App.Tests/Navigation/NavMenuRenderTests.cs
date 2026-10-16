@@ -20,7 +20,8 @@ public class NavMenuRenderTests
     public void PermissionCatalog_AdminRole_HasAllPermissions()
     {
         var adminPerms = PermissionCatalog.DefaultForRole("ADMIN");
-        Assert.Equal(PermissionCatalog.All.Count, adminPerms.Count);
+        var adminDomainCount = PermissionCatalog.All.Count(p => p.Type == 1);
+        Assert.Equal(adminDomainCount, adminPerms.Count);
     }
 
     [Fact]

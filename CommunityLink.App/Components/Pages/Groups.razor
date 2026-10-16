@@ -223,8 +223,8 @@
                 @if (canCreateGroup)
                 {
                     <button type="button" @onclick="OpenCreateGroupModal"
-                            class="px-3.5 py-1.5 bg-primary text-on-primary hover:bg-primary-fixed-dim rounded-lg font-label-md text-label-md font-bold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">add</span>
+                            class="px-3.5 py-1.5 bg-surface-container-high hover:bg-surface-container-highest dark:bg-[#1E3A8A] dark:hover:bg-[#1D4ED8] text-on-surface dark:text-white rounded-lg font-label-md text-label-md font-bold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer border border-surface-container-high/40 dark:border-blue-400/30 shadow-xs">
+                        <span class="material-symbols-outlined text-sm text-primary dark:text-blue-300">add_circle</span>
                         <span>Create Group</span>
                     </button>
                 }
@@ -793,7 +793,12 @@
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        isAdmin = user.IsInRole("ADMIN") || user.HasClaim("permission", PermissionCatalog.AdminUserView);
+        isAdmin = user.IsInRole("ADMIN") ||
+                  user.IsInRole("SYSTEM_ADMIN") ||
+                  user.IsInRole("SYSTEMADMIN") ||
+                  user.IsInRole("SUPERADMIN") ||
+                  user.HasClaim("is_admin", "true") ||
+                  user.HasClaim("permission", PermissionCatalog.AdminUserView);
 
         var sub = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
         if (int.TryParse(sub, out var uid))

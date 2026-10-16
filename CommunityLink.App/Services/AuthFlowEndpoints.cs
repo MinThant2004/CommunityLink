@@ -14,14 +14,11 @@ public static class AuthFlowEndpoints
                    [FromForm] string password,
                    [FromForm] bool? rememberMe,
                    [FromForm] string? returnUrl,
-                   HttpContext context,
-                   IAntiforgery antiforgery,
                    AuthenticationApiService authApi,
                    AuthSessionService sessions) =>
         {
-            await antiforgery.ValidateRequestAsync(context);
             return await HandleLoginAsync(authApi, sessions, "/login", email, password, rememberMe == true, returnUrl);
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost("/account/register",
             async ([FromForm] string fullName,
@@ -29,11 +26,8 @@ public static class AuthFlowEndpoints
                    [FromForm] string email,
                    [FromForm] string password,
                    [FromForm] string? confirmPassword,
-                   HttpContext context,
-                   IAntiforgery antiforgery,
                    AuthenticationApiService authApi) =>
         {
-            await antiforgery.ValidateRequestAsync(context);
             var result = await authApi.RegisterAsync(new RegisterRequestModel(
                 fullName, userName, email, password, Bio: null, ConfirmPassword: confirmPassword));
 
@@ -41,24 +35,33 @@ public static class AuthFlowEndpoints
                 return RedirectWithError("/register", result.Message);
 
             return Results.Redirect("/login");
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost("/account/admin/login",
             async ([FromForm] string email,
                    [FromForm] string password,
                    [FromForm] bool? rememberMe,
-                   HttpContext context,
-                   IAntiforgery antiforgery,
                    AuthenticationApiService authApi,
                    AuthSessionService sessions) =>
         {
-            await antiforgery.ValidateRequestAsync(context);
             var result = await authApi.LoginAdminAsync(new LoginRequestModel(email, password, rememberMe == true, IsAdmin: true));
             if (!result.IsSuccess || result.Data is null)
                 return RedirectWithError("/admin/portal-entry/login", result.Message);
 
             await sessions.SignInAsync(result.Data, rememberMe == true);
             return Results.Redirect("/admin/dashboard");
+        }).DisableAntiforgery();
+
+        endpoints.MapPost("/account/delete",
+            async (HttpContext context,
+                   IAntiforgery antiforgery,
+                   UserProfileApiService profileApi,
+                   AuthSessionService sessions) =>
+        {
+            await antiforgery.ValidateRequestAsync(context);
+            var result = await profileApi.DeleteMyAccountAsync();
+            await sessions.SignOutAsync();
+            return Results.Redirect("/login?error=" + Uri.EscapeDataString("Your account has been closed successfully."));
         });
 
         return endpoints;
@@ -80,9 +83,9 @@ public static class AuthFlowEndpoints
 
         await sessions.SignInAsync(result.Data, rememberMe);
         
-        string defaultTarget = (result.Data.RoleCode?.ToUpperInvariant() == "ADMIN" || result.Data.RoleCode?.ToUpperInvariant() == "SUPERADMIN")
-            ? "/admin/dashboard"
-            : "/";
+        var normalizedRole = result.Data.RoleCode?.ToUpperInvariant();
+        bool isAdmin = normalizedRole == "ADMIN" || normalizedRole == "SUPERADMIN" || normalizedRole == "SYSTEM_ADMIN" || normalizedRole == "SYSTEMADMIN";
+        string defaultTarget = isAdmin ? "/admin/dashboard" : "/";
 
         var target = IsLocalUrl(returnUrl) ? returnUrl! : defaultTarget;
         return Results.Redirect(target);

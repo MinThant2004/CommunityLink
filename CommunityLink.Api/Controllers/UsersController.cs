@@ -67,6 +67,18 @@ public class UsersController : BaseController
     }
 
     [Authorize]
+    [HttpDelete("me/account")]
+    public async Task<IActionResult> DeleteMyAccount(CancellationToken cancellationToken)
+    {
+        var userId = CurrentUserId;
+        if (userId == null)
+            return Unauthorized(Result.Failure("Authentication required.", ResultStatus.Unauthorized));
+
+        var result = await _userProfileService.DeleteMyAccountAsync(userId.Value, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [Authorize]
     [HttpPost("me/avatar")]
     public async Task<IActionResult> UploadAvatar([FromForm] IFormFile? avatar, CancellationToken cancellationToken)
     {

@@ -50,9 +50,15 @@ public class AdministrationController : ControllerBase
 
     [HttpGet("users/page")]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
-    public async Task<IActionResult> GetUsersPage([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetUsersPage(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 10, 
+        [FromQuery] string? search = null,
+        [FromQuery] bool? isActive = null,
+        [FromQuery] string? roleFilter = null,
+        CancellationToken cancellationToken = default)
     {
-        var result = await _adminService.GetUsersPageAsync(page, pageSize, search, cancellationToken);
+        var result = await _adminService.GetUsersPageAsync(page, pageSize, search, isActive, roleFilter, cancellationToken);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
 
@@ -61,6 +67,14 @@ public class AdministrationController : ControllerBase
     public async Task<IActionResult> AssignUserRole([FromBody] CommunityLink.Shared.Features.Authentication.AssignUserRoleRequestModel request, CancellationToken cancellationToken)
     {
         var result = await _adminService.AssignUserRoleAsync(request, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPost("users/{userId:int}/toggle-status")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserManage)]
+    public async Task<IActionResult> ToggleUserStatus(int userId, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.ToggleUserStatusAsync(userId, cancellationToken);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
 
@@ -164,4 +178,48 @@ public class AdministrationController : ControllerBase
         var result = await _adminService.ToggleAdminStatusAsync(id, cancellationToken);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
+
+    #region Content Moderation & Reporting
+
+    [HttpPost("reports")]
+    [Authorize]
+    public async Task<IActionResult> SubmitContentReport([FromBody] CommunityLink.Shared.Features.Administration.CreateContentReportRequestModel request, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.SubmitContentReportAsync(request, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("reports")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+    public async Task<IActionResult> GetContentReports([FromQuery] string? status = null, CancellationToken cancellationToken = default)
+    {
+        var result = await _adminService.GetContentReportsAsync(status, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("moderated-content")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+    public async Task<IActionResult> GetModeratedContentList([FromQuery] string? filter = "ALL", CancellationToken cancellationToken = default)
+    {
+        var result = await _adminService.GetModeratedContentListAsync(filter, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpGet("moderated-groups")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.GroupManagement)]
+    public async Task<IActionResult> GetModeratedGroups(CancellationToken cancellationToken = default)
+    {
+        var result = await _adminService.GetModeratedGroupsListAsync(cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPost("moderate-content")]
+    [Authorize]
+    public async Task<IActionResult> ModerateContent([FromBody] CommunityLink.Shared.Features.Administration.ModerateContentRequestModel request, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.ModerateContentAsync(request, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    #endregion
 }

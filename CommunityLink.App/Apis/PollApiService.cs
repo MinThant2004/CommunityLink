@@ -24,4 +24,7 @@ public sealed class PollApiService(IHttpClientFactory clientFactory, IHttpContex
 
     public Task<Result> DeletePollAsync(int pollId, CancellationToken cancellationToken = default) =>
         DeleteAsync($"api/polls/{pollId}", cancellationToken);
+
+    public Task<Result<bool>> TogglePollPrivacyAsync(int pollId, CancellationToken cancellationToken = default) =>
+        PostAsync<bool, object>($"api/polls/{pollId}/toggle-privacy", new { }, cancellationToken);
 }

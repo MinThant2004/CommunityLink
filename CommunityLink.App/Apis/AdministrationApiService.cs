@@ -23,10 +23,18 @@ public sealed class AdministrationApiService(IHttpClientFactory clientFactory, I
     public Task<Result<IReadOnlyList<UserInfoModel>>> GetUsersAsync(CancellationToken cancellationToken = default) =>
         GetAsync<IReadOnlyList<UserInfoModel>>("api/admin/users", cancellationToken);
 
-    public Task<Result<PagedResult<UserInfoModel>>> GetUsersPageAsync(int page = 1, int pageSize = 10, string? search = null, CancellationToken cancellationToken = default)
+    public Task<Result<PagedResult<UserInfoModel>>> GetUsersPageAsync(
+        int page = 1, 
+        int pageSize = 10, 
+        string? search = null, 
+        bool? isActive = null,
+        string? roleFilter = null,
+        CancellationToken cancellationToken = default)
     {
         var url = $"api/admin/users/page?page={page}&pageSize={pageSize}";
         if (!string.IsNullOrWhiteSpace(search)) url += $"&search={WebUtility.UrlEncode(search)}";
+        if (isActive.HasValue) url += $"&isActive={isActive.Value}";
+        if (!string.IsNullOrWhiteSpace(roleFilter)) url += $"&roleFilter={WebUtility.UrlEncode(roleFilter)}";
         return GetAsync<PagedResult<UserInfoModel>>(url, cancellationToken);
     }
 
@@ -52,6 +60,9 @@ public sealed class AdministrationApiService(IHttpClientFactory clientFactory, I
     public Task<Result> AssignUserRoleAsync(AssignUserRoleRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync("api/admin/users/assign-role", request, cancellationToken);
 
+    public Task<Result> ToggleUserStatusAsync(int userId, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/admin/users/{userId}/toggle-status", new { }, cancellationToken);
+
     public Task<Result<IReadOnlyList<AdminAccountModel>>> GetAdminAccountsAsync(CancellationToken cancellationToken = default) =>
         GetAsync<IReadOnlyList<AdminAccountModel>>("api/admin/accounts", cancellationToken);
 
@@ -72,4 +83,28 @@ public sealed class AdministrationApiService(IHttpClientFactory clientFactory, I
 
     public Task<Result<PlatformCommissionSettingDto>> UpdatePlatformCommissionAsync(UpdateCommissionSettingRequestDto request, CancellationToken cancellationToken = default) =>
         PutAsync<PlatformCommissionSettingDto, UpdateCommissionSettingRequestDto>("api/admin/settings/commission", request, cancellationToken);
+
+    // Content Reporting & Moderation
+    public Task<Result> SubmitContentReportAsync(CreateContentReportRequestModel request, CancellationToken cancellationToken = default) =>
+        PostAsync("api/admin/reports", request, cancellationToken);
+
+    public Task<Result<IReadOnlyList<ContentReportModel>>> GetContentReportsAsync(string? status = null, CancellationToken cancellationToken = default)
+    {
+        var url = "api/admin/reports";
+        if (!string.IsNullOrWhiteSpace(status)) url += $"?status={WebUtility.UrlEncode(status)}";
+        return GetAsync<IReadOnlyList<ContentReportModel>>(url, cancellationToken);
+    }
+
+    public Task<Result<IReadOnlyList<ContentItemAdminModel>>> GetModeratedContentListAsync(string? filter = "ALL", CancellationToken cancellationToken = default)
+    {
+        var url = "api/admin/moderated-content";
+        if (!string.IsNullOrWhiteSpace(filter)) url += $"?filter={WebUtility.UrlEncode(filter)}";
+        return GetAsync<IReadOnlyList<ContentItemAdminModel>>(url, cancellationToken);
+    }
+
+    public Task<Result<IReadOnlyList<GroupItemAdminModel>>> GetModeratedGroupsListAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<GroupItemAdminModel>>("api/admin/moderated-groups", cancellationToken);
+
+    public Task<Result> ModerateContentAsync(ModerateContentRequestModel request, CancellationToken cancellationToken = default) =>
+        PostAsync("api/admin/moderate-content", request, cancellationToken);
 }

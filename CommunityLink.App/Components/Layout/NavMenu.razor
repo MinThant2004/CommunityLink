@@ -37,12 +37,16 @@
                         </NavLink>
                     </div>
 
-                    <div class="px-1 py-0.5">
-                        <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="groups">
-                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                            <span>Groups</span>
-                        </NavLink>
-                    </div>
+                    <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.GroupView)" Context="groupViewCtx">
+                        <Authorized>
+                            <div class="px-1 py-0.5">
+                                <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="groups">
+                                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    <span>Groups</span>
+                                </NavLink>
+                            </div>
+                        </Authorized>
+                    </AuthorizeView>
                     <div class="px-1 py-0.5">
                         <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="chat">
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.189A8.721 8.721 0 0 1 3 12a8.721 8.721 0 0 1 3.04-6.06 8.721 8.721 0 0 1 6.96 0A8.721 8.721 0 0 1 21 12Z"/></svg>
@@ -146,23 +150,59 @@
                         </Authorized>
                     </AuthorizeView>
 
-                    <!-- Administration Section for Admins -->
-                    <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)" Context="adminContext">
+                    <!-- Administration Section strictly for Admins (logged in through Admin Portal) -->
+                    <AuthorizeView Context="adminContext">
                         <Authorized>
-                            <div class="px-1 py-2 mt-4 pt-4 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
-                                <div class="px-3 pb-2 flex items-center justify-between font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
-                                    <span>Administration</span>
-                                    <span class="px-1.5 py-0.5 rounded bg-[#F1F5F9] dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E2EC] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[9px]">ADMIN</span>
-                                </div>
+                            @{
+                                var user = adminContext.User;
+                                bool isAdminActor = user.HasClaim("is_admin", "true") ||
+                                                   user.IsInRole("ADMIN") ||
+                                                   user.IsInRole("SYSTEM_ADMIN") ||
+                                                   user.IsInRole("SYSTEMADMIN") ||
+                                                   user.IsInRole("SUPERADMIN") ||
+                                                   user.HasClaim("permission", PermissionCatalog.AdminUserView);
+                            }
+                            @if (isAdminActor)
+                            {
+                                <div class="px-1 py-2 mt-4 pt-4 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
+                                    <div class="px-3 pb-2 flex items-center justify-between font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
+                                        <span>Administration</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-[#F1F5F9] dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E2EC] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[9px]">ADMIN</span>
+                                    </div>
                                 <div class="space-y-1">
                                     <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/dashboard">
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                                        <span>Overview Stats</span>
+                                        <span>Dashboard</span>
                                     </NavLink>
                                     <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/communities">
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
                                         <span>Hub Moderation</span>
                                     </NavLink>
+                                    <div>
+                                        <button type="button" @onclick="ToggleContentModerationMenu"
+                                                class="w-full px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center justify-between cursor-pointer">
+                                            <div class="flex items-center gap-2.5">
+                                                <svg class="w-4 h-4 shrink-0 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                <span>Content Moderation</span>
+                                            </div>
+                                            <svg class="w-3.5 h-3.5 transform transition-transform duration-200 @(isContentModerationOpen ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                        @if (isContentModerationOpen)
+                                        {
+                                            <div class="pl-6 pr-1 py-1 space-y-1 mt-0.5 border-l-2 border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] ml-4">
+                                                <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/content-moderation?tab=posts">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/></svg>
+                                                    <span>Post</span>
+                                                </NavLink>
+                                                <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/content-moderation?tab=groups">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                    <span>Group</span>
+                                                </NavLink>
+                                            </div>
+                                        }
+                                    </div>
                                     <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/users">
                                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                         <span>User Directory</span>
@@ -205,6 +245,7 @@
                                     </NavLink>
                                 </div>
                             </div>
+                            }
                         </Authorized>
                     </AuthorizeView>
                 </Authorized>
@@ -277,9 +318,15 @@
 @code {
     [Parameter] public EventCallback OnClose { get; set; }
     private bool isReportOpen = true;
+    private bool isContentModerationOpen = true;
 
     private void ToggleReportMenu()
     {
         isReportOpen = !isReportOpen;
+    }
+
+    private void ToggleContentModerationMenu()
+    {
+        isContentModerationOpen = !isContentModerationOpen;
     }
 }

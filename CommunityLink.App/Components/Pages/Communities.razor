@@ -2,6 +2,8 @@
 @page "/community"
 @rendermode InteractiveServer
 @using System.IO
+@using System.Security.Claims
+@using CommunityLink.Shared.Security
 @inject CommunityApiService CommunityApi
 @inject ToastService Toast
 @inject NavigationManager Navigation
@@ -626,6 +628,7 @@
     private bool isLeaving;
 
     // Create modal state
+    private bool canCreateCommunity;
     private bool showCreateModal;
     private bool isSubmitting;
     private bool isSubCommunityCreation;
