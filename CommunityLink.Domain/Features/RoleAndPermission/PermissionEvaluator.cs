@@ -15,7 +15,9 @@ public sealed class PermissionEvaluator(AppDbContext dbContext, ICurrentUserCont
     public async Task<bool> HasPermissionAsync(string permissionCode, CancellationToken cancellationToken = default)
     {
         if (currentUser.RoleId is null) return false;
-        if (string.Equals(currentUser.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase)) return true;
+        if (string.Equals(currentUser.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(currentUser.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(currentUser.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase)) return true;
 
         return await dbContext.TblRolePermissions
             .AsNoTracking()

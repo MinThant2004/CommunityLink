@@ -217,7 +217,7 @@ public class AuthenticationService : IAuthenticationService
             return Result<LoginResponseModel>.Failure("Your administrator account has been deactivated. Please contact a system administrator for assistance.", ResultStatus.Unauthorized);
 
         var roleMapping = admin.TblAdminRoles.FirstOrDefault(ar => !ar.IsDeleted);
-        var roleCode = admin.IsSuperAdmin ? SuperAdminRoleCode : (roleMapping?.Role?.RoleCode ?? AdminRoleCode);
+        var roleCode = admin.IsSuperAdmin ? "SYSTEM_ADMIN" : (roleMapping?.Role?.RoleCode ?? AdminRoleCode);
         var roleId = admin.IsSuperAdmin
             ? (roleMapping?.RoleId ?? (await ResolveAdminRoleAsync(true)).RoleId)
             : (roleMapping?.RoleId ?? (await ResolveAdminRoleAsync(false)).RoleId);
@@ -273,7 +273,7 @@ public class AuthenticationService : IAuthenticationService
                 admin.Email,
                 null,
                 null,
-                admin.IsSuperAdmin ? SuperAdminRoleCode : (role?.RoleCode ?? AdminRoleCode),
+                admin.IsSuperAdmin ? "SYSTEM_ADMIN" : (role?.RoleCode ?? AdminRoleCode),
                 role?.RoleId ?? 0,
                 admin.IsActive,
                 admin.CreatedAt);
@@ -500,15 +500,18 @@ public class AuthenticationService : IAuthenticationService
 
     private async Task<(string RoleCode, int RoleId)> ResolveMemberRoleAsync()
     {
-        var role = await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "USER" && !r.IsDeleted)
+        var role = await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "DEFAULT_USER" && !r.IsDeleted)
+                   ?? await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "USER" && !r.IsDeleted)
                    ?? await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == MemberRoleCode && !r.IsDeleted);
-        return (role?.RoleCode ?? "USER", role?.RoleId ?? 3);
+        return (role?.RoleCode ?? "DEFAULT_USER", role?.RoleId ?? 3);
     }
 
     private async Task<(string RoleCode, int RoleId)> ResolveAdminRoleAsync(bool isSuperAdmin)
     {
-        var role = await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == AdminRoleCode);
-        return (isSuperAdmin ? SuperAdminRoleCode : AdminRoleCode, role?.RoleId ?? 1);
+        var targetCode = isSuperAdmin ? "SYSTEM_ADMIN" : AdminRoleCode;
+        var role = await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == targetCode && !r.IsDeleted)
+                   ?? await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == AdminRoleCode && !r.IsDeleted);
+        return (role?.RoleCode ?? (isSuperAdmin ? "SYSTEM_ADMIN" : AdminRoleCode), role?.RoleId ?? 1);
     }
 
     private async Task<LoginResponseModel> BuildLoginResponseAsync(
@@ -522,7 +525,10 @@ public class AuthenticationService : IAuthenticationService
         var sessionId = Guid.NewGuid().ToString("N");
         var token = _tokenIssuer.GenerateToken(userId, email, fullName, roleCode, roleId, sessionId,
             expiresInMinutes: rememberMe ? (int)TimeSpan.FromDays(30).TotalMinutes : null);
-        var permissions = await _permissionEvaluator.GetPermissionsForRoleAsync(roleId);
+        var permissions = (string.Equals(roleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(roleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase))
+            ? (await _dbContext.TblPermissions.Where(p => !p.IsDeleted && p.Type == 1).Select(p => p.PermissionCode).ToListAsync())
+            : await _permissionEvaluator.GetPermissionsForRoleAsync(roleId);
 
         return new LoginResponseModel(
             AccessToken: token,

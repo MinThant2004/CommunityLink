@@ -7,45 +7,29 @@
 
 <div class="h-screen flex overflow-hidden bg-[#F8FAFC] dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] font-sans antialiased transition-colors duration-150">
     <!-- Backdrop for mobile when sidebar is open -->
-    @if (isSidebarOpen && !isNormalUser)
+    @if (isSidebarOpen)
     {
         <div class="fixed inset-0 bg-[#0A1B2E]/20 dark:bg-black/60 backdrop-blur-xs z-30 lg:hidden" @onclick="ToggleSidebar"></div>
     }
 
-    <!-- Executive Minimalist Closeable Sidebar (Fixed / Stays in place) - hidden for the default USER role -->
-    @if (!isNormalUser)
-    {
-        <aside class="@(isSidebarOpen ? "w-64 min-w-[16rem]" : "w-0 min-w-0 border-r-0 overflow-hidden pointer-events-none") fixed lg:relative inset-y-0 left-0 h-screen bg-white dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] flex flex-col border-r border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shadow-sm z-40 transition-all duration-200 ease-in-out shrink-0">
-            <NavMenu OnClose="ToggleSidebar" />
-        </aside>
-    }
+    <!-- Executive Minimalist Closeable Sidebar (Fixed / Stays in place) -->
+    <aside class="@(isSidebarOpen ? "w-64 min-w-[16rem]" : "w-0 min-w-0 border-r-0 overflow-hidden pointer-events-none") fixed lg:relative inset-y-0 left-0 h-screen bg-white dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] flex flex-col border-r border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shadow-sm z-40 transition-all duration-200 ease-in-out shrink-0">
+        <NavMenu OnClose="ToggleSidebar" />
+    </aside>
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
         <!-- Top App Bar with Global Search & Primary Menu -->
         <header class="bg-white/95 dark:bg-[#111622]/95 backdrop-blur-md border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] px-4 sm:px-6 py-2.5 flex items-center gap-3 shadow-xs shrink-0 z-40 relative">
-            <!-- Left: Brand, Sidebar Toggle, Search & Menu -->
+            <!-- Left: Sidebar Toggle & Search -->
             <div class="flex items-center gap-3 flex-1 min-w-0">
-                @if (isNormalUser)
-                {
-                    <a href="" class="flex items-center gap-2.5 no-underline shrink-0" title="CommunityLink">
-                        <span class="w-8 h-8 rounded bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] flex items-center justify-center font-bold text-sm shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">CL</span>
-                        <span class="hidden xl:block leading-none">
-                            <span class="font-bold text-sm text-[#0A1B2E] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">Community<span class="text-[#D4AF37]">Link</span></span>
-                            <span class="block font-mono text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] mt-0.5">SOVEREIGN NETWORK</span>
-                        </span>
-                    </a>
-                }
-                else
-                {
-                    <button @onclick="ToggleSidebar" class="p-1.5 rounded text-[#557392] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition cursor-pointer shrink-0" title="Toggle navigation sidebar" aria-label="Toggle navigation sidebar">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="3" y1="12" x2="21" y2="12"></line>
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <line x1="3" y1="18" x2="21" y2="18"></line>
-                        </svg>
-                    </button>
-                }
+                <button @onclick="ToggleSidebar" class="p-1.5 rounded text-[#557392] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition cursor-pointer shrink-0" title="Toggle navigation sidebar" aria-label="Toggle navigation sidebar">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
 
                 <!-- Global Search Box -->
                 <div class="relative w-40 sm:w-56 xl:w-72 shrink">
@@ -284,7 +268,10 @@
         bool isPremiumRole = roleCode.Equals("DOMAIN_PRO", StringComparison.OrdinalIgnoreCase) ||
                              roleCode.Equals("DOMAIN_PROFESSIONAL", StringComparison.OrdinalIgnoreCase) ||
                              roleCode.Equals("PUBLIC_FIGURE", StringComparison.OrdinalIgnoreCase) ||
-                             roleCode.Equals("ADMIN", StringComparison.OrdinalIgnoreCase);
+                             roleCode.Equals("ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                             roleCode.Equals("SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                             roleCode.Equals("SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+                             roleCode.Equals("SUPERADMIN", StringComparison.OrdinalIgnoreCase);
 
         bool hasActiveSubscription = false;
         if (user.Identity?.IsAuthenticated == true && !isPremiumRole)
@@ -314,8 +301,10 @@
         {
             userRoleLabel = roleCode.ToUpperInvariant() switch
             {
+                "SYSTEM_ADMIN" or "SYSTEMADMIN" or "SUPERADMIN" => "System Administrator",
                 "ADMIN" => "Administrator",
                 "USER" => "Default User",
+                "DEFAULT_USER" => "Default User",
                 "MEMBER" => "Community Member",
                 "MODERATOR" => "Community Moderator",
                 "DOMAIN_PRO" or "DOMAIN_PROFESSIONAL" => "Domain Professional",

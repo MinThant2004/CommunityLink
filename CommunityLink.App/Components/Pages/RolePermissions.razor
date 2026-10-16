@@ -25,7 +25,7 @@
             </button>
             @if (matrix != null)
             {
-                if (IsSelectedRoleAdmin)
+                if (IsSelectedRoleSystemAdmin)
                 {
                     <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#475569] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)]">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -52,18 +52,41 @@
         </div>
     </div>
 
+    <!-- Domain Tabs: User Roles (0) vs Admin Roles (1) -->
+    <div class="flex items-center gap-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-2">
+        <button type="button"
+                @onclick="() => SwitchTab(0)"
+                class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer @(activeRoleTypeTab == 0 ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] shadow-sm" : "bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]")">
+            <span>👤</span>
+            <span>User Roles</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono @(activeRoleTypeTab == 0 ? "bg-white/20 text-white dark:text-[#0A1B2E]" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300")">
+                @UserRolesCount
+            </span>
+        </button>
+
+        <button type="button"
+                @onclick="() => SwitchTab(1)"
+                class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer @(activeRoleTypeTab == 1 ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] shadow-sm" : "bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]")">
+            <span>🛡️</span>
+            <span>Admin Roles</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono @(activeRoleTypeTab == 1 ? "bg-white/20 text-white dark:text-[#0A1B2E]" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300")">
+                @AdminRolesCount
+            </span>
+        </button>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Role Selection Sidebar -->
         <div class="space-y-2">
             <div class="flex items-center justify-between px-1 mb-2">
                 <h2 class="text-[10px] font-bold text-[#7A8CA6] dark:text-[#C4D2E1] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">Select Role</h2>
-                <span class="text-[11px] text-[#557392] dark:text-[#7A8CA6] font-semibold">@(roles?.Count ?? 0) Roles</span>
+                <span class="text-[11px] text-[#557392] dark:text-[#7A8CA6] font-semibold">@DisplayedRoles.Count Roles</span>
             </div>
 
             @if (roles != null)
             {
                 <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.08)] shadow-sm">
-                    @foreach (var r in roles)
+                    @foreach (var r in DisplayedRoles)
                     {
                         var isSel = selectedRoleId == r.RoleId;
                         <div class="w-full text-left p-4 transition flex items-center justify-between group @(isSel ? "bg-[#F1F5F9] dark:bg-[#1B3B5A] border-l-4 border-l-[#0A1B2E] dark:border-l-[#E1E8F0]" : "hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/50") cursor-pointer"
@@ -80,9 +103,9 @@
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[#F1F5F9] dark:bg-[#0A1B2E] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                                    @r.UserCount users
+                                    @r.UserCount accounts
                                 </span>
-                                @if (!r.IsSystemRole && !string.Equals(r.Code, "ADMIN", StringComparison.OrdinalIgnoreCase) && !string.Equals(r.Code, "USER", StringComparison.OrdinalIgnoreCase))
+                                @if (!IsProtectedRole(r))
                                 {
                                     <button class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition"
                                             title="Delete Role"
@@ -115,16 +138,16 @@
                             <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm" style="font-family:'Manrope',sans-serif">
                                 Permissions for: <span class="text-[#557392] dark:text-[#C4D2E1]">@matrix.RoleName (@matrix.RoleCode)</span>
                             </span>
-                            @if (IsSelectedRoleAdmin)
+                            @if (IsSelectedRoleSystemAdmin)
                             {
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/50 flex items-center gap-1">
                                     <svg class="w-3 h-3 text-amber-600 dark:text-amber-400 fill-amber-600 dark:fill-amber-400" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                                    <span>ALL GRANTED (READ-ONLY)</span>
+                                    <span>ALL GRANTED (LOCKED)</span>
                                 </span>
                             }
                         </div>
                         <div class="flex items-center gap-3">
-                            @if (!IsSelectedRoleAdmin)
+                            @if (!IsSelectedRoleSystemAdmin)
                             {
                                 <button type="button"
                                         class="px-2.5 py-1 rounded text-xs font-semibold border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] bg-white dark:bg-[#1B3B5A] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] transition flex items-center gap-1.5 cursor-pointer shadow-sm"
@@ -134,9 +157,9 @@
                                 </button>
                             }
                             <span class="text-xs text-[#7A8CA6] dark:text-[#C4D2E1] font-mono">
-                                @(IsSelectedRoleAdmin ? matrix.Permissions.Count : grantedCodes.Count) of @matrix.Permissions.Count granted
+                                @(IsSelectedRoleSystemAdmin ? matrix.Permissions.Count : grantedCodes.Count) of @matrix.Permissions.Count granted
                             </span>
-                            @if (!IsSelectedRoleSystem)
+                            @if (CurrentSelectedRole != null && !IsProtectedRole(CurrentSelectedRole))
                             {
                                 <button class="text-xs font-semibold text-rose-600 hover:text-rose-800 flex items-center gap-1 transition"
                                         @onclick="() => PromptDeleteRole(CurrentSelectedRole)">
@@ -152,7 +175,7 @@
                             <thead>
                                 <tr class="bg-[#F1F5F9] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[10px] font-bold text-[#7A8CA6] dark:text-[#C4D2E1] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
                                     <th class="w-16 px-6 py-3 text-center">
-                                        @if (IsSelectedRoleAdmin)
+                                        @if (IsSelectedRoleSystemAdmin)
                                         {
                                             <span>No.</span>
                                         }
@@ -180,7 +203,7 @@
                                     var rowNumber = i + 1;
                                     <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/40 transition">
                                         <td class="px-6 py-4 text-center">
-                                            @if (IsSelectedRoleAdmin)
+                                            @if (IsSelectedRoleSystemAdmin)
                                             {
                                                 <span class="font-mono text-xs font-bold text-[#64748B] dark:text-[#C4D2E1]">@rowNumber</span>
                                             }
@@ -253,9 +276,29 @@
                                   class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] outline-none resize-none"></textarea>
                     </div>
 
+                    <div>
+                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider mb-1">Role Domain (Type) *</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer @(createModel.RoleType == 0 ? "border-[#0A1B2E] dark:border-[#E1E8F0] bg-[#F1F5F9] dark:bg-[#1B3B5A]" : "border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] bg-white dark:bg-[#0A1B2E]")">
+                                <input type="radio" name="createRoleType" checked="@(createModel.RoleType == 0)" @onchange="() => createModel.RoleType = 0" />
+                                <div>
+                                    <span class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0]">👤 User Role</span>
+                                    <p class="text-[10px] text-[#557392] dark:text-[#C4D2E1]">Regular user permissions</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer @(createModel.RoleType == 1 ? "border-[#0A1B2E] dark:border-[#E1E8F0] bg-[#F1F5F9] dark:bg-[#1B3B5A]" : "border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] bg-white dark:bg-[#0A1B2E]")">
+                                <input type="radio" name="createRoleType" checked="@(createModel.RoleType == 1)" @onchange="() => createModel.RoleType = 1" />
+                                <div>
+                                    <span class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0]">🛡️ Admin Role</span>
+                                    <p class="text-[10px] text-[#557392] dark:text-[#C4D2E1]">Admin portal permissions</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 rounded-lg text-blue-800 dark:text-blue-300 text-[11px] flex items-center gap-2">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>This role will automatically receive default permissions identical to standard <strong>USER</strong> role upon creation.</span>
+                        <span>This role will automatically receive default permissions for <strong>@(createModel.RoleType == 1 ? "ADMIN" : "DEFAULT_USER")</strong> upon creation.</span>
                     </div>
 
                     @if (!string.IsNullOrEmpty(createErrorMessage))
@@ -369,6 +412,7 @@
     private IReadOnlyList<RoleModel>? roles;
     private RolePermissionMatrixResponseModel? matrix;
     private int selectedRoleId = 1;
+    private int activeRoleTypeTab = 0; // 0 = User Roles, 1 = Admin Roles
     private HashSet<string> grantedCodes = new(StringComparer.OrdinalIgnoreCase);
     private bool isLoading = true;
     private bool isSaving;
@@ -386,13 +430,48 @@
     private string? deleteErrorMessage;
     private RoleModel? roleToDelete;
 
-    private bool IsSelectedRoleAdmin => matrix != null && string.Equals(matrix.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase);
+    private int UserRolesCount => roles?.Count(r => r.RoleType == 0) ?? 0;
+    private int AdminRolesCount => roles?.Count(r => r.RoleType == 1) ?? 0;
+
+    private List<RoleModel> DisplayedRoles => roles?
+        .Where(r => r.RoleType == activeRoleTypeTab)
+        .ToList() ?? [];
+
+    private bool IsSelectedRoleSystemAdmin => matrix != null &&
+        (string.Equals(matrix.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+         string.Equals(matrix.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase));
+
     private RoleModel? CurrentSelectedRole => roles?.FirstOrDefault(r => r.RoleId == selectedRoleId);
-    private bool IsSelectedRoleSystem => CurrentSelectedRole?.IsSystemRole ?? (IsSelectedRoleAdmin || string.Equals(matrix?.RoleCode, "USER", StringComparison.OrdinalIgnoreCase));
+
+    private static bool IsProtectedRole(RoleModel? r)
+    {
+        if (r == null) return false;
+        var code = r.Code.ToUpperInvariant();
+        return r.IsSystemRole || code == "SYSTEM_ADMIN" || code == "SYSTEMADMIN" || code == "ADMIN" || code == "DEFAULT_USER" || code == "USER";
+    }
 
     protected override async Task OnInitializedAsync()
     {
         await LoadRolesAndSelectFirstAsync();
+    }
+
+    private async Task SwitchTab(int tab)
+    {
+        if (activeRoleTypeTab == tab) return;
+        activeRoleTypeTab = tab;
+
+        var displayed = DisplayedRoles;
+        if (displayed.Count > 0)
+        {
+            if (!displayed.Any(r => r.RoleId == selectedRoleId))
+            {
+                await SelectRole(displayed[0].RoleId);
+            }
+        }
+        else
+        {
+            matrix = null;
+        }
     }
 
     private async Task LoadRolesAndSelectFirstAsync()
@@ -401,15 +480,27 @@
         if (res.IsSuccess && res.Data?.Count > 0)
         {
             roles = res.Data;
-            if (!roles.Any(r => r.RoleId == selectedRoleId))
+            var currentDisplayed = DisplayedRoles;
+            if (currentDisplayed.Count > 0)
             {
+                if (!currentDisplayed.Any(r => r.RoleId == selectedRoleId))
+                {
+                    selectedRoleId = currentDisplayed[0].RoleId;
+                }
+            }
+            else
+            {
+                // Fallback to first available role in entire list and switch tab
+                activeRoleTypeTab = roles[0].RoleType;
                 selectedRoleId = roles[0].RoleId;
             }
+
             await SelectRole(selectedRoleId);
         }
         else
         {
             roles = [];
+            matrix = null;
             isLoading = false;
         }
     }
@@ -431,7 +522,7 @@
 
     private void ToggleSelectAll(bool selectAll)
     {
-        if (IsSelectedRoleAdmin || matrix == null) return;
+        if (IsSelectedRoleSystemAdmin || matrix == null) return;
         if (selectAll)
         {
             foreach (var p in matrix.Permissions)
@@ -447,16 +538,16 @@
 
     private void TogglePermission(string code, bool grant)
     {
-        if (IsSelectedRoleAdmin) return;
+        if (IsSelectedRoleSystemAdmin) return;
         if (grant) grantedCodes.Add(code);
         else grantedCodes.Remove(code);
     }
 
     private async Task SaveChanges()
     {
-        if (IsSelectedRoleAdmin)
+        if (IsSelectedRoleSystemAdmin)
         {
-            Toast.Info("ADMIN permissions are permanent and cannot be modified.");
+            Toast.Info("SYSTEM_ADMIN permissions are permanently locked and cannot be modified.");
             return;
         }
 
@@ -475,7 +566,10 @@
     // CREATE ROLE
     private void OpenCreateRoleModal()
     {
-        createModel = new CreateRoleModelForm();
+        createModel = new CreateRoleModelForm
+        {
+            RoleType = activeRoleTypeTab
+        };
         createErrorMessage = null;
         showCreateConfirm = false;
         showCreateModal = true;
@@ -539,12 +633,13 @@
         createErrorMessage = null;
         try
         {
-            var req = new CreateRoleRequestModel(createModel.RoleCode.Trim().ToUpperInvariant(), createModel.RoleName.Trim(), createModel.Description?.Trim());
+            var req = new CreateRoleRequestModel(createModel.RoleCode.Trim().ToUpperInvariant(), createModel.RoleName.Trim(), createModel.Description?.Trim(), createModel.RoleType);
             var res = await RoleApi.CreateRoleAsync(req);
             if (res.IsSuccess && res.Data != null)
             {
                 Toast.Success(res.Message ?? "Role created successfully!");
                 showCreateModal = false;
+                activeRoleTypeTab = res.Data.RoleType;
                 selectedRoleId = res.Data.RoleId;
                 await LoadRolesAndSelectFirstAsync();
                 await SelectRole(res.Data.RoleId);
@@ -568,9 +663,9 @@
     private void PromptDeleteRole(RoleModel? role)
     {
         if (role == null) return;
-        if (role.IsSystemRole || string.Equals(role.Code, "ADMIN", StringComparison.OrdinalIgnoreCase) || string.Equals(role.Code, "USER", StringComparison.OrdinalIgnoreCase))
+        if (IsProtectedRole(role))
         {
-            Toast.Error("System roles (ADMIN and USER) cannot be deleted.");
+            Toast.Error("Protected system roles (SYSTEM_ADMIN, ADMIN, and DEFAULT_USER) cannot be deleted.");
             return;
         }
 
@@ -621,5 +716,6 @@
         public string RoleCode { get; set; } = string.Empty;
         public string RoleName { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public int RoleType { get; set; } = 0;
     }
 }

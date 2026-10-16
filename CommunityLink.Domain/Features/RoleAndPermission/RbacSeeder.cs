@@ -298,6 +298,19 @@ public static class RbacSeeder
                 END
             ");
 
+            // Auto-create/alter RoleType on TblRole and Type on TblPermission
+            await db.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblRole') AND name = 'RoleType')
+                BEGIN
+                    ALTER TABLE dbo.TblRole ADD RoleType INT NOT NULL CONSTRAINT DF_TblRole_RoleType DEFAULT (0);
+                END;
+
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TblPermission') AND name = 'Type')
+                BEGIN
+                    ALTER TABLE dbo.TblPermission ADD [Type] INT NOT NULL CONSTRAINT DF_TblPermission_Type DEFAULT (0);
+                END;
+            ");
+
             // Ensure IDENTITY current values match or exceed existing data to prevent duplicate key violations (e.g. PK (1))
             await db.Database.ExecuteSqlRawAsync(@"
                 IF OBJECT_ID(N'dbo.TblPermission', N'U') IS NOT NULL
@@ -335,36 +348,36 @@ public static class RbacSeeder
                     PermissionName = def.Name,
                     Module = def.Module,
                     Description = def.Name,
+                    Type = def.Type,
                     CreatedAt = DateTime.UtcNow
                 });
+            }
+            else
+            {
+                existing.Type = def.Type;
+                existing.PermissionName = def.Name;
+                existing.Module = def.Module;
             }
         }
         await db.SaveChangesAsync();
 
-        // 2. Seed Roles (Only ADMIN and USER are System Roles)
-        var rolesToSeed = new (string Code, string Name, string Description, bool IsSystem)[]
+        // 2. Seed Roles
+        // User Domain Roles (RoleType = 0): DEFAULT_USER (System Role), MEMBER, MODERATOR, DOMAIN_PROFESSIONAL, PUBLIC_FIGURE
+        // Admin Domain Roles (RoleType = 1): SYSTEM_ADMIN (System Role), ADMIN (System Role)
+        var rolesToSeed = new (string Code, string Name, string Description, bool IsSystem, int RoleType)[]
         {
-            ("ADMIN", "Administrator", "Full system administrator", true),
-            ("USER", "User", "Default standard user", true),
-            ("MODERATOR", "Community Moderator", "Manages community content & moderation", false),
-            ("MEMBER", "Community Member", "Standard user account", false),
-            ("DOMAIN_PRO", "Domain Professional", "Verified domain expert", false),
-            ("DOMAIN_PROFESSIONAL", "Domain Professional", "Domain Professional premium creator account", false),
-            ("PUBLIC_FIGURE", "Public Figure", "Notable community creator or public figure", false)
+            ("SYSTEM_ADMIN", "System Administrator", "Full system administrator with unchangeable permissions", true, 1),
+            ("ADMIN", "Administrator", "Default administrator account with customizable permissions", true, 1),
+            ("DEFAULT_USER", "Default User", "Default standard user role assigned to all regular users", true, 0),
+            ("USER", "User", "Legacy user role", false, 0),
+            ("MODERATOR", "Community Moderator", "Manages community content & moderation", false, 0),
+            ("MEMBER", "Community Member", "Standard user account", false, 0),
+            ("DOMAIN_PRO", "Domain Professional", "Verified domain expert", false, 0),
+            ("DOMAIN_PROFESSIONAL", "Domain Professional", "Domain Professional premium creator account", false, 0),
+            ("PUBLIC_FIGURE", "Public Figure", "Notable community creator or public figure", false, 0)
         };
 
-        if (db.Database.IsRelational())
-        {
-            // Sync IsSystemRole in the database so only ADMIN and USER are 1, while others are 0
-            await db.Database.ExecuteSqlRawAsync(@"
-                UPDATE dbo.TblRole
-                SET IsSystemRole = CASE 
-                    WHEN UPPER(RoleCode) IN ('ADMIN', 'USER') THEN 1 
-                    ELSE 0 
-                END;");
-        }
-
-        foreach (var (code, name, desc, isSystem) in rolesToSeed)
+        foreach (var (code, name, desc, isSystem, roleType) in rolesToSeed)
         {
             var role = await db.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == code);
             if (role is null)
@@ -375,9 +388,18 @@ public static class RbacSeeder
                     RoleName = name,
                     Description = desc,
                     IsSystemRole = isSystem,
+                    RoleType = roleType,
                     CreatedAt = DateTime.UtcNow
                 };
                 db.TblRoles.Add(role);
+                await db.SaveChangesAsync();
+            }
+            else
+            {
+                role.RoleType = roleType;
+                role.IsSystemRole = isSystem;
+                role.RoleName = name;
+                if (!string.IsNullOrEmpty(desc)) role.Description = desc;
                 await db.SaveChangesAsync();
             }
 
@@ -398,7 +420,7 @@ public static class RbacSeeder
                         CreatedAt = DateTime.UtcNow
                     });
                 }
-                else if (mapping.IsDeleted && (code == "ADMIN" || defaultCodes.Contains(perm.PermissionCode)))
+                else if (mapping.IsDeleted && (code == "SYSTEM_ADMIN" || code == "ADMIN" || defaultCodes.Contains(perm.PermissionCode)))
                 {
                     mapping.IsDeleted = false;
                     mapping.UpdatedAt = DateTime.UtcNow;
@@ -406,6 +428,25 @@ public static class RbacSeeder
             }
         }
         await db.SaveChangesAsync();
+
+        if (db.Database.IsRelational())
+        {
+            // Sync IsSystemRole in the database so only SYSTEM_ADMIN, ADMIN, and DEFAULT_USER are 1
+            await db.Database.ExecuteSqlRawAsync(@"
+                UPDATE dbo.TblRole
+                SET IsSystemRole = CASE 
+                    WHEN UPPER(RoleCode) IN ('SYSTEM_ADMIN', 'ADMIN', 'DEFAULT_USER') THEN 1 
+                    ELSE 0 
+                END,
+                RoleType = CASE
+                    WHEN UPPER(RoleCode) IN ('SYSTEM_ADMIN', 'ADMIN', 'SYSTEMADMIN') THEN 1
+                    ELSE 0
+                END;
+
+                UPDATE dbo.TblPermission
+                SET Type = 0
+                WHERE UPPER(PermissionCode) IN ('POST.STANDALONE.CREATE', 'POST.DELETE', 'POLL.CREATE', 'POST.MANAGEMENT');");
+        }
 
         // 3. Seed Default Admin & Demo Users
         if (!await db.TblUsers.AnyAsync())
@@ -453,7 +494,8 @@ public static class RbacSeeder
         var masterAdminEmail = "admin@communitylink.local";
         var normalizedMasterEmail = masterAdminEmail.ToUpperInvariant();
         var existingAdmin = await db.TblAdmins.FirstOrDefaultAsync(a => a.NormalizedEmail == normalizedMasterEmail);
-        var adminRoleEntity = await db.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "ADMIN");
+        var systemAdminRoleEntity = await db.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "SYSTEM_ADMIN")
+                                    ?? await db.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "ADMIN");
 
         if (existingAdmin is null)
         {
@@ -470,12 +512,12 @@ public static class RbacSeeder
             db.TblAdmins.Add(masterAdmin);
             await db.SaveChangesAsync();
 
-            if (adminRoleEntity != null)
+            if (systemAdminRoleEntity != null)
             {
                 db.TblAdminRoles.Add(new TblAdminRole
                 {
                     AdminId = masterAdmin.AdminId,
-                    RoleId = adminRoleEntity.RoleId,
+                    RoleId = systemAdminRoleEntity.RoleId,
                     CreatedAt = DateTime.UtcNow
                 });
                 await db.SaveChangesAsync();
@@ -489,17 +531,22 @@ public static class RbacSeeder
             existingAdmin.IsDeleted = false;
             await db.SaveChangesAsync();
 
-            if (adminRoleEntity != null)
+            if (systemAdminRoleEntity != null)
             {
-                var hasAdminRole = await db.TblAdminRoles.AnyAsync(ar => ar.AdminId == existingAdmin.AdminId && ar.RoleId == adminRoleEntity.RoleId && !ar.IsDeleted);
-                if (!hasAdminRole)
+                var existingRoleMapping = await db.TblAdminRoles.FirstOrDefaultAsync(ar => ar.AdminId == existingAdmin.AdminId && !ar.IsDeleted);
+                if (existingRoleMapping == null)
                 {
                     db.TblAdminRoles.Add(new TblAdminRole
                     {
                         AdminId = existingAdmin.AdminId,
-                        RoleId = adminRoleEntity.RoleId,
+                        RoleId = systemAdminRoleEntity.RoleId,
                         CreatedAt = DateTime.UtcNow
                     });
+                    await db.SaveChangesAsync();
+                }
+                else
+                {
+                    existingRoleMapping.RoleId = systemAdminRoleEntity.RoleId;
                     await db.SaveChangesAsync();
                 }
             }

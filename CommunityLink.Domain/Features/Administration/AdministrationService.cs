@@ -60,6 +60,12 @@ public sealed class AdministrationService(
         var role = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleId == request.RoleId && !r.IsDeleted, cancellationToken);
         if (role is null) return Result.Failure("Role not found.", ResultStatus.NotFound);
 
+        // Security check: regular users cannot be assigned to Admin roles
+        if (role.RoleType != 0)
+        {
+            return Result.Failure("Invalid role assignment. Regular users cannot be assigned to an Admin role.", ResultStatus.Forbidden);
+        }
+
         var existingUserRoles = await dbContext.TblUserRoles
             .Include(ur => ur.Role)
             .Where(ur => ur.UserId == request.UserId)
@@ -445,10 +451,30 @@ public sealed class AdministrationService(
         if (await dbContext.TblAdmins.AnyAsync(a => a.NormalizedEmail == normalizedEmail && !a.IsDeleted, cancellationToken))
             return Result<string>.Failure("An administrator with this email already exists.", ResultStatus.Conflict);
 
-        // All invited accounts are given the ADMIN system role; distinction is made by IsSuperAdmin (SYSTEMADMIN vs ADMIN)
-        var role = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "ADMIN" && !r.IsDeleted, cancellationToken);
-        if (role == null)
-            return Result<string>.Failure("ADMIN role was not found in system.", ResultStatus.NotFound);
+        // Resolve the admin role: use specified RoleId if provided (validating RoleType == 1),
+        // or resolve by IsSuperAdmin (SYSTEM_ADMIN vs ADMIN)
+        TblRole? role = null;
+        if (request.RoleId.HasValue)
+        {
+            role = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleId == request.RoleId.Value && !r.IsDeleted, cancellationToken);
+            if (role == null)
+                return Result<string>.Failure("Selected admin role does not exist.", ResultStatus.NotFound);
+
+            if (role.RoleType != 1)
+                return Result<string>.Failure("Invalid role. Admin accounts can only be assigned to Admin roles.", ResultStatus.Forbidden);
+        }
+        else
+        {
+            var targetCode = request.IsSuperAdmin ? "SYSTEM_ADMIN" : "ADMIN";
+            role = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == targetCode && !r.IsDeleted, cancellationToken)
+                   ?? await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "ADMIN" && !r.IsDeleted, cancellationToken);
+            if (role == null)
+                return Result<string>.Failure("Admin role was not found in system.", ResultStatus.NotFound);
+        }
+
+        var isSuperAdmin = request.IsSuperAdmin ||
+                           string.Equals(role.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(role.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase);
 
         // Generate a 15-minute secure invitation token
         var tokenBytes = RandomNumberGenerator.GetBytes(32);
@@ -470,7 +496,7 @@ public sealed class AdministrationService(
             Email = request.Email.Trim(),
             Token = token,
             RoleId = role.RoleId,
-            IsSuperAdmin = request.IsSuperAdmin,
+            IsSuperAdmin = isSuperAdmin,
             ExpiresAtUtc = expiresAtUtc,
             IsUsed = false,
             CreatedBy = currentUser.UserId,
@@ -485,7 +511,7 @@ public sealed class AdministrationService(
         var setupLink = $"{appBaseUrl.TrimEnd('/')}/admin/portal-entry/setup-password?token={token}";
 
         // Send Email
-        var adminTypeLabel = request.IsSuperAdmin ? "System Administrator (SYSTEMADMIN)" : "Administrator (ADMIN)";
+        var adminTypeLabel = $"{role.RoleName} ({role.RoleCode})";
         var emailSubject = "CommunityLink — Admin Account Creation & Setup";
         var emailBody = $@"
             <div style=""font-family: 'Inter', -apple-system, sans-serif; max-width: 560px; margin: 0 auto; padding: 28px; border: 1px solid #E2E8F0; border-radius: 12px; background: #ffffff;"">
@@ -545,7 +571,7 @@ public sealed class AdministrationService(
         if (DateTime.UtcNow > invite.ExpiresAtUtc)
             return Result<VerifyAdminInviteResponseModel>.Failure("This setup link has expired (15-minute validity). Please request a new invitation from an administrator.", ResultStatus.ValidationError);
 
-        var adminTypeName = invite.IsSuperAdmin ? "System Administrator" : "Administrator";
+        var adminTypeName = invite.Role?.RoleName ?? (invite.IsSuperAdmin ? "System Administrator" : "Administrator");
         var response = new VerifyAdminInviteResponseModel(
             invite.Email,
             null,

@@ -62,7 +62,8 @@ public sealed record AuditLogModel(
 public sealed record CreateAdminInviteRequestModel(
     string Email,
     string? FullName = null,
-    bool IsSuperAdmin = false);
+    bool IsSuperAdmin = false,
+    int? RoleId = null);
 
 public sealed record VerifyAdminInviteResponseModel(
     string Email,
