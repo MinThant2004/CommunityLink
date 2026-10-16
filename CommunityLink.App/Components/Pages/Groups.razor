@@ -47,17 +47,26 @@
             <!-- Hero Panel (Visible to Admins only) -->
             @if (isAdmin)
             {
-                <div class="relative rounded-xl bg-surface-container-low p-space-md md:p-space-lg overflow-hidden border border-surface-container-high/30">
-                    <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+                <!-- Hero Panel (Admin Telemetry & Working Room Directory) -->
+                <div class="relative rounded-2xl bg-gradient-to-br from-white via-slate-50/95 to-sky-50/40 dark:from-surface-container-low dark:via-surface-container-low dark:to-surface-container-low p-space-md md:p-space-lg overflow-hidden border border-slate-200/90 dark:border-surface-container-high/40 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-[0_12px_36px_-6px_rgba(15,23,42,0.10),0_2px_8px_rgba(15,23,42,0.05)] hover:border-sky-300/70 dark:hover:border-primary/40 transition-all duration-300 group/hero">
+                    <!-- Ambient Decorative Shades (Soft colored depth in light mode) -->
+                    <div class="absolute -top-24 -left-24 w-80 h-80 bg-gradient-to-br from-sky-400/15 via-blue-400/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover/hero:scale-110 group-hover/hero:from-sky-400/25 transition-all duration-700"></div>
+                    <div class="absolute -bottom-24 -right-24 w-80 h-80 bg-gradient-to-tl from-indigo-400/15 via-purple-400/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover/hero:scale-110 group-hover/hero:from-indigo-400/25 transition-all duration-700"></div>
+                    <div class="absolute top-1/2 left-1/3 -translate-y-1/2 w-64 h-32 bg-amber-400/10 dark:bg-transparent rounded-full blur-3xl pointer-events-none"></div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
+                    <!-- Subtle Top Accent Highlight Line -->
+                    <div class="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-sky-500/50 dark:via-primary/40 to-transparent"></div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center relative z-10">
                         <div class="lg:col-span-7 flex flex-col gap-space-sm">
                             <div class="flex flex-wrap items-center gap-space-sm">
-                                <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase tracking-wider border border-primary/20">
-                                    <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>Room Index
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider text-sky-700 dark:text-sky-300 bg-sky-500/10 dark:bg-sky-500/10 border border-sky-300/60 dark:border-sky-500/20 shadow-2xs">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+                                    ROOM INDEX
                                 </span>
-                                <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm border border-secondary/20">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>@totalGroupCount Rooms Indexed
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/10 dark:bg-secondary/15 text-indigo-700 dark:text-secondary font-mono text-[10px] font-semibold border border-indigo-300/60 dark:border-secondary/20 shadow-2xs">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                                    @totalGroupCount Rooms Indexed
                                 </span>
                                 @if (SubCommunityId.HasValue)
                                 {
@@ -72,7 +81,7 @@
                                 @if (subCommunities.Count > 0)
                                 {
                                     <div class="relative inline-block ml-auto sm:ml-0">
-                                        <select class="bg-surface-container-highest text-on-surface font-label-sm text-label-sm py-0.5 px-2 rounded-full border border-surface-container-high focus:outline-none focus:border-primary cursor-pointer max-w-[12rem]"
+                                        <select class="bg-white/90 dark:bg-surface-container-highest text-slate-800 dark:text-on-surface font-label-sm text-label-sm py-0.5 px-2.5 rounded-full border border-slate-300/80 dark:border-surface-container-high focus:outline-none focus:border-sky-400 cursor-pointer max-w-[12rem] shadow-2xs"
                                                 value="@(SubCommunityId?.ToString() ?? "")"
                                                 @onchange="OnSubCommunityFilterChanged">
                                             <option value="">All Sub-Communities</option>
@@ -85,40 +94,55 @@
                                 }
                             </div>
 
-                            <h1 class="font-headline-lg text-headline-lg md:text-display-md text-on-surface tracking-tight mt-space-xs font-bold">
+                            <h1 class="font-headline-lg text-headline-lg md:text-display-md text-slate-900 dark:text-on-surface tracking-tight mt-space-xs font-bold">
                                 @(selectedSubCommunity != null ? selectedSubCommunity.Name : "Working Groups")
                             </h1>
 
-                            <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl leading-relaxed">
+                            <p class="font-body-md text-body-md text-slate-600 dark:text-on-surface-variant max-w-2xl leading-relaxed">
                                 Enter the focused working rooms nested inside your sub-communities — structured discussion, live polls, and resource syndication for chartered operators.
                             </p>
 
-                            <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 pt-space-sm mt-space-xs text-body-sm text-body-sm">
-                                <span class="flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-xs text-primary">forum</span>
-                                    <span class="text-on-surface-variant">Rooms</span>
-                                    <span class="font-mono font-bold text-on-surface">@totalGroupCount</span>
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-xs text-secondary">groups</span>
-                                    <span class="text-on-surface-variant">Members</span>
-                                    <span class="font-mono font-bold text-on-surface">@FormatCompact(totalMemberCount)</span>
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-xs text-primary">article</span>
-                                    <span class="text-on-surface-variant">Posts</span>
-                                    <span class="font-mono font-bold text-on-surface">@FormatCompact(totalPostCount)</span>
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-xs text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
-                                    <span class="text-on-surface-variant">Avg Rating</span>
-                                    <span class="font-mono font-bold text-on-surface">@averageRating</span>
-                                </span>
+                            <div class="flex flex-wrap items-center gap-2.5 pt-space-sm mt-space-xs text-body-sm">
+                                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/80 dark:bg-surface-container/60 border border-slate-200/90 dark:border-surface-container-high/40 shadow-2xs hover:border-sky-400/60 hover:bg-white dark:hover:bg-surface-container hover:shadow-xs transition-all duration-200 group/stat">
+                                    <span class="flex items-center justify-center w-6 h-6 rounded-md bg-sky-500/10 text-sky-600 dark:text-primary group-hover/stat:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-sm">forum</span>
+                                    </span>
+                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">Rooms</span>
+                                    <span class="font-mono font-bold text-slate-900 dark:text-on-surface text-sm">@totalGroupCount</span>
+                                </div>
+                                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/80 dark:bg-surface-container/60 border border-slate-200/90 dark:border-surface-container-high/40 shadow-2xs hover:border-indigo-400/60 hover:bg-white dark:hover:bg-surface-container hover:shadow-xs transition-all duration-200 group/stat">
+                                    <span class="flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-secondary group-hover/stat:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-sm">groups</span>
+                                    </span>
+                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">Members</span>
+                                    <span class="font-mono font-bold text-slate-900 dark:text-on-surface text-sm">@FormatCompact(totalMemberCount)</span>
+                                </div>
+                                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/80 dark:bg-surface-container/60 border border-slate-200/90 dark:border-surface-container-high/40 shadow-2xs hover:border-emerald-400/60 hover:bg-white dark:hover:bg-surface-container hover:shadow-xs transition-all duration-200 group/stat">
+                                    <span class="flex items-center justify-center w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-tertiary group-hover/stat:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-sm">article</span>
+                                    </span>
+                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">Posts</span>
+                                    <span class="font-mono font-bold text-slate-900 dark:text-on-surface text-sm">@FormatCompact(totalPostCount)</span>
+                                </div>
+                                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/80 dark:bg-surface-container/60 border border-slate-200/90 dark:border-surface-container-high/40 shadow-2xs hover:border-amber-400/60 hover:bg-white dark:hover:bg-surface-container hover:shadow-xs transition-all duration-200 group/stat">
+                                    <span class="flex items-center justify-center w-6 h-6 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover/stat:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    </span>
+                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">Avg Rating</span>
+                                    <span class="font-mono font-bold text-slate-900 dark:text-on-surface text-sm">@averageRating</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="lg:col-span-5 flex flex-col bg-surface-container-lowest/60 p-space-md rounded-xl border border-surface-container-high/30 backdrop-blur-sm">
-                            <TelemetryChart Title="Room Liquidity &amp; Velocity" PrimaryLabel="Members" SecondaryLabel="Posts" Values="liquiditySeries" SecondaryValues="velocitySeries" Labels="chartLabels" Highlight="@roomHighlight" />
+                        <!-- Graph Card with soft background depth & interactive hover effects -->
+                        <div class="lg:col-span-5 relative flex flex-col bg-white/95 dark:bg-surface-container-lowest/70 p-space-md rounded-xl border border-slate-200/90 dark:border-surface-container-high/40 backdrop-blur-md shadow-[0_2px_14px_-2px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_24px_-4px_rgba(15,23,42,0.12)] hover:border-sky-400/60 dark:hover:border-primary/50 transition-all duration-300 group/graph overflow-hidden">
+                            <!-- Internal subtle corner glows for the chart card -->
+                            <div class="absolute -top-10 -right-10 w-28 h-28 bg-gradient-to-br from-sky-400/15 to-transparent rounded-full blur-xl pointer-events-none group-hover/graph:scale-125 transition-transform duration-500"></div>
+                            <div class="absolute -bottom-10 -left-10 w-28 h-28 bg-gradient-to-tr from-indigo-400/15 to-transparent rounded-full blur-xl pointer-events-none group-hover/graph:scale-125 transition-transform duration-500"></div>
+
+                            <div class="relative z-10">
+                                <TelemetryChart Title="Room Liquidity &amp; Velocity" PrimaryLabel="Members" SecondaryLabel="Posts" Values="liquiditySeries" SecondaryValues="velocitySeries" Labels="chartLabels" Highlight="@roomHighlight" />
+                            </div>
                         </div>
                     </div>
                 </div>
