@@ -11,9 +11,9 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
          @onkeydown="HandleKeyDown"
          role="presentation">
-        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @onclick="OnClose"></div>
+        <div class="absolute inset-0 bg-slate-900/60 dark:bg-black/70 backdrop-blur-md" @onclick="OnClose"></div>
 
-        <div class="@PanelClass relative flex w-full flex-col overflow-hidden rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46]"
+        <div class="@PanelClass relative flex w-full flex-col overflow-hidden rounded-xl border border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] shadow-2xl"
              role="dialog"
              aria-modal="true"
              aria-label="@Title"
@@ -21,12 +21,12 @@
              @ref="_panel"
              @onkeydown="HandleKeyDown"
              @onkeydown:stopPropagation="true">
-            <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-slate-50 dark:bg-[#0A1B2E] px-4 py-3">
-                <h2 class="text-sm font-semibold text-slate-900 dark:text-[#E1E8F0]">@Title</h2>
+            <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-slate-50 dark:bg-[#191B23] px-4 py-3">
+                <h2 class="text-sm font-semibold text-slate-900 dark:text-[#E1E2EC]">@Title</h2>
                 <button type="button"
                         @onclick="OnClose"
                         aria-label="Close dialog"
-                        class="rounded-lg p-1.5 text-slate-500 dark:text-[#C4D2E1] transition hover:bg-slate-200 dark:hover:bg-[#1B3B5A] hover:text-slate-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        class="rounded-lg p-1.5 text-slate-500 dark:text-[#94A3B8] transition hover:bg-slate-200 dark:hover:bg-[#1D263B] hover:text-slate-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                     </svg>
@@ -39,7 +39,7 @@
 
             @if (FooterContent is not null)
             {
-                <div class="flex shrink-0 items-center justify-end gap-2 border-t border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-slate-50 dark:bg-[#0A1B2E] px-4 py-3">
+                <div class="flex shrink-0 items-center justify-end gap-2 border-t border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-slate-50 dark:bg-[#191B23] px-4 py-3">
                     @FooterContent
                 </div>
             }

@@ -31,7 +31,7 @@
             <div class="space-y-1.5">
                 <label for="fullName" class="@AuthClasses.Label">Full name</label>
                 <input id="fullName" name="fullName" type="text" required autocomplete="name"
-                       placeholder="Jane Doe" class="@AuthClasses.Input" />
+                       value="@fullName" placeholder="Jane Doe" class="@AuthClasses.Input" />
             </div>
 
             <div class="space-y-1.5">
@@ -40,13 +40,13 @@
                     <span class="font-mono text-[10px] text-[#7A8CA6]">3-30 CHARACTERS</span>
                 </div>
                 <input id="userName" name="userName" type="text" required autocomplete="username"
-                       placeholder="janedoe" class="@AuthClasses.Input" />
+                       value="@userName" placeholder="janedoe" class="@AuthClasses.Input" />
             </div>
 
             <div class="space-y-1.5">
                 <label for="email" class="@AuthClasses.Label">Email address</label>
                 <input id="email" name="email" type="email" required autocomplete="email"
-                       placeholder="you@example.com" class="@AuthClasses.Input" />
+                       value="@email" placeholder="you@example.com" class="@AuthClasses.Input" />
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -63,7 +63,7 @@
                 </div>
 
                 <div class="space-y-1.5">
-                    <label for="confirmPassword" class="@AuthClasses.Label">Confirm</label>
+                    <label for="confirmPassword" class="@AuthClasses.Label">Confirm Password</label>
                     <div class="relative">
                         <input id="confirmPassword" name="confirmPassword" type="password" required autocomplete="new-password"
                                placeholder="••••••••" class="@AuthClasses.Input pr-10" />
@@ -74,6 +74,12 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Password Policy Requirement Hint -->
+            <p class="text-[11px] text-[#557392] dark:text-[#C4D2E1] flex items-center gap-1.5 pt-0.5">
+                <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Use at least 8 characters with uppercase, lowercase, number &amp; symbol.</span>
+            </p>
 
             <AntiforgeryToken />
 
@@ -92,6 +98,9 @@
 
 @code {
     private string? errorMessage;
+    private string fullName = string.Empty;
+    private string userName = string.Empty;
+    private string email = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -100,6 +109,9 @@
         {
             var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
             errorMessage = query["error"];
+            fullName = query["fullName"] ?? string.Empty;
+            userName = query["userName"] ?? string.Empty;
+            email = query["email"] ?? string.Empty;
         }
     }
 }

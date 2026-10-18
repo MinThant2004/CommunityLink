@@ -38,10 +38,18 @@
 
     const PALETTES = {
         light: {
-            prism: 0x4f46e5, prismEmissive: 0x3730a3, prismOpacity: 0.92,
-            wire: 0xa5b4fc, halo: 0x6366f1, node: 0x818cf8,
-            ringBloom: 0x6366f1, ringAura: 0x4f46e5, secRing: 0x818cf8,
-            dir1: 0xc7d2fe, dir2: 0x4f46e5, point: 0x6366f1
+            prism: 0x1d4ed8,          // Dark Blue (Tailwind Blue-700)
+            prismEmissive: 0x1e3a8a,  // Deep Midnight Blue (Tailwind Blue-900)
+            prismOpacity: 0.94,       // Solid gem crystal density
+            wire: 0x3b82f6,           // Crisp Royal Blue wireframe edges (Blue-500)
+            halo: 0x2563eb,           // Saturated Blue halo nucleus (Blue-600)
+            node: 0x1d4ed8,           // Vertex pips Dark Blue
+            ringBloom: 0x2563eb,      // Vibrant Blue bloom
+            ringAura: 0x1e40af,       // Deep Blue diffuse aura
+            secRing: 0x3b82f6,        // Secondary ring Royal Blue
+            dir1: 0x60a5fa,           // Light Blue key illumination
+            dir2: 0x1e3a8a,           // Midnight Blue deep shadow
+            point: 0x3b82f6           // Core refraction point light
         },
         dark: {
             prism: 0x0284c7, prismEmissive: 0x0369a1, prismOpacity: 0.72,
@@ -252,6 +260,14 @@
             window.addEventListener('themeChanged', function (e) {
                 applyPalette(e.detail && e.detail.theme ? e.detail.theme : 'light');
             });
+
+            // Also observe class mutations on html element in case dark class is toggled directly
+            if (typeof MutationObserver !== 'undefined') {
+                const observer = new MutationObserver(function () {
+                    applyPalette(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+                });
+                observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            }
 
             attachGlobalInteractionListeners();
             return true;

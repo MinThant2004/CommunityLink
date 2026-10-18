@@ -21,25 +21,25 @@
             }
             else
             {
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1B3B5A] text-sm font-semibold text-slate-600 dark:text-[#E1E8F0]">@Initials</span>
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1D263B] text-sm font-semibold text-slate-600 dark:text-[#E1E2EC]">@Initials</span>
             }
             <div class="min-w-0">
-                <p class="truncate text-sm font-semibold text-slate-900 dark:text-[#E1E8F0]">@SubjectName</p>
-                <p class="text-xs text-slate-500 dark:text-[#C4D2E1]">@SubjectSubtitle</p>
+                <p class="truncate text-sm font-semibold text-slate-900 dark:text-[#E1E2EC]">@SubjectName</p>
+                <p class="text-xs text-slate-500 dark:text-[#94A3B8]">@SubjectSubtitle</p>
             </div>
         </div>
 
-        <dl class="divide-y divide-slate-100 dark:divide-[rgba(196,210,225,0.12)] rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.12)]">
+        <dl class="divide-y divide-slate-100 dark:divide-[rgba(255,255,255,0.08)] rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-slate-50/50 dark:bg-[#191B23]">
             <div class="flex items-center justify-between px-3 py-2.5">
-                <dt class="text-sm text-slate-600 dark:text-[#C4D2E1]">Total price</dt>
-                <dd class="text-sm font-semibold text-slate-900 dark:text-[#E1E8F0] inline-flex items-center gap-1.5">
+                <dt class="text-sm text-slate-600 dark:text-[#94A3B8]">Total price</dt>
+                <dd class="text-sm font-semibold font-mono text-slate-900 dark:text-[#E1E2EC] inline-flex items-center gap-1.5">
                     <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                     <span>@FeeLinkDrops drops</span>
                 </dd>
             </div>
             <div class="flex items-center justify-between px-3 py-2.5">
-                <dt class="text-sm text-slate-600 dark:text-[#C4D2E1]">Your balance</dt>
-                <dd class="text-sm font-semibold @(HasSufficientBalance ? "text-emerald-700 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400") inline-flex items-center gap-1.5">
+                <dt class="text-sm text-slate-600 dark:text-[#94A3B8]">Your balance</dt>
+                <dd class="text-sm font-semibold font-mono @(HasSufficientBalance ? "text-emerald-700 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400") inline-flex items-center gap-1.5">
                     <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                     <span>@Balance drops</span>
                 </dd>
@@ -53,7 +53,7 @@
             </p>
         }
 
-        <p class="text-xs leading-relaxed text-slate-500 dark:text-[#C4D2E1]">
+        <p class="text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]">
             This is a one-time payment. Once confirmed, @(IsGroupUnlock ? "you can post in this group" : "this conversation unlocks permanently") and the amount is deducted from your LinkDrop wallet immediately.
         </p>
     </div>
@@ -62,23 +62,23 @@
     <FooterContent>
         <button type="button"
                 @onclick="OnClose"
-                class="rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A] focus:outline-none focus:ring-2 focus:ring-slate-300">
+                class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#191B23] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#182030] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-300">
             Cancel
         </button>
         <button type="button"
                 @onclick="OnConfirm"
                 disabled="@(IsSubmitting || !HasSufficientBalance)"
-                class="rounded-lg bg-amber-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+                class="rounded-lg bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#E1E8F0] dark:hover:bg-white dark:text-[#0A1B2E] px-4 py-2 text-xs font-semibold transition active:scale-[0.98] shadow-xs disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:ring-offset-2">
             @if (IsSubmitting)
             {
                 <span class="flex items-center gap-1.5">
-                    <span class="h-3 w-3 animate-spin rounded-full border-b-2 border-white"></span>
+                    <span class="h-3 w-3 animate-spin rounded-full border-b-2 border-current"></span>
                     Processing…
                 </span>
             }
             else
             {
-                <span class="inline-flex items-center gap-1.5">
+                <span class="inline-flex items-center gap-1.5 font-mono">
                     <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                     <span>Pay @FeeLinkDrops drops</span>
                 </span>

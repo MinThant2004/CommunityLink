@@ -23,8 +23,8 @@
                 <span class="text-on-surface font-semibold">LinkDrop Treasury</span>
             </div>
             <div class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container text-indigo-600 dark:text-indigo-400 font-label-sm text-xs border border-indigo-500/20">
-                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400 animate-pulse"></span>1 Drop = 10 MMK
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container text-[#0A1B2E] dark:text-[#E1E8F0] font-label-sm text-xs border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] animate-pulse"></span>1 Drop = 10 MMK
                 </span>
             </div>
         </div>
@@ -33,7 +33,7 @@
     <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-4 w-full space-y-3">
 
         <!-- PROMINENT TOTAL LINKDROP BALANCE & 3D SPINNING PRISM SHOWCASE -->
-        <div class="rounded-2xl bg-surface-container-lowest bg-gradient-to-br from-white via-white to-[#EEF2FF] dark:bg-none border border-black/5 dark:border-surface-container-high/40 p-4 sm:p-5 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_12px_24px_-12px_rgba(79,70,229,0.25)] dark:shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="rounded-2xl bg-surface-container-lowest bg-gradient-to-br from-white via-white to-slate-50 dark:bg-none border border-black/5 dark:border-surface-container-high/40 p-4 sm:p-5 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_12px_24px_-12px_rgba(10,27,46,0.18)] dark:shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
             
             <!-- Left: Available Total LinkDrop Balance (Highly Visible to Customer) -->
             <div class="space-y-1.5">
@@ -41,13 +41,13 @@
                     <span class="text-[11px] font-extrabold uppercase tracking-wider text-on-surface-variant font-label-sm">
                         Available Wallet Balance
                     </span>
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-indigo-600 dark:text-indigo-400 font-label-sm text-[10px] font-bold border border-indigo-500/20">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-[#0A1B2E] dark:text-[#E1E8F0] font-label-sm text-[10px] font-bold border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
                         1 Drop = 10 MMK
                     </span>
                 </div>
 
                 <div class="flex items-baseline gap-2.5">
-                    <span class="text-3xl sm:text-4xl lg:text-5xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight font-mono">
+                    <span class="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0A1B2E] dark:text-[#E1E8F0] tracking-tight font-mono">
                         @(wallet?.Balance.ToString("N0") ?? "0")
                     </span>
                     <span class="text-base sm:text-lg font-black text-on-surface">Link Drops</span>
@@ -59,7 +59,7 @@
                 <!-- Balance Breakdown (Purchased & Earned) -->
                 <div class="flex flex-wrap items-center gap-3 text-xs text-on-surface-variant pt-0.5">
                     <span class="inline-flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>
+                        <span class="w-2 h-2 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0]"></span>
                         <span>Purchased:</span>
                         <strong class="text-on-surface font-mono font-bold">@(wallet?.PurchasedBalance.ToString("N0") ?? "0")</strong>
                     </span>
@@ -74,8 +74,8 @@
 
             <!-- Right: Prominent 3D Spinning Prism Showcase (Visible, Eye-Catching & Interactive) -->
             <div class="relative shrink-0 flex items-center justify-center self-center md:self-auto pr-0 sm:pr-2">
-                <!-- Soft Cyan/Blue Neon Glow Behind Prism -->
-                <div class="absolute w-36 h-36 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-sky-400/25 via-indigo-500/20 to-indigo-600/20 blur-2xl pointer-events-none"></div>
+                <!-- Soft Dark Blue Slate Glow Behind Prism -->
+                <div class="absolute w-36 h-36 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-slate-400/15 via-[#0A1B2E]/20 to-[#0A1B2E]/30 blur-2xl pointer-events-none"></div>
 
                 <!-- 3D Spinning Prism Canvas Container (Large & clearly visible: 136px - 160px) -->
                 <div id="@heroPrismContainerId"
@@ -90,23 +90,23 @@
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 rounded-xl p-1.5 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs">
             <div class="flex items-center gap-1 overflow-x-auto p-0.5">
                 <button type="button" @onclick='() => SetTab("buy")'
-                        class="px-3.5 py-2 rounded-lg font-label-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer @(activeTab == "buy" ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30" : "text-on-surface-variant hover:text-slate-900 dark:hover:text-on-surface hover:bg-indigo-50 dark:hover:bg-surface-container")">
-                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0 drop-shadow-[0_1px_3px_rgba(79,70,229,0.45)]" />
+                        class="px-3.5 py-2 rounded-lg font-label-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer @(activeTab == "buy" ? "bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] shadow-sm" : "text-on-surface-variant hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] hover:bg-[#0A1B2E]/5 dark:hover:bg-[#182030]")">
+                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                     <span>Top-Up LinkDrops</span>
                 </button>
                 <button type="button" @onclick='() => SetTab("purchases")'
-                        class="px-3.5 py-2 rounded-lg font-label-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer @(activeTab == "purchases" ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30" : "text-on-surface-variant hover:text-slate-900 dark:hover:text-on-surface hover:bg-indigo-50 dark:hover:bg-surface-container")">
+                        class="px-3.5 py-2 rounded-lg font-label-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer @(activeTab == "purchases" ? "bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] shadow-sm" : "text-on-surface-variant hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] hover:bg-[#0A1B2E]/5 dark:hover:bg-[#182030]")">
                     <span class="material-symbols-outlined text-sm">receipt_long</span>
                     <span>My Purchases</span>
                     @if (userPurchases.Any(p => p.Status == "PENDING"))
                     {
-                        <span class="px-2 py-0.5 text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold rounded-full border border-indigo-500/20">
+                        <span class="px-2 py-0.5 text-[10px] bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] font-bold rounded-full border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
                             @(userPurchases.Count(p => p.Status == "PENDING"))
                         </span>
                     }
                 </button>
                 <button type="button" @onclick='() => SetTab("ledger")'
-                        class="px-3.5 py-2 rounded-lg font-label-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer @(activeTab == "ledger" ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30" : "text-on-surface-variant hover:text-slate-900 dark:hover:text-on-surface hover:bg-indigo-50 dark:hover:bg-surface-container")">
+                        class="px-3.5 py-2 rounded-lg font-label-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer @(activeTab == "ledger" ? "bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] shadow-sm" : "text-on-surface-variant hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] hover:bg-[#0A1B2E]/5 dark:hover:bg-[#182030]")">
                     <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
                     <span>Wallet &amp; Ledger</span>
                 </button>
@@ -128,11 +128,11 @@
             {
                 <!-- SUBMISSION SUCCESS CONFIRMATION BANNER -->
                 <div class="rounded-2xl bg-emerald-50/50 dark:bg-surface-container-lowest border border-emerald-300 dark:border-emerald-500/30 p-6 text-center space-y-4 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs max-w-xl mx-auto my-4">
-                    <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl font-bold mx-auto border border-emerald-500/30 animate-bounce">
-                        ✓
+                    <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-[#34D399] flex items-center justify-center mx-auto border border-emerald-500/20">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
                     </div>
                     <div class="space-y-1">
-                        <span class="inline-block px-3 py-0.5 bg-indigo-100/70 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                        <span class="inline-block px-3 py-0.5 bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] text-[10px] font-bold rounded-full uppercase tracking-wider">
                             Status: PENDING ADMIN VERIFICATION
                         </span>
                         <h2 class="text-xl font-bold text-on-surface">Payment Request Submitted!</h2>
@@ -148,12 +148,12 @@
                         </div>
                         <div class="flex justify-between border-b border-slate-200 dark:border-surface-container-high/30 pb-1.5">
                             <span class="text-on-surface-variant">Transaction ID:</span>
-                            <span class="font-mono text-indigo-600 dark:text-indigo-400 font-bold">@transactionRefNo</span>
+                            <span class="font-mono text-[#0A1B2E] dark:text-[#E1E8F0] font-bold">@transactionRefNo</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-on-surface-variant">Target Credit:</span>
                             <span class="text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1">
-                                <LinkDropIcon Class="w-3.5 h-3.5 shrink-0 drop-shadow-[0_1px_3px_rgba(79,70,229,0.45)]" />
+                                <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                                 +@calculatedDrops.ToString("N0") Link Drops
                             </span>
                         </div>
@@ -161,7 +161,7 @@
 
                     <div class="flex flex-wrap gap-2.5 justify-center pt-1">
                         <button type="button" @onclick='() => SetTab("purchases")'
-                                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition-all shadow-sm shadow-indigo-600/25 hover:shadow-md hover:shadow-indigo-600/30 cursor-pointer flex items-center gap-1.5">
+                                class="px-4 py-2 bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] font-bold text-xs rounded-lg transition-all shadow-sm cursor-pointer flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-sm">receipt_long</span>
                             <span>Track in My Purchases</span>
                         </button>
@@ -179,9 +179,9 @@
                     
                     <!-- STEP 1: SELECT BUNDLE / AMOUNT -->
                     <div class="rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 p-4 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs space-y-3">
-                        <div class="flex items-center justify-between -mx-4 -mt-4 px-4 py-2.5 rounded-t-xl bg-indigo-50/70 dark:bg-transparent border-b border-slate-200 dark:border-surface-container-high/30">
+                        <div class="flex items-center justify-between -mx-4 -mt-4 px-4 py-2.5 rounded-t-xl bg-[#0A1B2E]/5 dark:bg-[#182030]/50 border-b border-slate-200 dark:border-surface-container-high/30">
                             <div class="flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-md bg-indigo-600 text-white dark:bg-indigo-500/15 dark:text-indigo-400 flex items-center justify-center font-bold text-xs">
+                                <div class="w-6 h-6 rounded-md bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] flex items-center justify-center font-bold text-xs">
                                     1
                                 </div>
                                 <h2 class="font-title-sm font-bold text-on-surface text-sm">Select LinkDrop Bundle</h2>
@@ -195,15 +195,17 @@
                             {
                                 var isSelected = !isCustomPurchase && selectedPackage?.PackageId == pkg.PackageId;
                                 <div @onclick="() => SelectPackage(pkg)"
-                                     class="p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2 relative shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] @(isSelected ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-600 dark:border-indigo-400 ring-1 ring-inset ring-indigo-500/40" : "bg-white dark:bg-surface-container-low border-[#E2E8F0] dark:border-surface-container-high/40 hover:border-indigo-400 dark:hover:border-indigo-400/60")">
+                                     class="p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2 relative shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] @(isSelected ? "bg-[#0A1B2E]/5 dark:bg-[#112A46]/50 border-[#0A1B2E] dark:border-[#E1E8F0] ring-1 ring-inset ring-[#0A1B2E]/30" : "bg-white dark:bg-surface-container-low border-[#E2E8F0] dark:border-surface-container-high/40 hover:border-[#0A1B2E]/40 dark:hover:border-[rgba(196,210,225,0.40)]")">
                                     
                                     <div class="flex items-center justify-between">
-                                        <span class="text-[10px] font-bold uppercase tracking-wider @(isSelected ? "text-indigo-600 dark:text-indigo-400" : "text-slate-600 dark:text-on-surface-variant")">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider @(isSelected ? "text-[#0A1B2E] dark:text-[#E1E8F0]" : "text-slate-600 dark:text-on-surface-variant")">
                                             @pkg.PackageName
                                         </span>
                                         @if (isSelected)
                                         {
-                                            <span class="w-5 h-5 rounded-full bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center text-[11px] font-bold ring-2 ring-white dark:ring-surface-container-lowest shadow-[0_2px_6px_rgba(79,70,229,0.45)]">✓</span>
+                                            <span class="w-4 h-4 rounded-full bg-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] text-white flex items-center justify-center ring-2 ring-white dark:ring-[#111622] shadow-xs">
+                                                <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+                                            </span>
                                         }
                                         else if (pkg.BonusAmount > 0)
                                         {
@@ -215,10 +217,10 @@
 
                                     <div>
                                         <div class="text-lg font-black text-slate-900 dark:text-on-surface flex items-center gap-1">
-                                            <LinkDropIcon Class="w-4 h-4 shrink-0 drop-shadow-[0_1px_3px_rgba(79,70,229,0.45)]" />
+                                            <LinkDropIcon Class="w-4 h-4 shrink-0" />
                                             <span>+@((pkg.LinkDropAmount + pkg.BonusAmount).ToString("N0"))</span>
                                         </div>
-                                        <div class="text-xs font-bold text-slate-600 dark:text-indigo-400 mt-0.5">
+                                        <div class="text-xs font-bold text-slate-600 dark:text-[#E1E8F0] mt-0.5">
                                             @pkg.RealMoneyAmount.ToString("N0") MMK
                                         </div>
                                     </div>
@@ -227,11 +229,11 @@
                         </div>
 
                         <!-- Custom Amount Calculator Card -->
-                        <div class="p-4 rounded-lg border-2 transition-all space-y-2.5 @(isCustomPurchase ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-600 dark:border-indigo-400 ring-1 ring-inset ring-indigo-500/40" : "bg-white dark:bg-surface-container-low border-[#E2E8F0] dark:border-surface-container-high/40")">
+                        <div class="p-4 rounded-lg border-2 transition-all space-y-2.5 @(isCustomPurchase ? "bg-[#0A1B2E]/5 dark:bg-[#112A46]/50 border-[#0A1B2E] dark:border-[#E1E8F0] ring-1 ring-inset ring-[#0A1B2E]/30" : "bg-white dark:bg-surface-container-low border-[#E2E8F0] dark:border-surface-container-high/40")">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div class="flex items-center gap-2">
                                     <button type="button" @onclick="EnableCustomPurchase"
-                                            class="px-2.5 py-1 bg-indigo-600 dark:bg-indigo-500 text-white font-bold text-xs rounded-md shrink-0 flex items-center gap-1 cursor-pointer">
+                                            class="px-2.5 py-1 bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] text-white font-bold text-xs rounded-md shrink-0 flex items-center gap-1 cursor-pointer">
                                         <span class="material-symbols-outlined text-xs">calculate</span>
                                         <span>Custom Amount</span>
                                     </button>
@@ -254,13 +256,13 @@
                                     <span class="text-xs font-bold text-on-surface-variant">MMK</span>
                                     <input type="number" min="10" step="100"
                                            @bind="customMmkAmount" @bind:after="OnCustomAmountChanged"
-                                           class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-lowest border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs font-bold text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:shadow-[0_1px_3px_rgba(79,70,229,0.18)] focus:outline-none transition-colors"
+                                           class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-lowest border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs font-bold text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-[#0A1B2E] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:outline-none transition-colors"
                                            placeholder="e.g. 10000 MMK" />
                                 </div>
                                 <div class="flex items-center justify-between sm:justify-start gap-2 bg-surface-container px-3 py-1.5 rounded-lg border border-slate-200 dark:border-surface-container-high/30">
                                     <span class="text-xs text-on-surface-variant">Credits:</span>
-                                    <span class="text-xs font-black text-indigo-600 dark:text-indigo-400 inline-flex items-center gap-1 whitespace-nowrap">
-                                        <LinkDropIcon Class="w-3.5 h-3.5 shrink-0 drop-shadow-[0_1px_3px_rgba(79,70,229,0.45)]" />
+                                    <span class="text-xs font-black text-[#0A1B2E] dark:text-[#E1E8F0] inline-flex items-center gap-1 whitespace-nowrap">
+                                        <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                                         <span>+@calculatedDrops.ToString("N0") Drops</span>
                                     </span>
                                 </div>
@@ -270,9 +272,9 @@
 
                     <!-- STEP 2: SELECT PAYMENT METHOD RAIL -->
                     <div class="rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 p-4 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs space-y-3">
-                        <div class="flex items-center justify-between -mx-4 -mt-4 px-4 py-2.5 rounded-t-xl bg-indigo-50/70 dark:bg-transparent border-b border-slate-200 dark:border-surface-container-high/30">
+                        <div class="flex items-center justify-between -mx-4 -mt-4 px-4 py-2.5 rounded-t-xl bg-[#0A1B2E]/5 dark:bg-[#182030]/50 border-b border-slate-200 dark:border-surface-container-high/30">
                             <div class="flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-md bg-indigo-600 text-white dark:bg-indigo-500/15 dark:text-indigo-400 flex items-center justify-center font-bold text-xs">
+                                <div class="w-6 h-6 rounded-md bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] flex items-center justify-center font-bold text-xs">
                                     2
                                 </div>
                                 <h2 class="font-title-sm font-bold text-on-surface text-sm">Select Payment Gateway Rail</h2>
@@ -285,7 +287,7 @@
                             {
                                 var isSelected = selectedPaymentMethod?.PaymentMethodId == method.PaymentMethodId;
                                 <div @onclick="() => SelectPaymentMethod(method)"
-                                     class="p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer flex items-center justify-between shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] @(isSelected ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-600 dark:border-indigo-400 ring-1 ring-inset ring-indigo-500/40" : "bg-white dark:bg-surface-container-low border-[#E2E8F0] dark:border-surface-container-high/40 hover:border-indigo-400 dark:hover:border-indigo-400/60")">
+                                     class="p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer flex items-center justify-between shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] @(isSelected ? "bg-[#0A1B2E]/5 dark:bg-[#112A46]/50 border-[#0A1B2E] dark:border-[#E1E8F0] ring-1 ring-inset ring-[#0A1B2E]/30" : "bg-white dark:bg-surface-container-low border-[#E2E8F0] dark:border-surface-container-high/40 hover:border-[#0A1B2E]/40 dark:hover:border-[rgba(196,210,225,0.40)]")">
                                     <div class="flex items-center gap-3">
                                         @if (!string.IsNullOrWhiteSpace(method.PaymentLogoUrl))
                                         {
@@ -293,7 +295,7 @@
                                         }
                                         else
                                         {
-                                            <div class="w-9 h-9 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-black flex items-center justify-center text-xs shrink-0 border border-indigo-500/20">
+                                            <div class="w-9 h-9 rounded-lg bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] font-black flex items-center justify-center text-xs shrink-0 border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
                                                 @(string.IsNullOrWhiteSpace(method.MethodName) ? "PAY" : method.MethodName.Substring(0, Math.Min(2, method.MethodName.Length)).ToUpper())
                                             </div>
                                         }
@@ -301,7 +303,7 @@
                                             <div class="text-xs font-black text-on-surface flex items-center gap-1.5">
                                                 <span>@method.MethodName</span>
                                             </div>
-                                            <div class="text-xs font-mono text-indigo-600 dark:text-indigo-400 font-bold">
+                                            <div class="text-xs font-mono text-[#0A1B2E] dark:text-[#E1E8F0] font-bold">
                                                 @method.AccountName
                                             </div>
                                             <div class="text-[11px] font-mono text-on-surface-variant">
@@ -309,8 +311,10 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 @(isSelected ? "border-indigo-600 dark:border-indigo-500 bg-indigo-600 dark:bg-indigo-500 text-white text-[9px] font-bold" : "border-surface-container-high")">
-                                        @if (isSelected) { <span>✓</span> }
+                                    <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 @(isSelected ? "border-[#0A1B2E] dark:border-[#E1E8F0] bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E]" : "border-slate-300 dark:border-[rgba(255,255,255,0.16)]")">
+                                        @if (isSelected) {
+                                            <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+                                        }
                                     </span>
                                 </div>
                             }
@@ -319,9 +323,9 @@
                         <!-- Instructions & QR Code Panel -->
                         @if (selectedPaymentMethod != null)
                         {
-                            <div class="bg-[#F0F4FF] dark:bg-surface-container-low border border-slate-200 dark:border-surface-container-high/50 border-l-[3px] border-l-indigo-600 dark:border-l-indigo-500/70 rounded-lg p-3 space-y-2.5">
+                            <div class="bg-[#F8FAFC] dark:bg-[#182030]/30 border border-slate-200 dark:border-surface-container-high/50 border-l-[3px] border-l-[#0A1B2E] dark:border-l-[#E1E8F0] rounded-lg p-3 space-y-2.5">
                                 <div class="font-bold text-on-surface text-xs flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-sm text-indigo-600 dark:text-indigo-400">info</span>
+                                    <span class="material-symbols-outlined text-sm text-[#0A1B2E] dark:text-[#E1E8F0]">info</span>
                                     <span>Transfer Instructions &bull; @selectedPaymentMethod.MethodName</span>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
@@ -334,7 +338,7 @@
                                             <div class="flex items-center justify-between gap-2 bg-[#F8FAFC] dark:bg-surface-container-lowest border border-[#E2E8F0] dark:border-surface-container-high/40 rounded px-2.5 py-1.5">
                                                 <span class="text-slate-800 dark:text-on-surface-variant whitespace-nowrap">Account / Phone:</span>
                                                 <div class="flex items-center gap-1.5 min-w-0">
-                                                    <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400 truncate">@selectedPaymentMethod.AccountNumber</span>
+                                                    <span class="font-mono font-bold text-[#0A1B2E] dark:text-[#E1E8F0] truncate">@selectedPaymentMethod.AccountNumber</span>
                                                     <button type="button" @onclick='() => CopyToClipboard(selectedPaymentMethod.AccountNumber, "Account number")'
                                                             class="px-1.5 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface text-[10px] font-bold border border-slate-200 dark:border-surface-container-high/50 cursor-pointer flex items-center gap-1 shrink-0 transition-colors">
                                                         <span class="material-symbols-outlined text-xs">content_copy</span> Copy
@@ -354,17 +358,18 @@
                                     {
                                         var qrUrl = BuildFileUrl(selectedPaymentMethod.QrCodeImageUrl);
                                         <div class="md:col-span-4 text-center">
-                                            <div class="bg-white p-1.5 rounded-lg border border-slate-200 dark:border-surface-container-high/60 shadow-xs inline-block relative group cursor-pointer"
+                                            <div class="bg-white p-1.5 rounded-lg border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] shadow-xs inline-block relative group cursor-pointer"
                                                  @onclick='() => OpenEnlargedImage(qrUrl, $"Payment QR Code — {selectedPaymentMethod.MethodName}")'
                                                  title="Click to view enlarged QR Code">
                                                 <img src="@qrUrl" alt="Payment QR Code" class="w-24 h-24 object-contain transition group-hover:scale-105" />
-                                                <div class="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1">
-                                                    <span>🔍 Zoom</span>
+                                                <div class="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1.5">
+                                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+                                                    <span>Zoom</span>
                                                 </div>
                                             </div>
                                             <button type="button" @onclick='() => OpenEnlargedImage(qrUrl, $"Payment QR Code — {selectedPaymentMethod.MethodName}")'
-                                                    class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline font-bold mt-1.5 block mx-auto cursor-pointer flex items-center justify-center gap-1">
-                                                <span class="material-symbols-outlined text-xs">zoom_in</span>
+                                                    class="text-[11px] text-[#0A1B2E] dark:text-[#E1E8F0] hover:underline font-semibold mt-1.5 block mx-auto cursor-pointer flex items-center justify-center gap-1">
+                                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
                                                 <span>Scan / Click to Zoom QR</span>
                                             </button>
                                         </div>
@@ -375,51 +380,53 @@
                     </div>
 
                     <!-- STEP 3: TRANSACTION PROOF & RECEIPT SLIP -->
-                    <div class="rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 p-4 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs space-y-3">
-                        <div class="flex items-center justify-between -mx-4 -mt-4 px-4 py-2.5 rounded-t-xl bg-indigo-50/70 dark:bg-transparent border-b border-slate-200 dark:border-surface-container-high/30">
+                    <div class="rounded-lg bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] p-4 shadow-xs space-y-3">
+                        <div class="flex items-center justify-between -mx-4 -mt-4 px-4 py-2.5 rounded-t-lg bg-[#F8FAFC] dark:bg-[#191B23] border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
                             <div class="flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-md bg-indigo-600 text-white dark:bg-indigo-500/15 dark:text-indigo-400 flex items-center justify-center font-bold text-xs">
+                                <div class="w-6 h-6 rounded bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] flex items-center justify-center font-bold text-xs">
                                     3
                                 </div>
-                                <h2 class="font-title-sm font-bold text-on-surface text-sm">Transaction Reference &amp; Receipt Proof</h2>
+                                <h2 class="font-bold text-[#0F172A] dark:text-[#E1E2EC] text-xs" style="font-family:'Plus Jakarta Sans',sans-serif">Transaction Reference &amp; Receipt Proof</h2>
                             </div>
-                            <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-label-sm text-xs">
-                                <span class="material-symbols-outlined text-xs">shield</span> Escrow Protected
+                            <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-[#34D399] font-mono text-xs">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                <span>Escrow Protected</span>
                             </span>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="space-y-1">
-                                <label class="block text-xs font-bold text-slate-800 dark:text-on-surface">
+                                <label class="block text-xs font-semibold text-[#0F172A] dark:text-[#E1E2EC]">
                                     Transaction Reference ID <span class="text-rose-500">*</span>
                                 </label>
                                 <input type="text" @bind="transactionRefNo"
-                                       class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-low border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs font-mono font-bold text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:shadow-[0_1px_3px_rgba(79,70,229,0.18)] focus:outline-none transition-colors"
+                                       class="w-full h-8 bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-2.5 text-xs font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC] placeholder:text-[#64748B] hover:border-slate-400 dark:hover:border-slate-600 focus:bg-white dark:focus:bg-[#111622] focus:border-[#0A1B2E] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:outline-none transition-colors"
                                        placeholder="e.g. TXN9841203 or KBZ-892147" />
-                                <span class="text-[10px] text-slate-600 dark:text-on-surface-variant block">Copy reference ID from your banking app receipt</span>
+                                <span class="text-[10px] text-[#64748B] dark:text-[#94A3B8] block">Copy reference ID from your banking app receipt</span>
                             </div>
 
                             <div class="space-y-1">
-                                <label class="block text-xs font-bold text-slate-800 dark:text-on-surface">
+                                <label class="block text-xs font-semibold text-[#0F172A] dark:text-[#E1E2EC]">
                                     Upload Payment Slip Screenshot <span class="text-rose-500">*</span>
                                 </label>
                                 <InputFile OnChange="OnFileInputChange" accept=".jpg,.jpeg,.png,.webp,.pdf"
-                                           class="w-full h-8 px-2 text-xs text-on-surface-variant bg-[#F8FAFC] dark:bg-surface-container-low border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg file:mr-2.5 file:py-0.5 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-surface-container file:text-on-surface hover:file:bg-surface-container-high hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:shadow-[0_1px_3px_rgba(79,70,229,0.18)] focus:outline-none cursor-pointer transition-colors" />
+                                           class="w-full h-8 px-2 text-xs text-[#64748B] dark:text-[#94A3B8] bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded file:mr-2.5 file:py-0.5 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#111622] file:text-[#0F172A] dark:file:text-[#E1E2EC] hover:file:bg-slate-200 cursor-pointer transition-colors" />
 
                                 @if (!string.IsNullOrEmpty(localPreviewDataUrl))
                                 {
                                     <div class="flex items-center gap-2.5 pt-1.5">
                                         <div class="relative group cursor-pointer" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" title="Click to view full size">
-                                            <img src="@localPreviewDataUrl" alt="Receipt Preview" class="w-14 h-14 object-cover rounded-lg border border-indigo-500 shadow-xs transition group-hover:scale-105" />
-                                            <div class="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-[10px] font-bold">
-                                                🔍
+                                            <img src="@localPreviewDataUrl" alt="Receipt Preview" class="w-12 h-12 object-cover rounded border border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] shadow-xs transition group-hover:scale-105" />
+                                            <div class="absolute inset-0 bg-black/40 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-[10px] font-bold">
+                                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
                                             </div>
                                         </div>
                                         <div class="space-y-0.5">
-                                            <button type="button" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer">
-                                                <span>🔍 View full size</span>
+                                            <button type="button" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:underline flex items-center gap-1 cursor-pointer">
+                                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+                                                <span>View full size</span>
                                             </button>
-                                            <div class="text-[10px] text-slate-600 dark:text-on-surface-variant">@uploadedProofFile?.Name</div>
+                                            <div class="text-[10px] text-[#64748B] dark:text-[#94A3B8]">@uploadedProofFile?.Name</div>
                                             <button type="button" @onclick="ClearUploadedSlip" class="text-[11px] text-rose-500 hover:underline cursor-pointer">
                                                 Remove Screenshot
                                             </button>
@@ -432,7 +439,7 @@
                         <div class="space-y-1">
                             <label class="block text-xs font-bold text-slate-800 dark:text-on-surface">Optional Notes for Admin</label>
                             <input type="text" @bind="userNotes"
-                                   class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-low border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:shadow-[0_1px_3px_rgba(79,70,229,0.18)] focus:outline-none transition-colors"
+                                   class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-low border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-[#0A1B2E] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:outline-none transition-colors"
                                    placeholder="Additional information or sender account details..." />
                             <span class="text-[10px] text-slate-600 dark:text-on-surface-variant block">Optional — visible to admin only</span>
                         </div>
@@ -449,7 +456,7 @@
                                     Reset
                                 </button>
                                 <button type="button" @onclick="SubmitPurchaseAsync" disabled="@isSubmitting"
-                                        class="flex-1 sm:flex-none px-6 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition shadow-md shadow-indigo-600/25 hover:shadow-lg hover:shadow-indigo-600/30 active:translate-y-px cursor-pointer disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2">
+                                        class="flex-1 sm:flex-none px-6 py-2.5 rounded-lg bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white font-black text-xs transition shadow-md shadow-[#0A1B2E]/20 hover:shadow-lg active:translate-y-px cursor-pointer disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2">
                                     @if (isSubmitting)
                                     {
                                         <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
@@ -486,19 +493,19 @@
                     <!-- Status Filter Chips -->
                     <div class="flex items-center gap-1 overflow-x-auto">
                         <button type="button" @onclick='() => purchaseStatusFilter = "ALL"'
-                                class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "ALL" ? "border border-indigo-600 dark:border-indigo-400 bg-indigo-600 text-white" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
+                                class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "ALL" ? "border border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E] dark:bg-[#112A46] text-white dark:text-[#E1E8F0]" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
                             All (@userPurchases.Count)
                         </button>
                         <button type="button" @onclick='() => purchaseStatusFilter = "PENDING"'
-                                class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "PENDING" ? "border border-indigo-600 dark:border-indigo-400 bg-indigo-600 text-white" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
+                                class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "PENDING" ? "border border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E] dark:bg-[#112A46] text-white dark:text-[#E1E8F0]" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
                             Pending (@userPurchases.Count(p => p.Status == "PENDING"))
                         </button>
                         <button type="button" @onclick='() => purchaseStatusFilter = "APPROVED"'
-                                class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "APPROVED" ? "border border-indigo-600 dark:border-indigo-400 bg-indigo-600 text-white" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
+                                class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "APPROVED" ? "border border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E] dark:bg-[#112A46] text-white dark:text-[#E1E8F0]" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
                             Approved (@userPurchases.Count(p => p.Status == "APPROVED"))
                         </button>
                         <button type="button" @onclick='() => purchaseStatusFilter = "REJECTED"'
-                                class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "REJECTED" ? "border border-indigo-600 dark:border-indigo-400 bg-indigo-600 text-white" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
+                                class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "REJECTED" ? "border border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E] dark:bg-[#112A46] text-white dark:text-[#E1E8F0]" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
                             Rejected (@userPurchases.Count(p => p.Status == "REJECTED"))
                         </button>
                     </div>
@@ -507,7 +514,7 @@
                 @if (isLoadingPurchases)
                 {
                     <div class="py-12 text-center text-on-surface-variant space-y-2">
-                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600"></div>
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-[#0A1B2E] dark:border-t-[#E1E8F0]"></div>
                         <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">Loading purchase requests...</p>
                     </div>
                 }
@@ -538,23 +545,23 @@
                             <tbody class="divide-y divide-slate-200 dark:divide-surface-container-high/30">
                                 @foreach (var item in FilteredPurchases)
                                 {
-                                    <tr class="hover:bg-indigo-50/60 dark:hover:bg-surface-container/50 transition-colors">
+                                    <tr class="hover:bg-[#0A1B2E]/5 dark:hover:bg-surface-container/50 transition-colors">
                                         <td class="p-2.5 font-mono text-on-surface-variant">@item.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
                                         <td class="p-2.5 font-mono font-bold text-on-surface">@item.PurchaseNumber</td>
-                                        <td class="p-2.5 font-mono text-indigo-600 dark:text-indigo-400 font-bold">@item.TransactionReferenceNo</td>
+                                        <td class="p-2.5 font-mono text-[#0A1B2E] dark:text-[#E1E8F0] font-bold">@item.TransactionReferenceNo</td>
                                         <td class="p-2.5 text-on-surface">@(item.IsCustomPurchase ? "Custom Allocation" : item.SnapshotPackageName)</td>
                                         <td class="p-2.5 font-bold text-on-surface">@item.SnapshotRealMoneyAmount.ToString("N0") MMK</td>
-                                        <td class="p-2.5 font-black text-indigo-600 dark:text-indigo-400">
+                                        <td class="p-2.5 font-black text-[#0A1B2E] dark:text-[#E1E8F0]">
                                             <span class="inline-flex items-center gap-1">
-                                                <LinkDropIcon Class="w-3.5 h-3.5 shrink-0 drop-shadow-[0_1px_3px_rgba(79,70,229,0.45)]" />
+                                                <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                                                 +@item.SnapshotLinkDropAmount.ToString("N0")
                                             </span>
                                         </td>
                                         <td class="p-2.5">
                                             @if (item.Status == "PENDING")
                                             {
-                                                <span class="px-2 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 font-bold text-[10px] rounded-full inline-flex items-center gap-1">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>PENDING
+                                                <span class="px-2 py-0.5 bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] font-bold text-[10px] rounded-full inline-flex items-center gap-1">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] animate-pulse"></span>PENDING
                                                 </span>
                                             }
                                             else if (item.Status == "APPROVED")
@@ -593,20 +600,20 @@
             <div class="space-y-3">
                 <!-- Balance Summary Row -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-indigo-400/50 dark:hover:border-surface-container-high active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-[#0A1B2E]/30 dark:hover:border-[rgba(196,210,225,0.30)] active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
                         <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Current Balance</span>
-                        <div class="text-xl font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 mt-0.5">
-                            <LinkDropIcon Class="w-4 h-4 shrink-0 drop-shadow-[0_1px_3px_rgba(79,70,229,0.45)]" />
+                        <div class="text-xl font-black text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-1.5 mt-0.5">
+                            <LinkDropIcon Class="w-4 h-4 shrink-0" />
                             <span>@(wallet?.Balance.ToString("N0") ?? "0") Drops</span>
                         </div>
                     </div>
-                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-indigo-400/50 dark:hover:border-surface-container-high active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-[#0A1B2E]/30 dark:hover:border-[rgba(196,210,225,0.30)] active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
                         <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Total Purchased</span>
                         <div class="text-xl font-black text-on-surface mt-0.5">
                             @(wallet?.PurchasedBalance.ToString("N0") ?? "0") Drops
                         </div>
                     </div>
-                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-indigo-400/50 dark:hover:border-surface-container-high active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-[#0A1B2E]/30 dark:hover:border-[rgba(196,210,225,0.30)] active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
                         <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Total Earned</span>
                         <div class="text-xl font-black text-on-surface mt-0.5">
                             @(wallet?.EarnedBalance.ToString("N0") ?? "0") Drops
@@ -624,7 +631,7 @@
                     @if (isLoadingTransactions)
                     {
                         <div class="py-12 text-center text-on-surface-variant space-y-2">
-                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600"></div>
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-[#0A1B2E] dark:border-t-[#E1E8F0]"></div>
                             <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">Loading wallet ledger...</p>
                         </div>
                     }
@@ -649,9 +656,9 @@
                                 <tbody class="divide-y divide-slate-200 dark:divide-surface-container-high/30">
                                     @foreach (var tx in userTransactions)
                                     {
-                                        <tr class="hover:bg-indigo-50/60 dark:hover:bg-surface-container/50 transition-colors">
+                                        <tr class="hover:bg-[#0A1B2E]/5 dark:hover:bg-surface-container/50 transition-colors">
                                             <td class="p-2.5 font-mono text-on-surface-variant">@tx.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
-                                            <td class="p-2.5 font-bold text-indigo-600 dark:text-indigo-400">@tx.TransactionType</td>
+                                            <td class="p-2.5 font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@tx.TransactionType</td>
                                             <td class="p-2.5 font-black @(tx.Amount >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")">
                                                 @(tx.Amount >= 0 ? "+" : "")@tx.Amount.ToString("N0") Drops
                                             </td>
@@ -676,42 +683,44 @@
 <!-- ========================================================================= -->
 @if (selectedDetailPurchase != null)
 {
-    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-surface-container-lowest border border-slate-200 dark:border-surface-container-high/50 rounded-2xl p-5 max-w-md w-full space-y-3.5 shadow-xl">
-            <div class="flex justify-between items-center border-b border-slate-200 dark:border-surface-container-high/30 pb-2.5">
-                <h3 class="font-title-sm font-bold text-on-surface text-sm">Purchase Request Detail</h3>
-                <button type="button" @onclick="() => selectedDetailPurchase = null" class="text-on-surface-variant hover:text-on-surface font-bold cursor-pointer">✕</button>
+    <div class="fixed inset-0 bg-slate-900/60 dark:bg-[#0A0D14]/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] rounded-xl p-5 max-w-md w-full space-y-3.5 shadow-xl">
+            <div class="flex justify-between items-center border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-2.5">
+                <h3 class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">Purchase Request Detail</h3>
+                <button type="button" @onclick="() => selectedDetailPurchase = null" class="text-[#64748B] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] cursor-pointer p-1 transition-colors">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
             </div>
 
             <div class="space-y-2 text-xs">
                 <div class="flex justify-between">
-                    <span class="text-on-surface-variant">Request #:</span>
-                    <span class="font-mono text-on-surface font-bold">@selectedDetailPurchase.PurchaseNumber</span>
+                    <span class="text-[#64748B] dark:text-[#94A3B8]">Request #:</span>
+                    <span class="font-mono text-[#0F172A] dark:text-[#E1E2EC] font-bold">@selectedDetailPurchase.PurchaseNumber</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-on-surface-variant">Status:</span>
-                    <span class="font-bold uppercase @(selectedDetailPurchase.Status == "APPROVED" ? "text-emerald-600 dark:text-emerald-400" : selectedDetailPurchase.Status == "REJECTED" ? "text-rose-600 dark:text-rose-400" : "text-indigo-600 dark:text-indigo-400")">
+                    <span class="text-[#64748B] dark:text-[#94A3B8]">Status:</span>
+                    <span class="font-bold uppercase @(selectedDetailPurchase.Status == "APPROVED" ? "text-emerald-600 dark:text-[#34D399]" : selectedDetailPurchase.Status == "REJECTED" ? "text-rose-600 dark:text-[#FFB4AB]" : "text-[#0A1B2E] dark:text-[#E1E8F0]")">
                         @selectedDetailPurchase.Status
                     </span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-on-surface-variant">Transaction ID:</span>
-                    <span class="font-mono text-indigo-600 dark:text-indigo-400 font-bold">@selectedDetailPurchase.TransactionReferenceNo</span>
+                    <span class="text-[#64748B] dark:text-[#94A3B8]">Transaction ID:</span>
+                    <span class="font-mono text-[#0A1B2E] dark:text-[#E1E8F0] font-bold">@selectedDetailPurchase.TransactionReferenceNo</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-on-surface-variant">Amount Paid:</span>
-                    <span class="font-bold text-on-surface">@selectedDetailPurchase.SnapshotRealMoneyAmount.ToString("N0") MMK</span>
+                    <span class="text-[#64748B] dark:text-[#94A3B8]">Amount Paid:</span>
+                    <span class="font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC]">@selectedDetailPurchase.SnapshotRealMoneyAmount.ToString("N0") MMK</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-on-surface-variant">Drops Granted:</span>
-                    <span class="font-black text-indigo-600 dark:text-indigo-400 inline-flex items-center gap-1">
-                        <LinkDropIcon Class="w-3.5 h-3.5 shrink-0 drop-shadow-[0_1px_3px_rgba(79,70,229,0.45)]" />
-                        +@selectedDetailPurchase.SnapshotLinkDropAmount.ToString("N0")
+                    <span class="text-[#64748B] dark:text-[#94A3B8]">Drops Granted:</span>
+                    <span class="font-mono font-bold text-[#0A1B2E] dark:text-[#E1E8F0] inline-flex items-center gap-1">
+                        <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
+                        <span>+@selectedDetailPurchase.SnapshotLinkDropAmount.ToString("N0")</span>
                     </span>
                 </div>
                 @if (!string.IsNullOrWhiteSpace(selectedDetailPurchase.RejectionReason))
                 {
-                    <div class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-2.5 text-rose-700 dark:text-rose-300 space-y-1 mt-1.5">
+                    <div class="bg-rose-500/10 border border-rose-500/20 rounded p-2.5 text-rose-700 dark:text-[#FFB4AB] space-y-1 mt-1.5 text-xs">
                         <div class="font-bold">Rejection Reason:</div>
                         <div>@selectedDetailPurchase.RejectionReason</div>
                     </div>
@@ -720,12 +729,13 @@
                 {
                     var proofUrl = BuildFileUrl(selectedDetailPurchase.Proof.FileUrl);
                     <div class="pt-1.5">
-                        <span class="text-on-surface-variant block mb-1">Receipt Proof Screenshot:</span>
-                        <div class="relative group cursor-pointer rounded-xl overflow-hidden border border-surface-container-high/40 bg-surface-container-low flex items-center justify-center p-1"
+                        <span class="text-[#64748B] dark:text-[#94A3B8] block mb-1">Receipt Proof Screenshot:</span>
+                        <div class="relative group cursor-pointer rounded overflow-hidden border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-[#F8FAFC] dark:bg-[#191B23] flex items-center justify-center p-1"
                              @onclick="() => OpenEnlargedImage(proofUrl)" title="Click to view full size">
-                            <img src="@proofUrl" alt="Receipt Proof" class="w-full max-h-52 object-contain rounded-lg" />
-                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1.5">
-                                <span>🔍 Click to view full size</span>
+                            <img src="@proofUrl" alt="Receipt Proof" class="w-full max-h-52 object-contain rounded" />
+                            <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1.5">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+                                <span>Click to view full size</span>
                             </div>
                         </div>
                     </div>
@@ -733,7 +743,7 @@
             </div>
 
             <div class="pt-1.5">
-                <button type="button" @onclick="() => selectedDetailPurchase = null" class="w-full py-2 bg-white dark:bg-surface-container hover:bg-slate-50 dark:hover:bg-surface-container-high text-on-surface font-bold rounded-lg text-xs border border-slate-200 dark:border-surface-container-high/50 hover:border-slate-300 dark:hover:border-surface-container-high cursor-pointer transition">
+                <button type="button" @onclick="() => selectedDetailPurchase = null" class="w-full py-2 bg-white dark:bg-[#191B23] hover:bg-slate-50 dark:hover:bg-[#1D263B] text-[#0F172A] dark:text-[#E1E2EC] font-semibold rounded text-xs border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] cursor-pointer transition">
                     Close Detail
                 </button>
             </div>
@@ -746,13 +756,15 @@
 <!-- ========================================================================= -->
 @if (isLightboxOpen && !string.IsNullOrEmpty(lightboxImageUrl))
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm"
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
          @onclick="CloseLightbox">
-        <div class="relative max-w-4xl max-h-[90vh] bg-surface-container-lowest border border-slate-200 dark:border-surface-container-high/60 rounded-2xl p-4 shadow-2xl overflow-hidden flex flex-col items-center"
+        <div class="relative max-w-4xl max-h-[90vh] bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] rounded-xl p-4 shadow-2xl overflow-hidden flex flex-col items-center"
              @onclick:stopPropagation="true">
-            <div class="w-full flex items-center justify-between pb-2 mb-2 border-b border-surface-container-high/40 text-on-surface px-1">
-                <span class="text-xs font-bold text-on-surface">@(string.IsNullOrEmpty(lightboxTitle) ? "Enlarged Image View (Original Resolution)" : lightboxTitle)</span>
-                <button type="button" @onclick="CloseLightbox" class="text-on-surface-variant hover:text-on-surface text-lg font-bold p-1 cursor-pointer">✕</button>
+            <div class="w-full flex items-center justify-between pb-2 mb-2 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[#0F172A] dark:text-[#E1E2EC] px-1">
+                <span class="text-xs font-bold text-[#0F172A] dark:text-[#E1E2EC]">@(string.IsNullOrEmpty(lightboxTitle) ? "Enlarged Image View (Original Resolution)" : lightboxTitle)</span>
+                <button type="button" @onclick="CloseLightbox" class="text-[#64748B] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] text-xs font-bold p-1 cursor-pointer">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
             </div>
             <div class="overflow-auto max-h-[80vh] flex items-center justify-center w-full">
                 <img src="@lightboxImageUrl" alt="Full size image" class="max-w-full max-h-[78vh] object-contain rounded-lg" />
