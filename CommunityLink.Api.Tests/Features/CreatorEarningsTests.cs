@@ -5,6 +5,7 @@ using CommunityLink.Api.Tests.Infrastructure;
 using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Authentication;
+using CommunityLink.Shared.Features.Chat;
 using CommunityLink.Shared.Features.ChatGroup;
 using CommunityLink.Shared.Features.Creator;
 using Microsoft.EntityFrameworkCore;
@@ -279,5 +280,74 @@ public class CreatorEarningsTests : IClassFixture<CommunityApiFactory>
         var g1Breakdown = result.Data.GroupBreakdown.First(g => g.ChatGroupId == group1);
         Assert.Equal("Mg Mg C# Group", g1Breakdown.ChatGroupName);
         Assert.Equal(45, g1Breakdown.TotalEarned);
+    }
+
+    [Fact]
+    public async Task GetEarnings_SourceBreakdown_GroupAndPrivateChatSplit()
+    {
+        var (creatorToken, creatorId) = await GetTokenAndUserIdForRoleAsync("DOMAIN_PROFESSIONAL", "source_creator", "source_creator@test.com", "Password@123");
+        var (buyerToken, buyerId) = await GetTokenAndUserIdForRoleAsync("MEMBER", "source_buyer", "source_buyer@test.com", "Password@123");
+
+        // Creator enables private chat with 100 LD fee
+        var creatorClient = _factory.CreateClient();
+        creatorClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", creatorToken);
+        var settingsRes = await creatorClient.PostAsJsonAsync("/api/creator/chat/settings", new SaveCreatorChatSettingRequestModel(true, 100));
+        Assert.Equal(HttpStatusCode.OK, settingsRes.StatusCode);
+
+        int group = await CreatePaidChatGroupAsync(creatorToken, "Source Split Group", 50);
+
+        await TopUpUserWalletAsync(buyerId, 200);
+
+        var buyerClient = _factory.CreateClient();
+        buyerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", buyerToken);
+        await buyerClient.PostAsJsonAsync($"/api/chat-groups/{group}/join-paid", new { });
+
+        var unlockRes = await buyerClient.PostAsync($"/api/chat/unlock/{creatorId}", null);
+        Assert.Equal(HttpStatusCode.OK, unlockRes.StatusCode);
+
+        var resp = await creatorClient.GetAsync("/api/creator/earnings");
+        var result = await resp.Content.ReadFromJsonAsync<Result<CreatorEarningsDashboardModel>>();
+
+        Assert.True(result?.IsSuccess);
+        Assert.NotNull(result?.Data);
+
+        // Group join: 50 gross, 5 comm, 45 net
+        // Private unlock: 100 gross, 10 comm, 90 net
+        Assert.Equal(2, result.Data.SourceBreakdown.Count);
+
+        var groupSource = result.Data.SourceBreakdown.First(s => s.Source == "GROUP");
+        Assert.Equal("Paid Group Joins", groupSource.Label);
+        Assert.Equal(50, groupSource.Gross);
+        Assert.Equal(5, groupSource.Commission);
+        Assert.Equal(45, groupSource.Net);
+        Assert.Equal(1, groupSource.TransactionCount);
+
+        var privateSource = result.Data.SourceBreakdown.First(s => s.Source == "PRIVATE_CHAT");
+        Assert.Equal("Private Chat Unlocks", privateSource.Label);
+        Assert.Equal(100, privateSource.Gross);
+        Assert.Equal(10, privateSource.Commission);
+        Assert.Equal(90, privateSource.Net);
+        Assert.Equal(1, privateSource.TransactionCount);
+
+        // Combined source net must match the summary net
+        Assert.Equal(result.Data.Summary.NetEarnings, result.Data.SourceBreakdown.Sum(s => s.Net));
+    }
+
+    [Fact]
+    public async Task GetEarnings_SourceBreakdown_BothEntriesAlwaysPresent()
+    {
+        var (creatorToken, _) = await GetTokenAndUserIdForRoleAsync("DOMAIN_PROFESSIONAL", "empty_source_creator", "empty_source_creator@test.com", "Password@123");
+
+        var creatorClient = _factory.CreateClient();
+        creatorClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", creatorToken);
+
+        var resp = await creatorClient.GetAsync("/api/creator/earnings");
+        var result = await resp.Content.ReadFromJsonAsync<Result<CreatorEarningsDashboardModel>>();
+
+        Assert.True(result?.IsSuccess);
+        Assert.NotNull(result?.Data);
+        Assert.Equal(2, result.Data.SourceBreakdown.Count);
+        Assert.All(result.Data.SourceBreakdown, s => Assert.Equal(0, s.Net));
+        Assert.All(result.Data.SourceBreakdown, s => Assert.Equal(0, s.TransactionCount));
     }
 }

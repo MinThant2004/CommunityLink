@@ -41,9 +41,19 @@ public sealed record CreatorEarningsTransactionModel(
     string Status
 );
 
+public sealed record CreatorSourceEarningsModel(
+    string Source,
+    string Label,
+    long Gross,
+    long Commission,
+    long Net,
+    int TransactionCount
+);
+
 public sealed record CreatorEarningsDashboardModel(
     CreatorEarningsSummaryModel Summary,
     IReadOnlyList<CreatorGroupEarningsModel> GroupBreakdown,
     IReadOnlyList<CreatorUserEarningsModel> UserBreakdown,
+    IReadOnlyList<CreatorSourceEarningsModel> SourceBreakdown,
     IReadOnlyList<CreatorEarningsTransactionModel> Transactions
 );

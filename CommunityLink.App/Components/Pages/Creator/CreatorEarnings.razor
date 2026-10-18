@@ -1,12 +1,10 @@
 @page "/creator/earnings"
 @using CommunityLink.App.Apis
 @using CommunityLink.Shared.Features.Creator
-@using CommunityLink.Shared.Features.Chat
 @using CommunityLink.Shared.Security
 @using System.Security.Claims
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorEarnings)]
 @inject CreatorEarningsApiService EarningsApi
-@inject ChatApiService ChatApi
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -84,21 +82,21 @@
                 <div class="text-2xl font-extrabold font-mono text-[#0F172A] dark:text-white">
                     @dashboard.Summary.TotalEarned <span class="text-sm font-normal text-[#64748B]">Link Drops</span>
                 </div>
-                <p class="text-xs text-[#64748B]">Gross revenue generated from paid joins</p>
+                <p class="text-xs text-[#64748B]">Gross revenue from group joins + private chat unlocks</p>
             </div>
 
-            <!-- Card 3: Total Commission -->
-            <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-5 shadow-xs space-y-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-amber-500/40 dark:hover:bg-[#182030] dark:hover:border-amber-400/40">
-                <div class="flex items-center justify-between text-[#64748B]">
-                    <span class="text-xs font-semibold uppercase tracking-wider font-mono">Total Commission</span>
-                    <span class="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm font-bold shadow-xs">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.333A12.062 12.062 0 0 0 12 9c-2.485 0-4.81.75-6.75 2.033V21m15 0H3"/></svg>
+            <!-- Card 3: Net Earnings -->
+            <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-5 shadow-xs space-y-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700">
+                <div class="flex items-center justify-between text-emerald-700 dark:text-emerald-300">
+                    <span class="text-xs font-semibold uppercase tracking-wider font-mono">Net Earnings</span>
+                    <span class="w-8 h-8 rounded-lg bg-white dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold shadow-xs">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
                     </span>
                 </div>
-                <div class="text-2xl font-extrabold font-mono text-[#0F172A] dark:text-white">
-                    @dashboard.Summary.TotalCommission <span class="text-sm font-normal text-[#64748B]">Link Drops</span>
+                <div class="text-2xl font-extrabold font-mono text-emerald-700 dark:text-emerald-400">
+                    @dashboard.Summary.NetEarnings <span class="text-sm font-normal text-emerald-600 dark:text-emerald-500">Link Drops</span>
                 </div>
-                <p class="text-xs text-[#64748B]">Platform maintenance commission deducted</p>
+                <p class="text-xs text-emerald-700 dark:text-emerald-300">After platform commission deducted</p>
             </div>
 
             <!-- Card 4: Total Transactions -->
@@ -116,120 +114,7 @@
             </div>
         </div>
 
-        <!-- PRIVATE CHAT MONETIZATION SETTINGS SECTION -->
-        <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-6 shadow-xs space-y-5 transition-all duration-200 hover:shadow-md hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)]">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-[#0F172A] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif">
-                        <svg class="w-5 h-5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.502 49.188 49.188 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>
-                        <span>Private Chat Monetization Settings</span>
-                    </h2>
-                    <p class="text-xs text-[#475569] dark:text-[#94A3B8]">
-                        Configure entry fee in Link Drops required for non-premium users to message you directly.
-                    </p>
-                </div>
-            </div>
-
-            @if (!string.IsNullOrEmpty(chatSettingsSuccessMessage))
-            {
-                <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 rounded-lg p-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center justify-between">
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                        <span>@chatSettingsSuccessMessage</span>
-                    </span>
-                    <button type="button" @onclick="() => chatSettingsSuccessMessage = null" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 cursor-pointer">&times;</button>
-                </div>
-            }
-            @if (!string.IsNullOrEmpty(chatSettingsErrorMessage))
-            {
-                <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 rounded-lg p-3 text-xs font-semibold text-rose-800 dark:text-rose-300 flex items-center justify-between">
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        <span>@chatSettingsErrorMessage</span>
-                    </span>
-                    <button type="button" @onclick="() => chatSettingsErrorMessage = null" class="text-rose-600 dark:text-rose-400 hover:text-rose-900 cursor-pointer">&times;</button>
-                </div>
-            }
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                <!-- Toggle Enable -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-[#0F172A] dark:text-[#E1E8F0]">Paid Private Chat Status</label>
-                    <div class="flex items-center gap-3">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" @bind="isPrivateChatEnabled" class="sr-only peer" />
-                            <div class="w-11 h-6 bg-slate-200 dark:bg-[#191B23] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0A1B2E] dark:peer-checked:bg-[#E1E8F0]"></div>
-                        </label>
-                        <span class="text-sm font-medium @(isPrivateChatEnabled ? "text-[#0A1B2E] dark:text-[#E1E8F0] font-bold" : "text-[#64748B]")">
-                            @(isPrivateChatEnabled ? "Enabled (Paid Chat Active)" : "Disabled (Free Direct Messages)")
-                        </span>
-                    </div>
-                    <p class="text-xs text-[#64748B]">
-                        When enabled, users must pay your configured Link Drop fee to start a private chat with you.
-                    </p>
-                </div>
-
-                <!-- Fee Input -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-[#0F172A] dark:text-[#E1E8F0]">Private Chat Fee (Link Drops)</label>
-                    <div class="relative max-w-xs flex items-center">
-                        <input type="number" min="0" step="1" @bind="privateChatFeeLinkDrops" disabled="@(!isPrivateChatEnabled)"
-                               class="w-full pl-9 pr-4 py-2 border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] text-[#0F172A] dark:text-[#E1E8F0] rounded-lg text-sm font-mono font-semibold focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] disabled:bg-slate-100 dark:disabled:bg-[#111622] disabled:text-slate-400" />
-                        <span class="absolute left-3 top-2.5 flex items-center">
-                            <LinkDropIcon Class="w-4 h-4 shrink-0" />
-                        </span>
-                    </div>
-                    <p class="text-xs text-[#64748B]">
-                        Fee charged per new chat unlocked by a user.
-                    </p>
-                </div>
-            </div>
-
-            <div class="pt-2 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] flex justify-end">
-                <button type="button" @onclick="SaveChatSettingsAsync" disabled="@isSavingChatSettings"
-                        class="px-5 py-2.5 bg-[#0F172A] hover:bg-[#1E293B] text-white dark:bg-[#E1E8F0] dark:hover:bg-white dark:text-[#0A1B2E] rounded-lg text-xs font-bold transition-all duration-150 shadow-xs active:scale-[0.98] disabled:opacity-50 flex items-center gap-2 cursor-pointer">
-                    @if (isSavingChatSettings)
-                    {
-                        <span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white dark:border-[#0A0D14] border-t-transparent"></span>
-                        <span>Saving...</span>
-                    }
-                    else
-                    {
-                        <span>Save Chat Settings</span>
-                    }
-                </button>
-            </div>
-        </div>
-
-        <!-- EARNINGS BREAKDOWN SECTION -->
-        <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-6 shadow-xs space-y-5 transition-all duration-200 hover:shadow-md hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)]">
-            <h2 class="text-lg font-bold text-[#0F172A] dark:text-[#E1E8F0] border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-3" style="font-family:'Plus Jakarta Sans',sans-serif">Earnings Breakdown</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Gross -->
-                <div class="bg-[#F8FAFC] dark:bg-[#191B23] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-xs">
-                    <div class="text-xs font-semibold font-mono text-[#64748B] uppercase tracking-wider mb-1">Gross Earnings</div>
-                    <div class="text-xl font-bold font-mono text-[#0F172A] dark:text-white">@dashboard.Summary.GrossEarnings Link Drops</div>
-                    <p class="text-xs text-[#64748B] mt-1">Total revenue collected from buyers</p>
-                </div>
-
-                <!-- Commission -->
-                <div class="bg-[#F8FAFC] dark:bg-[#191B23] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-xs">
-                    <div class="text-xs font-semibold font-mono text-[#64748B] uppercase tracking-wider mb-1">Platform Commission</div>
-                    <div class="text-xl font-bold font-mono text-rose-600 dark:text-rose-400">- @dashboard.Summary.PlatformCommission Link Drops</div>
-                    <p class="text-xs text-[#64748B] mt-1">Deducted platform service fee</p>
-                </div>
-
-                <!-- Net Earnings (Visually Prominent Accent Block) -->
-                <div class="bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-700/60 rounded-xl p-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-xs">
-                    <div class="text-xs font-bold font-mono text-emerald-800 dark:text-emerald-300 uppercase tracking-wider mb-1">Net Earnings</div>
-                    <div class="text-2xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400">@dashboard.Summary.NetEarnings Link Drops</div>
-                    <p class="text-xs font-medium text-emerald-800 dark:text-emerald-300 mt-1">Total net earnings credited to creator wallet</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- GROUP & USER EARNINGS BREAKDOWN SECTION -->
+        <!-- GROUP & SOURCE EARNINGS BREAKDOWN SECTION -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- 1. GROUP EARNINGS BREAKDOWN -->
             <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-6 shadow-xs space-y-4 transition-all duration-200 hover:shadow-md hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)]">
@@ -282,60 +167,76 @@
                 }
             </div>
 
-            <!-- 2. USER EARNINGS BREAKDOWN (TOP SUPPORTERS / BUYERS) -->
+            <!-- 2. EARNINGS BY SOURCE (GROUP JOINS VS PRIVATE CHAT UNLOCKS) -->
             <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-6 shadow-xs space-y-4 transition-all duration-200 hover:shadow-md hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)]">
                 <div class="flex items-center justify-between">
                     <div>
                         <h2 class="text-lg font-bold text-[#0F172A] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif">
-                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
-                            <span>Earnings by User</span>
+                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                            <span>Earnings by Source</span>
                         </h2>
-                        <p class="text-xs text-[#475569] dark:text-[#94A3B8]">Top paying users ranked by total LinkDrops contributed</p>
+                        <p class="text-xs text-[#475569] dark:text-[#94A3B8]">Paid group joins vs private chat unlocks</p>
                     </div>
-                    <span class="text-xs font-semibold px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 rounded-lg">
-                        Highest First
-                    </span>
+                    @if (activeFilterType == "GROUP" || activeFilterType == "PRIVATE_CHAT")
+                    {
+                        <button type="button" @onclick='() => SetFilterType("ALL")' class="px-2.5 py-1 bg-[#F1F5F9] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] text-[#475569] dark:text-[#C4D2E1] rounded-lg text-xs font-semibold hover:bg-[#E2E8F0] dark:hover:bg-[#1E2638] transition cursor-pointer">
+                            Clear Filter
+                        </button>
+                    }
                 </div>
 
-                @if (dashboard.UserBreakdown.Count == 0)
-                {
-                    <div class="py-8 text-center bg-[#F8FAFC] dark:bg-[#191B23] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl">
-                        <p class="text-xs text-[#64748B] italic">No user contributions recorded yet.</p>
-                    </div>
+                <!-- Share bar: solid two-segment (no gradients) -->
+                @{
+                    var groupShare = GetSourceSharePercent("GROUP", dashboard.SourceBreakdown);
+                    var hasSourceData = dashboard.SourceBreakdown.Sum(s => s.Gross) > 0;
+                    var privateShare = hasSourceData ? 100 - groupShare : 0;
                 }
-                else
-                {
-                    <div class="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
-                        @foreach (var (user, index) in dashboard.UserBreakdown.Select((u, i) => (u, i)))
-                        {
-                            <div class="border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-3.5 bg-white dark:bg-[#191B23] hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)] hover:bg-[#F8FAFC] dark:hover:bg-[#1E2638] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-xs flex items-center justify-between gap-3">
-                                <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold font-mono shrink-0 @(index == 0 ? "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700" : index == 1 ? "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700" : index == 2 ? "bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-500 border border-amber-200 dark:border-amber-800" : "bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400")">
-                                        #@(index + 1)
+                <div class="w-full h-2.5 rounded-full bg-[#E2E8F0] dark:bg-[#191B23] overflow-hidden flex border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
+                    <div class="h-full bg-[#0A1B2E] dark:bg-[#E1E8F0]" style="width: @groupShare%"></div>
+                    <div class="h-full bg-emerald-500" style="width: @privateShare%"></div>
+                </div>
+
+                <div class="space-y-3">
+                    @foreach (var src in dashboard.SourceBreakdown)
+                    {
+                        var isSelected = activeFilterType == src.Source;
+                        var isGroup = src.Source == "GROUP";
+                        <div @onclick="() => ToggleSourceFilter(src.Source)"
+                             class="cursor-pointer border rounded-xl p-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-xs @(isSelected ? "ring-2 " + (isGroup ? "border-[#0A1B2E] dark:border-[#E1E8F0] bg-[#0A1B2E]/5 dark:bg-[#112A46]/60 ring-[#0A1B2E]/20 dark:ring-[#E1E8F0]/20" : "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 ring-emerald-500/20") : "border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#191B23] hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)] hover:bg-[#F8FAFC] dark:hover:bg-[#1E2638]")">
+                            <div class="flex items-center justify-between gap-3 mb-2">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 @(isGroup ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#111622]" : "bg-emerald-500 text-white")">
+                                        @if (isGroup)
+                                        {
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
+                                        }
+                                        else
+                                        {
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>
+                                        }
                                     </div>
-                                    @if (!string.IsNullOrEmpty(user.BuyerAvatarUrl))
-                                    {
-                                        <img src="@user.BuyerAvatarUrl" alt="@user.BuyerName" class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
-                                    }
-                                    else
-                                    {
-                                        <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs font-bold shrink-0 border border-slate-200 dark:border-slate-700">
-                                            @(user.BuyerName.Length > 0 ? user.BuyerName[..1].ToUpper() : "U")
-                                        </div>
-                                    }
                                     <div class="min-w-0">
-                                        <div class="font-bold text-sm text-[#0F172A] dark:text-[#E1E8F0] truncate">@user.BuyerName</div>
-                                        <div class="text-xs text-[#64748B]">@user.TransactionCount @(user.TransactionCount == 1 ? "payment" : "payments") · Last: @user.LastPaidAt.ToString("MMM dd")</div>
+                                        <div class="font-bold text-sm text-[#0F172A] dark:text-[#E1E8F0]">@src.Label</div>
+                                        <div class="text-xs text-[#64748B]">@src.TransactionCount @(src.TransactionCount == 1 ? (isGroup ? "paid join" : "unlock") : (isGroup ? "paid joins" : "unlocks"))</div>
                                     </div>
                                 </div>
-                                <div class="text-right shrink-0">
-                                    <div class="text-sm font-extrabold font-mono text-emerald-600 dark:text-emerald-400">@user.TotalLinkDrops LD</div>
-                                    <div class="text-[11px] font-mono text-[#64748B]">Net: +@user.NetLinkDrops LD</div>
+                                <span class="text-xs font-bold px-2 py-0.5 rounded-lg shrink-0 @(isGroup ? "bg-slate-100 dark:bg-slate-800 text-[#0A1B2E] dark:text-[#E1E8F0] border border-slate-200 dark:border-slate-700" : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800")">
+                                    @GetSourceSharePercent(src.Source, dashboard.SourceBreakdown)% share
+                                </span>
+                            </div>
+                            <div class="flex items-end justify-between gap-3">
+                                <div class="min-w-0">
+                                    <div class="text-xl font-extrabold font-mono @(isGroup ? "text-[#0A1B2E] dark:text-[#E1E8F0]" : "text-emerald-600 dark:text-emerald-400")">+@src.Net LD</div>
+                                    <div class="text-[11px] text-[#64748B] font-mono">Est. @(src.Net * 100) MMK</div>
+                                </div>
+                                <div class="text-right text-[11px] text-[#64748B] font-mono shrink-0 leading-relaxed">
+                                    <div>Gross @src.Gross</div>
+                                    <div>− Commission @src.Commission</div>
                                 </div>
                             </div>
-                        }
-                    </div>
-                }
+                        </div>
+                    }
+                </div>
             </div>
         </div>
 
@@ -344,7 +245,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-4">
                 <div>
                     <h2 class="text-lg font-bold text-[#0F172A] dark:text-[#E1E8F0]" style="font-family:'Plus Jakarta Sans',sans-serif">Earnings History</h2>
-                    <p class="text-xs text-[#475569] dark:text-[#94A3B8]">Detailed transaction log for paid joins</p>
+                    <p class="text-xs text-[#475569] dark:text-[#94A3B8]">Detailed transaction log for group joins and private chat unlocks</p>
                 </div>
 
                 <!-- Filters -->
@@ -355,7 +256,11 @@
                     </button>
                     <button type="button" @onclick='() => SetFilterType("GROUP")'
                             class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border cursor-pointer @(activeFilterType == "GROUP" ? "bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#112A46] dark:hover:bg-[#1B3B5A] dark:text-[#E1E8F0] border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] shadow-xs" : "bg-white dark:bg-[#191B23] text-[#475569] dark:text-[#C4D2E1] border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] hover:bg-[#F8FAFC] dark:hover:bg-[#1E2638]")">
-                        Group Payments
+                        Group Joins
+                    </button>
+                    <button type="button" @onclick='() => SetFilterType("PRIVATE_CHAT")'
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border cursor-pointer @(activeFilterType == "PRIVATE_CHAT" ? "bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#112A46] dark:hover:bg-[#1B3B5A] dark:text-[#E1E8F0] border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] shadow-xs" : "bg-white dark:bg-[#191B23] text-[#475569] dark:text-[#C4D2E1] border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] hover:bg-[#F8FAFC] dark:hover:bg-[#1E2638]")">
+                        Private Chat
                     </button>
                 </div>
             </div>
@@ -471,64 +376,9 @@
     private string activeFilterType = "ALL";
     private int? selectedChatGroupId;
 
-    private bool isPrivateChatEnabled = false;
-    private long privateChatFeeLinkDrops = 0;
-    private bool isSavingChatSettings = false;
-    private string? chatSettingsSuccessMessage;
-    private string? chatSettingsErrorMessage;
-
     protected override async Task OnInitializedAsync()
     {
         await LoadEarningsData();
-        await LoadChatSettingsAsync();
-    }
-
-    private async Task LoadChatSettingsAsync()
-    {
-        try
-        {
-            var res = await ChatApi.GetCreatorChatSettingsAsync();
-            if (res.IsSuccess && res.Data != null)
-            {
-                isPrivateChatEnabled = res.Data.IsPrivateChatEnabled;
-                privateChatFeeLinkDrops = res.Data.PrivateChatFeeLinkDrops;
-            }
-        }
-        catch
-        {
-            // Ignore error loading chat settings
-        }
-    }
-
-    private async Task SaveChatSettingsAsync()
-    {
-        isSavingChatSettings = true;
-        chatSettingsSuccessMessage = null;
-        chatSettingsErrorMessage = null;
-
-        try
-        {
-            var req = new SaveCreatorChatSettingRequestModel(isPrivateChatEnabled, privateChatFeeLinkDrops);
-            var res = await ChatApi.SaveCreatorChatSettingsAsync(req);
-            if (res.IsSuccess && res.Data != null)
-            {
-                isPrivateChatEnabled = res.Data.IsPrivateChatEnabled;
-                privateChatFeeLinkDrops = res.Data.PrivateChatFeeLinkDrops;
-                chatSettingsSuccessMessage = "Private chat monetization settings saved successfully!";
-            }
-            else
-            {
-                chatSettingsErrorMessage = res.Message ?? "Failed to save private chat settings.";
-            }
-        }
-        catch (Exception ex)
-        {
-            chatSettingsErrorMessage = ex.Message;
-        }
-        finally
-        {
-            isSavingChatSettings = false;
-        }
     }
 
     private async Task LoadEarningsData()
@@ -559,7 +409,48 @@
     private async Task SetFilterType(string filterType)
     {
         activeFilterType = filterType;
+        selectedChatGroupId = null;
         await LoadEarningsData();
+    }
+
+    private async Task ToggleSourceFilter(string source)
+    {
+        if (activeFilterType == source)
+        {
+            activeFilterType = "ALL";
+        }
+        else
+        {
+            activeFilterType = source;
+            selectedChatGroupId = null;
+        }
+        await LoadEarningsData();
+    }
+
+    private int GetSourceSharePercent(string source, IReadOnlyList<CreatorSourceEarningsModel> sources)
+    {
+        if (sources.Count == 0)
+        {
+            return 0;
+        }
+
+        long totalNet = sources.Sum(s => s.Net);
+        long totalGross = sources.Sum(s => s.Gross);
+        bool useNet = totalNet > 0;
+        long total = useNet ? totalNet : totalGross;
+        if (total <= 0)
+        {
+            return 0;
+        }
+
+        var src = sources.FirstOrDefault(s => s.Source == source);
+        if (src is null)
+        {
+            return 0;
+        }
+
+        long value = useNet ? src.Net : src.Gross;
+        return (int)Math.Round(value * 100.0 / total);
     }
 
     private async Task FilterByGroup(int chatGroupId)
