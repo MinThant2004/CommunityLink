@@ -1,19 +1,32 @@
 -- =====================================================================================
--- CommunityLink Database Script: Full Reset & Realistic Sample Data Seed
+-- CommunityLink Database Script: Complete Presentation Showcase Data Seed
 -- Target Database: SQL Server (CommunityLink)
--- Description:
---   1. Safely wipes all test/dummy data across all tables with foreign keys preserved.
---   2. Reseeds all identity counters to 0.
---   3. Seeds 5 exact designated roles (ADMIN, USER, DOMAIN_PROFESSIONAL, PUBLIC_FIGURE, MODERATOR).
---   4. Seeds permissions & role-permission mappings.
---   5. Seeds 40+ realistic Myanmar (MM) & project team users (Min Thant, May Kyawt Khaing,
---      Kaung, Aung Kyaw, Thiri San, etc.) with real-style Gmail addresses.
---   6. Sets all user and admin account passwords to '123456789' (BCrypt hash).
---   7. Seeds 20+ Communities, 20+ Groups, 30+ Posts with Myanmar tech content & code snippets,
---      Polls, Poll Options, Votes, Comments, Likes, Shares, Saved Posts.
---   8. Seeds LinkDrop Wallets, Packages, Payment Methods, Purchase Records, Proofs, Transactions.
---   9. Seeds Chat Conversations, 1-on-1 Messages, Stickers, Chat Groups, Messages, Reactions.
---  10. Seeds Verification Audits, Subscriptions, Platform Settings, and Audit Logs.
+-- Architectural Specifications:
+--   1. Role Domain Segregation:
+--      - Administration Side (RoleType = 1):
+--          * SYSTEM_ADMIN: Hard-locked, immutable, full access bypass, undeletable
+--          * ADMIN: Fallback role for deleted admin roles, dynamic permissions, undeletable
+--      - User Side (RoleType = 0):
+--          * DEFAULT_USER: Default fallback role for user side, dynamic permissions, undeletable
+--          * DOMAIN_PROFESSIONAL: Verified domain specialist / consultant creator role
+--          * PUBLIC_FIGURE: Luminary / executive creator role
+--   2. Dual Account Separation:
+--      - TblAdmin / TblAdminRole: Internal system operators strictly with RoleType = 1
+--      - TblUser / TblUserRole: Public community members strictly with RoleType = 0
+--   3. Universal Password for All Seed Accounts:
+--      - '123456789' (BCrypt hash $2a$12$Bz2R1OEXM64NeFAXB7sne.DZeWzir36LuBNn0LhBTFN6AVelBHTJe)
+--   4. Feature Richness:
+--      - 40+ realistic Myanmar users with real names, avatars, bios, ratings, and SLAs
+--      - 20+ Communities (including hierarchical sub-communities)
+--      - 20+ Groups with free & paid LinkDrop entry models
+--      - 30+ Posts with C#, Tailwind v4, Kubernetes YAML, and standard technical insights
+--      - Interactive Polls, Options & Votes
+--      - Comments, Likes, Shares, Saved Posts
+--      - 1-on-1 Direct Chat Conversations with Sticker messages
+--      - Paid & Free Group Chats
+--      - LinkDrop Wallets, Packages, Payment Methods (KBZPay, WavePay, AYA Pay, CB Pay)
+--      - Subscription Plans & Approved Identity Verifications with NRC/Credential Audits
+--      - Platform Settings and Admin Audit Logs
 -- =====================================================================================
 
 USE [CommunityLink];
@@ -28,117 +41,39 @@ GO
 BEGIN TRANSACTION;
 
 BEGIN TRY
-    PRINT '>>> Step 1: Disabling foreign key constraints for safe wipe...';
+    PRINT '>>> Step 1: Disabling foreign key constraints across all tables...';
     EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';
 
-    PRINT '>>> Step 2: Deleting existing records from all application tables...';
-    DELETE FROM dbo.TblChatMessageReaction;
-    DELETE FROM dbo.TblChatMessageUserState;
-    DELETE FROM dbo.TblChatMessage;
-    DELETE FROM dbo.TblConversation;
+    PRINT '>>> Step 2: Deleting existing records dynamically from all application tables...';
+    DECLARE @delSql NVARCHAR(MAX) = N'';
+    SELECT @delSql = @delSql + N'DELETE FROM dbo.[' + name + N'];' + CHAR(13) + CHAR(10)
+    FROM sys.tables
+    WHERE name NOT LIKE '__EFMigrations%';
+    EXEC sp_executesql @delSql;
 
-    DELETE FROM dbo.TblChatGroupMessageReaction;
-    DELETE FROM dbo.TblChatGroupMessageUserState;
-    DELETE FROM dbo.TblChatGroupMessage;
-    DELETE FROM dbo.TblChatGroupMember;
-    DELETE FROM dbo.TblChatGroupPaymentTransaction;
-    DELETE FROM dbo.TblChatGroup;
-
-    DELETE FROM dbo.TblGroupChatMessage;
-    DELETE FROM dbo.TblGroupChatRoom;
-
-    DELETE FROM dbo.TblCreatorPayoutRequest;
-    DELETE FROM dbo.TblCreatorChatSetting;
-    DELETE FROM dbo.TblPrivateChatPaymentTransaction;
-
-    DELETE FROM dbo.TblLinkDropPurchaseProof;
-    DELETE FROM dbo.TblLinkDropPurchase;
-    DELETE FROM dbo.TblLinkDropTransaction;
-    DELETE FROM dbo.TblLinkDropWallet;
-    DELETE FROM dbo.TblLinkDropPackage;
-    DELETE FROM dbo.TblPaymentMethod;
-
-    DELETE FROM dbo.TblPollVote;
-    DELETE FROM dbo.TblPollOption;
-    DELETE FROM dbo.TblPoll;
-
-    DELETE FROM dbo.TblSavedPost;
-    DELETE FROM dbo.TblPostShare;
-    DELETE FROM dbo.TblPostLike;
-    DELETE FROM dbo.TblPostImage;
-    DELETE FROM dbo.TblComment;
-    DELETE FROM dbo.TblPost;
-
-    DELETE FROM dbo.TblGroupRating;
-    DELETE FROM dbo.TblGroupJoinRequest;
-    DELETE FROM dbo.TblGroupMember;
-    DELETE FROM dbo.TblGroup;
-
-    DELETE FROM dbo.TblCommunityRating;
-    DELETE FROM dbo.TblCommunityJoinRequest;
-    DELETE FROM dbo.TblCommunityMember;
-    DELETE FROM dbo.TblCommunityAuditLog;
-    DELETE FROM dbo.TblCommunity;
-
-    DELETE FROM dbo.TblUserActivity;
-    DELETE FROM dbo.TblUserFollow;
-    DELETE FROM dbo.TblSavedAccount;
-    DELETE FROM dbo.TblUserRating;
-    DELETE FROM dbo.TblSkillEndorsement;
-    DELETE FROM dbo.TblUserSkill;
-    DELETE FROM dbo.TblNotification;
-    DELETE FROM dbo.TblUserVerificationAudit;
-    DELETE FROM dbo.TblIdentityVerification;
-    DELETE FROM dbo.TblUserSubscription;
-    DELETE FROM dbo.TblSubscriptionPlan;
-
-    DELETE FROM dbo.TblAdminInvite;
-    DELETE FROM dbo.TblAdminRole;
-    DELETE FROM dbo.TblAdmin;
-
-    DELETE FROM dbo.TblUserRole;
-    DELETE FROM dbo.TblRolePermission;
-    DELETE FROM dbo.TblRole;
-    DELETE FROM dbo.TblUser;
-    DELETE FROM dbo.TblAuditLog;
-    DELETE FROM dbo.TblPlatformSetting;
-
-    PRINT '>>> Step 3: Reseeding identity counters...';
-    -- Safe identity resets (check if table has identity first)
-    DECLARE @reseedSql NVARCHAR(MAX) = N'
-    DECLARE @tbl NVARCHAR(256), @sql NVARCHAR(MAX);
-    DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
-        SELECT t.name 
-        FROM sys.tables t 
-        JOIN sys.columns c ON t.object_id = c.object_id 
-        WHERE c.is_identity = 1;
-    OPEN cur;
-    FETCH NEXT FROM cur INTO @tbl;
-    WHILE @@FETCH_STATUS = 0
-    BEGIN
-        SET @sql = N''DBCC CHECKIDENT (''''dbo.'' + @tbl + '''''', RESEED, 0) WITH NO_INFOMSGS;'';
-        EXEC sp_executesql @sql;
-        FETCH NEXT FROM cur INTO @tbl;
-    END
-    CLOSE cur;
-    DEALLOCATE cur;';
+    PRINT '>>> Step 3: Reseeding identity counters to 0...';
+    DECLARE @reseedSql NVARCHAR(MAX) = N'';
+    SELECT @reseedSql = @reseedSql + N'DBCC CHECKIDENT (''dbo.[' + t.name + N']'', RESEED, 0) WITH NO_INFOMSGS;' + CHAR(13) + CHAR(10)
+    FROM sys.tables t
+    JOIN sys.columns c ON t.object_id = c.object_id
+    WHERE c.is_identity = 1;
     EXEC sp_executesql @reseedSql;
 
     PRINT '>>> Step 4: Re-enabling foreign key constraints...';
     EXEC sp_MSforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL';
 
-    PRINT '>>> Database clean-up completed successfully.';
+    PRINT '>>> Database clean-up and identity reset completed.';
     COMMIT TRANSACTION;
 END TRY
 BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
-    PRINT 'ERROR in Step 1-4: ' + ERROR_MESSAGE();
+    PRINT 'ERROR in Clean-up Step 1-4: ' + ERROR_MESSAGE();
     THROW;
 END CATCH;
 GO
 
 -- =====================================================================================
--- SEED DATA SECTION
+-- PRESENTATION SEED DATA SECTION
 -- =====================================================================================
 SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
@@ -152,285 +87,295 @@ BEGIN TRY
     -- BCrypt hash for password: '123456789' (Work factor 12)
     DECLARE @DefaultPasswordHash NVARCHAR(256) = N'$2a$12$Bz2R1OEXM64NeFAXB7sne.DZeWzir36LuBNn0LhBTFN6AVelBHTJe';
 
-    PRINT '>>> Step 5: Seeding 5 Roles...';
-    -- 1. System Admin (Default cannot delete)
-    -- 2. User (Default cannot delete)
-    -- 3. Domain Professional
-    -- 4. Public Figure
-    -- 5. Admin / Moderator
-    INSERT INTO dbo.TblRole (RoleCode, RoleName, Description, IsSystemRole, CreatedAt, IsDeleted)
+    PRINT '>>> Step 5: Seeding Designated RBAC Roles...';
+    -- Administration Side (RoleType = 1):
+    --   1. SYSTEM_ADMIN: Full system administrator, hard-locked, undeletable
+    --   2. ADMIN: Dynamic permission administrative fallback role, undeletable
+    -- User Side (RoleType = 0):
+    --   3. DEFAULT_USER: Default user fallback role, undeletable
+    --   4. DOMAIN_PROFESSIONAL: Verified specialist creator role
+    --   5. PUBLIC_FIGURE: Luminary / executive creator role
+    INSERT INTO dbo.TblRole (RoleCode, RoleName, Description, IsSystemRole, RoleType, CreatedAt, IsDeleted)
     VALUES 
-    (N'ADMIN', N'System Admin', N'Full system administrator with unrestricted control (Default)', 1, @Now, 0),
-    (N'USER', N'User', N'Default standard community member (Default)', 1, @Now, 0),
-    (N'DOMAIN_PROFESSIONAL', N'Domain Professional', N'Verified domain specialist, technical consultant, and advisory creator', 0, @Now, 0),
-    (N'PUBLIC_FIGURE', N'Public Figure', N'Celebrity, notable creator, executive founder, or public luminary', 0, @Now, 0),
-    (N'MODERATOR', N'Admin', N'Community moderation administrator and content governor', 0, @Now, 0);
+    (N'SYSTEM_ADMIN', N'System Admin', N'Full system administrator with unrestricted immutable control (Default Super Admin)', 1, 1, @Now, 0),
+    (N'ADMIN', N'Admin', N'Administrative operator with configurable dynamic permissions (Default Fallback)', 1, 1, @Now, 0),
+    (N'DEFAULT_USER', N'User', N'Default standard community member (Default Fallback)', 1, 0, @Now, 0),
+    (N'DOMAIN_PROFESSIONAL', N'Domain Professional', N'Verified domain specialist, technical consultant, and advisory creator', 0, 0, @Now, 0),
+    (N'PUBLIC_FIGURE', N'Public Figure', N'Celebrity, notable creator, executive founder, or public luminary', 0, 0, @Now, 0);
 
+    DECLARE @RoleId_SystemAdmin INT = (SELECT RoleId FROM dbo.TblRole WHERE RoleCode = 'SYSTEM_ADMIN');
     DECLARE @RoleId_Admin INT = (SELECT RoleId FROM dbo.TblRole WHERE RoleCode = 'ADMIN');
-    DECLARE @RoleId_User INT = (SELECT RoleId FROM dbo.TblRole WHERE RoleCode = 'USER');
+    DECLARE @RoleId_DefaultUser INT = (SELECT RoleId FROM dbo.TblRole WHERE RoleCode = 'DEFAULT_USER');
     DECLARE @RoleId_DomainPro INT = (SELECT RoleId FROM dbo.TblRole WHERE RoleCode = 'DOMAIN_PROFESSIONAL');
     DECLARE @RoleId_PublicFigure INT = (SELECT RoleId FROM dbo.TblRole WHERE RoleCode = 'PUBLIC_FIGURE');
-    DECLARE @RoleId_Moderator INT = (SELECT RoleId FROM dbo.TblRole WHERE RoleCode = 'MODERATOR');
 
-    PRINT '>>> Step 6: Seeding Permissions & Role Permissions...';
-    -- Ensure all standard permissions exist
-    DECLARE @Perms TABLE (Code NVARCHAR(100), Name NVARCHAR(100), Module NVARCHAR(100));
+    PRINT '>>> Step 6: Seeding Permissions & Role-Permission Matrix...';
+    DECLARE @Perms TABLE (Code NVARCHAR(100), Name NVARCHAR(100), Module NVARCHAR(100), PermType INT);
     INSERT INTO @Perms VALUES
-    (N'COMMUNITY.VIEW', N'View Communities', N'Community'),
-    (N'COMMUNITY.CREATE', N'Create Community', N'Community'),
-    (N'SUBCOMMUNITY.CREATE', N'Create Sub-Community', N'Community'),
-    (N'COMMUNITY.MANAGE', N'Manage Community Settings', N'Community'),
-    (N'COMMUNITY.MODERATE', N'Moderate Communities & Join Requests', N'Moderation'),
-    (N'GROUP.VIEW', N'View Groups', N'Group'),
-    (N'GROUP.CREATE', N'Create Group', N'Group'),
-    (N'GROUP.MANAGE', N'Manage Group Settings', N'Group'),
-    (N'POST.VIEW', N'View Feed Posts', N'Post'),
-    (N'POST.CREATE', N'Create Post', N'Post'),
-    (N'POST.DELETE', N'Delete Post / Moderation', N'Post'),
-    (N'POST.STANDALONE.CREATE', N'Create Standalone Post & Poll', N'Post'),
-    (N'POLL.VIEW', N'View Polls', N'Poll'),
-    (N'POLL.VOTE', N'Vote on Polls', N'Poll'),
-    (N'POLL.CREATE', N'Create Polls', N'Poll'),
-    (N'CHAT.ACCESS', N'Access Chat Rooms', N'Chat'),
-    (N'CHAT.SEND', N'Send Chat Messages', N'Chat'),
-    (N'GROUPCHAT.CREATE', N'Create Group Chat (Premium)', N'Chat'),
-    (N'ADMIN.USER.VIEW', N'View Admin Users', N'Administration'),
-    (N'ADMIN.USER.MANAGE', N'Manage Admin Users', N'Administration'),
-    (N'ADMIN.RBAC.MANAGE', N'Manage RBAC Matrix', N'Administration'),
-    (N'SYSTEMAUDIT.VIEW', N'View System Audit Logs', N'Administration'),
-    (N'REPORT.VIEW', N'View Reports', N'Reports'),
-    (N'CREATOR.EARNINGS', N'View Creator Earnings', N'Creator'),
-    (N'CREATOR.PAYOUTS', N'Manage Creator Payouts', N'Creator');
+    -- User Domain Permissions (Type = 0)
+    (N'COMMUNITY.VIEW', N'View Communities', N'Community', 0),
+    (N'GROUP.VIEW', N'View Groups', N'Group', 0),
+    (N'GROUP.CREATE', N'Create Group', N'Group', 0),
+    (N'POST.VIEW', N'View Feed Posts', N'Post', 0),
+    (N'POST.CREATE', N'Create Post', N'Post', 0),
+    (N'POST.DELETE', N'Delete Post / Moderation', N'Post', 0),
+    (N'POST.STANDALONE.CREATE', N'Create Standalone Post & Poll', N'Post', 0),
+    (N'POST.MANAGEMENT', N'Post & Poll Moderation', N'Content Moderation', 0),
+    (N'POLL.VIEW', N'View Polls', N'Poll', 0),
+    (N'POLL.VOTE', N'Vote on Polls', N'Poll', 0),
+    (N'POLL.CREATE', N'Create Polls', N'Poll', 0),
+    (N'CHAT.ACCESS', N'Access Chat Rooms', N'Chat', 0),
+    (N'CHAT.SEND', N'Send Chat Messages', N'Chat', 0),
+    (N'GROUPCHAT.CREATE', N'Create Group Chat (Premium)', N'Chat', 0),
+    (N'REPORT.VIEW', N'View Reports', N'Reports', 0),
+    (N'CREATOR.EARNINGS', N'View Creator Earnings', N'Creator', 0),
+    (N'CREATOR.PAYOUTS', N'Manage Creator Payouts', N'Creator', 0),
+
+    -- Admin Domain Permissions (Type = 1)
+    (N'COMMUNITY.CREATE', N'Create Community', N'Community', 1),
+    (N'SUBCOMMUNITY.CREATE', N'Create Sub-Community', N'Community', 1),
+    (N'COMMUNITY.MANAGE', N'Manage Community Settings', N'Community', 1),
+    (N'COMMUNITY.MODERATE', N'Moderate Communities & Join Requests', N'Moderation', 1),
+    (N'GROUP.MANAGE', N'Manage Group Settings', N'Group', 1),
+    (N'GROUP.MANAGEMENT', N'Group Moderation & Active Status', N'Content Moderation', 1),
+    (N'ADMIN.USER.VIEW', N'View Admin Users', N'Administration', 1),
+    (N'ADMIN.USER.MANAGE', N'Manage Admin Users', N'Administration', 1),
+    (N'ADMIN.RBAC.MANAGE', N'Manage RBAC Matrix', N'Administration', 1),
+    (N'SYSTEMAUDIT.VIEW', N'View System Audit Logs', N'Administration', 1);
 
     MERGE dbo.TblPermission AS target
     USING @Perms AS src ON target.PermissionCode = src.Code
     WHEN MATCHED THEN 
-        UPDATE SET PermissionName = src.Name, Module = src.Module, Description = src.Name
+        UPDATE SET PermissionName = src.Name, Module = src.Module, Description = src.Name, Type = src.PermType
     WHEN NOT MATCHED THEN 
-        INSERT (PermissionCode, PermissionName, Module, Description, CreatedAt)
-        VALUES (src.Code, src.Name, src.Module, src.Name, @Now);
+        INSERT (PermissionCode, PermissionName, Module, Description, Type, CreatedAt, IsDeleted)
+        VALUES (src.Code, src.Name, src.Module, src.Name, src.PermType, @Now, 0);
 
-    -- Grant ADMIN all permissions
+    -- Grant SYSTEM_ADMIN all Admin domain permissions (Type = 1)
     INSERT INTO dbo.TblRolePermission (RoleId, PermissionId, IsDeleted, CreatedAt)
-    SELECT @RoleId_Admin, PermissionId, 0, @Now FROM dbo.TblPermission;
-
-    -- Grant MODERATOR (Admin role) management & moderation permissions
-    INSERT INTO dbo.TblRolePermission (RoleId, PermissionId, IsDeleted, CreatedAt)
-    SELECT @RoleId_Moderator, PermissionId, 0, @Now 
+    SELECT @RoleId_SystemAdmin, PermissionId, 0, @Now 
     FROM dbo.TblPermission 
-    WHERE PermissionCode NOT IN ('ADMIN.RBAC.MANAGE', 'ADMIN.USER.MANAGE');
+    WHERE Type = 1;
 
-    -- Grant DOMAIN_PROFESSIONAL & PUBLIC_FIGURE standard + creator + group chat permissions
+    -- Grant ADMIN (fallback admin role) all Admin domain permissions (Type = 1)
     INSERT INTO dbo.TblRolePermission (RoleId, PermissionId, IsDeleted, CreatedAt)
-    SELECT @RoleId_DomainPro, PermissionId, 0, @Now 
+    SELECT @RoleId_Admin, PermissionId, 0, @Now 
     FROM dbo.TblPermission 
-    WHERE PermissionCode IN (
-        'COMMUNITY.VIEW', 'COMMUNITY.CREATE', 'SUBCOMMUNITY.CREATE', 'GROUP.VIEW', 'GROUP.CREATE',
-        'POST.VIEW', 'POST.CREATE', 'POST.STANDALONE.CREATE', 'POLL.VIEW', 'POLL.VOTE', 'POLL.CREATE',
-        'CHAT.ACCESS', 'CHAT.SEND', 'GROUPCHAT.CREATE', 'REPORT.VIEW', 'CREATOR.EARNINGS', 'CREATOR.PAYOUTS'
-    );
+    WHERE Type = 1;
 
+    -- Grant DEFAULT_USER standard member permissions (Type = 0)
     INSERT INTO dbo.TblRolePermission (RoleId, PermissionId, IsDeleted, CreatedAt)
-    SELECT @RoleId_PublicFigure, PermissionId, 0, @Now 
-    FROM dbo.TblPermission 
-    WHERE PermissionCode IN (
-        'COMMUNITY.VIEW', 'COMMUNITY.CREATE', 'SUBCOMMUNITY.CREATE', 'GROUP.VIEW', 'GROUP.CREATE',
-        'POST.VIEW', 'POST.CREATE', 'POST.STANDALONE.CREATE', 'POLL.VIEW', 'POLL.VOTE', 'POLL.CREATE',
-        'CHAT.ACCESS', 'CHAT.SEND', 'GROUPCHAT.CREATE', 'REPORT.VIEW', 'CREATOR.EARNINGS', 'CREATOR.PAYOUTS'
-    );
-
-    -- Grant USER standard permissions
-    INSERT INTO dbo.TblRolePermission (RoleId, PermissionId, IsDeleted, CreatedAt)
-    SELECT @RoleId_User, PermissionId, 0, @Now 
+    SELECT @RoleId_DefaultUser, PermissionId, 0, @Now 
     FROM dbo.TblPermission 
     WHERE PermissionCode IN (
         'COMMUNITY.VIEW', 'GROUP.VIEW', 'GROUP.CREATE', 'POST.VIEW', 'POST.CREATE',
         'POLL.VIEW', 'POLL.VOTE', 'CHAT.ACCESS', 'CHAT.SEND', 'REPORT.VIEW'
     );
 
-    PRINT '>>> Step 7: Seeding 40+ Myanmar (MM) & Team Users with real-time style Gmails...';
-    -- All passwords set to '123456789'
+    -- Grant DOMAIN_PROFESSIONAL creator permissions (Type = 0)
+    INSERT INTO dbo.TblRolePermission (RoleId, PermissionId, IsDeleted, CreatedAt)
+    SELECT @RoleId_DomainPro, PermissionId, 0, @Now 
+    FROM dbo.TblPermission 
+    WHERE PermissionCode IN (
+        'COMMUNITY.VIEW', 'GROUP.VIEW', 'GROUP.CREATE', 'POST.VIEW', 'POST.CREATE',
+        'POST.STANDALONE.CREATE', 'POLL.VIEW', 'POLL.VOTE', 'POLL.CREATE',
+        'CHAT.ACCESS', 'CHAT.SEND', 'GROUPCHAT.CREATE', 'REPORT.VIEW',
+        'CREATOR.EARNINGS', 'CREATOR.PAYOUTS'
+    );
+
+    -- Grant PUBLIC_FIGURE luminary permissions (Type = 0)
+    INSERT INTO dbo.TblRolePermission (RoleId, PermissionId, IsDeleted, CreatedAt)
+    SELECT @RoleId_PublicFigure, PermissionId, 0, @Now 
+    FROM dbo.TblPermission 
+    WHERE PermissionCode IN (
+        'COMMUNITY.VIEW', 'GROUP.VIEW', 'GROUP.CREATE', 'POST.VIEW', 'POST.CREATE',
+        'POST.STANDALONE.CREATE', 'POLL.VIEW', 'POLL.VOTE', 'POLL.CREATE',
+        'CHAT.ACCESS', 'CHAT.SEND', 'GROUPCHAT.CREATE', 'REPORT.VIEW',
+        'CREATOR.EARNINGS', 'CREATOR.PAYOUTS'
+    );
+
+    PRINT '>>> Step 7: Seeding 40+ Myanmar Community Members (TblUser)...';
     INSERT INTO dbo.TblUser (
         UserName, NormalizedUserName, Email, NormalizedEmail, DisplayName, PasswordHash,
         AvatarUrl, Bio, IsVerified, IsActive, Headline, Pronouns, Location, AvailabilityStatus,
         ResponseSlaText, PercentileBadgeText, AverageRating, RatingCount, CreatedAt, LastLoginAt
     ) VALUES
-    -- 1. Min Thant (Owner / System Admin)
+    -- 1. Min Thant (Founder & Lead Architect)
     (N'minthant', N'MINTHANT', N'mgminthant2004@gmail.com', N'MGMINTHANT2004@GMAIL.COM', N'Min Thant', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-     N'Full-stack Software Architect & Founder of CommunityLink. Building next-gen community software.', 1, 1,
+     N'Full-stack Software Architect & Founder of CommunityLink. Building high-concurrency community software.', 1, 1,
      N'Founder & Lead Architect @ CommunityLink', N'he/him', N'Yangon, Myanmar', N'Available for Mentorship',
      N'Replies within 1 hour', N'Top 1% Creator', 4.98, 86, DATEADD(DAY, -60, @Now), @Now),
 
-    -- 2. May Kyawt Khaing (Project Partner / Domain Professional)
+    -- 2. May Kyawt Khaing (Product Designer / UI/UX Specialist)
     (N'maykyawt', N'MAYKYAWT', N'maykyawtkhaing2842@gmail.com', N'MAYKYAWTKHAING2842@GMAIL.COM', N'May Kyawt Khaing', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
-     N'Senior Product Designer & UI/UX Specialist. Passionate about human-centered design & developer tooling.', 1, 1,
+     N'Senior Product Designer & UI/UX Specialist. Passionate about design tokens, micro-interactions, and developer tooling.', 1, 1,
      N'Product Design Lead & Design Systems Architect', N'she/her', N'Yangon, Myanmar', N'Available for Advisory',
      N'Replies within 2 hours', N'Top 3% Designer', 4.95, 74, DATEADD(DAY, -58, @Now), @Now),
 
-    -- 3. Kaung Kaung / juggerkaung (Core Developer / Domain Professional)
+    -- 3. Kaung Myat Han (Core Backend Engineer / Cloud Architect)
     (N'kaungkaung', N'KAUNGKAUNG', N'juggerkaung.dev@gmail.com', N'JUGGERKAUNG.DEV@GMAIL.COM', N'Kaung Myat Han', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-     N'Distributed Systems & Cloud Backend Engineer. C# .NET & Microservices enthusiast.', 1, 1,
+     N'Distributed Systems & Cloud Backend Engineer. C# .NET 10, Kafka, and microservices architecture enthusiast.', 1, 1,
      N'Backend Lead & Cloud Engineer', N'he/him', N'Mandalay, Myanmar', N'Available for Project Collaboration',
      N'Replies within 3 hours', N'Top 5% Engineer', 4.90, 52, DATEADD(DAY, -55, @Now), @Now),
 
-    -- 4. Aung Kyaw San (Public Figure / Tech Investor)
+    -- 4. Aung Kyaw San (Angel Investor & Public Figure)
     (N'aungkyawsan', N'AUNGKYAWSAN', N'aungkyaw.san.angel@gmail.com', N'AUNGKYAW.SAN.ANGEL@GMAIL.COM', N'Aung Kyaw San', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
      N'Angel investor, startup mentor, and technology keynote speaker across Southeast Asia.', 1, 1,
      N'Managing Partner @ Golden Land Ventures', N'he/him', N'Yangon, Myanmar', N'Open for Pitch Decks',
      N'Replies within 24 hours', N'Featured Luminary', 4.96, 120, DATEADD(DAY, -50, @Now), @Now),
 
-    -- 5. Thiri Sandar (Domain Professional / AI Researcher)
+    -- 5. Dr. Thiri Sandar (Principal AI Scientist)
     (N'thirisandar', N'THIRISANDAR', N'thiri.sandar.ai@gmail.com', N'THIRI.SANDAR.AI@GMAIL.COM', N'Dr. Thiri Sandar', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
      N'PhD in Computer Science. Machine Learning researcher working on Burmese NLP and multimodal LLMs.', 1, 1,
      N'Principal AI Scientist & Research Fellow', N'she/her', N'Naypyidaw, Myanmar', N'Available for Advisory',
      N'Replies within 4 hours', N'Top 1% AI Specialist', 4.99, 95, DATEADD(DAY, -45, @Now), @Now),
 
-    -- 6. Zin Min Htet (Admin / Moderator)
+    -- 6. Zin Min Htet (Cybersecurity Researcher)
     (N'zinminhtet', N'ZINMINHTET', N'zinminhtet.security@gmail.com', N'ZINMINHTET.SECURITY@GMAIL.COM', N'Zin Min Htet', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80',
-     N'Cybersecurity researcher and community safety administrator. Bug bounty hunter.', 1, 1,
+     N'Cybersecurity researcher and community safety auditor. Bug bounty hunter & OWASP advocate.', 1, 1,
      N'Security Lead & Community Compliance', N'he/him', N'Yangon, Myanmar', N'Monitoring Reports',
      N'Replies within 30 mins', N'Security Verified', 4.88, 38, DATEADD(DAY, -42, @Now), @Now),
 
-    -- 7. Hnin Shwe Yi (User / Content Creator)
+    -- 7. Hnin Shwe Yi (Content Creator & Photographer)
     (N'hninshweyi', N'HNINSHWEYI', N'hninshweyi.creatives@gmail.com', N'HNINSHWEYI.CREATIVES@GMAIL.COM', N'Hnin Shwe Yi', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1534751516642-a171edd2521b?auto=format&fit=crop&w=300&q=80',
-     N'Visual storyteller, travel photographer, and modern lifestyle creator.', 1, 1,
+     N'Visual storyteller, travel photographer, and modern lifestyle content producer.', 1, 1,
      N'Creative Producer & Content Strategist', N'she/her', N'Bagan, Myanmar', N'Available for Projects',
      N'Replies within 5 hours', N'Rising Creator', 4.82, 29, DATEADD(DAY, -40, @Now), @Now),
 
-    -- 8. Kyaw Zayar Lynn (User / Mobile Dev)
+    -- 8. Kyaw Zayar Lynn (Mobile Application Engineer)
     (N'kyawzayar', N'KYAWZAYAR', N'kyawzayar.lynn.dev@gmail.com', N'KYAWZAYAR.LYNN.DEV@GMAIL.COM', N'Kyaw Zayar Lynn', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80',
      N'Flutter & iOS engineer building cross-platform fintech apps. Open source contributor.', 0, 1,
      N'Senior Mobile Application Engineer', N'he/him', N'Yangon, Myanmar', N'Open for Work',
      N'Replies within 6 hours', N'Top Contributor', 4.79, 21, DATEADD(DAY, -38, @Now), @Now),
 
-    -- 9. Su Myat Noe (User / FinTech Specialist)
+    -- 9. Su Myat Noe (FinTech Specialist)
     (N'sumyatnoe', N'SUMYATNOE', N'sumyatnoe.fin@gmail.com', N'SUMYATNOE.FIN@GMAIL.COM', N'Su Myat Noe', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80',
      N'Financial Analyst & Payment Gateway Integration Consultant.', 1, 1,
      N'FinTech Solutions Specialist', N'she/her', N'Yangon, Myanmar', N'Available for Consultations',
      N'Replies within 4 hours', N'Finance Certified', 4.85, 34, DATEADD(DAY, -35, @Now), @Now),
 
-    -- 10. Ye Yint Aung (User / DevOps Specialist)
+    -- 10. Ye Yint Aung (DevOps & Site Reliability Engineer)
     (N'yeyintaung', N'YEYINTAUNG', N'yeyint.aung.cloud@gmail.com', N'YEYINT.AUNG.CLOUD@GMAIL.COM', N'Ye Yint Aung', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80',
      N'Kubernetes, Terraform, and CI/CD automation advocate. 24/7 reliability engineer.', 0, 1,
      N'Site Reliability Engineer @ CloudTech', N'he/him', N'Taunggyi, Myanmar', N'Available for Advisory',
      N'Replies within 3 hours', N'DevOps Guru', 4.86, 27, DATEADD(DAY, -32, @Now), @Now),
 
-    -- 11. May Thu Zin (User / Community Lead)
+    -- 11. May Thu Zin (Community Lead)
     (N'maythuzin', N'MAYTHUZIN', N'maythu.zin.lead@gmail.com', N'MAYTHU.ZIN.LEAD@GMAIL.COM', N'May Thu Zin', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80',
      N'Organizing local Myanmar tech hackathons, women in tech meetups, and developer circles.', 1, 1,
      N'Community Director @ TechMyanmar', N'she/her', N'Yangon, Myanmar', N'Connecting Leaders',
      N'Replies within 2 hours', N'Community Champion', 4.94, 63, DATEADD(DAY, -30, @Now), @Now),
 
-    -- 12. Pyae Sone Phyo (User / Frontend Dev)
+    -- 12. Pyae Sone Phyo (Frontend Artisan)
     (N'pyaesone', N'PYAESONE', N'pyaesone.phyo.code@gmail.com', N'PYAESONE.PHYO.CODE@GMAIL.COM', N'Pyae Sone Phyo', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
-     N'React, Next.js, and TailwindCSS artisan creating slick, micro-animated web interfaces.', 0, 1,
+     N'React, Next.js, and TailwindCSS v4 artisan creating slick, micro-animated web interfaces.', 0, 1,
      N'Frontend Creative Engineer', N'he/him', N'Mandalay, Myanmar', N'Available for Freelance',
      N'Replies within 4 hours', N'Code Artisan', 4.75, 18, DATEADD(DAY, -28, @Now), @Now),
 
-    -- 13. Khin Myat Noe (User / Data Scientist)
+    -- 13. Khin Myat Noe (Data Scientist)
     (N'khinmyatnoe', N'KHINMYATNOE', N'khinmyat.noe.data@gmail.com', N'KHINMYAT.NOE.DATA@GMAIL.COM', N'Khin Myat Noe', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=300&q=80',
      N'Big Data modeling, Python Pandas, and statistical forecasting specialist.', 0, 1,
      N'Senior Quantitative Data Analyst', N'she/her', N'Yangon, Myanmar', N'Available for Advisory',
      N'Replies within 8 hours', N'Data Master', 4.80, 22, DATEADD(DAY, -25, @Now), @Now),
 
-    -- 14. Nay Lin Aung (User / Blockchain Dev)
+    -- 14. Nay Lin Aung (Web3 Protocol Architect)
     (N'naylinaung', N'NAYLINAUNG', N'naylin.aung.web3@gmail.com', N'NAYLIN.AUNG.WEB3@GMAIL.COM', N'Nay Lin Aung', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=300&q=80',
      N'Solidity, EVM smart contracts, and decentralized identity protocol researcher.', 0, 1,
      N'Web3 Protocol Architect', N'he/him', N'Yangon, Myanmar', N'Consultations Open',
      N'Replies within 6 hours', N'Web3 Pioneer', 4.72, 16, DATEADD(DAY, -24, @Now), @Now),
 
-    -- 15. Ei Mon Kyaw (User / UI Designer)
+    -- 15. Ei Mon Kyaw (Lead UI Designer)
     (N'eimonkyaw', N'EIMONKYAW', N'eimon.kyaw.design@gmail.com', N'EIMON.KYAW.DESIGN@GMAIL.COM', N'Ei Mon Kyaw', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80',
      N'Figma design system builder, color palette fanatic, and accessible UI champion.', 0, 1,
      N'Lead Product Designer', N'she/her', N'Mawlamyine, Myanmar', N'Open for Design Projects',
      N'Replies within 2 hours', N'Design Ace', 4.88, 31, DATEADD(DAY, -22, @Now), @Now),
 
-    -- 16. Myo Min Thu (User / Game Developer)
+    -- 16. Myo Min Thu (Game Developer)
     (N'myominthu', N'MYOMINTHU', N'myomin.thu.games@gmail.com', N'MYOMIN.THU.GAMES@GMAIL.COM', N'Myo Min Thu', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=300&q=80',
      N'Unity 3D and Unreal Engine 5 developer. Building mobile battle royales & 2D platformers.', 0, 1,
      N'Indie Game Studio Founder', N'he/him', N'Yangon, Myanmar', N'Playtesting New Games',
      N'Replies within 12 hours', N'Game Creator', 4.70, 14, DATEADD(DAY, -20, @Now), @Now),
 
-    -- 17. Thet Htar Swe (User / English Educator)
+    -- 17. Thet Htar Swe (Business English Coach)
     (N'thettharswe', N'THETTHARSWE', N'thetthar.swe.edu@gmail.com', N'THETTHAR.SWE.EDU@GMAIL.COM', N'Thet Htar Swe', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=300&q=80',
      N'IELTS 8.5 band coach & Professional English communication mentor for software developers.', 1, 1,
      N'Business English Coach & Author', N'she/her', N'Yangon, Myanmar', N'Booking Speaking Classes',
      N'Replies within 3 hours', N'Top Educator', 4.95, 59, DATEADD(DAY, -18, @Now), @Now),
 
-    -- 18. Tun Lin Oo (User / System Admin)
+    -- 18. Tun Lin Oo (Enterprise Infrastructure Engineer)
     (N'tunlinoo', N'TUNLINOO', N'tunlin.oo.sys@gmail.com', N'TUNLIN.OO.SYS@GMAIL.COM', N'Tun Lin Oo', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=300&q=80',
      N'Linux systems administration, enterprise networking, and database replication administrator.', 0, 1,
      N'Enterprise Infrastructure Engineer', N'he/him', N'Pyin Oo Lwin, Myanmar', N'Available for Support',
      N'Replies within 4 hours', N'Infra Specialist', 4.81, 19, DATEADD(DAY, -16, @Now), @Now),
 
-    -- 19. Yoon Me Me (User / Marketing Strategist)
+    -- 19. Yoon Me Me (Growth Marketing Specialist)
     (N'yoonmeme', N'YOONMEME', N'yoonmeme.marketing@gmail.com', N'YOONMEME.MARKETING@GMAIL.COM', N'Yoon Me Me', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=300&q=80',
      N'Growth hacking, conversion rate optimization (CRO), and social marketing analytics.', 0, 1,
      N'Growth Marketing Specialist', N'she/her', N'Yangon, Myanmar', N'Taking Consultations',
      N'Replies within 5 hours', N'Growth Hacker', 4.77, 15, DATEADD(DAY, -15, @Now), @Now),
 
-    -- 20. Kyaw Swar Myint (User / QA Automation Engineer)
+    -- 20. Kyaw Swar Myint (QA Automation Lead)
     (N'kyawswar', N'KYAWSWAR', N'kyawswar.qa@gmail.com', N'KYAWSWAR.QA@GMAIL.COM', N'Kyaw Swar Myint', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=300&q=80',
      N'Playwright, Cypress, and xUnit test automation advocate. Ensuring zero production bugs.', 0, 1,
      N'Lead Quality Assurance Engineer', N'he/him', N'Yangon, Myanmar', N'Available for Code Review',
      N'Replies within 2 hours', N'QA Master', 4.89, 26, DATEADD(DAY, -14, @Now), @Now),
 
-    -- 21. Naw Hser Hser (User / Health & Wellness Coach)
+    -- 21. Naw Hser Hser (Ergonomics & Wellness Coach)
     (N'nawhser', N'NAWHSER', N'nawhser.wellness@gmail.com', N'NAWHSER.WELLNESS@GMAIL.COM', N'Naw Hser Hser', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1548142813-c348350df52b?auto=format&fit=crop&w=300&q=80',
      N'Certified fitness trainer, mental health advocate, and ergonomics advisor for remote tech workers.', 1, 1,
      N'Holistic Health & Ergonomics Coach', N'she/her', N'Hpa-An, Myanmar', N'Sessions Open',
      N'Replies within 3 hours', N'Health Champion', 4.93, 44, DATEADD(DAY, -12, @Now), @Now),
 
-    -- 22. Saw Bo Bo (User / Audio Engineer)
+    -- 22. Saw Bo Bo (Audio Engineer & Podcast Director)
     (N'sawbobo', N'SAWBOBO', N'sawbobo.sound@gmail.com', N'SAWBOBO.SOUND@GMAIL.COM', N'Saw Bo Bo', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80',
      N'Podcast producer, sound designer, and music mixing engineer for tech podcasts.', 0, 1,
      N'Audio Director @ WaveStudio MM', N'he/him', N'Yangon, Myanmar', N'Studio Sessions Open',
      N'Replies within 6 hours', N'Sound Artisan', 4.78, 17, DATEADD(DAY, -10, @Now), @Now),
 
-    -- 23. Mya Mya Khin (User / Product Manager)
+    -- 23. Mya Mya Khin (Senior Technical PM)
     (N'myamyakhin', N'MYAMYAKHIN', N'myamya.khin.pm@gmail.com', N'MYAMYA.KHIN.PM@GMAIL.COM', N'Mya Mya Khin', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=300&q=80',
      N'Agile sprint master, user roadmap strategist, and technical product leader.', 1, 1,
      N'Senior Technical Product Manager', N'she/her', N'Yangon, Myanmar', N'Mentoring Junior PMs',
      N'Replies within 4 hours', N'Product Lead', 4.91, 39, DATEADD(DAY, -9, @Now), @Now),
 
-    -- 24. Ko Ko Aung (User / Cybersecurity Analyst)
+    -- 24. Ko Ko Aung (AppSec Consultant)
     (N'kokoaung', N'KOKOAUNG', N'koko.aung.secops@gmail.com', N'KOKO.AUNG.SECOPS@GMAIL.COM', N'Ko Ko Aung', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&w=300&q=80',
      N'Penetration tester, OWASP Top 10 auditor, and secure code review specialist.', 0, 1,
      N'Application Security Consultant', N'he/him', N'Mandalay, Myanmar', N'Audits Available',
      N'Replies within 2 hours', N'SecOps Certified', 4.84, 23, DATEADD(DAY, -8, @Now), @Now),
 
-    -- 25. Phyu Phyu Win (User / Cloud Architect)
+    -- 25. Phyu Phyu Win (AWS Solutions Architect)
     (N'phyuphyuwin', N'PHYUPHYUWIN', N'phyuphyu.win.aws@gmail.com', N'PHYUPHYU.WIN.AWS@GMAIL.COM', N'Phyu Phyu Win', @DefaultPasswordHash,
      N'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&q=80',
      N'AWS Solutions Architect & Azure Cloud migration specialist for banking clients.', 1, 1,
      N'AWS Certified Solutions Architect', N'she/her', N'Yangon, Myanmar', N'Available for Consultations',
      N'Replies within 3 hours', N'Cloud Expert', 4.97, 68, DATEADD(DAY, -7, @Now), @Now);
 
-    -- Insert additional 15 diverse Myanmar users to exceed 40 total fields & members
+    -- Additional 15 active community users
     INSERT INTO dbo.TblUser (
         UserName, NormalizedUserName, Email, NormalizedEmail, DisplayName, PasswordHash,
         AvatarUrl, Bio, IsVerified, IsActive, Headline, Pronouns, Location, AvailabilityStatus,
@@ -452,53 +397,56 @@ BEGIN TRY
     (N'mayhsu', N'MAYHSU', N'mayhsu.marketing@gmail.com', N'MAYHSU.MARKETING@GMAIL.COM', N'May Hsu Mon', @DefaultPasswordHash, N'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=300&q=80', N'Social Media Strategist & Brand Lead', 0, 1, N'Brand Strategist', N'she/her', N'Yangon, Myanmar', N'Active', N'Within 3 hours', N'Marketer', 4.74, 13, @Now, @Now),
     (N'aungko', N'AUNGKO', N'aungko.frontend@gmail.com', N'AUNGKO.FRONTEND@GMAIL.COM', N'Aung Ko Ko', @DefaultPasswordHash, N'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=300&q=80', N'Vue.js & Webpack Specialist', 0, 1, N'Web Developer', N'he/him', N'Mandalay, Myanmar', N'Active', N'Within 4 hours', N'Web Master', 4.69, 11, @Now, @Now);
 
-    PRINT '>>> Step 8: Assigning User Roles...';
-    -- Min Thant = ADMIN
-    INSERT INTO dbo.TblUserRole (UserId, RoleId, CreatedAt)
-    VALUES (1, @RoleId_Admin, @Now);
-
-    -- May Kyawt & Kaung Kaung & Thiri Sandar & Phyu Phyu Win = DOMAIN_PROFESSIONAL
-    INSERT INTO dbo.TblUserRole (UserId, RoleId, CreatedAt)
+    PRINT '>>> Step 8: Assigning User-Domain Roles (TblUserRole)...';
+    -- Verified Creators upgraded to DOMAIN_PROFESSIONAL
+    INSERT INTO dbo.TblUserRole (UserId, RoleId, CreatedAt, IsDeleted)
     VALUES 
-    (2, @RoleId_DomainPro, @Now),
-    (3, @RoleId_DomainPro, @Now),
-    (5, @RoleId_DomainPro, @Now),
-    (25, @RoleId_DomainPro, @Now);
+    (1, @RoleId_DomainPro, @Now, 0),  -- Min Thant
+    (2, @RoleId_DomainPro, @Now, 0),  -- May Kyawt Khaing
+    (3, @RoleId_DomainPro, @Now, 0),  -- Kaung Myat Han
+    (5, @RoleId_DomainPro, @Now, 0),  -- Dr. Thiri Sandar
+    (25, @RoleId_DomainPro, @Now, 0); -- Phyu Phyu Win
 
-    -- Aung Kyaw San = PUBLIC_FIGURE
-    INSERT INTO dbo.TblUserRole (UserId, RoleId, CreatedAt)
-    VALUES (4, @RoleId_PublicFigure, @Now);
+    -- Notable Luminary upgraded to PUBLIC_FIGURE
+    INSERT INTO dbo.TblUserRole (UserId, RoleId, CreatedAt, IsDeleted)
+    VALUES 
+    (4, @RoleId_PublicFigure, @Now, 0); -- Aung Kyaw San
 
-    -- Zin Min Htet = MODERATOR (Admin role)
-    INSERT INTO dbo.TblUserRole (UserId, RoleId, CreatedAt)
-    VALUES (6, @RoleId_Moderator, @Now);
-
-    -- Remaining users = USER (Default)
-    INSERT INTO dbo.TblUserRole (UserId, RoleId, CreatedAt)
-    SELECT u.UserId, @RoleId_User, @Now
+    -- All other community members assigned DEFAULT_USER (Fallback User Role)
+    INSERT INTO dbo.TblUserRole (UserId, RoleId, CreatedAt, IsDeleted)
+    SELECT u.UserId, @RoleId_DefaultUser, @Now, 0
     FROM dbo.TblUser u
-    WHERE u.UserId NOT IN (1, 2, 3, 4, 5, 6, 25);
+    WHERE u.UserId NOT IN (1, 2, 3, 4, 5, 25);
 
-    PRINT '>>> Step 9: Seeding Admin Accounts (TblAdmin)...';
-    -- System Admin accounts matching with Password '123456789'
+    PRINT '>>> Step 9: Seeding Admin Accounts (TblAdmin & TblAdminRole)...';
     SET IDENTITY_INSERT dbo.TblAdmin ON;
     INSERT INTO dbo.TblAdmin (
-        AdminId, Email, NormalizedEmail, FullName, PasswordHash, IsSuperAdmin, IsActive, CreatedAt
+        AdminId, Email, NormalizedEmail, FullName, PasswordHash, IsSuperAdmin, IsActive, CreatedAt, IsDeleted
     ) VALUES
-    (1, N'admin@communitylink.local', N'ADMIN@COMMUNITYLINK.LOCAL', N'System Administrator', @DefaultPasswordHash, 1, 1, @Now),
-    (2, N'mgminthant2004@gmail.com', N'MGMINTHANT2004@GMAIL.COM', N'Min Thant (Master)', @DefaultPasswordHash, 1, 1, @Now),
-    (3, N'maykyawtkhaing2842@gmail.com', N'MAYKYAWTKHAING2842@GMAIL.COM', N'May Kyawt Khaing (Admin)', @DefaultPasswordHash, 0, 1, @Now),
-    (4, N'juggerkaung.dev@gmail.com', N'JUGGERKAUNG.DEV@GMAIL.COM', N'Kaung Myat Han (Admin)', @DefaultPasswordHash, 0, 1, @Now),
-    (5, N'zinminhtet.security@gmail.com', N'ZINMINHTET.SECURITY@GMAIL.COM', N'Zin Min Htet (SecOps)', @DefaultPasswordHash, 0, 1, @Now);
+    (1, N'admin@communitylink.local', N'ADMIN@COMMUNITYLINK.LOCAL', N'System Administrator', @DefaultPasswordHash, 1, 1, @Now, 0),
+    (2, N'mgminthant2004@gmail.com', N'MGMINTHANT2004@GMAIL.COM', N'Min Thant (Master)', @DefaultPasswordHash, 1, 1, @Now, 0),
+    (3, N'maykyawtkhaing2842@gmail.com', N'MAYKYAWTKHAING2842@GMAIL.COM', N'May Kyawt Khaing (Admin)', @DefaultPasswordHash, 0, 1, @Now, 0),
+    (4, N'juggerkaung.dev@gmail.com', N'JUGGERKAUNG.DEV@GMAIL.COM', N'Kaung Myat Han (Admin)', @DefaultPasswordHash, 0, 1, @Now, 0),
+    (5, N'zinminhtet.security@gmail.com', N'ZINMINHTET.SECURITY@GMAIL.COM', N'Zin Min Htet (SecOps)', @DefaultPasswordHash, 0, 1, @Now, 0);
     SET IDENTITY_INSERT dbo.TblAdmin OFF;
 
+    -- Admin domain role assignments:
+    -- Admin 1 & 2: SYSTEM_ADMIN (Hard-locked SuperAdmin)
+    -- Admin 3, 4, 5: ADMIN (Dynamic-permission admin role)
     INSERT INTO dbo.TblAdminRole (AdminId, RoleId, CreatedAt, IsDeleted)
     VALUES 
-    (1, @RoleId_Admin, @Now, 0),
-    (2, @RoleId_Admin, @Now, 0),
+    (1, @RoleId_SystemAdmin, @Now, 0),
+    (2, @RoleId_SystemAdmin, @Now, 0),
     (3, @RoleId_Admin, @Now, 0),
     (4, @RoleId_Admin, @Now, 0),
-    (5, @RoleId_Moderator, @Now, 0);
+    (5, @RoleId_Admin, @Now, 0);
+
+    -- Seed realistic Admin Invites
+    INSERT INTO dbo.TblAdminInvite (
+        Email, Token, RoleId, ExpiresAtUtc, IsUsed, CreatedBy, CreatedAtUtc, UsedAtUtc, IsSuperAdmin
+    ) VALUES
+    (N'secops.analyst@communitylink.local', N'INV-SEC-882941-ALPHA', @RoleId_Admin, DATEADD(HOUR, 2, @Now), 0, 1, @Now, NULL, 0),
+    (N'compliance.lead@communitylink.local', N'INV-CMP-194022-BETA', @RoleId_Admin, DATEADD(DAY, -1, @Now), 1, 1, DATEADD(DAY, -2, @Now), DATEADD(DAY, -1, @Now), 0);
 
     PRINT '>>> Step 10: Seeding LinkDrop Packages & Payment Methods...';
     INSERT INTO dbo.TblPaymentMethod (
@@ -517,18 +465,17 @@ BEGIN TRY
     (N'Pro Creator Pack', N'Recommended for Domain Professionals and Advisory engines.', 1200, 250, 55000.00, N'MMK', 3, 1, @Now, 0),
     (N'Executive Syndicate Vault', N'Maximum bonus points for public figures and syndicate sponsors.', 3500, 900, 150000.00, N'MMK', 4, 1, @Now, 0);
 
-    PRINT '>>> Step 11: Seeding Wallets for All Users...';
-    -- Give every user a realistic starting balance
+    PRINT '>>> Step 11: Seeding LinkDrop Wallets for All Users...';
     INSERT INTO dbo.TblLinkDropWallet (UserId, Balance, PurchasedBalance, EarnedBalance, CreatedAt)
     SELECT 
         UserId,
-        CASE WHEN UserId IN (1, 2, 3, 4, 5) THEN 2500 ELSE 450 END,
-        CASE WHEN UserId IN (1, 2, 3, 4, 5) THEN 1500 ELSE 300 END,
-        CASE WHEN UserId IN (1, 2, 3, 4, 5) THEN 1000 ELSE 150 END,
+        CASE WHEN UserId IN (1, 2, 3, 4, 5, 25) THEN 3500 ELSE 650 END,
+        CASE WHEN UserId IN (1, 2, 3, 4, 5, 25) THEN 2000 ELSE 450 END,
+        CASE WHEN UserId IN (1, 2, 3, 4, 5, 25) THEN 1500 ELSE 200 END,
         @Now
     FROM dbo.TblUser;
 
-    PRINT '>>> Step 12: Seeding 20+ Realistic Communities...';
+    PRINT '>>> Step 12: Seeding Communities (Parents & Sub-Communities)...';
     INSERT INTO dbo.TblCommunity (
         ParentCommunityId, OwnerId, Name, Slug, Description, AvatarUrl, BannerUrl,
         Visibility, JoinPolicy, MemberCount, PostCount, AverageRating, RatingCount, CreatedAt, IsDeleted
@@ -673,6 +620,32 @@ BEGIN TRY
      N'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=1200&q=80',
      N'PUBLIC', N'INSTANT', 490, 26, 4.83, 21, DATEADD(DAY, -4, @Now), 0);
 
+    -- Seed 4 Hierarchical Sub-Communities
+    INSERT INTO dbo.TblCommunity (
+        ParentCommunityId, OwnerId, Name, Slug, Description, AvatarUrl, BannerUrl,
+        Visibility, JoinPolicy, MemberCount, PostCount, AverageRating, RatingCount, CreatedAt, IsDeleted
+    ) VALUES
+    (1, 1, N'Backend & Distributed Systems MM', N'backend-distributed-systems-mm',
+     N'Dedicated sub-community for high-load backend infrastructure, event queues, and message brokers.',
+     N'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=300&q=80',
+     N'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&q=80',
+     N'PUBLIC', N'INSTANT', 460, 28, 4.94, 38, DATEADD(DAY, -30, @Now), 0),
+    (1, 3, N'Database & High Availability Guild', N'database-high-availability-guild',
+     N'Specialized sub-community focusing on SQL Server concurrency, read replicas, and indexing optimizations.',
+     N'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&w=300&q=80',
+     N'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&q=80',
+     N'PUBLIC', N'INSTANT', 380, 22, 4.90, 31, DATEADD(DAY, -28, @Now), 0),
+    (2, 2, N'Figma & Design Engineering', N'figma-design-engineering',
+     N'Sub-community exploring Figma plugins, auto-layout engines, and programmatic design handoffs.',
+     N'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=300&q=80',
+     N'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1200&q=80',
+     N'PUBLIC', N'INSTANT', 340, 19, 4.88, 25, DATEADD(DAY, -25, @Now), 0),
+    (3, 5, N'Burmese NLP & LLM Research Circle', N'burmese-nlp-llm-circle',
+     N'Sub-community dedicated to Burmese tokenization benchmarks, open weights evaluation, and dataset curation.',
+     N'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=300&q=80',
+     N'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80',
+     N'PUBLIC', N'INSTANT', 510, 34, 4.97, 49, DATEADD(DAY, -24, @Now), 0);
+
     PRINT '>>> Step 13: Seeding 20+ Working Groups under Communities...';
     INSERT INTO dbo.TblGroup (
         SubCommunityId, CreatorId, Name, Slug, Description, AvatarUrl, BannerUrl,
@@ -701,12 +674,10 @@ BEGIN TRY
     (17, 20, N'Playwright E2E Automation Lab', N'playwright-e2e-automation-lab', N'Headless browser testing, visual regression snapshots, and CI pipeline integrations.', N'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=200&q=80', NULL, N'PUBLIC', N'INSTANT', 190, 13, N'FREE', 0, 10.00, DATEADD(DAY, -6, @Now), 0);
 
     PRINT '>>> Step 14: Enrolling Users into Communities & Groups...';
-    -- Enroll owners & creators as OWNER in Communities
     INSERT INTO dbo.TblCommunityMember (CommunityId, UserId, Role, IsMuted, JoinedAt, CreatedAt, IsDeleted)
     SELECT CommunityId, OwnerId, N'OWNER', 0, CreatedAt, CreatedAt, 0
     FROM dbo.TblCommunity;
 
-    -- Add all main team users to top communities as active members
     INSERT INTO dbo.TblCommunityMember (CommunityId, UserId, Role, IsMuted, JoinedAt, CreatedAt, IsDeleted)
     SELECT c.CommunityId, u.UserId, N'MEMBER', 0, DATEADD(DAY, -2, @Now), @Now, 0
     FROM dbo.TblCommunity c
@@ -716,12 +687,10 @@ BEGIN TRY
         WHERE cm.CommunityId = c.CommunityId AND cm.UserId = u.UserId
     );
 
-    -- Enroll creators as OWNER in Groups
     INSERT INTO dbo.TblGroupMember (GroupId, UserId, Role, IsMuted, JoinedAt, CreatedAt, IsDeleted)
     SELECT GroupId, CreatorId, N'OWNER', 0, CreatedAt, CreatedAt, 0
     FROM dbo.TblGroup;
 
-    -- Add sample members to groups
     INSERT INTO dbo.TblGroupMember (GroupId, UserId, Role, IsMuted, JoinedAt, CreatedAt, IsDeleted)
     SELECT g.GroupId, u.UserId, N'MEMBER', 0, DATEADD(DAY, -1, @Now), @Now, 0
     FROM dbo.TblGroup g
@@ -830,7 +799,7 @@ spec:
   --font-display: "Outfit", sans-serif;
 }', N'css', N'app.css', NULL, NULL, 0, 53, 15, 7, DATEADD(DAY, -1, @Now), 0);
 
-    -- Additional realistic posts across different authors
+    -- Additional realistic posts across diverse authors
     INSERT INTO dbo.TblPost (AuthorId, CommunityId, GroupId, Content, PostType, Subtitle, LikeCount, CommentCount, ShareCount, CreatedAt, IsDeleted)
     VALUES
     (7, 14, NULL, N'Early morning light captured at Shwedagon Pagoda, Yangon. The reflection against the wet marble tiles created an unforgettable ethereal atmosphere.', N'STANDARD', N'Morning Reflections in Yangon', 64, 18, 9, DATEADD(HOUR, -20, @Now), 0),
@@ -879,7 +848,6 @@ spec:
     (3, 13, N'Voted for Llama-3! The vocabulary expansion with custom Burmese tokens yielded the lowest perplexity in our tests.', DATEADD(DAY, -7, @Now), 0),
     (6, 1, N'Such valuable advice Teacher Thet Htar! Confidence in communication makes all the difference.', DATEADD(DAY, -4, @Now), 0);
 
-    -- Post Likes
     INSERT INTO dbo.TblPostLike (PostId, UserId, CreatedAt, IsDeleted)
     VALUES
     (1, 2, @Now, 0), (1, 3, @Now, 0), (1, 4, @Now, 0), (1, 5, @Now, 0), (1, 6, @Now, 0),
@@ -887,7 +855,6 @@ spec:
     (3, 1, @Now, 0), (3, 2, @Now, 0), (3, 4, @Now, 0), (3, 13, @Now, 0), (3, 25, @Now, 0);
 
     PRINT '>>> Step 18: Seeding Direct Chat Conversations, Messages & Stickers...';
-    -- Conversation between Min Thant (1) and May Kyawt Khaing (2)
     INSERT INTO dbo.TblConversation (UserOneId, UserTwoId, LastMessageAt, LastMessagePreview, CreatedAt, IsDeleted)
     VALUES (1, 2, @Now, N'[sticker:/stickers/cool.svg]', DATEADD(DAY, -5, @Now), 0);
     DECLARE @Conv1Id INT = SCOPE_IDENTITY();
@@ -900,7 +867,6 @@ spec:
     (@Conv1Id, 2, N'[sticker:/stickers/party.svg]', 1, DATEADD(MINUTE, -10, @Now), DATEADD(MINUTE, -20, @Now), 0),
     (@Conv1Id, 1, N'[sticker:/stickers/cool.svg]', 1, DATEADD(MINUTE, -5, @Now), DATEADD(MINUTE, -10, @Now), 0);
 
-    -- Conversation between Min Thant (1) and Kaung Myat Han (3)
     INSERT INTO dbo.TblConversation (UserOneId, UserTwoId, LastMessageAt, LastMessagePreview, CreatedAt, IsDeleted)
     VALUES (1, 3, @Now, N'[sticker:/stickers/like.svg]', DATEADD(DAY, -4, @Now), 0);
     DECLARE @Conv2Id INT = SCOPE_IDENTITY();
@@ -912,7 +878,6 @@ spec:
     (@Conv2Id, 3, N'[sticker:/stickers/fire.svg]', 1, DATEADD(MINUTE, -30, @Now), DATEADD(HOUR, -1, @Now), 0),
     (@Conv2Id, 1, N'[sticker:/stickers/like.svg]', 1, DATEADD(MINUTE, -25, @Now), DATEADD(MINUTE, -30, @Now), 0);
 
-    -- Conversation between Min Thant (1) and Dr. Thiri Sandar (5)
     INSERT INTO dbo.TblConversation (UserOneId, UserTwoId, LastMessageAt, LastMessagePreview, CreatedAt, IsDeleted)
     VALUES (1, 5, @Now, N'[sticker:/stickers/love.svg]', DATEADD(DAY, -3, @Now), 0);
     DECLARE @Conv3Id INT = SCOPE_IDENTITY();
@@ -938,7 +903,6 @@ spec:
      N'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=200&q=80',
      NULL, 2, N'FREE', 0, 10.00, 1, DATEADD(DAY, -12, @Now), 0);
 
-    -- Add members to Chat Group 1
     INSERT INTO dbo.TblChatGroupMember (ChatGroupId, UserId, Role, JoinedAt, CreatedAt, IsDeleted)
     VALUES
     (1, 1, N'OWNER', @Now, @Now, 0),
@@ -947,7 +911,6 @@ spec:
     (1, 5, N'MEMBER', @Now, @Now, 0),
     (1, 6, N'MEMBER', @Now, @Now, 0);
 
-    -- Add messages in Chat Group 1
     INSERT INTO dbo.TblChatGroupMessage (ChatGroupId, SenderId, Content, CreatedAt, IsDeleted)
     VALUES
     (1, 1, N'Welcome team to the CommunityLink Core Engineering group chat!', DATEADD(HOUR, -5, @Now), 0),
@@ -956,7 +919,6 @@ spec:
     (1, 1, N'[sticker:/stickers/fire.svg]', DATEADD(HOUR, -2, @Now), 0);
 
     PRINT '>>> Step 20: Seeding Creator Chat Settings & Payout Requests...';
-    -- Creator chat settings for top creators
     INSERT INTO dbo.TblCreatorChatSetting (CreatorUserId, IsPrivateChatEnabled, PrivateChatFeeLinkDrops, CreatedAt)
     VALUES
     (1, 1, 50, @Now),
@@ -965,7 +927,6 @@ spec:
     (4, 1, 100, @Now),
     (5, 1, 60, @Now);
 
-    -- Realistic Payout Requests
     INSERT INTO dbo.TblCreatorPayoutRequest (
         CreatorUserId, AmountLinkDrops, AmountMMK, PaymentMethod, PaymentAccountName,
         PaymentAccountNumber, Status, AdminNote, CreatedAt, ReviewedAt, ReviewedBy
@@ -975,28 +936,54 @@ spec:
     (3, 800, 40000.00, N'WavePay', N'Kaung Myat Han', N'09420011223', N'PENDING', NULL, DATEADD(HOUR, -12, @Now), NULL, NULL),
     (5, 1200, 60000.00, N'KBZPay', N'Thiri Sandar', N'09798877665', N'PENDING', NULL, DATEADD(HOUR, -6, @Now), NULL, NULL);
 
-    PRINT '>>> Step 21: Seeding Subscription Plans & Verifications...';
+    PRINT '>>> Step 21: Seeding Subscription Plans, Identity Verifications & Audits...';
     INSERT INTO dbo.TblSubscriptionPlan (
         TargetRoleCode, PlanName, BillingInterval, DurationDays, PriceAmount, LinkDropCost,
         PerksJson, IsActive, CreatedAt
     ) VALUES
-    (N'DOMAIN_PRO', N'Domain Professional (Monthly)', N'Monthly', 30, 39.00, 390,
+    (N'DOMAIN_PROFESSIONAL', N'Domain Professional (Monthly)', N'Monthly', 30, 39.00, 390,
      N'["1-on-1 Paid Advisory Engine (set custom rate)","Public Peer Rating & Review Card","Priority Sub-Community Ownership","Domain Competency Endorsement","Credential Verification Badging"]', 1, @Now),
-    (N'DOMAIN_PRO', N'Domain Professional (Annual)', N'Annual', 365, 390.00, 3900,
+    (N'DOMAIN_PROFESSIONAL', N'Domain Professional (Annual)', N'Annual', 365, 390.00, 3900,
      N'["All Monthly Perks included","2 Months Free Discount","Expedited 24h Verification Audit","Featured in Domain Pro Directory Shelf"]', 1, @Now),
     (N'PUBLIC_FIGURE', N'Public Figure VIP (Monthly)', N'Monthly', 30, 119.00, 1190,
      N'["Discovery shelf Priority Guaranteed placement","Unlimited Sovereign Communities","0% Platform Fees on Advisory (first 10,000,000 MMK)","Dedicated Admin Concierge","Government ID Verified Badge"]', 1, @Now),
     (N'PUBLIC_FIGURE', N'Public Figure VIP (Annual)', N'Annual', 365, 1190.00, 11900,
      N'["All Public Figure VIP Monthly Perks","Save 238,000 MMK (2 Months Free)","Priority SecOps Review","VIP Platinum Crest"]', 1, @Now);
 
-    -- Identity Verifications
+    DECLARE @Plan1Id INT = (SELECT TOP 1 PlanId FROM dbo.TblSubscriptionPlan WHERE TargetRoleCode = 'DOMAIN_PROFESSIONAL' AND DurationDays = 30);
+    DECLARE @Plan2Id INT = (SELECT TOP 1 PlanId FROM dbo.TblSubscriptionPlan WHERE TargetRoleCode = 'DOMAIN_PROFESSIONAL' AND DurationDays = 365);
+    DECLARE @Plan3Id INT = (SELECT TOP 1 PlanId FROM dbo.TblSubscriptionPlan WHERE TargetRoleCode = 'PUBLIC_FIGURE' AND DurationDays = 30);
+
+    -- Active user subscriptions
+    INSERT INTO dbo.TblUserSubscription (UserId, PlanId, RoleId, Status, PaymentMethod, StartDateUtc, ExpiresAtUtc, CreatedAtUtc)
+    VALUES
+    (1, @Plan2Id, @RoleId_DomainPro, N'Active', N'LinkDropPoints', DATEADD(DAY, -30, @Now), DATEADD(DAY, 335, @Now), DATEADD(DAY, -30, @Now)),
+    (2, @Plan1Id, @RoleId_DomainPro, N'Active', N'LinkDropPoints', DATEADD(DAY, -10, @Now), DATEADD(DAY, 20, @Now), DATEADD(DAY, -10, @Now)),
+    (3, @Plan1Id, @RoleId_DomainPro, N'Active', N'LinkDropPoints', DATEADD(DAY, -8, @Now), DATEADD(DAY, 22, @Now), DATEADD(DAY, -8, @Now)),
+    (4, @Plan3Id, @RoleId_PublicFigure, N'Active', N'LinkDropPoints', DATEADD(DAY, -6, @Now), DATEADD(DAY, 24, @Now), DATEADD(DAY, -6, @Now)),
+    (5, @Plan2Id, @RoleId_DomainPro, N'Active', N'LinkDropPoints', DATEADD(DAY, -15, @Now), DATEADD(DAY, 350, @Now), DATEADD(DAY, -15, @Now)),
+    (25, @Plan1Id, @RoleId_DomainPro, N'Active', N'LinkDropPoints', DATEADD(DAY, -5, @Now), DATEADD(DAY, 25, @Now), DATEADD(DAY, -5, @Now));
+
+    -- Verified Identity records with Admin approval
     INSERT INTO dbo.TblIdentityVerification (
         UserId, PlanId, TargetRoleCode, FullLegalName, WorkEmail, ProfessionalUrl,
         IdCardFrontUrl, PaymentMethod, LinkDropPointsDeducted, Status, ReviewNotes, ReviewedByAdminId, ReviewedAtUtc, CreatedAtUtc
     ) VALUES
-    (2, 1, N'DOMAIN_PRO', N'May Kyawt Khaing', N'maykyawtkhaing2842@gmail.com', N'https://linkedin.com/in/maykyawt', N'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80', N'LinkDropPoints', 390, N'Approved', N'Credentials verified.', 1, DATEADD(DAY, -10, @Now), DATEADD(DAY, -12, @Now)),
-    (3, 1, N'DOMAIN_PRO', N'Kaung Myat Han', N'juggerkaung.dev@gmail.com', N'https://github.com/juggerkaung', N'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80', N'LinkDropPoints', 390, N'Approved', N'GitHub contributions and portfolio verified.', 1, DATEADD(DAY, -8, @Now), DATEADD(DAY, -9, @Now)),
-    (4, 3, N'PUBLIC_FIGURE', N'Aung Kyaw San', N'aungkyaw.san.angel@gmail.com', N'https://linkedin.com/in/aungkyawsan', N'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80', N'LinkDropPoints', 1190, N'Approved', N'Executive public profile verified.', 1, DATEADD(DAY, -6, @Now), DATEADD(DAY, -7, @Now));
+    (2, @Plan1Id, N'DOMAIN_PROFESSIONAL', N'May Kyawt Khaing', N'maykyawtkhaing2842@gmail.com', N'https://linkedin.com/in/maykyawt', N'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80', N'LinkDropPoints', 390, N'Approved', N'Credentials verified by SecOps.', 1, DATEADD(DAY, -10, @Now), DATEADD(DAY, -12, @Now)),
+    (3, @Plan1Id, N'DOMAIN_PROFESSIONAL', N'Kaung Myat Han', N'juggerkaung.dev@gmail.com', N'https://github.com/juggerkaung', N'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80', N'LinkDropPoints', 390, N'Approved', N'GitHub portfolio & cloud architecture credentials approved.', 1, DATEADD(DAY, -8, @Now), DATEADD(DAY, -9, @Now)),
+    (4, @Plan3Id, N'PUBLIC_FIGURE', N'Aung Kyaw San', N'aungkyaw.san.angel@gmail.com', N'https://linkedin.com/in/aungkyawsan', N'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80', N'LinkDropPoints', 1190, N'Approved', N'Executive public figure & syndicate founder verified.', 1, DATEADD(DAY, -6, @Now), DATEADD(DAY, -7, @Now)),
+    (5, @Plan2Id, N'DOMAIN_PROFESSIONAL', N'Dr. Thiri Sandar', N'thiri.sandar.ai@gmail.com', N'https://scholar.google.com/citations?user=thirisandar', N'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80', N'LinkDropPoints', 3900, N'Approved', N'Doctorate & publications verified.', 1, DATEADD(DAY, -15, @Now), DATEADD(DAY, -16, @Now)),
+    (25, @Plan1Id, N'DOMAIN_PROFESSIONAL', N'Phyu Phyu Win', N'phyuphyu.win.aws@gmail.com', N'https://linkedin.com/in/phyuphyuwin', N'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80', N'LinkDropPoints', 390, N'Approved', N'AWS Solutions Architect certification verified.', 1, DATEADD(DAY, -5, @Now), DATEADD(DAY, -6, @Now));
+
+    -- User Verification Audit badges
+    INSERT INTO dbo.TblUserVerificationAudit (
+        UserId, AuditCode, AuditTitle, AuditDescription, Authority, Status, AuditedAt, CreatedAt, IsDeleted
+    ) VALUES
+    (2, N'GOV_ID_CARD', N'Domain Professional Verified', N'SecOps verified National Registration Card (NRC) for legal name May Kyawt Khaing.', N'CommunityLink Verification SecOps', N'ACTIVE', DATEADD(DAY, -10, @Now), DATEADD(DAY, -10, @Now), 0),
+    (3, N'GOV_ID_CARD', N'Domain Professional Verified', N'SecOps verified National Registration Card (NRC) and GitHub authorship for Kaung Myat Han.', N'CommunityLink Verification SecOps', N'ACTIVE', DATEADD(DAY, -8, @Now), DATEADD(DAY, -8, @Now), 0),
+    (4, N'GOV_ID_CARD', N'Public Figure Luminary Verified', N'SecOps verified executive identity and registered entity for Aung Kyaw San.', N'CommunityLink Verification SecOps', N'ACTIVE', DATEADD(DAY, -6, @Now), DATEADD(DAY, -6, @Now), 0),
+    (5, N'GOV_ID_CARD', N'Domain Professional Verified', N'SecOps verified PhD academic credentials and NRC for Dr. Thiri Sandar.', N'CommunityLink Verification SecOps', N'ACTIVE', DATEADD(DAY, -15, @Now), DATEADD(DAY, -15, @Now), 0),
+    (25, N'GOV_ID_CARD', N'Domain Professional Verified', N'SecOps verified AWS Solutions Architect credential and NRC for Phyu Phyu Win.', N'CommunityLink Verification SecOps', N'ACTIVE', DATEADD(DAY, -5, @Now), DATEADD(DAY, -5, @Now), 0);
 
     PRINT '>>> Step 22: Seeding Platform Settings & System Audit Logs...';
     INSERT INTO dbo.TblPlatformSetting (SettingKey, SettingValue, DataType, Description, UpdatedAt)
@@ -1009,10 +996,10 @@ spec:
     INSERT INTO dbo.TblAuditLog (
         ActorType, ActorId, Action, EntityName, EntityId, NewValues, ChangedColumns, IpAddress, CreatedAt, IsDeleted
     ) VALUES
-    (N'ADMIN', 1, N'SEED', N'SYSTEM_DATABASE', 1, N'Seeded realistic Myanmar sample dataset with 40+ members, communities, groups, chats, and posts.', N'ALL', N'127.0.0.1', @Now, 0),
-    (N'ADMIN', 1, N'UPDATE', N'ROLE_PERMISSION', @RoleId_Admin, N'Full permission matrix configured.', N'Permissions', N'127.0.0.1', @Now, 0);
+    (N'ADMIN', 1, N'SEED', N'SYSTEM_DATABASE', 1, N'Seeded presentation dataset with segregated RBAC roles, 40+ members, communities, groups, chats, and posts.', N'ALL', N'127.0.0.1', @Now, 0),
+    (N'ADMIN', 1, N'UPDATE', N'ROLE_PERMISSION', @RoleId_SystemAdmin, N'Full permission matrix configured.', N'Permissions', N'127.0.0.1', @Now, 0);
 
-    PRINT '>>> SUCCESS: All sample data has been seeded successfully!';
+    PRINT '>>> SUCCESS: All presentation showcase data has been seeded successfully!';
     COMMIT TRANSACTION;
 END TRY
 BEGIN CATCH

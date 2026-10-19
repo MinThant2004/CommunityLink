@@ -433,6 +433,25 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
+        var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value 
+                   ?? user.FindFirst("role")?.Value 
+                   ?? string.Empty;
+        bool isAdmin = user.HasClaim("is_admin", "true") ||
+                       user.IsInRole("ADMIN") ||
+                       user.IsInRole("SYSTEM_ADMIN") ||
+                       user.IsInRole("SYSTEMADMIN") ||
+                       user.IsInRole("SUPERADMIN") ||
+                       string.Equals(role, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                       string.Equals(role, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                       string.Equals(role, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+                       string.Equals(role, "SUPERADMIN", StringComparison.OrdinalIgnoreCase);
+
+        if (isAdmin)
+        {
+            NavManager.NavigateTo("/admin/dashboard", replace: true);
+            return;
+        }
+
         var userId = user.FindFirst("sub")?.Value
             ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (int.TryParse(userId, out var parsedId))

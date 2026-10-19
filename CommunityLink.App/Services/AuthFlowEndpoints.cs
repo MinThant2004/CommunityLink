@@ -37,6 +37,8 @@ public static class AuthFlowEndpoints
             return Results.Redirect("/login");
         }).DisableAntiforgery();
 
+        endpoints.MapGet("/admin/login", () => Results.Redirect("/admin/portal-entry/login"));
+
         endpoints.MapPost("/account/admin/login",
             async ([FromForm] string email,
                    [FromForm] string password,

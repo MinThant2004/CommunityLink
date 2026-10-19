@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @using System.Security.Claims
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
@@ -7,29 +8,52 @@
 
 <div class="h-screen flex overflow-hidden bg-[#F8FAFC] dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] font-sans antialiased transition-colors duration-150">
     <!-- Backdrop for mobile when sidebar is open -->
-    @if (isSidebarOpen)
+    @if (hasSidebarRole && !isChatPage && isSidebarOpen)
     {
         <div class="fixed inset-0 bg-[#0A1B2E]/20 dark:bg-black/60 backdrop-blur-xs z-30 lg:hidden" @onclick="ToggleSidebar"></div>
     }
 
     <!-- Executive Minimalist Closeable Sidebar (Fixed / Stays in place) -->
-    <aside class="@(isSidebarOpen ? "w-64 min-w-[16rem]" : "w-0 min-w-0 border-r-0 overflow-hidden pointer-events-none") fixed lg:relative inset-y-0 left-0 h-screen bg-white dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] flex flex-col border-r border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shadow-sm z-40 transition-all duration-200 ease-in-out shrink-0">
-        <NavMenu OnClose="ToggleSidebar" />
-    </aside>
+    @if (hasSidebarRole && !isChatPage)
+    {
+        <aside class="@(isSidebarOpen ? "w-64 min-w-[16rem]" : "w-0 min-w-0 border-r-0 overflow-hidden pointer-events-none") fixed lg:relative inset-y-0 left-0 h-screen bg-white dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] flex flex-col border-r border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shadow-sm z-40 transition-all duration-200 ease-in-out shrink-0">
+            <NavMenu OnClose="ToggleSidebar" />
+        </aside>
+    }
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
         <!-- Top App Bar with Global Search & Primary Menu -->
         <header class="bg-white/95 dark:bg-[#111622]/95 backdrop-blur-md border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] px-4 sm:px-6 py-2.5 flex items-center gap-3 shadow-xs shrink-0 z-40 relative">
-            <!-- Left: Sidebar Toggle & Search -->
+            <!-- Left: Sidebar Toggle / Back Button / Brand & Search -->
             <div class="flex items-center gap-3 flex-1 min-w-0">
-                <button @onclick="ToggleSidebar" class="p-1.5 rounded text-[#557392] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition cursor-pointer shrink-0" title="Toggle navigation sidebar" aria-label="Toggle navigation sidebar">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
-                </button>
+                @if (isChatPage && hasSidebarRole)
+                {
+                    <a href="@mainPageUrl" class="p-1.5 rounded-lg text-[#557392] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition cursor-pointer shrink-0 flex items-center gap-1.5 font-semibold text-xs no-underline" title="Back to main page">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span class="hidden sm:inline">Back</span>
+                    </a>
+                }
+                else if (hasSidebarRole)
+                {
+                    <button @onclick="ToggleSidebar" class="p-1.5 rounded text-[#557392] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition cursor-pointer shrink-0" title="Toggle navigation sidebar" aria-label="Toggle navigation sidebar">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                }
+                else
+                {
+                    <a class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E2EC] tracking-tight flex items-center gap-2 no-underline shrink-0 mr-1" href="">
+                        <span class="w-7 h-7 rounded bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] flex items-center justify-center font-bold text-xs shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">CL</span>
+                        <span class="font-bold hidden sm:inline" style="font-family:'Plus Jakarta Sans',sans-serif">Community<span class="text-[#D4AF37]">Link</span></span>
+                    </a>
+                }
 
                 <!-- Global Search Box -->
                 <div class="relative w-40 sm:w-56 xl:w-72 shrink">
@@ -58,10 +82,6 @@
                         <NavLink class="px-3 py-1.5 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2 whitespace-nowrap" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] shadow-sm" href="groups">
                             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                             <span>Groups</span>
-                        </NavLink>
-                        <NavLink class="px-3 py-1.5 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2 whitespace-nowrap" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] shadow-sm" href="chat">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.189A8.721 8.721 0 0 1 3 12a8.721 8.721 0 0 1 3.04-6.06 8.721 8.721 0 0 1 6.96 0A8.721 8.721 0 0 1 21 12Z"/></svg>
-                            <span>Chat</span>
                         </NavLink>
                         <NavLink class="px-3 py-1.5 rounded text-xs font-semibold text-[#D4AF37] hover:bg-[#D4AF37]/10 transition flex items-center gap-2 whitespace-nowrap" ActiveClass="!bg-[#D4AF37] !text-[#0A0D14] shadow-sm font-bold" href="upgrade">
                             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -113,7 +133,24 @@
                                     </span>
                                 </Authorized>
                             </AuthorizeView>
-                            <LinkDropNavbarBalance />
+                            @if (!isAdminActor)
+                            {
+                                <LinkDropNavbarBalance />
+
+                                <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)" Context="chatAuthCtx">
+                                    <Authorized>
+                                        <NavLink href="chat"
+                                                 class="relative p-1.5 rounded text-[#557392] hover:text-[#0A1B2E] hover:bg-[#F1F5F9] dark:text-[#C4D2E1] dark:hover:text-white dark:hover:bg-[#1B3B5A] transition focus:outline-none cursor-pointer flex items-center justify-center no-underline"
+                                                 ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37]"
+                                                 title="Chat conversations"
+                                                 aria-label="Chat conversations">
+                                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.189A8.721 8.721 0 0 1 3 12a8.721 8.721 0 0 1 3.04-6.06 8.721 8.721 0 0 1 6.96 0A8.721 8.721 0 0 1 21 12Z"/>
+                                            </svg>
+                                        </NavLink>
+                                    </Authorized>
+                                </AuthorizeView>
+                            }
 
                             <NotificationBell />
 
@@ -172,6 +209,10 @@
                                         <div class="p-2 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] bg-slate-50/50 dark:bg-black/20">
                                             <form method="post" action="/account/logout" class="w-full">
                                                 <AntiforgeryToken />
+                                                @if (isAdminActor)
+                                                {
+                                                    <input type="hidden" name="isAdmin" value="true" />
+                                                }
                                                 <button type="submit" class="w-full flex items-center gap-2 px-3.5 py-2 rounded text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer" title="Disconnect Session">
                                                     <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                                                     <span>Log Out</span>
@@ -249,12 +290,19 @@
     private bool isProfileMenuOpen = false;
     private bool showCloseAccountModal = false;
     private bool isNormalUser = false;
+    private bool hasSidebarRole = false;
+    private bool isChatPage = false;
+    private bool isAdminActor = false;
     private string userDisplayName = "Member";
     private string userInitials = "U";
     private string userRoleLabel = string.Empty;
+    private string mainPageUrl => isAdminActor ? "admin/dashboard" : "";
 
     protected override async Task OnInitializedAsync()
     {
+        Navigation.LocationChanged += OnLocationChanged;
+        UpdateChatPageState(Navigation.Uri);
+
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
@@ -265,13 +313,20 @@
         }
 
         var roleCode = (user.FindFirst(ClaimTypes.Role)?.Value ?? user.FindFirst("role")?.Value ?? string.Empty).Trim();
-        bool isPremiumRole = roleCode.Equals("DOMAIN_PRO", StringComparison.OrdinalIgnoreCase) ||
+        isAdminActor = user.HasClaim("is_admin", "true") ||
+                       user.IsInRole("ADMIN") ||
+                       user.IsInRole("SYSTEM_ADMIN") ||
+                       user.IsInRole("SYSTEMADMIN") ||
+                       user.IsInRole("SUPERADMIN") ||
+                       roleCode.Equals("ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                       roleCode.Equals("SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                       roleCode.Equals("SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+                       roleCode.Equals("SUPERADMIN", StringComparison.OrdinalIgnoreCase);
+
+        bool isPremiumRole = isAdminActor ||
+                             roleCode.Equals("DOMAIN_PRO", StringComparison.OrdinalIgnoreCase) ||
                              roleCode.Equals("DOMAIN_PROFESSIONAL", StringComparison.OrdinalIgnoreCase) ||
-                             roleCode.Equals("PUBLIC_FIGURE", StringComparison.OrdinalIgnoreCase) ||
-                             roleCode.Equals("ADMIN", StringComparison.OrdinalIgnoreCase) ||
-                             roleCode.Equals("SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
-                             roleCode.Equals("SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
-                             roleCode.Equals("SUPERADMIN", StringComparison.OrdinalIgnoreCase);
+                             roleCode.Equals("PUBLIC_FIGURE", StringComparison.OrdinalIgnoreCase);
 
         bool hasActiveSubscription = false;
         if (user.Identity?.IsAuthenticated == true && !isPremiumRole)
@@ -296,6 +351,7 @@
 
         // Sidebar is for Premium and Admin users. The navbar is only for Default User Role.
         isNormalUser = user.Identity?.IsAuthenticated == true && !isPremiumRole && !hasActiveSubscription;
+        hasSidebarRole = user.Identity?.IsAuthenticated == true && !isNormalUser;
 
         if (string.IsNullOrEmpty(userRoleLabel))
         {
@@ -376,5 +432,28 @@
         {
             Navigation.NavigateTo($"communities?search={Uri.EscapeDataString(searchQuery.Trim())}");
         }
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        UpdateChatPageState(e.Location);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateChatPageState(string uri)
+    {
+        var path = Navigation.ToBaseRelativePath(uri);
+        var qIdx = path.IndexOf('?');
+        if (qIdx >= 0) path = path[..qIdx];
+        var hashIdx = path.IndexOf('#');
+        if (hashIdx >= 0) path = path[..hashIdx];
+
+        isChatPage = path.Equals("chat", StringComparison.OrdinalIgnoreCase) ||
+                     path.StartsWith("chat/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
     }
 }

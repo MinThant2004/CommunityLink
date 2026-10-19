@@ -2451,7 +2451,6 @@ else if (dashboard != null)
     private bool isSharingPost = false;
 
     // Post Options Menu & Modal State
-    private int? activeMenuPostId = null;
     private bool showEditModal = false;
     private int? editingPostId = null;
     private string editingPostContent = string.Empty;
@@ -2482,7 +2481,24 @@ else if (dashboard != null)
         }
 
         isCheckingAuth = false;
-        currentUserIsAdmin = user.IsInRole("ADMIN") || string.Equals(user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value, "ADMIN", StringComparison.OrdinalIgnoreCase);
+        var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value 
+                   ?? user.FindFirst("role")?.Value 
+                   ?? string.Empty;
+        currentUserIsAdmin = user.HasClaim("is_admin", "true") ||
+                             user.IsInRole("ADMIN") ||
+                             user.IsInRole("SYSTEM_ADMIN") ||
+                             user.IsInRole("SYSTEMADMIN") ||
+                             user.IsInRole("SUPERADMIN") ||
+                             string.Equals(role, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(role, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(role, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(role, "SUPERADMIN", StringComparison.OrdinalIgnoreCase);
+
+        if (currentUserIsAdmin)
+        {
+            Navigation.NavigateTo("/admin/dashboard", replace: true);
+            return;
+        }
 
         // Check Permissions
         try
@@ -2815,7 +2831,7 @@ else if (dashboard != null)
 
     private async Task ToggleSavePost(int postId)
     {
-        activeMenuPostId = null;
+        openPostMenuId = null;
         try
         {
             var res = await PostApi.ToggleSavePostAsync(postId, _cts.Token);
@@ -2846,7 +2862,7 @@ else if (dashboard != null)
 
     private void OpenEditPost(PostModel post)
     {
-        activeMenuPostId = null;
+        openPostMenuId = null;
         editingPostId = post.PostId;
         editingPostContent = post.Content;
         showEditModal = true;
@@ -2891,7 +2907,7 @@ else if (dashboard != null)
 
     private void PromptRecyclePost(int postId)
     {
-        activeMenuPostId = null;
+        openPostMenuId = null;
         pendingRecyclePostId = postId;
         showRecycleModal = true;
     }

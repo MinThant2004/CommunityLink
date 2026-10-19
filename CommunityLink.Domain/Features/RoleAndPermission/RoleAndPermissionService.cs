@@ -25,8 +25,7 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
             return Result<IReadOnlyList<string>>.Success([]);
 
         if (string.Equals(currentUser.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(currentUser.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(currentUser.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase))
+            string.Equals(currentUser.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase))
         {
             var adminPerms = await dbContext.TblPermissions
                 .Where(p => !p.IsDeleted && p.Type == 1)

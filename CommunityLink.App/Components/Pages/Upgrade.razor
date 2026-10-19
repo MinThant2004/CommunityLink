@@ -6,6 +6,7 @@
 @inject LinkDropApiService LinkDropApi
 @inject ToastService Toast
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
 @rendermode InteractiveServer
 
 <PageTitle>Premium Membership — CommunityLink</PageTitle>
@@ -710,6 +711,30 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value 
+                       ?? user.FindFirst("role")?.Value 
+                       ?? string.Empty;
+            bool isAdmin = user.HasClaim("is_admin", "true") ||
+                           user.IsInRole("ADMIN") ||
+                           user.IsInRole("SYSTEM_ADMIN") ||
+                           user.IsInRole("SYSTEMADMIN") ||
+                           user.IsInRole("SUPERADMIN") ||
+                           string.Equals(role, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(role, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(role, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(role, "SUPERADMIN", StringComparison.OrdinalIgnoreCase);
+
+            if (isAdmin)
+            {
+                Navigation.NavigateTo("/admin/dashboard", replace: true);
+                return;
+            }
+        }
+
         await LoadDataAsync();
     }
 

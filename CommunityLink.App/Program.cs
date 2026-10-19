@@ -115,8 +115,37 @@ app.MapRazorComponents<App>()
 app.MapPost("/account/logout", async (HttpContext context, IAntiforgery antiforgery) =>
 {
     await antiforgery.ValidateRequestAsync(context);
+
+    var user = context.User;
+    var roleCode = (user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value 
+                    ?? user.FindFirst("role")?.Value 
+                    ?? string.Empty).Trim();
+
+    bool isAdmin = user.HasClaim("is_admin", "true") ||
+                   user.HasClaim("role_type", "1") ||
+                   user.IsInRole("ADMIN") ||
+                   user.IsInRole("SYSTEM_ADMIN") ||
+                   user.IsInRole("SYSTEMADMIN") ||
+                   user.IsInRole("SUPERADMIN") ||
+                   string.Equals(roleCode, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(roleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(roleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(roleCode, "SUPERADMIN", StringComparison.OrdinalIgnoreCase);
+
+    if (!isAdmin && context.Request.HasFormContentType && string.Equals(context.Request.Form["isAdmin"], "true", StringComparison.OrdinalIgnoreCase))
+    {
+        isAdmin = true;
+    }
+
     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    return Results.Redirect("/login");
+    return Results.Redirect(isAdmin ? "/admin/portal-entry/login" : "/login");
+}).RequireAuthorization();
+
+app.MapPost("/account/admin/logout", async (HttpContext context, IAntiforgery antiforgery) =>
+{
+    await antiforgery.ValidateRequestAsync(context);
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    return Results.Redirect("/admin/portal-entry/login");
 }).RequireAuthorization();
 
 // Login / Register Flow Endpoints (issue the Ace.Community.Auth cookie ticket)

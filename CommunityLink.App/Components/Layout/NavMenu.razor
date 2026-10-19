@@ -1,9 +1,10 @@
 @inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthStateProvider
 
 <div class="h-full flex flex-col min-h-0 overflow-hidden select-none bg-white dark:bg-[#0A0D14] transition-colors duration-150">
     <!-- Stationary Sidebar Header -->
     <div class="px-5 py-4 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shrink-0 bg-white dark:bg-[#0A0D14] z-10 transition-colors duration-150">
-        <a class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E2EC] tracking-tight flex items-center gap-2.5 no-underline" href="">
+        <a class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E2EC] tracking-tight flex items-center gap-2.5 no-underline" href="@brandUrl">
             <span class="w-8 h-8 rounded bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] flex items-center justify-center font-bold text-sm shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">CL</span>
             <div class="leading-none">
                 <span class="font-bold text-[#0A1B2E] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">Community<span class="text-[#D4AF37]">Link</span></span>
@@ -23,231 +24,223 @@
         <nav class="flex flex-col gap-1">
             <AuthorizeView>
                 <Authorized>
-                    <!-- Main Navigation -->
-                    <div class="px-1 py-0.5">
-                        <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="" Match="NavLinkMatch.All">
-                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                            <span>Home</span>
-                        </NavLink>
-                    </div>
-                    <div class="px-1 py-0.5">
-                        <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="communities">
-                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
-                            <span>Communities</span>
-                        </NavLink>
-                    </div>
+                    @{
+                        var user = context.User;
+                        var roleCode = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value 
+                                       ?? user.FindFirst("role")?.Value 
+                                       ?? string.Empty;
+                        bool isAdminActor = user.HasClaim("is_admin", "true") ||
+                                           user.IsInRole("ADMIN") ||
+                                           user.IsInRole("SYSTEM_ADMIN") ||
+                                           user.IsInRole("SYSTEMADMIN") ||
+                                           user.IsInRole("SUPERADMIN") ||
+                                           string.Equals(roleCode, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                                           string.Equals(roleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                                           string.Equals(roleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+                                           string.Equals(roleCode, "SUPERADMIN", StringComparison.OrdinalIgnoreCase) ||
+                                           user.HasClaim("permission", PermissionCatalog.AdminUserView);
+                    }
 
-                    <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.GroupView)" Context="groupViewCtx">
-                        <Authorized>
-                            <div class="px-1 py-0.5">
-                                <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="groups">
-                                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                    <span>Groups</span>
-                                </NavLink>
+                    @if (isAdminActor)
+                    {
+                        <!-- Administration Navigation ONLY (Admin-Side) -->
+                        <div class="px-1 py-1 space-y-1">
+                            <div class="px-3 pb-2 flex items-center justify-between font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
+                                <span>Administration</span>
+                                <span class="px-1.5 py-0.5 rounded bg-[#F1F5F9] dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E2EC] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[9px]">ADMIN</span>
                             </div>
-                        </Authorized>
-                    </AuthorizeView>
-                    <div class="px-1 py-0.5">
-                        <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="chat">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.189A8.721 8.721 0 0 1 3 12a8.721 8.721 0 0 1 3.04-6.06 8.721 8.721 0 0 1 6.96 0A8.721 8.721 0 0 1 21 12Z"/></svg>
-                            <span>Chat</span>
-                        </NavLink>
-                    </div>
-                    <div class="px-1 py-0.5">
-                        <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="profile">
-                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            <span>Profile</span>
-                        </NavLink>
-                    </div>
-                    <div class="px-1 py-0.5">
-                        <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="linkdrops">
-                            <LinkDropIcon Class="w-4 h-4 shrink-0" />
-                            <span>Link Drop Wallet</span>
-                        </NavLink>
-                    </div>
-                    <div class="px-1 py-0.5">
-                        <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#D4AF37] hover:bg-[#D4AF37]/10 transition flex items-center gap-2.5" ActiveClass="!bg-[#D4AF37] !text-[#0A0D14] shadow-sm font-bold" href="upgrade">
-                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            <span class="font-bold">Premium</span>
-                        </NavLink>
-                    </div>
-                    <div class="px-1 py-0.5">
-                        <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="activity">
-                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                            <span>Activity</span>
-                        </NavLink>
-                    </div>
 
-                    <!-- Creator Center Section -->
-                    <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorEarnings)" Context="creatorEarningsContext">
-                        <Authorized>
-                            <div class="px-1 py-2 mt-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
-                                <div class="px-3 pb-1 font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
-                                    Creator Center
-                                </div>
-                                <div class="space-y-1">
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/earnings">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.8 9A2 2 0 0 0 13 8h-2a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-2a2 2 0 0 1-1.8-1"/><path d="M12 6v12"/></svg>
-                                        <span>Earnings</span>
-                                    </NavLink>
-                                    <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorPayouts)" Context="creatorPayoutsContext">
-                                        <Authorized Context="payoutInner">
-                                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/payouts">
-                                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                                                <span>Payouts</span>
-                                            </NavLink>
-                                        </Authorized>
-                                    </AuthorizeView>
-                                </div>
-                            </div>
-                        </Authorized>
-                        <NotAuthorized>
-                            <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorPayouts)" Context="creatorPayoutsOnlyContext">
-                                <Authorized Context="payoutOnly">
-                                    <div class="px-1 py-2 mt-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
-                                        <div class="px-3 pb-1 font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
-                                            Creator Center
-                                        </div>
-                                        <div class="space-y-1">
-                                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/payouts">
-                                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                                                <span>Payouts</span>
-                                            </NavLink>
-                                        </div>
-                                    </div>
-                                </Authorized>
-                            </AuthorizeView>
-                        </NotAuthorized>
-                    </AuthorizeView>
-
-                    <!-- Reports Section / Dropdown -->
-                    <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.ReportView)" Context="reportCtx">
-                        <Authorized>
-                            <div class="px-1 py-0.5">
-                                <button type="button" @onclick="ToggleReportMenu" class="w-full px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] hover:text-[#0A1B2E] dark:hover:text-white transition flex items-center justify-between cursor-pointer">
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/dashboard">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                                <span>Dashboard</span>
+                            </NavLink>
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/communities">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
+                                <span>Communities</span>
+                            </NavLink>
+                            <div>
+                                <button type="button" @onclick="ToggleContentModerationMenu"
+                                        class="w-full px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center justify-between cursor-pointer">
                                     <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-                                        <span>Reports</span>
+                                        <svg class="w-4 h-4 shrink-0 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                        <span>Content Moderation</span>
                                     </div>
-                                    <svg class="w-3.5 h-3.5 transform transition-transform duration-200 @(isReportOpen ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-3.5 h-3.5 transform transition-transform duration-200 @(isContentModerationOpen ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </button>
-                                @if (isReportOpen)
+                                @if (isContentModerationOpen)
                                 {
-                                    <div class="pl-6 pr-1 py-1 space-y-1 mt-0.5 border-l-2 border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] ml-4">
-                                        <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] hover:text-[#0A1B2E] dark:hover:text-white transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#E1E8F0] dark:!text-[#0A1B2E] shadow-sm" href="reports/communities">
-                                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
-                                            <span>Community Report</span>
+                                    <div class="pl-6 pr-1 py-1 space-y-1 mt-0.5 border-l-2 border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] ml-4">
+                                        <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/content-moderation?tab=posts">
+                                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/></svg>
+                                            <span>Posts</span>
                                         </NavLink>
-                                        <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] hover:text-[#0A1B2E] dark:hover:text-white transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#E1E8F0] dark:!text-[#0A1B2E] shadow-sm" href="reports/users">
-                                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                            <span>User Report</span>
+                                        <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/content-moderation?tab=groups">
+                                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                            <span>Groups</span>
                                         </NavLink>
                                     </div>
                                 }
                             </div>
-                        </Authorized>
-                    </AuthorizeView>
-
-                    <!-- Administration Section strictly for Admins (logged in through Admin Portal) -->
-                    <AuthorizeView Context="adminContext">
-                        <Authorized>
-                            @{
-                                var user = adminContext.User;
-                                bool isAdminActor = user.HasClaim("is_admin", "true") ||
-                                                   user.IsInRole("ADMIN") ||
-                                                   user.IsInRole("SYSTEM_ADMIN") ||
-                                                   user.IsInRole("SYSTEMADMIN") ||
-                                                   user.IsInRole("SUPERADMIN") ||
-                                                   user.HasClaim("permission", PermissionCatalog.AdminUserView);
-                            }
-                            @if (isAdminActor)
-                            {
-                                <div class="px-1 py-2 mt-4 pt-4 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
-                                    <div class="px-3 pb-2 flex items-center justify-between font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
-                                        <span>Administration</span>
-                                        <span class="px-1.5 py-0.5 rounded bg-[#F1F5F9] dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E2EC] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[9px]">ADMIN</span>
-                                    </div>
-                                <div class="space-y-1">
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/dashboard">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                                        <span>Dashboard</span>
-                                    </NavLink>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/communities">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                                        <span>Hub Moderation</span>
-                                    </NavLink>
-                                    <div>
-                                        <button type="button" @onclick="ToggleContentModerationMenu"
-                                                class="w-full px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center justify-between cursor-pointer">
-                                            <div class="flex items-center gap-2.5">
-                                                <svg class="w-4 h-4 shrink-0 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                                <span>Content Moderation</span>
-                                            </div>
-                                            <svg class="w-3.5 h-3.5 transform transition-transform duration-200 @(isContentModerationOpen ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </button>
-                                        @if (isContentModerationOpen)
-                                        {
-                                            <div class="pl-6 pr-1 py-1 space-y-1 mt-0.5 border-l-2 border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] ml-4">
-                                                <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/content-moderation?tab=posts">
-                                                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/></svg>
-                                                    <span>Post</span>
-                                                </NavLink>
-                                                <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/content-moderation?tab=groups">
-                                                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                                    <span>Group</span>
-                                                </NavLink>
-                                            </div>
-                                        }
-                                    </div>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/users">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                        <span>User Directory</span>
-                                    </NavLink>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/accounts">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
-                                        <span>Account Creation</span>
-                                    </NavLink>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/rbac">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                        <span>Role &amp; Permissions</span>
-                                    </NavLink>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/audits">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                                        <span>System Audit Logs</span>
-                                    </NavLink>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/payouts">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                                        <span>Creator Payouts</span>
-                                    </NavLink>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/finance">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                                        <span>Platform Finance</span>
-                                    </NavLink>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/linkdrops">
-                                        <LinkDropIcon Class="w-4 h-4 shrink-0" />
-                                        <span>Link Drops Review</span>
-                                    </NavLink>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/plans">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                        <span>Premium Plans</span>
-                                    </NavLink>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/verifications">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
-                                        <span>Identity Audits</span>
-                                    </NavLink>
-                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/settings">
-                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                                        <span>Platform Settings</span>
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/users">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <span>User Directory</span>
+                            </NavLink>
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/accounts">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
+                                <span>Account Creation</span>
+                            </NavLink>
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/rbac">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                <span>Role &amp; Permissions</span>
+                            </NavLink>
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/audits">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                <span>System Audit Logs</span>
+                            </NavLink>
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/payouts">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                                <span>Creator Payouts</span>
+                            </NavLink>
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/finance">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                <span>Platform Finance</span>
+                            </NavLink>
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/linkdrops">
+                                <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                                <span>Link Drops Review</span>
+                            </NavLink>
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/plans">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                <span>Premium Plans</span>
+                            </NavLink>
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/verifications">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+                                <span>Identity Audits</span>
+                            </NavLink>
+                            <NavLink class="px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="admin/settings">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                                <span>Platform Settings</span>
+                            </NavLink>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Regular User / Creator Navigation -->
+                        <div class="px-1 py-0.5">
+                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="" Match="NavLinkMatch.All">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                <span>Home</span>
+                            </NavLink>
+                        </div>
+                        <div class="px-1 py-0.5">
+                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="communities">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
+                                <span>Communities</span>
+                            </NavLink>
+                        </div>
+                        <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.GroupView)" Context="groupViewCtx">
+                            <Authorized>
+                                <div class="px-1 py-0.5">
+                                    <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="groups">
+                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        <span>Groups</span>
                                     </NavLink>
                                 </div>
-                            </div>
-                            }
-                        </Authorized>
-                    </AuthorizeView>
+                            </Authorized>
+                        </AuthorizeView>
+                        <div class="px-1 py-0.5">
+                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="linkdrops">
+                                <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                                <span>Link Drop Wallet</span>
+                            </NavLink>
+                        </div>
+                        <div class="px-1 py-0.5">
+                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#D4AF37] hover:bg-[#D4AF37]/10 transition flex items-center gap-2.5" ActiveClass="!bg-[#D4AF37] !text-[#0A0D14] shadow-sm font-bold" href="upgrade">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                <span class="font-bold">Premium</span>
+                            </NavLink>
+                        </div>
+                        <div class="px-1 py-0.5">
+                            <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="activity">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                <span>Activity</span>
+                            </NavLink>
+                        </div>
+
+                        <!-- Creator Center Section -->
+                        <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorEarnings)" Context="creatorEarningsContext">
+                            <Authorized>
+                                <div class="px-1 py-2 mt-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
+                                    <div class="px-3 pb-1 font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
+                                        Creator Center
+                                    </div>
+                                    <div class="space-y-1">
+                                        <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/earnings">
+                                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.8 9A2 2 0 0 0 13 8h-2a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-2a2 2 0 0 1-1.8-1"/><path d="M12 6v12"/></svg>
+                                            <span>Earnings</span>
+                                        </NavLink>
+                                        <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorPayouts)" Context="creatorPayoutsContext">
+                                            <Authorized Context="payoutInner">
+                                                <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/payouts">
+                                                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                                                    <span>Payouts</span>
+                                                </NavLink>
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    </div>
+                                </div>
+                            </Authorized>
+                            <NotAuthorized>
+                                <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorPayouts)" Context="creatorPayoutsOnlyContext">
+                                    <Authorized Context="payoutOnly">
+                                        <div class="px-1 py-2 mt-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
+                                            <div class="px-3 pb-1 font-mono text-[10px] font-bold tracking-wider text-[#64748B] dark:text-[#94A3B8] uppercase">
+                                                Creator Center
+                                            </div>
+                                            <div class="space-y-1">
+                                                <NavLink class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] dark:!border dark:!border-[#D4AF37]/30 shadow-sm" href="creator/payouts">
+                                                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                                                    <span>Payouts</span>
+                                                </NavLink>
+                                            </div>
+                                        </div>
+                                    </Authorized>
+                                </AuthorizeView>
+                            </NotAuthorized>
+                        </AuthorizeView>
+
+                        <!-- Reports Section / Dropdown -->
+                        <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.ReportView)" Context="reportCtx">
+                            <Authorized>
+                                <div class="px-1 py-0.5">
+                                    <button type="button" @onclick="ToggleReportMenu" class="w-full px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] hover:text-[#0A1B2E] dark:hover:text-white transition flex items-center justify-between cursor-pointer">
+                                        <div class="flex items-center gap-2.5">
+                                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                                            <span>Reports</span>
+                                        </div>
+                                        <svg class="w-3.5 h-3.5 transform transition-transform duration-200 @(isReportOpen ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    @if (isReportOpen)
+                                    {
+                                        <div class="pl-6 pr-1 py-1 space-y-1 mt-0.5 border-l-2 border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] ml-4">
+                                            <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] hover:text-[#0A1B2E] dark:hover:text-white transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#E1E8F0] dark:!text-[#0A1B2E] shadow-sm" href="reports/communities">
+                                                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
+                                                <span>Community Report</span>
+                                            </NavLink>
+                                            <NavLink class="px-3 py-1.5 rounded text-xs font-medium text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] hover:text-[#0A1B2E] dark:hover:text-white transition flex items-center gap-2" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#E1E8F0] dark:!text-[#0A1B2E] shadow-sm" href="reports/users">
+                                                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                <span>User Report</span>
+                                            </NavLink>
+                                        </div>
+                                    }
+                                </div>
+                            </Authorized>
+                        </AuthorizeView>
+                    }
                 </Authorized>
                 <NotAuthorized>
                     <div class="px-1 py-0.5">
@@ -284,7 +277,21 @@
         <AuthorizeView>
             <Authorized>
                 <div class="p-3">
-                    <a href="profile" class="flex items-center gap-3 p-2 rounded hover:bg-white dark:hover:bg-[#111622] transition border border-transparent hover:border-[#E2E8F0] dark:hover:border-[rgba(255,255,255,0.08)] group no-underline">
+                    @{
+                        var footerUser = context.User;
+                        var footerRole = footerUser.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value 
+                                         ?? footerUser.FindFirst("role")?.Value 
+                                         ?? string.Empty;
+                        bool isFooterAdmin = footerUser.HasClaim("is_admin", "true") ||
+                                             footerUser.IsInRole("ADMIN") ||
+                                             footerUser.IsInRole("SYSTEM_ADMIN") ||
+                                             footerUser.IsInRole("SYSTEMADMIN") ||
+                                             footerUser.IsInRole("SUPERADMIN") ||
+                                             string.Equals(footerRole, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                                             string.Equals(footerRole, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase);
+                        var profileTarget = isFooterAdmin ? "admin/dashboard" : "profile";
+                    }
+                    <a href="@profileTarget" class="flex items-center gap-3 p-2 rounded hover:bg-white dark:hover:bg-[#111622] transition border border-transparent hover:border-[#E2E8F0] dark:hover:border-[rgba(255,255,255,0.08)] group no-underline">
                         <div class="w-8 h-8 rounded bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-xs flex items-center justify-center shrink-0 shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">
                             @(context.User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
                         </div>
@@ -305,7 +312,7 @@
                                 </AuthorizeView>
                             </div>
                             <div class="text-[10px] text-[#64748B] dark:text-[#94A3B8] truncate font-mono">
-                                View Node &rarr;
+                                @(isFooterAdmin ? "Admin Console →" : "View Node →")
                             </div>
                         </div>
                     </a>
@@ -319,6 +326,27 @@
     [Parameter] public EventCallback OnClose { get; set; }
     private bool isReportOpen = true;
     private bool isContentModerationOpen = true;
+    private string brandUrl = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = auth.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value 
+                       ?? user.FindFirst("role")?.Value 
+                       ?? string.Empty;
+            bool isAdmin = user.HasClaim("is_admin", "true") ||
+                           user.IsInRole("ADMIN") ||
+                           user.IsInRole("SYSTEM_ADMIN") ||
+                           user.IsInRole("SYSTEMADMIN") ||
+                           user.IsInRole("SUPERADMIN") ||
+                           string.Equals(role, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(role, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase);
+            brandUrl = isAdmin ? "admin/dashboard" : "";
+        }
+    }
 
     private void ToggleReportMenu()
     {

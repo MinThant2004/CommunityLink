@@ -36,6 +36,7 @@ public interface IAdministrationService
     Task<Result<VerifyAdminInviteResponseModel>> VerifyAdminInviteTokenAsync(string token, CancellationToken cancellationToken = default);
     Task<Result> SetupAdminPasswordAsync(SetupAdminPasswordRequestModel request, CancellationToken cancellationToken = default);
     Task<Result> ToggleAdminStatusAsync(int adminId, CancellationToken cancellationToken = default);
+    Task<Result> AssignAdminRoleAsync(AssignAdminRoleRequestModel request, CancellationToken cancellationToken = default);
 
     // Content Moderation & Reporting
     Task<Result> SubmitContentReportAsync(CreateContentReportRequestModel request, CancellationToken cancellationToken = default);
@@ -434,7 +435,8 @@ public sealed class AdministrationService(
                 a.IsSuperAdmin,
                 a.IsActive,
                 a.LastLoginAt,
-                a.CreatedAt))
+                a.CreatedAt,
+                a.TblAdminRoles.Where(ar => !ar.IsDeleted).Select(ar => ar.Role.RoleId).FirstOrDefault()))
             .ToListAsync(cancellationToken);
 
         return Result<IReadOnlyList<AdminAccountModel>>.Success(admins);
@@ -691,6 +693,78 @@ public sealed class AdministrationService(
         await dbContext.SaveChangesAsync(cancellationToken);
         var status = targetAdmin.IsActive ? "activated" : "deactivated";
         return Result.Success($"Admin account '{targetAdmin.Email}' has been {status}.");
+    }
+
+    public async Task<Result> AssignAdminRoleAsync(AssignAdminRoleRequestModel request, CancellationToken cancellationToken = default)
+    {
+        var targetAdmin = await dbContext.TblAdmins
+            .Include(a => a.TblAdminRoles)
+            .ThenInclude(ar => ar.Role)
+            .FirstOrDefaultAsync(a => a.AdminId == request.AdminId && !a.IsDeleted, cancellationToken);
+
+        if (targetAdmin is null)
+            return Result.Failure("Admin account not found.", ResultStatus.NotFound);
+
+        // Security check 1: SYSTEM_ADMIN cannot have their role modified
+        if (targetAdmin.IsSuperAdmin)
+        {
+            return Result.Failure("System Administrator (SYSTEM_ADMIN) accounts cannot have their role modified.", ResultStatus.Forbidden);
+        }
+
+        var newRole = await dbContext.TblRoles
+            .FirstOrDefaultAsync(r => r.RoleId == request.RoleId && !r.IsDeleted, cancellationToken);
+
+        if (newRole is null)
+            return Result.Failure("Selected role not found.", ResultStatus.NotFound);
+
+        // Security check 2: Must be an Admin domain role (RoleType == 1)
+        if (newRole.RoleType != 1)
+        {
+            return Result.Failure("Invalid role assignment. Admin accounts can only be assigned to Admin-domain roles.", ResultStatus.Forbidden);
+        }
+
+        // Security check 3: Operators cannot be promoted to SYSTEM_ADMIN via ordinary role change
+        if (string.Equals(newRole.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(newRole.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase))
+        {
+            return Result.Failure("Administrators cannot be reassigned or promoted to SYSTEM_ADMIN role.", ResultStatus.Forbidden);
+        }
+
+        var existingAdminRoles = targetAdmin.TblAdminRoles.Where(ar => !ar.IsDeleted).ToList();
+        var oldRoleName = existingAdminRoles.Select(ar => ar.Role?.RoleName ?? ar.Role?.RoleCode).FirstOrDefault() ?? "None";
+
+        var currentRoleMapping = existingAdminRoles.FirstOrDefault();
+        if (currentRoleMapping != null)
+        {
+            currentRoleMapping.RoleId = newRole.RoleId;
+            currentRoleMapping.UpdatedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            dbContext.TblAdminRoles.Add(new TblAdminRole
+            {
+                AdminId = targetAdmin.AdminId,
+                RoleId = newRole.RoleId,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        // Audit Log for ADMIN role change
+        dbContext.TblAuditLogs.Add(new TblAuditLog
+        {
+            ActorType = currentUser.RoleCode ?? "ADMIN",
+            ActorId = currentUser.UserId,
+            Action = "CHANGE",
+            EntityName = "ADMIN",
+            EntityId = targetAdmin.AdminId,
+            OldValues = $"Role: {oldRoleName}",
+            NewValues = $"Role: {newRole.RoleName} ({newRole.RoleCode})",
+            ChangedColumns = "RoleId",
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success($"Role for '{targetAdmin.Email}' changed to '{newRole.RoleName}' successfully.");
     }
 
     #region Content Moderation & Reporting

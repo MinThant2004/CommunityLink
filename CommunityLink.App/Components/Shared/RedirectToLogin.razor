@@ -1,0 +1,28 @@
+@inject NavigationManager Navigation
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthStateTask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = AuthStateTask != null ? await AuthStateTask : null;
+        var user = authState?.User;
+
+        if (user?.Identity?.IsAuthenticated != true)
+        {
+            var returnUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
+            var isTargetingAdmin = returnUrl.StartsWith("admin", StringComparison.OrdinalIgnoreCase);
+            var loginPath = isTargetingAdmin ? "/admin/portal-entry/login" : "/login";
+
+            if (string.IsNullOrWhiteSpace(returnUrl))
+            {
+                Navigation.NavigateTo(loginPath, replace: true);
+            }
+            else
+            {
+                Navigation.NavigateTo($"{loginPath}?returnUrl={Uri.EscapeDataString("/" + returnUrl)}", replace: true);
+            }
+        }
+    }
+}

@@ -37,8 +37,13 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
             return Result<int>.Success(0, "No expired subscriptions found.");
         }
 
-        var memberRole = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "MEMBER" || r.RoleCode == "USER", cancellationToken);
-        var memberRoleId = memberRole?.RoleId ?? 1;
+        var defaultUserRole = await dbContext.TblRoles
+            .FirstOrDefaultAsync(r => !r.IsDeleted && (r.RoleCode == "DEFAULT_USER" || r.RoleCode == "MEMBER" || r.RoleCode == "USER"), cancellationToken);
+        if (defaultUserRole is null)
+        {
+            return Result<int>.Failure("Default user fallback role could not be resolved during subscription expiration.", ResultStatus.NotFound);
+        }
+        var memberRoleId = defaultUserRole.RoleId;
 
         int processedCount = 0;
         foreach (var sub in expiredSubscriptions)

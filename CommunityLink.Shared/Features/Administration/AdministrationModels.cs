@@ -77,6 +77,10 @@ public sealed record SetupAdminPasswordRequestModel(
     string Password,
     string? ConfirmPassword = null);
 
+public sealed record AssignAdminRoleRequestModel(
+    int AdminId,
+    int RoleId);
+
 public sealed record AdminAccountModel(
     int AdminId,
     string Email,
@@ -86,4 +90,5 @@ public sealed record AdminAccountModel(
     bool IsSuperAdmin,
     bool IsActive,
     DateTime? LastLoginAt,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    int RoleId = 0);
