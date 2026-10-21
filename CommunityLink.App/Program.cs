@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Localization;
+using CommunityLink.App;
 using CommunityLink.App.Components;
 using CommunityLink.App.Apis;
 using CommunityLink.App.Services;
@@ -18,6 +20,9 @@ builder.Services.AddLocalization(options =>
 {
     options.ResourcesPath = "Resources";
 });
+builder.Services.AddScoped<CultureService>();
+builder.Services.AddScoped<IStringLocalizer<AppResources>, DynamicAppStringLocalizer>();
+builder.Services.AddScoped<IStringLocalizer, DynamicAppStringLocalizer>();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();

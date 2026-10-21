@@ -1,5 +1,8 @@
 @inherits LayoutComponentBase
 @using Microsoft.Extensions.Localization
+@using CommunityLink.App.Services
+@implements IDisposable
+@inject CultureService Culture
 @inject IStringLocalizer<AppResources> Loc
 
 <div class="h-full flex flex-col min-h-0 overflow-hidden select-none bg-white dark:bg-[#0A0D14] transition-colors duration-150">
@@ -314,5 +317,19 @@
     private void ToggleContentModerationMenu()
     {
         isContentModerationOpen = !isContentModerationOpen;
+    }
+    protected override void OnInitialized()
+    {
+        Culture.OnCultureChanged += HandleCultureChanged;
+    }
+
+    private void HandleCultureChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Culture.OnCultureChanged -= HandleCultureChanged;
     }
 }

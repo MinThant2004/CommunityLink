@@ -1,5 +1,8 @@
 @inherits LayoutComponentBase
 @using Microsoft.Extensions.Localization
+@using CommunityLink.App.Services
+@implements IDisposable
+@inject CultureService Culture
 @inject NavigationManager Nav
 @inject AuthSessionService Session
 @inject IJSRuntime JS
@@ -221,5 +224,19 @@
         {
             isDarkMode = !isDarkMode;
         }
+    }
+    protected override void OnInitialized()
+    {
+        Culture.OnCultureChanged += HandleCultureChanged;
+    }
+
+    private void HandleCultureChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Culture.OnCultureChanged -= HandleCultureChanged;
     }
 }
