@@ -4,21 +4,22 @@
 @using CommunityLink.Shared.Security
 @inject AdministrationApiService AdminApi
 @inject ToastService Toast
+@inject IStringLocalizer<AppResources> Loc
 
-<PageTitle>Platform Settings — Admin Control Panel</PageTitle>
+<PageTitle>@Loc["Admin_Settings_PageTitle"]</PageTitle>
 
 <div class="max-w-4xl mx-auto space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-[#0F172A] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif">
                 <svg class="w-6 h-6 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-                <span>Platform Settings</span>
+                <span>@Loc["Admin_Settings_Heading"]</span>
             </h1>
-            <p class="text-sm text-[#475569] dark:text-[#94A3B8]">Manage global system parameters and platform financial commission rates.</p>
+            <p class="text-sm text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_Settings_Subtitle"]</p>
         </div>
         <button @onclick="LoadCommissionAsync" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white dark:bg-[#111622] text-[#475569] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] hover:bg-[#F8FAFC] dark:hover:bg-[#182030] hover:text-[#0F172A] dark:hover:text-white transition-all duration-150 shadow-xs active:scale-[0.98] cursor-pointer">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
-            <span>Refresh Settings</span>
+            <span>@Loc["Admin_Settings_RefreshSettings"]</span>
         </button>
     </div>
 
@@ -26,7 +27,7 @@
     {
         <div class="p-8 text-center text-[#475569] dark:text-[#94A3B8] bg-white dark:bg-[#111622] rounded-xl shadow-xs border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
             <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
-            <p class="mt-2 text-xs font-medium">Loading platform settings...</p>
+            <p class="mt-2 text-xs font-medium">@Loc["Admin_Settings_Loading"]</p>
         </div>
     }
     else
@@ -37,21 +38,21 @@
                 <div>
                     <h2 class="text-base font-bold text-[#0F172A] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif">
                         <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                        <span>Platform Commission</span>
+                        <span>@Loc["Admin_Settings_CardTitle"]</span>
                     </h2>
                     <p class="text-xs text-[#475569] dark:text-[#94A3B8] mt-1">
-                        Configure the platform commission percentage applied to paid group chats and monetization transactions.
+                        @Loc["Admin_Settings_CardSubtitle"]
                     </p>
                 </div>
                 <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-[#F1F5F9] dark:bg-[#191B23] text-[#0F172A] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)]">
-                    Current: @settingDto.CommissionPercentage.ToString("F2")%
+                    @string.Format(Loc["Admin_Settings_CurrentRate"], settingDto.CommissionPercentage.ToString("F2"))
                 </span>
             </div>
 
             <!-- Form & Controls -->
             <div class="space-y-4 pt-2">
                 <div class="max-w-xs space-y-1.5">
-                    <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">Platform Commission Percentage</label>
+                    <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_Settings_InputLabel"]</label>
                     <div class="relative flex items-center">
                         <input type="number" step="0.01" min="0" max="100"
                                @bind="commissionInput"
@@ -82,15 +83,15 @@
                     <button @onclick="SaveCommissionAsync"
                             disabled="@(isSaving || !string.IsNullOrEmpty(errorMessage))"
                             class="px-5 py-2.5 rounded-lg text-xs font-bold text-white dark:text-[#0A1B2E] bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 shadow-xs active:scale-[0.98] cursor-pointer">
-                        @(isSaving ? "Saving..." : "Save Commission")
+                        @(isSaving ? Loc["Admin_Settings_Saving"] : Loc["Admin_Settings_SaveBtn"])
                     </button>
                 </div>
 
                 @if (settingDto.UpdatedAt.HasValue)
                 {
                     <p class="text-[11px] text-[#64748B] pt-2 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
-                        Last Updated: <span class="font-mono font-medium text-[#475569] dark:text-[#C4D2E1]">@settingDto.UpdatedAt.Value.ToString("MMM dd, yyyy HH:mm:ss") UTC</span>
-                        @(settingDto.UpdatedBy.HasValue ? $" (Admin ID: #{settingDto.UpdatedBy})" : "")
+                        @Loc["Admin_Settings_LastUpdated"] <span class="font-mono font-medium text-[#475569] dark:text-[#C4D2E1]">@settingDto.UpdatedAt.Value.ToString("MMM dd, yyyy HH:mm:ss") UTC</span>
+                        @(settingDto.UpdatedBy.HasValue ? $" ({string.Format(Loc["Admin_Settings_AdminId"], settingDto.UpdatedBy)})" : "")
                     </p>
                 }
             </div>
@@ -124,7 +125,7 @@
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to load commission settings.");
+            Toast.Error(res.Message ?? Loc["Admin_Settings_Toast_LoadFailed"]);
         }
         isLoading = false;
     }
@@ -134,25 +135,25 @@
         successMessage = null;
         if (string.IsNullOrWhiteSpace(commissionInput))
         {
-            errorMessage = "Commission percentage is required.";
+            errorMessage = Loc["Admin_Settings_ValRequired"];
             return;
         }
 
         if (!decimal.TryParse(commissionInput, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var val))
         {
-            errorMessage = "Please enter a valid numeric percentage.";
+            errorMessage = Loc["Admin_Settings_ValNumeric"];
             return;
         }
 
         if (val < 0)
         {
-            errorMessage = "Commission percentage cannot be negative (Min: 0%).";
+            errorMessage = Loc["Admin_Settings_ValMin"];
             return;
         }
 
         if (val > 100)
         {
-            errorMessage = "Commission percentage cannot exceed 100%.";
+            errorMessage = Loc["Admin_Settings_ValMax"];
             return;
         }
 
@@ -177,12 +178,12 @@
         {
             settingDto = res.Data;
             commissionInput = settingDto.CommissionPercentage.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
-            successMessage = res.Message ?? "Platform commission percentage updated successfully.";
+            successMessage = res.Message ?? Loc["Admin_Settings_SaveSuccess"];
             Toast.Success(successMessage);
         }
         else
         {
-            errorMessage = res.Message ?? "Failed to update platform commission.";
+            errorMessage = res.Message ?? Loc["Admin_Settings_SaveFailed"];
             Toast.Error(errorMessage);
         }
 

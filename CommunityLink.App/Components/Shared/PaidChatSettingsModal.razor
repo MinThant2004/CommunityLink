@@ -1,10 +1,12 @@
 @rendermode InteractiveServer
+@using Microsoft.Extensions.Localization
 @inject ChatApiService ChatApi
+@inject IStringLocalizer<AppResources> Loc
 
 <div class="fixed inset-0 z-[120] flex items-center justify-center bg-[#0A1B2E]/60 dark:bg-black/80 backdrop-blur-sm p-4 animate-fade-in" @onclick="CloseOnBackdrop">
     <div class="w-full max-w-md space-y-6 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] bg-white dark:bg-[#112A46] p-7 shadow-2xl relative" @onclick:stopPropagation>
 
-        <button type="button" @onclick="OnClose" aria-label="Close"
+        <button type="button" @onclick="OnClose" aria-label="@Loc["Common_Close"]"
                 class="absolute top-5 right-5 flex h-8 w-8 items-center justify-center rounded-lg text-[#64748B] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
@@ -17,10 +19,10 @@
                 </div>
                 <div>
                     <h3 class="text-xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">
-                        Paid Chat Settings
+                        @Loc["PaidChat_Title"]
                     </h3>
                     <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1">
-                        Configure the Link Drop entry fee for users who want to message you directly.
+                        @Loc["PaidChat_Subtitle"]
                     </p>
                 </div>
             </div>
@@ -51,7 +53,7 @@
         {
             <div class="py-8 text-center space-y-3">
                 <div class="inline-block animate-spin rounded-full h-7 w-7 border-4 border-slate-200 dark:border-slate-700 border-t-[#0A1B2E] dark:border-t-[#E1E8F0]"></div>
-                <p class="text-xs font-medium text-[#64748B]">Loading your paid chat settings...</p>
+                <p class="text-xs font-medium text-[#64748B]">@Loc["PaidChat_LoadingSettings"]</p>
             </div>
         }
         else
@@ -59,24 +61,24 @@
             <div class="space-y-5">
                 <!-- Toggle Enable -->
                 <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-[#0F172A] dark:text-[#E1E8F0]">Paid Private Chat Status</label>
+                    <label class="block text-sm font-semibold text-[#0F172A] dark:text-[#E1E8F0]">@Loc["PaidChat_StatusLabel"]</label>
                     <div class="flex items-center gap-3">
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" @bind="isPrivateChatEnabled" class="sr-only peer" />
                             <div class="w-11 h-6 bg-slate-200 dark:bg-[#191B23] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0A1B2E] dark:peer-checked:bg-[#E1E8F0]"></div>
                         </label>
                         <span class="text-sm font-medium @(isPrivateChatEnabled ? "text-[#0A1B2E] dark:text-[#E1E8F0] font-bold" : "text-[#64748B]")">
-                            @(isPrivateChatEnabled ? "Enabled (Paid Chat Active)" : "Disabled (Free Direct Messages)")
+                            @(isPrivateChatEnabled ? Loc["PaidChat_StatusEnabled"] : Loc["PaidChat_StatusDisabled"])
                         </span>
                     </div>
                     <p class="text-xs text-[#64748B]">
-                        When enabled, users must pay your configured Link Drop fee to start a private chat with you.
+                        @Loc["PaidChat_StatusDescription"]
                     </p>
                 </div>
 
                 <!-- Fee Input -->
                 <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-[#0F172A] dark:text-[#E1E8F0]">Private Chat Fee (Link Drops)</label>
+                    <label class="block text-sm font-semibold text-[#0F172A] dark:text-[#E1E8F0]">@Loc["PaidChat_FeeLabel"]</label>
                     <div class="relative max-w-xs flex items-center">
                         <input type="number" min="0" step="1" @bind="privateChatFeeLinkDrops" disabled="@(!isPrivateChatEnabled)"
                                class="w-full pl-9 pr-4 py-2 border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] text-[#0F172A] dark:text-[#E1E8F0] rounded-lg text-sm font-mono font-semibold focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] disabled:bg-slate-100 dark:disabled:bg-[#111622] disabled:text-slate-400" />
@@ -85,7 +87,7 @@
                         </span>
                     </div>
                     <p class="text-xs text-[#64748B]">
-                        Fee charged per new chat unlocked by a user.
+                        @Loc["PaidChat_FeeDescription"]
                     </p>
                 </div>
             </div>
@@ -93,18 +95,18 @@
             <div class="pt-4 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-end gap-3">
                 <button type="button" @onclick="OnClose"
                         class="px-4 py-2 bg-[#F1F5F9] dark:bg-[#182030] text-[#475569] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded-lg text-xs font-semibold hover:bg-[#E2E8F0] dark:hover:bg-[#1E2638] transition cursor-pointer">
-                    Done
+                    @Loc["PaidChat_Done"]
                 </button>
                 <button type="button" @onclick="SaveChatSettingsAsync" disabled="@isSavingChatSettings"
                         class="px-5 py-2 bg-[#0F172A] hover:bg-[#1E293B] text-white dark:bg-[#E1E8F0] dark:hover:bg-white dark:text-[#0A1B2E] rounded-lg text-xs font-bold transition-all duration-150 shadow-xs active:scale-[0.98] disabled:opacity-50 flex items-center gap-2 cursor-pointer">
                     @if (isSavingChatSettings)
                     {
                         <span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white dark:border-[#0A0D14] border-t-transparent"></span>
-                        <span>Saving...</span>
+                        <span>@Loc["PaidChat_Saving"]</span>
                     }
                     else
                     {
-                        <span>Save Settings</span>
+                        <span>@Loc["PaidChat_SaveSettings"]</span>
                     }
                 </button>
             </div>
@@ -169,11 +171,11 @@
             {
                 isPrivateChatEnabled = res.Data.IsPrivateChatEnabled;
                 privateChatFeeLinkDrops = res.Data.PrivateChatFeeLinkDrops;
-                chatSettingsSuccessMessage = "Private chat monetization settings saved successfully!";
+                chatSettingsSuccessMessage = Loc["PaidChat_SuccessMessage"];
             }
             else
             {
-                chatSettingsErrorMessage = res.Message ?? "Failed to save private chat settings.";
+                chatSettingsErrorMessage = res.Message ?? Loc["PaidChat_ErrorMessage"];
             }
         }
         catch (Exception ex)

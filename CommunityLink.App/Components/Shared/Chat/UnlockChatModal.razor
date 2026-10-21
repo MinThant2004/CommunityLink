@@ -1,4 +1,7 @@
 @using CommunityLink.App.Components.Shared.Chat
+@using Microsoft.Extensions.Localization
+
+@inject IStringLocalizer<AppResources> Loc
 
 @*
     One-time LinkDrop payment confirmation, shared by paid group joins and paid 1:1 unlocks.
@@ -31,17 +34,17 @@
 
         <dl class="divide-y divide-slate-100 dark:divide-[rgba(255,255,255,0.08)] rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-slate-50/50 dark:bg-[#191B23]">
             <div class="flex items-center justify-between px-3 py-2.5">
-                <dt class="text-sm text-slate-600 dark:text-[#94A3B8]">Total price</dt>
+                <dt class="text-sm text-slate-600 dark:text-[#94A3B8]">@Loc["Chat_TotalPrice"]</dt>
                 <dd class="text-sm font-semibold font-mono text-slate-900 dark:text-[#E1E2EC] inline-flex items-center gap-1.5">
                     <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                    <span>@FeeLinkDrops drops</span>
+                    <span>@Loc["Chat_FeeDrops", FeeLinkDrops]</span>
                 </dd>
             </div>
             <div class="flex items-center justify-between px-3 py-2.5">
-                <dt class="text-sm text-slate-600 dark:text-[#94A3B8]">Your balance</dt>
+                <dt class="text-sm text-slate-600 dark:text-[#94A3B8]">@Loc["Chat_YourBalance"]</dt>
                 <dd class="text-sm font-semibold font-mono @(HasSufficientBalance ? "text-emerald-700 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400") inline-flex items-center gap-1.5">
                     <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                    <span>@Balance drops</span>
+                    <span>@Loc["Chat_FeeDrops", Balance]</span>
                 </dd>
             </div>
         </dl>
@@ -49,12 +52,12 @@
         @if (!HasSufficientBalance)
         {
             <p class="text-xs leading-relaxed text-rose-700 dark:text-rose-300">
-                You need @Math.Max(0, FeeLinkDrops - Balance) more drops to continue. Buy drops from the LinkDrops page first.
+                @Loc["Chat_InsufficientDrops", Math.Max(0, FeeLinkDrops - Balance)]
             </p>
         }
 
         <p class="text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]">
-            This is a one-time payment. Once confirmed, @(IsGroupUnlock ? "you can post in this group" : "this conversation unlocks permanently") and the amount is deducted from your LinkDrop wallet immediately.
+            @Loc["Chat_PaymentDisclaimer", IsGroupUnlock ? Loc["Chat_GroupUnlockEffect"] : Loc["Chat_DirectUnlockEffect"]]
         </p>
     </div>
     </ChildContent>
@@ -63,7 +66,7 @@
         <button type="button"
                 @onclick="OnClose"
                 class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#191B23] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#182030] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-300">
-            Cancel
+            @Loc["Common_Cancel"]
         </button>
         <button type="button"
                 @onclick="OnConfirm"
@@ -73,14 +76,14 @@
             {
                 <span class="flex items-center gap-1.5">
                     <span class="h-3 w-3 animate-spin rounded-full border-b-2 border-current"></span>
-                    Processing…
+                    @Loc["Common_Processing"]
                 </span>
             }
             else
             {
                 <span class="inline-flex items-center gap-1.5 font-mono">
                     <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                    <span>Pay @FeeLinkDrops drops</span>
+                    <span>@Loc["Chat_PayDrops", FeeLinkDrops]</span>
                 </span>
             }
         </button>
@@ -102,7 +105,7 @@
     [Parameter] public EventCallback OnConfirm { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
-    private string ModalTitle => IsGroupUnlock ? "Join paid group" : "Unlock conversation";
+    private string ModalTitle => IsGroupUnlock ? Loc["Chat_JoinPaidGroup"] : Loc["Chat_UnlockConversation"];
 
     private bool HasSufficientBalance => Balance >= FeeLinkDrops;
 

@@ -1,7 +1,9 @@
 @using CommunityLink.App.Components.Shared.Chat
 @using CommunityLink.Shared.Features.Chat
+@using Microsoft.Extensions.Localization
 @inject IJSRuntime JS
 @inject ToastService Toast
+@inject IStringLocalizer<AppResources> Loc
 
 @*
     Telegram-style Chat Message Bubble. Renders quoted replies, reaction badges,
@@ -36,7 +38,7 @@ else
                 }
             }
             <a href="u/@(Message.SenderName)" class="text-xs font-medium text-slate-600 dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] hover:underline">
-                @(Message.IsMine ? "You" : Message.SenderName)
+                @(Message.IsMine ? Loc["Chat_You"] : Message.SenderName)
             </a>
         </div>
     }
@@ -57,7 +59,7 @@ else
                              @(Message.IsMine ? "border-white/30 bg-[#112A46] text-white" : "border-[#0A1B2E] dark:border-[#E1E8F0] bg-slate-100 dark:bg-[#191B23] text-slate-700 dark:text-[#E1E2EC]")">
                     @if (Message.ReplyToIsDeleted)
                     {
-                        <span class="italic text-slate-400 dark:text-[#94A3B8]">Original message was deleted</span>
+                        <span class="italic text-slate-400 dark:text-[#94A3B8]">@Loc["Chat_OriginalMessageDeleted"]</span>
                     }
                     else
                     {
@@ -100,17 +102,17 @@ else
                                            download="@(Message.FileName ?? "image.png")"
                                            target="_blank"
                                            rel="noopener noreferrer"
-                                           title="Download image"
+                                           title="@Loc["Chat_DownloadImage"]"
                                            class="flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-700 focus:outline-none">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                                             </svg>
-                                            <span>Download</span>
+                                            <span>@Loc["Chat_Download"]</span>
                                         </a>
 
                                         <button type="button"
                                                 @onclick="CloseImageLightbox"
-                                                title="Close preview"
+                                                title="@Loc["Chat_ClosePreview"]"
                                                 class="rounded-lg bg-slate-800 p-1.5 text-slate-300 transition hover:bg-slate-700 hover:text-white focus:outline-none">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -129,7 +131,7 @@ else
 
                                 <!-- Footer Info -->
                                 <div class="pb-2 text-xs text-slate-400 font-mono">
-                                    <span>Sent by <strong class="text-slate-200">@Message.SenderName</strong> at @Message.SentTime</span>
+                                    <span>@((MarkupString)string.Format(System.Net.WebUtility.HtmlEncode(Loc["Chat_SentByAt"]), $"<strong class=\"text-slate-200\">{System.Net.WebUtility.HtmlEncode(Message.SenderName)}</strong>", System.Net.WebUtility.HtmlEncode(Message.SentTime)))</span>
                                 </div>
                             </div>
                         }
@@ -139,12 +141,12 @@ else
                         <div class="my-1 flex flex-col gap-1">
                             <video controls preload="metadata" class="max-h-64 max-w-full rounded-lg shadow-sm">
                                 <source src="@Message.AttachmentUrl" />
-                                Your browser does not support playing this video.
+                                @Loc["Chat_VideoNotSupported"]
                             </video>
                             <a href="@Message.AttachmentUrl" download="@(Message.FileName ?? "video.mp4")" target="_blank" rel="noopener noreferrer"
                                class="inline-flex items-center gap-1.5 text-[11px] font-medium opacity-90 hover:underline">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                                <span>Download video (@(Message.FormattedFileSize ?? "file"))</span>
+                                <span>@Loc["Chat_DownloadVideo", Message.FormattedFileSize ?? "file"]</span>
                             </a>
                         </div>
                     }
@@ -200,17 +202,17 @@ else
             <div class="mt-0.5 flex items-center justify-end gap-1 select-none text-right text-xs font-mono @(Message.IsMine ? "text-slate-200 dark:text-slate-300" : "text-slate-400 dark:text-[#94A3B8]")">
                 @if (Message.IsPinned)
                 {
-                    <span class="inline-flex items-center gap-0.5" title="Pinned message">
+                    <span class="inline-flex items-center gap-0.5" title="@Loc["Chat_PinnedMessage"]">
                         <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path d="M16 3l5 5-4 1-2.5 2.5L15 15l-2 2-4-4-4.5 4.5L4 17l4.5-4.5-4-4 2-2 3.5.5L12.5 4.5 13 3z" />
                         </svg>
-                        <span>Pinned</span>
+                        <span>@Loc["Chat_Pinned"]</span>
                     </span>
                 }
                 <span>@Message.SentTime</span>
                 @if (Message.IsMine && Message.ThreadType == ChatThreadType.Private)
                 {
-                    <span title="@(Message.IsRead ? "Read" : "Delivered")">
+                    <span title="@(Message.IsRead ? Loc["Chat_Read"] : Loc["Chat_Delivered"])">
                         @(Message.IsRead ? "✓✓" : "✓")
                     </span>
                 }
@@ -226,8 +228,8 @@ else
                         @ref="menuTriggerRef"
                         @onclick="ToggleContextMenu"
                         @onclick:stopPropagation="true"
-                        title="More options"
-                        aria-label="More options"
+                        title="@Loc["Chat_MoreOptions"]"
+                        aria-label="@Loc["Chat_MoreOptions"]"
                         class="rounded p-1 text-slate-500 dark:text-[#94A3B8] hover:bg-slate-100 dark:hover:bg-[#182030] hover:text-slate-800 dark:hover:text-[#E1E2EC] focus:outline-none">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Zm0 6a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Zm0 6a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
@@ -265,7 +267,7 @@ else
                         <svg class="h-4 w-4 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
                         </svg>
-                        <span>Reply</span>
+                        <span>@Loc["Chat_Reply"]</span>
                     </button>
 
                     <!-- Copy -->
@@ -275,7 +277,7 @@ else
                         <svg class="h-4 w-4 text-slate-500 dark:text-[#94A3B8]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m0 0h1.5a5.25 5.25 0 0 1 5.25 5.25v1.5" />
                         </svg>
-                        <span>Copy Message</span>
+                        <span>@Loc["Chat_CopyMessage"]</span>
                     </button>
 
                     <!-- Pin / Unpin -->
@@ -288,7 +290,7 @@ else
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                             </svg>
-                            <span>@(Message.IsPinned ? "Unpin Message" : "Pin Message")</span>
+                            <span>@(Message.IsPinned ? Loc["Chat_UnpinMessageAction"] : Loc["Chat_PinMessageAction"])</span>
                         </button>
                     }
 
@@ -303,7 +305,7 @@ else
                             <svg class="h-4 w-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                             </svg>
-                            <span>Delete for Me</span>
+                            <span>@Loc["Chat_DeleteForMe"]</span>
                         </button>
                     }
 
@@ -316,7 +318,7 @@ else
                             <svg class="h-4 w-4 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                             </svg>
-                            <span>Delete for Everyone</span>
+                            <span>@Loc["Chat_DeleteForEveryone"]</span>
                         </button>
                     }
                 </div>
@@ -432,11 +434,11 @@ else
         try
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", Message.Content);
-            Toast.Success("Message copied to clipboard.");
+            Toast.Success(Loc["Chat_MessageCopied"]);
         }
         catch
         {
-            Toast.Error("Could not copy message.");
+            Toast.Error(Loc["Chat_CouldNotCopyMessage"]);
         }
     }
 

@@ -2,9 +2,10 @@
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
 @inject SubscriptionPlanApiService PlanApi
 @inject ToastService Toast
+@inject IStringLocalizer<AppResources> Loc
 @rendermode InteractiveServer
 
-<PageTitle>Premium Subscription Plans — Admin Control Panel</PageTitle>
+<PageTitle>@Loc["Admin_Plans_PageTitle"]</PageTitle>
 
 <div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E2EC] transition-colors duration-150">
     <!-- Header -->
@@ -12,28 +13,28 @@
         <div>
             <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E2EC] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
                 <svg class="w-6 h-6 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                <span>Premium Subscription Plans</span>
+                <span>@Loc["Admin_Plans_Heading"]</span>
             </h1>
-            <p class="text-sm text-[#557392] dark:text-[#94A3B8]">Configure membership tier pricing, durations, LinkDrop points cost, and feature perks for Domain Professional and Public Figure upgrades.</p>
+            <p class="text-sm text-[#557392] dark:text-[#94A3B8]">@Loc["Admin_Plans_Subtitle"]</p>
         </div>
         <button @onclick="OpenCreateModal" class="px-4 py-2.5 rounded-lg text-xs font-bold text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#D4AF37] hover:bg-[#112A46] dark:hover:bg-[#E5C158] shadow-sm transition flex items-center gap-2 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            <span>Create New Plan</span>
+            <span>@Loc["Admin_Plans_CreateNewPlan"]</span>
         </button>
     </div>
 
     <!-- Tier Filter Tabs -->
     <div class="flex items-center gap-2 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-3 text-xs font-semibold">
         <button @onclick='() => selectedTierFilter = "ALL"' class="px-3 py-1.5 rounded-lg transition cursor-pointer @(selectedTierFilter == "ALL" ? "bg-[#0A1B2E] dark:bg-[#182030] text-white dark:text-[#D4AF37] shadow-sm" : "bg-white dark:bg-[#111622] text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
-            All Tiers (@(allPlans?.Count ?? 0))
+            @string.Format(Loc["Admin_Plans_TabAll"], allPlans?.Count ?? 0)
         </button>
         <button @onclick='() => selectedTierFilter = "DOMAIN_PRO"' class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer @(selectedTierFilter == "DOMAIN_PRO" ? "bg-amber-600 text-white shadow-sm" : "bg-white dark:bg-[#111622] text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
             <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            <span>Domain Professional (@(allPlans?.Count(p => p.TargetRoleCode == "DOMAIN_PRO") ?? 0))</span>
+            <span>@string.Format(Loc["Admin_Plans_TabDomainPro"], allPlans?.Count(p => p.TargetRoleCode == "DOMAIN_PRO") ?? 0)</span>
         </button>
         <button @onclick='() => selectedTierFilter = "PUBLIC_FIGURE"' class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer @(selectedTierFilter == "PUBLIC_FIGURE" ? "bg-purple-700 text-white shadow-sm" : "bg-white dark:bg-[#111622] text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
             <svg class="w-3.5 h-3.5 text-purple-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <span>Public Figure VIP (@(allPlans?.Count(p => p.TargetRoleCode == "PUBLIC_FIGURE") ?? 0))</span>
+            <span>@string.Format(Loc["Admin_Plans_TabPublicFigure"], allPlans?.Count(p => p.TargetRoleCode == "PUBLIC_FIGURE") ?? 0)</span>
         </button>
     </div>
 
@@ -42,17 +43,17 @@
     {
         <div class="p-12 text-center text-[#557392] dark:text-[#94A3B8] bg-white dark:bg-[#111622] rounded-xl border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shadow-sm">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#D4AF37] border-t-transparent"></div>
-            <p class="mt-3 text-xs font-medium">Loading subscription plans...</p>
+            <p class="mt-3 text-xs font-medium">@Loc["Admin_Plans_Loading"]</p>
         </div>
     }
     else if (FilteredPlans.Count == 0)
     {
         <div class="p-12 text-center bg-white dark:bg-[#111622] rounded-xl border border-dashed border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] text-[#7A8CA6] dark:text-[#94A3B8] space-y-3">
             <svg class="w-12 h-12 mx-auto text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-            <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-[#E1E2EC]">No Subscription Plans Found</h4>
-            <p class="text-xs max-w-sm mx-auto">Get started by creating your first plan configuration for Domain Professional or Public Figure.</p>
+            <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-[#E1E2EC]">@Loc["Admin_Plans_EmptyTitle"]</h4>
+            <p class="text-xs max-w-sm mx-auto">@Loc["Admin_Plans_EmptyDesc"]</p>
             <button @onclick="OpenCreateModal" class="px-4 py-2 rounded-lg text-xs font-bold text-white bg-[#0A1B2E] dark:bg-[#D4AF37] dark:text-[#0A0D14] hover:bg-[#112A46] transition cursor-pointer">
-                Create Plan Now
+                @Loc["Admin_Plans_CreatePlanNow"]
             </button>
         </div>
     }
@@ -71,19 +72,19 @@
                                     @if (isDomainPro)
                                     {
                                         <svg class="w-3 h-3 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                        <span>DOMAIN PRO</span>
+                                        <span>@Loc["Admin_Plans_BadgeDomainPro"]</span>
                                     }
                                     else
                                     {
                                         <svg class="w-3 h-3 text-purple-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                        <span>PUBLIC FIGURE</span>
+                                        <span>@Loc["Admin_Plans_BadgePublicFigure"]</span>
                                     }
                                 </span>
                                 <h3 class="text-lg font-bold text-[#0A1B2E] dark:text-[#E1E2EC] mt-2">@plan.PlanName</h3>
-                                <p class="text-xs text-[#7A8CA6] dark:text-[#94A3B8] font-mono">Interval: @plan.BillingInterval (@plan.DurationDays Days)</p>
+                                <p class="text-xs text-[#7A8CA6] dark:text-[#94A3B8] font-mono">@string.Format(Loc["Admin_Plans_IntervalInfo"], plan.BillingInterval, plan.DurationDays)</p>
                             </div>
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold @(plan.IsActive ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700")">
-                                @(plan.IsActive ? "ACTIVE" : "INACTIVE")
+                                @(plan.IsActive ? Loc["Admin_Plans_StatusActive"] : Loc["Admin_Plans_StatusInactive"])
                             </span>
                         </div>
 
@@ -94,16 +95,16 @@
                                     <LinkDropIcon Class="w-5 h-5 shrink-0" />
                                     <span>@plan.LinkDropCost.ToString("N0")</span>
                                 </span>
-                                <span class="text-xs text-[#7A8CA6] dark:text-[#94A3B8]">Drops / @plan.BillingInterval.ToLower()</span>
+                                <span class="text-xs text-[#7A8CA6] dark:text-[#94A3B8]">@string.Format(Loc["Admin_Plans_DropsPerInterval"], plan.BillingInterval.ToLower())</span>
                             </div>
                             <p class="text-[11px] text-[#7A8CA6] dark:text-[#64748B] font-mono">
-                                Reference: @plan.PriceAmount.ToString("N0") MMK
+                                @string.Format(Loc["Admin_Plans_ReferenceMmk"], plan.PriceAmount.ToString("N0"))
                             </p>
                         </div>
 
                         <!-- Perks List -->
                         <div class="space-y-2">
-                            <h5 class="text-[11px] font-bold uppercase text-[#7A8CA6] dark:text-[#94A3B8] tracking-wider font-mono">Perks &amp; Entitlements</h5>
+                            <h5 class="text-[11px] font-bold uppercase text-[#7A8CA6] dark:text-[#94A3B8] tracking-wider font-mono">@Loc["Admin_Plans_PerksHeading"]</h5>
                             @if (plan.Perks.Count > 0)
                             {
                                 <ul class="space-y-1.5 text-xs text-[#334155] dark:text-[#C4D2E1]">
@@ -118,7 +119,7 @@
                             }
                             else
                             {
-                                <p class="text-xs text-[#94A3B8] italic">No specific perks enumerated.</p>
+                                <p class="text-xs text-[#94A3B8] italic">@Loc["Admin_Plans_NoPerks"]</p>
                             }
                         </div>
                     </div>
@@ -126,14 +127,14 @@
                     <!-- Footer Actions -->
                     <div class="p-4 bg-[#F8FAFC] dark:bg-[#0A0D14]/60 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] flex items-center justify-between gap-2">
                         <button @onclick="() => ToggleStatus(plan)" class="text-xs font-semibold px-3 py-1.5 rounded-lg border transition cursor-pointer @(plan.IsActive ? "border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#182030]" : "border-emerald-300 dark:border-emerald-700/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50")">
-                            @(plan.IsActive ? "Deactivate" : "Activate")
+                            @(plan.IsActive ? Loc["Admin_Plans_BtnDeactivate"] : Loc["Admin_Plans_BtnActivate"])
                         </button>
                         <div class="flex items-center gap-1">
-                            <button @onclick="() => OpenEditModal(plan)" class="p-1.5 px-2.5 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E2EC] hover:bg-[#E2E8F0] dark:hover:bg-[#182030] rounded-lg transition flex items-center gap-1 cursor-pointer" title="Edit Plan">
+                            <button @onclick="() => OpenEditModal(plan)" class="p-1.5 px-2.5 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E2EC] hover:bg-[#E2E8F0] dark:hover:bg-[#182030] rounded-lg transition flex items-center gap-1 cursor-pointer" title="@Loc["Admin_Plans_TooltipEdit"]">
                                 <svg class="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                <span>Edit</span>
+                                <span>@Loc["Admin_Plans_BtnEdit"]</span>
                             </button>
-                            <button @onclick="() => DeletePlan(plan)" class="p-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer" title="Delete Plan">
+                            <button @onclick="() => DeletePlan(plan)" class="p-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer" title="@Loc["Admin_Plans_TooltipDelete"]">
                                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                             </button>
                         </div>
@@ -160,7 +161,7 @@
                         <svg class="w-5 h-5 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                     }
                     <h3 class="font-bold text-base text-[#0A1B2E] dark:text-[#E1E2EC]" style="font-family:'Manrope',sans-serif">
-                        @(isEditing ? "Edit Subscription Plan" : "Create New Subscription Plan")
+                        @(isEditing ? Loc["Admin_Plans_ModalEditTitle"] : Loc["Admin_Plans_ModalCreateTitle"])
                     </h3>
                 </div>
                 <button @onclick="CloseModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-2xl leading-none cursor-pointer">&times;</button>
@@ -176,16 +177,16 @@
             <div class="space-y-4 text-xs">
                 <!-- Target Tier Role -->
                 <div>
-                    <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">Target Membership Tier *</label>
+                    <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">@Loc["Admin_Plans_TargetTierLabel"]</label>
                     <div class="grid grid-cols-2 gap-3">
                         <label class="p-3 rounded-xl border flex items-center gap-2.5 cursor-pointer transition @(formTargetRoleCode == "DOMAIN_PRO" ? "border-amber-500 bg-amber-50/50 dark:bg-amber-950/30" : "border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]")">
                             <input type="radio" name="targetRole" checked="@(formTargetRoleCode == "DOMAIN_PRO")" @onchange='() => formTargetRoleCode = "DOMAIN_PRO"' />
                             <div>
                                 <p class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E2EC] flex items-center gap-1">
                                     <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <span>Domain Pro</span>
+                                    <span>@Loc["Admin_Plans_RoleDomainProTitle"]</span>
                                 </p>
-                                <p class="text-[10px] text-[#7A8CA6] dark:text-[#94A3B8]">Domain Professional role</p>
+                                <p class="text-[10px] text-[#7A8CA6] dark:text-[#94A3B8]">@Loc["Admin_Plans_RoleDomainProDesc"]</p>
                             </div>
                         </label>
                         <label class="p-3 rounded-xl border flex items-center gap-2.5 cursor-pointer transition @(formTargetRoleCode == "PUBLIC_FIGURE" ? "border-purple-600 bg-purple-50/50 dark:bg-purple-950/30" : "border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]")">
@@ -193,9 +194,9 @@
                             <div>
                                 <p class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E2EC] flex items-center gap-1">
                                     <svg class="w-3.5 h-3.5 text-purple-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                    <span>Public Figure</span>
+                                    <span>@Loc["Admin_Plans_RolePublicFigureTitle"]</span>
                                 </p>
-                                <p class="text-[10px] text-[#7A8CA6] dark:text-[#94A3B8]">Public Figure VIP role</p>
+                                <p class="text-[10px] text-[#7A8CA6] dark:text-[#94A3B8]">@Loc["Admin_Plans_RolePublicFigureDesc"]</p>
                             </div>
                         </label>
                     </div>
@@ -203,25 +204,25 @@
 
                 <!-- Plan Name -->
                 <div>
-                    <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">Plan Name *</label>
-                    <input type="text" placeholder="e.g. Domain Professional (Quarterly)" @bind="formPlanName"
+                    <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">@Loc["Admin_Plans_PlanNameLabel"]</label>
+                    <input type="text" placeholder="@Loc["Admin_Plans_PlanNamePlaceholder"]" @bind="formPlanName"
                            class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#D4AF37] outline-none" />
                 </div>
 
                 <!-- Period & Duration -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">Billing Interval *</label>
+                        <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">@Loc["Admin_Plans_BillingIntervalLabel"]</label>
                         <select @bind="formBillingInterval" class="w-full px-3 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] text-xs focus:border-[#0A1B2E] dark:focus:border-[#D4AF37] outline-none bg-white dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC]">
-                            <option value="Monthly">Monthly</option>
-                            <option value="Quarterly">Quarterly</option>
-                            <option value="Semi-Annual">Semi-Annual</option>
-                            <option value="Annual">Annual</option>
-                            <option value="Custom">Custom</option>
+                            <option value="Monthly">@Loc["Admin_Plans_OptMonthly"]</option>
+                            <option value="Quarterly">@Loc["Admin_Plans_OptQuarterly"]</option>
+                            <option value="Semi-Annual">@Loc["Admin_Plans_OptSemiAnnual"]</option>
+                            <option value="Annual">@Loc["Admin_Plans_OptAnnual"]</option>
+                            <option value="Custom">@Loc["Admin_Plans_OptCustom"]</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">Duration (Days) *</label>
+                        <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">@Loc["Admin_Plans_DurationDaysLabel"]</label>
                         <input type="number" min="1" max="3650" @bind="formDurationDays"
                                class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#D4AF37] outline-none font-mono" />
                     </div>
@@ -230,23 +231,23 @@
                 <!-- Pricing -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">LinkDrop Points Cost *</label>
+                        <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">@Loc["Admin_Plans_LinkDropCostLabel"]</label>
                         <input type="number" min="1" @bind="formLinkDropCost"
                                class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#D4AF37] outline-none font-mono" />
-                        <p class="text-[10px] text-[#7A8CA6] dark:text-[#94A3B8] mt-0.5">Primary currency deducted for tier upgrades.</p>
+                        <p class="text-[10px] text-[#7A8CA6] dark:text-[#94A3B8] mt-0.5">@Loc["Admin_Plans_LinkDropCostHint"]</p>
                     </div>
                     <div>
-                        <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">Reference Fiat (MMK)</label>
+                        <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">@Loc["Admin_Plans_ReferenceFiatLabel"]</label>
                         <input type="number" step="100" min="0" @bind="formPriceAmount"
                                class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#D4AF37] outline-none font-mono" />
-                        <p class="text-[10px] text-[#7A8CA6] dark:text-[#94A3B8] mt-0.5">Internal ledger / reference value.</p>
+                        <p class="text-[10px] text-[#7A8CA6] dark:text-[#94A3B8] mt-0.5">@Loc["Admin_Plans_ReferenceFiatHint"]</p>
                     </div>
                 </div>
 
                 <!-- Perks (One per line) -->
                 <div>
-                    <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">Perks &amp; Highlights (One perk per line)</label>
-                    <textarea rows="4" placeholder="1-on-1 Paid Advisory Engine&#10;Public Peer Rating & Review Card&#10;Sub-Community Ownership"
+                    <label class="block font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-1">@Loc["Admin_Plans_PerksInputLabel"]</label>
+                    <textarea rows="4" placeholder="@Loc["Admin_Plans_PerksInputPlaceholder"]"
                               @bind="formPerksRaw"
                               class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#D4AF37] outline-none resize-none font-sans"></textarea>
                 </div>
@@ -255,24 +256,24 @@
                 <div class="flex items-center gap-2 pt-1">
                     <input type="checkbox" id="planActiveCheckbox" @bind="formIsActive" class="w-4 h-4 rounded cursor-pointer accent-[#0A1B2E] dark:accent-[#D4AF37]" />
                     <label for="planActiveCheckbox" class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E2EC] cursor-pointer">
-                        Plan is currently active &amp; visible on the upgrade page
+                        @Loc["Admin_Plans_ActiveCheckboxLabel"]
                     </label>
                 </div>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
                 <button @onclick="CloseModal" class="px-4 py-2 rounded-lg text-xs font-semibold border border-[#CBD5E1] dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#182030] transition cursor-pointer">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button @onclick="SavePlanAsync" disabled="@isSubmitting" class="px-5 py-2 rounded-lg text-xs font-bold bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] hover:bg-[#112A46] dark:hover:bg-[#E5C158] shadow-sm transition flex items-center gap-1.5 cursor-pointer">
                     @if (isSubmitting)
                     {
                         <span class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white dark:border-[#0A0D14] border-t-transparent"></span>
-                        <span>Saving...</span>
+                        <span>@Loc["Admin_Plans_BtnSaving"]</span>
                     }
                     else
                     {
-                        <span>@(isEditing ? "Save Changes" : "Create Plan")</span>
+                        <span>@(isEditing ? Loc["Admin_Plans_BtnSaveChanges"] : Loc["Admin_Plans_BtnCreatePlan"])</span>
                         <span>&rarr;</span>
                     }
                 </button>
@@ -322,7 +323,7 @@
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to load plans.");
+            Toast.Error(res.Message ?? Loc["Admin_Plans_Toast_LoadFailed"]);
         }
         isLoading = false;
     }
@@ -373,13 +374,13 @@
     {
         if (string.IsNullOrWhiteSpace(formPlanName))
         {
-            modalError = "Plan name is required.";
+            modalError = Loc["Admin_Plans_Val_NameRequired"];
             return;
         }
 
         if (formLinkDropCost <= 0)
         {
-            modalError = "LinkDrop Points Cost must be greater than zero.";
+            modalError = Loc["Admin_Plans_Val_CostPositive"];
             return;
         }
 
@@ -410,13 +411,13 @@
             var res = await PlanApi.UpdatePlanAsync(editingPlanId, updateDto);
             if (res.IsSuccess)
             {
-                Toast.Success("Plan updated successfully!");
+                Toast.Success(Loc["Admin_Plans_Toast_UpdateSuccess"]);
                 showModal = false;
                 await LoadPlansAsync();
             }
             else
             {
-                modalError = res.Message ?? "Failed to update plan.";
+                modalError = res.Message ?? Loc["Admin_Plans_Toast_UpdateFailed"];
             }
         }
         else
@@ -436,13 +437,13 @@
             var res = await PlanApi.CreatePlanAsync(createDto);
             if (res.IsSuccess)
             {
-                Toast.Success("New subscription plan created!");
+                Toast.Success(Loc["Admin_Plans_Toast_CreateSuccess"]);
                 showModal = false;
                 await LoadPlansAsync();
             }
             else
             {
-                modalError = res.Message ?? "Failed to create plan.";
+                modalError = res.Message ?? Loc["Admin_Plans_Toast_CreateFailed"];
             }
         }
 
@@ -459,11 +460,11 @@
             {
                 allPlans[idx] = plan with { IsActive = !plan.IsActive };
             }
-            Toast.Success($"Plan is now {(!plan.IsActive ? "Active" : "Inactive")}.");
+            Toast.Success(string.Format(Loc["Admin_Plans_Toast_StatusNow"], !plan.IsActive ? Loc["Admin_Plans_StatusActive"] : Loc["Admin_Plans_StatusInactive"]));
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to update plan status.");
+            Toast.Error(res.Message ?? Loc["Admin_Plans_Toast_StatusFailed"]);
         }
     }
 
@@ -472,12 +473,12 @@
         var res = await PlanApi.DeletePlanAsync(plan.PlanId);
         if (res.IsSuccess)
         {
-            Toast.Success("Plan deleted successfully.");
+            Toast.Success(Loc["Admin_Plans_Toast_DeleteSuccess"]);
             await LoadPlansAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to delete plan.");
+            Toast.Error(res.Message ?? Loc["Admin_Plans_Toast_DeleteFailed"]);
         }
     }
 }

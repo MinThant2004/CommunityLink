@@ -1,9 +1,10 @@
 @using System.Globalization
 @using System.Text
+@inject IStringLocalizer<AppResources> Loc
 
 <div class="flex flex-col gap-2 @Class">
     <div class="flex items-start justify-between gap-3">
-        <span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant truncate">@Title</span>
+        <span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant truncate">@DisplayTitle</span>
         @if (!string.IsNullOrWhiteSpace(Highlight))
         {
             <span class="shrink-0 font-mono text-label-sm text-primary font-bold whitespace-nowrap">@Highlight</span>
@@ -11,7 +12,7 @@
     </div>
 
     <div class="relative">
-        <svg class="w-full h-auto" viewBox="0 0 320 100" preserveAspectRatio="xMidYMid meet" role="img" aria-label="@Title">
+        <svg class="w-full h-auto" viewBox="0 0 320 100" preserveAspectRatio="xMidYMid meet" role="img" aria-label="@DisplayTitle">
             <defs>
                 <linearGradient id="@gradientId" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stop-color="rgb(var(--cl-primary))" stop-opacity="0.38"></stop>
@@ -112,14 +113,14 @@
         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-label-sm text-label-sm text-on-surface-variant">
             <span class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-primary inline-block"></span>
-                @PrimaryLabel
+                @DisplayPrimaryLabel
                 <span class="font-mono text-on-surface font-semibold">@FormatValue(ActiveIndex)</span>
             </span>
             @if (HasSecondary)
             {
                 <span class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-secondary inline-block"></span>
-                    @SecondaryLabel
+                    @DisplaySecondaryLabel
                     <span class="font-mono text-on-surface font-semibold">@FormatValue(ActiveSecondaryIndex)</span>
                 </span>
             }
@@ -138,15 +139,19 @@
     private const int ViewHeight = 100;
     private const int TickCount = 4;
 
-    [Parameter] public string Title { get; set; } = "Telemetry";
+    [Parameter] public string? Title { get; set; }
     [Parameter] public string? Highlight { get; set; }
-    [Parameter] public string PrimaryLabel { get; set; } = "Liquidity";
-    [Parameter] public string SecondaryLabel { get; set; } = "Velocity";
+    [Parameter] public string? PrimaryLabel { get; set; }
+    [Parameter] public string? SecondaryLabel { get; set; }
     [Parameter] public string ValueSuffix { get; set; } = "";
     [Parameter] public IReadOnlyList<double>? Values { get; set; }
     [Parameter] public IReadOnlyList<double>? SecondaryValues { get; set; }
     [Parameter] public IReadOnlyList<string>? Labels { get; set; }
     [Parameter] public string? Class { get; set; }
+
+    private string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? Loc["TelemetryChart_DefaultTitle"] : Title;
+    private string DisplayPrimaryLabel => string.IsNullOrWhiteSpace(PrimaryLabel) ? Loc["TelemetryChart_DefaultPrimary"] : PrimaryLabel;
+    private string DisplaySecondaryLabel => string.IsNullOrWhiteSpace(SecondaryLabel) ? Loc["TelemetryChart_DefaultSecondary"] : SecondaryLabel;
 
     private readonly record struct Point(double X, double Y);
     private readonly record struct Tick(double Y, string Label);

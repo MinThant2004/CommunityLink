@@ -6,8 +6,9 @@
 @inject AdminFinanceApiService FinanceApi
 @inject ToastService Toast
 @inject IJSRuntime JS
+@inject IStringLocalizer<AppResources> Loc
 
-<PageTitle>Platform Finance &amp; Revenue — Admin Control Panel</PageTitle>
+<PageTitle>@Loc["Admin_Finance_PageTitle"]</PageTitle>
 
 <div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Header -->
@@ -15,9 +16,9 @@
         <div>
             <h1 class="text-2xl font-bold text-[#0F172A] dark:text-[#E1E8F0] flex items-center gap-2.5" style="font-family:'Plus Jakarta Sans',sans-serif">
                 <svg class="w-6 h-6 text-[#0A1B2E] dark:text-[#E1E8F0] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                <span>Platform Finance &amp; Revenue</span>
+                <span>@Loc["Admin_Finance_Heading"]</span>
             </h1>
-            <p class="text-sm text-[#475569] dark:text-[#94A3B8] mt-1">Platform-wide financial revenue, commission aggregation, and payout summary.</p>
+            <p class="text-sm text-[#475569] dark:text-[#94A3B8] mt-1">@Loc["Admin_Finance_Subtitle"]</p>
         </div>
         <div class="flex items-center gap-3">
             <button type="button" @onclick="ExportCsv" disabled="@isExporting"
@@ -25,17 +26,17 @@
                 @if (isExporting)
                 {
                     <span class="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white dark:border-[#0A1B2E] border-t-transparent"></span>
-                    <span>Exporting...</span>
+                    <span>@Loc["Admin_Finance_Exporting"]</span>
                 }
                 else
                 {
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    <span>Export CSV</span>
+                    <span>@Loc["Admin_Finance_ExportCsv"]</span>
                 }
             </button>
             <button type="button" @onclick="LoadAllData" class="px-4 py-2 bg-white dark:bg-[#111622] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] text-[#475569] dark:text-[#C4D2E1] rounded-lg text-xs font-semibold hover:bg-[#F8FAFC] dark:hover:bg-[#182030] hover:text-[#0F172A] dark:hover:text-white transition-all duration-150 shadow-xs active:scale-[0.98] flex items-center gap-2 cursor-pointer">
                 <svg class="w-3.5 h-3.5 @(isLoading ? "animate-spin" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                <span>Refresh Data</span>
+                <span>@Loc["Admin_Finance_RefreshData"]</span>
             </button>
         </div>
     </div>
@@ -43,38 +44,38 @@
     <!-- DATE FILTER BAR -->
     <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-5 shadow-xs space-y-3 transition-all duration-200 hover:shadow-md hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)]">
         <div class="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-3">
-            <h2 class="text-xs font-bold font-mono text-[#475569] dark:text-[#E1E8F0] uppercase tracking-wider">Financial Date Filter</h2>
+            <h2 class="text-xs font-bold font-mono text-[#475569] dark:text-[#E1E8F0] uppercase tracking-wider">@Loc["Admin_Finance_DateFilterHeading"]</h2>
             @if (fromDateInput.HasValue || toDateInput.HasValue)
             {
                 <span class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] bg-[#0A1B2E]/5 dark:bg-[#112A46] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] rounded-md px-2.5 py-0.5">
-                    Active Period Filter
+                    @Loc["Admin_Finance_ActivePeriodFilter"]
                 </span>
             }
             else
             {
-                <span class="text-xs font-medium text-[#64748B]">Showing All-Time Overall Totals</span>
+                <span class="text-xs font-medium text-[#64748B]">@Loc["Admin_Finance_ShowingAllTime"]</span>
             }
         </div>
 
         <div class="flex flex-col sm:flex-row items-end gap-4">
             <div class="w-full sm:w-auto flex-1">
-                <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8] mb-1">From Date</label>
+                <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8] mb-1">@Loc["Admin_Finance_FromDate"]</label>
                 <input type="date" @bind="fromDateInput"
                        class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded-lg px-3 py-2 text-xs text-[#0F172A] dark:text-[#E1E8F0] focus:bg-white dark:focus:bg-[#111622] focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none" />
             </div>
 
             <div class="w-full sm:w-auto flex-1">
-                <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8] mb-1">To Date</label>
+                <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8] mb-1">@Loc["Admin_Finance_ToDate"]</label>
                 <input type="date" @bind="toDateInput"
                        class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded-lg px-3 py-2 text-xs text-[#0F172A] dark:text-[#E1E8F0] focus:bg-white dark:focus:bg-[#111622] focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none" />
             </div>
 
             <div class="flex items-center gap-2 w-full sm:w-auto">
                 <button type="button" @onclick="ApplyDateFilter" class="px-4 py-2 bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white rounded-lg text-xs font-semibold transition shadow-xs cursor-pointer">
-                    Apply Filter
+                    @Loc["Admin_Finance_ApplyFilter"]
                 </button>
                 <button type="button" @onclick="ResetDateFilter" class="px-3.5 py-2 bg-[#F1F5F9] dark:bg-[#191B23] text-[#475569] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded-lg text-xs font-semibold hover:bg-[#E2E8F0] dark:hover:bg-[#1E2638] transition cursor-pointer">
-                    Reset
+                    @Loc["Admin_Finance_Reset"]
                 </button>
             </div>
         </div>
@@ -84,25 +85,25 @@
     {
         <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-12 text-center shadow-xs">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent mb-4"></div>
-            <p class="text-sm font-medium text-[#475569] dark:text-[#94A3B8]">Loading financial summary data...</p>
+            <p class="text-sm font-medium text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_Finance_LoadingSummary"]</p>
         </div>
     }
     else if (isForbidden)
     {
         <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl p-8 text-rose-800 dark:text-rose-200 shadow-xs text-center space-y-3">
             <svg class="w-12 h-12 text-rose-500 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-            <h3 class="text-lg font-bold text-rose-900 dark:text-white" style="font-family:'Plus Jakarta Sans',sans-serif">Access Denied</h3>
-            <p class="text-sm text-rose-700 dark:text-rose-300 max-w-md mx-auto">Administrator privileges are required to access platform financial metrics.</p>
+            <h3 class="text-lg font-bold text-rose-900 dark:text-white" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Admin_Finance_AccessDenied"]</h3>
+            <p class="text-sm text-rose-700 dark:text-rose-300 max-w-md mx-auto">@Loc["Admin_Finance_AccessDeniedDesc"]</p>
         </div>
     }
     else if (!string.IsNullOrEmpty(errorMessage))
     {
         <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl p-6 text-rose-800 dark:text-rose-200 shadow-xs flex items-start gap-4">
             <div class="flex-1">
-                <h3 class="font-bold text-rose-900 dark:text-white" style="font-family:'Plus Jakarta Sans',sans-serif">Error Loading Financial Data</h3>
+                <h3 class="font-bold text-rose-900 dark:text-white" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Admin_Finance_ErrorTitle"]</h3>
                 <p class="text-sm text-rose-700 dark:text-rose-300 mt-1">@errorMessage</p>
                 <button type="button" @onclick="LoadAllData" class="mt-3 px-4 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition cursor-pointer">
-                    Retry
+                    @Loc["Common_TryAgain"]
                 </button>
             </div>
         </div>
@@ -114,7 +115,7 @@
             <!-- 1. Total Platform Revenue -->
             <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-5 shadow-xs space-y-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-500/40 dark:hover:bg-[#182030] dark:hover:border-emerald-400/40">
                 <div class="flex items-center justify-between text-[#64748B]">
-                    <span class="text-xs font-bold font-mono uppercase tracking-wider">Total Revenue</span>
+                    <span class="text-xs font-bold font-mono uppercase tracking-wider">@Loc["Admin_Finance_TotalRevenue"]</span>
                     <span class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shadow-xs">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M14.8 9A2 2 0 0 0 13 8h-2a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-2a2 2 0 0 1-1.8-1"/><path d="M12 6v12"/></svg>
                     </span>
@@ -131,13 +132,13 @@
                 <div class="border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pt-2 space-y-1 text-xs">
                     <div class="flex justify-between text-[#475569] dark:text-[#C4D2E1]">
                         <span class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0]"></span> Group Joins:
+                            <span class="w-2 h-2 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0]"></span> @Loc["Admin_Finance_GroupJoins"]
                         </span>
                         <span class="font-bold font-mono text-[#0F172A] dark:text-white">@(summary?.GroupRevenueLinkDrops ?? 0) LD <span class="text-[10px] text-[#64748B]">(@(summary?.GroupTxCount ?? 0))</span></span>
                     </div>
                     <div class="flex justify-between text-[#475569] dark:text-[#C4D2E1]">
                         <span class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-purple-500"></span> Private Chats:
+                            <span class="w-2 h-2 rounded-full bg-purple-500"></span> @Loc["Admin_Finance_PrivateChats"]
                         </span>
                         <span class="font-bold font-mono text-[#0F172A] dark:text-white">@(summary?.PrivateChatRevenueLinkDrops ?? 0) LD <span class="text-[10px] text-[#64748B]">(@(summary?.PrivateChatTxCount ?? 0))</span></span>
                     </div>
@@ -147,7 +148,7 @@
             <!-- 2. Platform Commission -->
             <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-5 shadow-xs space-y-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-[#0A1B2E]/40 dark:hover:bg-[#112A46] dark:hover:border-[rgba(196,210,225,0.30)]">
                 <div class="flex items-center justify-between text-[#64748B]">
-                    <span class="text-xs font-bold font-mono uppercase tracking-wider">Platform Cut</span>
+                    <span class="text-xs font-bold font-mono uppercase tracking-wider">@Loc["Admin_Finance_PlatformCut"]</span>
                     <span class="w-8 h-8 rounded-lg bg-[#0A1B2E]/5 dark:bg-[#112A46] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center shadow-xs">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
                     </span>
@@ -161,7 +162,7 @@
                     </div>
                 </div>
                 <div class="border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pt-2 text-xs text-[#64748B] flex items-center justify-between">
-                    <span>Net Platform Earnings</span>
+                    <span>@Loc["Admin_Finance_NetPlatformEarnings"]</span>
                     <span class="font-bold font-mono text-[#0A1B2E] dark:text-[#E1E8F0]">@(summary != null && summary.GrossChatGroupRevenueLinkDrops > 0 ? $"{(summary.PlatformCommissionLinkDrops * 100.0 / summary.GrossChatGroupRevenueLinkDrops):F0}%" : "0%")</span>
                 </div>
             </div>
@@ -169,7 +170,7 @@
             <!-- 3. Creator Net Earnings -->
             <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-5 shadow-xs space-y-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-[#0A1B2E]/40 dark:hover:bg-[#112A46] dark:hover:border-[rgba(196,210,225,0.30)]">
                 <div class="flex items-center justify-between text-[#64748B]">
-                    <span class="text-xs font-bold font-mono uppercase tracking-wider">Creator Earnings</span>
+                    <span class="text-xs font-bold font-mono uppercase tracking-wider">@Loc["Admin_Finance_CreatorEarnings"]</span>
                     <span class="w-8 h-8 rounded-lg bg-[#0A1B2E]/5 dark:bg-[#112A46] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center shadow-xs">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </span>
@@ -183,7 +184,7 @@
                     </div>
                 </div>
                 <div class="border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pt-2 text-xs text-[#64748B] flex items-center justify-between">
-                    <span>Credited to Creators</span>
+                    <span>@Loc["Admin_Finance_CreditedToCreators"]</span>
                     <span class="font-bold font-mono text-[#0A1B2E] dark:text-[#E1E8F0]">@(summary != null && summary.GrossChatGroupRevenueLinkDrops > 0 ? $"{(summary.CreatorNetEarningsLinkDrops * 100.0 / summary.GrossChatGroupRevenueLinkDrops):F0}%" : "0%")</span>
                 </div>
             </div>
@@ -191,7 +192,7 @@
             <!-- 4. Creator Cash-Out Payouts -->
             <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-5 shadow-xs space-y-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-teal-500/40 dark:hover:bg-[#182030] dark:hover:border-teal-400/40">
                 <div class="flex items-center justify-between text-[#64748B]">
-                    <span class="text-xs font-bold font-mono uppercase tracking-wider">Creator Payouts</span>
+                    <span class="text-xs font-bold font-mono uppercase tracking-wider">@Loc["Admin_Finance_CreatorPayouts"]</span>
                     <span class="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/40 text-teal-700 dark:text-teal-400 flex items-center justify-center shadow-xs">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     </span>
@@ -201,7 +202,7 @@
                         @(summary?.CompletedCreatorPayoutsLinkDrops ?? 0) <span class="text-xs font-normal text-slate-500 dark:text-slate-400">LD</span>
                     </div>
                     <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                        @(summary?.CompletedPayoutCount ?? 0) completed cash-outs
+                        @string.Format(Loc["Admin_Finance_CompletedCashOuts"], summary?.CompletedPayoutCount ?? 0)
                     </div>
                 </div>
                 <div class="border-t border-slate-100 dark:border-[rgba(196,210,225,0.08)] pt-2 text-xs flex items-center justify-between">
@@ -209,14 +210,14 @@
                     {
                         <span class="font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1">
                             <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                            @(summary?.PendingPayoutCount ?? 0) pending review
+                            @string.Format(Loc["Admin_Finance_PendingReview"], summary?.PendingPayoutCount ?? 0)
                         </span>
                         <span class="font-bold text-amber-700 dark:text-amber-400">@(summary?.PendingCreatorPayoutsLinkDrops ?? 0) LD</span>
                     }
                     else
                     {
-                        <span class="text-slate-400">No pending payouts</span>
-                        <span class="text-emerald-600 dark:text-emerald-400 font-semibold">✓ Clear</span>
+                        <span class="text-slate-400">@Loc["Admin_Finance_NoPendingPayouts"]</span>
+                        <span class="text-emerald-600 dark:text-emerald-400 font-semibold">✓ @Loc["Admin_Finance_ClearStatus"]</span>
                     }
                 </div>
             </div>
@@ -226,19 +227,19 @@
         <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg p-5 shadow-xs space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-4">
                 <div>
-                    <h2 class="text-base font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">Revenue Stream Breakdown</h2>
-                    <p class="text-xs text-[#475569] dark:text-[#94A3B8]">Inspect revenue generated by Chat Groups vs. 1-on-1 Private Chats</p>
+                    <h2 class="text-base font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Admin_Finance_StreamBreakdownTitle"]</h2>
+                    <p class="text-xs text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_Finance_StreamBreakdownDesc"]</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <!-- Tab Switcher -->
                     <div class="inline-flex rounded p-1 bg-[#F8FAFC] dark:bg-[#191B23] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
                         <button type="button" @onclick="() => activeBreakdownTab = BreakdownTab.GroupChat"
                                 class="px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer @(activeBreakdownTab == BreakdownTab.GroupChat ? "bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] shadow-xs" : "text-[#475569] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC]")">
-                            Chat Groups (@groups.Count)
+                            @string.Format(Loc["Admin_Finance_TabChatGroups"], groups.Count)
                         </button>
                         <button type="button" @onclick="() => activeBreakdownTab = BreakdownTab.PrivateChat"
                                 class="px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer @(activeBreakdownTab == BreakdownTab.PrivateChat ? "bg-white dark:bg-[#111622] text-purple-600 dark:text-purple-300 shadow-xs" : "text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#E1E2EC]")">
-                            Private Chats (@privateChats.Count)
+                            @string.Format(Loc["Admin_Finance_TabPrivateChats"], privateChats.Count)
                         </button>
                     </div>
 
@@ -246,7 +247,7 @@
                     {
                         <button type="button" @onclick="ClearGroupFilter" class="px-2.5 py-1.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded text-xs font-semibold hover:bg-amber-500/20 transition cursor-pointer flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                            <span>Clear Filter</span>
+                            <span>@Loc["Admin_Finance_ClearFilter"]</span>
                         </button>
                     }
                 </div>
@@ -258,7 +259,7 @@
                 @if (groups.Count == 0)
                 {
                     <div class="py-8 text-center bg-[#F8FAFC] dark:bg-[#191B23] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg">
-                        <p class="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">No completed group financial data for the selected period.</p>
+                        <p class="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">@Loc["Admin_Finance_NoGroupData"]</p>
                     </div>
                 }
                 else
@@ -267,11 +268,11 @@
                         <table class="w-full text-left text-xs text-[#0F172A] dark:text-[#E1E2EC] border-collapse">
                             <thead>
                                 <tr class="bg-[#F8FAFC] dark:bg-[#191B23] border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[10px] uppercase font-bold text-[#64748B] tracking-[0.06em] font-mono">
-                                    <th class="py-3 px-4">Chat Group</th>
-                                    <th class="py-3 px-4 text-right">Gross Revenue (LD)</th>
-                                    <th class="py-3 px-4 text-right">Commission (LD)</th>
-                                    <th class="py-3 px-4 text-right">Creator Net (LD)</th>
-                                    <th class="py-3 px-4 text-center">Paid Joins</th>
+                                    <th class="py-3 px-4">@Loc["Admin_Finance_ColChatGroup"]</th>
+                                    <th class="py-3 px-4 text-right">@Loc["Admin_Finance_ColGrossRevenue"]</th>
+                                    <th class="py-3 px-4 text-right">@Loc["Admin_Finance_ColCommission"]</th>
+                                    <th class="py-3 px-4 text-right">@Loc["Admin_Finance_ColCreatorNet"]</th>
+                                    <th class="py-3 px-4 text-center">@Loc["Admin_Finance_ColPaidJoins"]</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(255,255,255,0.08)]">
@@ -284,7 +285,7 @@
                                              @g.ChatGroupName
                                             @if (isSelected)
                                             {
-                                                <span class="ml-2 text-[10px] bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] px-2 py-0.5 rounded-full uppercase tracking-wider font-mono font-bold">Filtered</span>
+                                                <span class="ml-2 text-[10px] bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] px-2 py-0.5 rounded-full uppercase tracking-wider font-mono font-bold">@Loc["Admin_Finance_BadgeFiltered"]</span>
                                             }
                                         </td>
                                         <td class="py-3 px-4 text-right font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC]">
@@ -312,7 +313,7 @@
                 @if (privateChats.Count == 0)
                 {
                     <div class="py-8 text-center bg-[#F8FAFC] dark:bg-[#191B23] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg">
-                        <p class="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">No private chat revenue data for the selected period.</p>
+                        <p class="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">@Loc["Admin_Finance_NoPrivateChatData"]</p>
                     </div>
                 }
                 else
@@ -321,11 +322,11 @@
                         <table class="w-full text-left text-xs text-[#0F172A] dark:text-[#E1E2EC] border-collapse">
                             <thead>
                                 <tr class="bg-[#F8FAFC] dark:bg-[#191B23] border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[10px] uppercase font-bold text-[#64748B] tracking-[0.06em] font-mono">
-                                    <th class="py-3 px-4">Creator</th>
-                                    <th class="py-3 px-4 text-right">Gross Revenue (LD)</th>
-                                    <th class="py-3 px-4 text-right">Commission (LD)</th>
-                                    <th class="py-3 px-4 text-right">Creator Net (LD)</th>
-                                    <th class="py-3 px-4 text-center">Unlocked Chats</th>
+                                    <th class="py-3 px-4">@Loc["Admin_Finance_ColCreator"]</th>
+                                    <th class="py-3 px-4 text-right">@Loc["Admin_Finance_ColGrossRevenue"]</th>
+                                    <th class="py-3 px-4 text-right">@Loc["Admin_Finance_ColCommission"]</th>
+                                    <th class="py-3 px-4 text-right">@Loc["Admin_Finance_ColCreatorNet"]</th>
+                                    <th class="py-3 px-4 text-center">@Loc["Admin_Finance_ColUnlockedChats"]</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(255,255,255,0.08)]">
@@ -333,7 +334,7 @@
                                 {
                                     <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1D263B]/60 transition-colors duration-150">
                                         <td class="py-3 px-4 font-semibold text-[#0F172A] dark:text-[#E1E2EC] flex items-center gap-2">
-                                            <span class="w-6 h-6 rounded-full bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/20 text-[11px] flex items-center justify-center font-bold">
+                                             <span class="w-6 h-6 rounded-full bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/20 text-[11px] flex items-center justify-center font-bold">
                                                 @(string.IsNullOrEmpty(p.CreatorName) ? "C" : p.CreatorName[0].ToString().ToUpper())
                                             </span>
                                             <span>@p.CreatorName</span>
@@ -363,39 +364,39 @@
         <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg p-5 shadow-xs space-y-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-4">
                 <div>
-                    <h2 class="text-base font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">Financial Transactions History</h2>
-                    <p class="text-xs text-[#475569] dark:text-[#94A3B8]">Audit log of Group Joins, Private Chats, and Creator Cash-Outs</p>
+                    <h2 class="text-base font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Admin_Finance_TxHistoryTitle"]</h2>
+                    <p class="text-xs text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_Finance_TxHistorySubtitle"]</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <!-- Transaction Type Dropdown -->
                     <select @bind="selectedTransactionType" @bind:after="ApplyTransactionFilters"
                             class="bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-xs text-[#0F172A] dark:text-[#E1E2EC] focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors">
-                        <option value="">All Transaction Types</option>
-                        <option value="CHAT_GROUP_JOIN">Group Join (CHAT_GROUP_JOIN)</option>
-                        <option value="PRIVATE_CHAT_UNLOCK">Private Chat (PRIVATE_CHAT_UNLOCK)</option>
-                        <option value="CREATOR_PAYOUT">Creator Payout (CREATOR_PAYOUT)</option>
+                        <option value="">@Loc["Admin_Finance_AllTxTypes"]</option>
+                        <option value="CHAT_GROUP_JOIN">@Loc["Admin_Finance_OptGroupJoin"]</option>
+                        <option value="PRIVATE_CHAT_UNLOCK">@Loc["Admin_Finance_OptPrivateChat"]</option>
+                        <option value="CREATOR_PAYOUT">@Loc["Admin_Finance_OptCreatorPayout"]</option>
                     </select>
 
                     <!-- Status Dropdown -->
                     <select @bind="selectedStatus" @bind:after="ApplyTransactionFilters"
                             class="bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-xs text-[#0F172A] dark:text-[#E1E2EC] focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors">
-                        <option value="">All Statuses</option>
-                        <option value="COMPLETED">Completed</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="REJECTED">Rejected</option>
+                        <option value="">@Loc["Admin_Finance_AllStatuses"]</option>
+                        <option value="COMPLETED">@Loc["Admin_Finance_StatusCompleted"]</option>
+                        <option value="PENDING">@Loc["Admin_Finance_StatusPending"]</option>
+                        <option value="REJECTED">@Loc["Admin_Finance_StatusRejected"]</option>
                     </select>
 
                     <!-- Page Size Dropdown -->
                     <select @onchange="OnPageSizeChanged" value="@pageSize"
                             class="bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-xs text-[#0F172A] dark:text-[#E1E2EC] focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors">
-                        <option value="10">10 rows</option>
-                        <option value="25">25 rows</option>
-                        <option value="50">50 rows</option>
-                        <option value="100">100 rows</option>
+                        <option value="10">@string.Format(Loc["Admin_Finance_RowsPerPage"], 10)</option>
+                        <option value="25">@string.Format(Loc["Admin_Finance_RowsPerPage"], 25)</option>
+                        <option value="50">@string.Format(Loc["Admin_Finance_RowsPerPage"], 50)</option>
+                        <option value="100">@string.Format(Loc["Admin_Finance_RowsPerPage"], 100)</option>
                     </select>
 
                     <button type="button" @onclick="ClearTransactionFilters" class="px-3 py-1.5 bg-white dark:bg-[#191B23] hover:bg-slate-100 dark:hover:bg-[#1D263B] text-[#475569] dark:text-[#94A3B8] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded text-xs font-medium transition cursor-pointer">
-                        Clear Filters
+                        @Loc["Admin_Finance_ClearFilters"]
                     </button>
                 </div>
             </div>
@@ -403,9 +404,9 @@
             @if (selectedChatGroupId.HasValue && selectedChatGroupId.Value > 0)
             {
                 <div class="bg-[#0A1B2E]/5 dark:bg-[#112A46] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] rounded-lg px-4 py-2.5 text-xs text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-between">
-                    <span>Active Group Filter: <strong>Group #@selectedChatGroupId.Value</strong></span>
+                    <span>@string.Format(Loc["Admin_Finance_ActiveGroupFilter"], selectedChatGroupId.Value)</span>
                     <button type="button" @onclick="ClearGroupFilter" class="font-bold hover:underline text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-1">
-                        <span>Clear Group Filter</span>
+                        <span>@Loc["Admin_Finance_ClearGroupFilterBtn"]</span>
                         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                 </div>
@@ -414,8 +415,8 @@
             @if (transactions.Count == 0)
             {
                 <div class="py-12 text-center bg-[#F8FAFC] dark:bg-[#191B23] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg space-y-2">
-                    <p class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]">No financial transactions found for the selected filters.</p>
-                    <p class="text-xs text-[#64748B] dark:text-[#94A3B8]">Try clearing transaction filters or adjusting the date range.</p>
+                    <p class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]">@Loc["Admin_Finance_NoTxFound"]</p>
+                    <p class="text-xs text-[#64748B] dark:text-[#94A3B8]">@Loc["Admin_Finance_NoTxFoundDesc"]</p>
                 </div>
             }
             else
@@ -425,14 +426,14 @@
                     <table class="w-full text-left text-xs text-[#0F172A] dark:text-[#E1E2EC] border-collapse">
                         <thead>
                             <tr class="bg-[#F8FAFC] dark:bg-[#191B23] border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[10px] uppercase font-bold text-[#64748B] tracking-[0.06em] font-mono">
-                                <th class="py-3 px-4">Date</th>
-                                <th class="py-3 px-4">Type</th>
-                                <th class="py-3 px-4">User / Creator</th>
-                                <th class="py-3 px-4">Chat Group</th>
-                                <th class="py-3 px-4 text-right">Gross (LD)</th>
-                                <th class="py-3 px-4 text-right">Commission (LD)</th>
-                                <th class="py-3 px-4 text-right">Net (LD)</th>
-                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4">@Loc["Admin_Finance_ColDate"]</th>
+                                <th class="py-3 px-4">@Loc["Admin_Finance_ColType"]</th>
+                                <th class="py-3 px-4">@Loc["Admin_Finance_ColUserCreator"]</th>
+                                <th class="py-3 px-4">@Loc["Admin_Finance_ColChatGroup"]</th>
+                                <th class="py-3 px-4 text-right">@Loc["Admin_Finance_ColGross"]</th>
+                                <th class="py-3 px-4 text-right">@Loc["Admin_Finance_ColCommission"]</th>
+                                <th class="py-3 px-4 text-right">@Loc["Admin_Finance_ColNet"]</th>
+                                <th class="py-3 px-4 text-center">@Loc["Admin_Finance_ColStatus"]</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(255,255,255,0.08)]">
@@ -446,19 +447,19 @@
                                         @if (tx.TransactionType == "CHAT_GROUP_JOIN")
                                         {
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
-                                                Group Join
+                                                @Loc["Admin_Finance_TypeGroupJoin"]
                                             </span>
                                         }
                                         else if (tx.TransactionType == "PRIVATE_CHAT_UNLOCK")
                                         {
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
-                                                Private Chat
+                                                @Loc["Admin_Finance_TypePrivateChat"]
                                             </span>
                                         }
                                         else
                                         {
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-[#34D399] border border-emerald-500/20">
-                                                Creator Payout
+                                                @Loc["Admin_Finance_TypeCreatorPayout"]
                                             </span>
                                         }
                                     </td>
@@ -482,14 +483,14 @@
                                         {
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-[#34D399] border border-emerald-500/20">
                                                 <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
-                                                <span>Completed</span>
+                                                <span>@Loc["Admin_Finance_StatusCompleted"]</span>
                                             </span>
                                         }
                                         else if (tx.Status == "PENDING")
                                         {
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                                                 <svg class="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                                                <span>Pending</span>
+                                                <span>@Loc["Admin_Finance_StatusPending"]</span>
                                             </span>
                                         }
                                         else
@@ -522,37 +523,37 @@
                                 @if (tx.TransactionType == "CHAT_GROUP_JOIN")
                                 {
                                     <span class="text-[11px] px-2 py-0.5 rounded font-semibold bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
-                                        Group Join
+                                        @Loc["Admin_Finance_TypeGroupJoin"]
                                     </span>
                                 }
                                 else if (tx.TransactionType == "PRIVATE_CHAT_UNLOCK")
                                 {
                                     <span class="text-[11px] px-2 py-0.5 rounded font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
-                                        Private Chat
+                                        @Loc["Admin_Finance_TypePrivateChat"]
                                     </span>
                                 }
                                 else
                                 {
                                     <span class="text-[11px] px-2 py-0.5 rounded font-semibold bg-emerald-500/10 text-emerald-700 dark:text-[#34D399] border border-emerald-500/20">
-                                        Creator Payout
+                                        @Loc["Admin_Finance_TypeCreatorPayout"]
                                     </span>
                                 }
                             </div>
                             @if (!string.IsNullOrWhiteSpace(tx.ChatGroupName))
                             {
-                                <div class="text-xs text-[#64748B] dark:text-[#94A3B8]"><span class="font-semibold text-[#0F172A] dark:text-[#E1E2EC]">Group:</span> @tx.ChatGroupName</div>
+                                <div class="text-xs text-[#64748B] dark:text-[#94A3B8]"><span class="font-semibold text-[#0F172A] dark:text-[#E1E2EC]">@Loc["Admin_Finance_MobileGroupLabel"]</span> @tx.ChatGroupName</div>
                             }
                             <div class="bg-[#F8FAFC] dark:bg-[#191B23] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded p-2.5 space-y-1 text-xs">
                                 <div class="flex justify-between">
-                                    <span class="text-[#64748B] dark:text-[#94A3B8]">Gross:</span>
+                                    <span class="text-[#64748B] dark:text-[#94A3B8]">@Loc["Admin_Finance_MobileGrossLabel"]</span>
                                     <span class="font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC]">@tx.GrossAmountLinkDrops.ToString("N0") LD</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-[#64748B] dark:text-[#94A3B8]">Commission:</span>
+                                    <span class="text-[#64748B] dark:text-[#94A3B8]">@Loc["Admin_Finance_MobileCommissionLabel"]</span>
                                     <span class="font-mono font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@tx.CommissionAmountLinkDrops.ToString("N0") LD</span>
                                 </div>
                                 <div class="flex justify-between border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pt-1 mt-1">
-                                    <span class="text-[#0F172A] dark:text-[#E1E2EC] font-semibold">Net:</span>
+                                    <span class="text-[#0F172A] dark:text-[#E1E2EC] font-semibold">@Loc["Admin_Finance_MobileNetLabel"]</span>
                                     <span class="font-mono font-bold text-emerald-600 dark:text-[#34D399]">@tx.NetAmountLinkDrops.ToString("N0") LD</span>
                                 </div>
                             </div>
@@ -568,36 +569,36 @@
                         {
                             var startItem = (currentPage - 1) * pageSize + 1;
                             var endItem = Math.Min(currentPage * pageSize, totalCount);
-                            <span>Showing <strong class="text-[#0F172A] dark:text-[#E1E2EC]">@startItem</strong> to <strong class="text-[#0F172A] dark:text-[#E1E2EC]">@endItem</strong> of <strong class="text-[#0F172A] dark:text-[#E1E2EC]">@totalCount</strong> records</span>
+                            <span>@((MarkupString)string.Format(Loc["Admin_Finance_ShowingRange"], $"<strong class=\"text-[#0F172A] dark:text-[#E1E2EC]\">{startItem}</strong>", $"<strong class=\"text-[#0F172A] dark:text-[#E1E2EC]\">{endItem}</strong>", $"<strong class=\"text-[#0F172A] dark:text-[#E1E2EC]\">{totalCount}</strong>"))</span>
                         }
                         else
                         {
-                            <span>No transaction records available</span>
+                            <span>@Loc["Admin_Finance_NoRecords"]</span>
                         }
                     </div>
 
                     <!-- Pagination Navigation Controls -->
                     <div class="flex items-center gap-1.5 font-mono text-xs">
-                        <button type="button" @onclick="GoToFirstPage" disabled="@(currentPage <= 1 || isLoading)" title="First Page"
+                        <button type="button" @onclick="GoToFirstPage" disabled="@(currentPage <= 1 || isLoading)" title="@Loc["Admin_Finance_FirstPage"]"
                                 class="px-2.5 py-1 rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] hover:bg-slate-50 dark:hover:bg-[#1D263B] disabled:opacity-40 transition cursor-pointer">
-                            &laquo; First
+                            @Loc["Admin_Finance_FirstPage"]
                         </button>
-                        <button type="button" @onclick="PreviousPage" disabled="@(currentPage <= 1 || isLoading)" title="Previous Page"
+                        <button type="button" @onclick="PreviousPage" disabled="@(currentPage <= 1 || isLoading)" title="@Loc["Admin_Finance_PrevPage"]"
                                 class="px-2.5 py-1 rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] hover:bg-slate-50 dark:hover:bg-[#1D263B] disabled:opacity-40 transition cursor-pointer">
-                            &larr; Prev
+                            @Loc["Admin_Finance_PrevPage"]
                         </button>
                         
                         <span class="px-3 py-1 rounded bg-[#F1F5F9] dark:bg-[#191B23] text-[#0F172A] dark:text-[#E1E2EC] font-bold">
-                            Page @currentPage of @(totalPages == 0 ? 1 : totalPages)
+                            @string.Format(Loc["Admin_Finance_PageNumber"], currentPage, totalPages == 0 ? 1 : totalPages)
                         </span>
 
-                        <button type="button" @onclick="NextPage" disabled="@(currentPage >= totalPages || totalPages == 0 || isLoading)" title="Next Page"
+                        <button type="button" @onclick="NextPage" disabled="@(currentPage >= totalPages || totalPages == 0 || isLoading)" title="@Loc["Admin_Finance_NextPage"]"
                                 class="px-2.5 py-1 rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] hover:bg-slate-50 dark:hover:bg-[#1D263B] disabled:opacity-40 transition cursor-pointer">
-                            Next &rarr;
+                            @Loc["Admin_Finance_NextPage"]
                         </button>
-                        <button type="button" @onclick="GoToLastPage" disabled="@(currentPage >= totalPages || totalPages == 0 || isLoading)" title="Last Page"
+                        <button type="button" @onclick="GoToLastPage" disabled="@(currentPage >= totalPages || totalPages == 0 || isLoading)" title="@Loc["Admin_Finance_LastPage"]"
                                 class="px-2.5 py-1 rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] hover:bg-slate-50 dark:hover:bg-[#1D263B] disabled:opacity-40 transition cursor-pointer">
-                            Last &raquo;
+                            @Loc["Admin_Finance_LastPage"]
                         </button>
                     </div>
                 </div>
@@ -833,7 +834,7 @@
                 }
                 else
                 {
-                    Toast.Error(res.Message ?? "Failed to export CSV report.");
+                    Toast.Error(res.Message ?? Loc["Admin_Finance_ExportCsvFailed"]);
                 }
                 isExporting = false;
                 return;
@@ -841,7 +842,7 @@
 
             if (res.Data == null || res.Data.Length == 0)
             {
-                Toast.Warning("No transaction data available for export.");
+                Toast.Warning(Loc["Admin_Finance_Toast_ExportNoData"]);
                 isExporting = false;
                 return;
             }
@@ -849,11 +850,11 @@
             var fileName = $"communitylink-finance-report-{DateTime.UtcNow:yyyy-MM-dd}.csv";
             var base64 = Convert.ToBase64String(res.Data);
             await JS.InvokeVoidAsync("eval", $"const a = document.createElement('a'); a.href = 'data:text/csv;base64,{base64}'; a.download = '{fileName}'; a.click();");
-            Toast.Success("Finance report exported successfully.");
+            Toast.Success(Loc["Admin_Finance_Toast_ExportSuccess"]);
         }
         catch (Exception)
         {
-            Toast.Error("Failed to export finance report.");
+            Toast.Error(Loc["Admin_Finance_Toast_ExportFailed"]);
         }
         finally
         {

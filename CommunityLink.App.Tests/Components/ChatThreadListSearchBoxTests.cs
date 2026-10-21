@@ -1,6 +1,7 @@
 using Bunit;
 using CommunityLink.App.Components.Shared.Chat;
 using AngleSharp.Dom;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CommunityLink.App.Tests.Components;
 
@@ -10,6 +11,11 @@ namespace CommunityLink.App.Tests.Components;
 /// </summary>
 public class ChatThreadListSearchBoxTests : BunitContext
 {
+    public ChatThreadListSearchBoxTests()
+    {
+        Services.AddLocalization(options => options.ResourcesPath = "Resources");
+    }
+
     private IRenderedComponent<ChatThreadList> RenderDefault() =>
         Render<ChatThreadList>(p => p
             .Add(x => x.IsLoading, false)

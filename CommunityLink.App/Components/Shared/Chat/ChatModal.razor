@@ -1,4 +1,6 @@
 @inject IJSRuntime JS
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<AppResources> Loc
 
 @*
     Modal shell shared by the Chat overlays. Provides the dialog semantics, moves focus
@@ -25,7 +27,7 @@
                 <h2 class="text-sm font-semibold text-slate-900 dark:text-[#E1E2EC]">@Title</h2>
                 <button type="button"
                         @onclick="OnClose"
-                        aria-label="Close dialog"
+                        aria-label="@Loc["Common_CloseDialog"]"
                         class="rounded-lg p-1.5 text-slate-500 dark:text-[#94A3B8] transition hover:bg-slate-200 dark:hover:bg-[#1D263B] hover:text-slate-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />

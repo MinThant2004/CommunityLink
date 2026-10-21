@@ -1,14 +1,16 @@
-﻿@using CommunityLink.App.Components.Shared.Chat
+@using CommunityLink.App.Components.Shared.Chat
 @using CommunityLink.Shared.Features.ChatGroup
 @using CommunityLink.Shared.Features.UserProfile
+@using Microsoft.Extensions.Localization
 @inject ChatGroupApiService ChatGroupApi
 @inject ChatApiService ChatApi
 @inject UserProfileApiService UserApi
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppResources> Loc
 
 <ChatModal IsOpen="IsOpen"
-           Title="@(Thread.IsGroup ? "Group info" : "Conversation details")"
+           Title="@(Thread.IsGroup ? Loc["Chat_GroupInfo"] : Loc["Chat_ConversationDetails"])"
            MaxWidth="max-w-md"
            OnClose="OnClose">
     <ChildContent>
@@ -29,7 +31,7 @@
                     @if (IsOwner)
                     {
                         <label for="cg-panel-avatar"
-                               title="Change group avatar"
+                               title="@Loc["Chat_ChangeAvatar"]"
                                class="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#111622] text-slate-600 dark:text-[#94A3B8] shadow transition hover:bg-slate-50 dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] focus-within:ring-2 focus-within:ring-[#0A1B2E]/20 dark:focus-within:ring-[#E1E8F0]/30">
                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
@@ -45,11 +47,11 @@
                     <div class="mt-3 flex items-center gap-2">
                         <button type="button" @onclick="UploadImageAsync" disabled="@IsSubmitting"
                                 class="rounded-lg bg-[#0A1B2E] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white disabled:opacity-50">
-                            @(IsSubmitting ? "Uploading…" : "Save avatar")
+                            @(IsSubmitting ? Loc["Chat_Uploading"] + "…" : Loc["Chat_SaveAvatar"])
                         </button>
                         <button type="button" @onclick="CancelImage" disabled="@IsSubmitting"
                                 class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#191B23] px-3 py-1 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#182030] disabled:opacity-50">
-                            Cancel
+                            @Loc["Common_Cancel"]
                         </button>
                     </div>
                 }
@@ -65,21 +67,21 @@
                         <button type="button"
                                 @onclick="ToggleMuteAsync"
                                 disabled="@IsSubmitting"
-                                title="Toggle group notifications"
+                                title="@Loc["Chat_ToggleGroupNotifications"]"
                                 class="flex flex-col items-center justify-center gap-1 rounded-xl bg-white dark:bg-[#191B23] border border-slate-200 dark:border-[rgba(255,255,255,0.08)] w-16 py-2 shadow-sm transition hover:bg-slate-100 dark:hover:bg-[#182030] hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)] active:scale-95 disabled:opacity-50">
                             @if (IsMuted)
                             {
                                 <svg class="h-4 w-4 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6 4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.395C2.806 8.757 3.63 8.25 4.51 8.25H6.75Z" />
                                 </svg>
-                                <span class="text-[10px] font-semibold text-rose-600 dark:text-rose-400">Unmute</span>
+                                <span class="text-[10px] font-semibold text-rose-600 dark:text-rose-400">@Loc["Chat_Unmute"]</span>
                             }
                             else
                             {
                                 <svg class="h-4 w-4 text-slate-600 dark:text-[#94A3B8]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
                                 </svg>
-                                <span class="text-[10px] font-semibold text-slate-700 dark:text-[#E1E2EC]">Mute</span>
+                                <span class="text-[10px] font-semibold text-slate-700 dark:text-[#E1E2EC]">@Loc["Chat_Mute"]</span>
                             }
                         </button>
 
@@ -88,12 +90,12 @@
                         {
                             <button type="button"
                                     @onclick="OpenInviteLinksModalAsync"
-                                    title="Group invite links"
+                                    title="@Loc["Chat_GroupInviteLinks"]"
                                     class="flex flex-col items-center justify-center gap-1 rounded-xl bg-white dark:bg-[#191B23] border border-slate-200 dark:border-[rgba(255,255,255,0.08)] w-16 py-2 shadow-sm transition hover:bg-slate-100 dark:hover:bg-[#182030] hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)] active:scale-95">
                                 <svg class="h-4 w-4 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
                                 </svg>
-                                <span class="text-[10px] font-semibold text-slate-700 dark:text-[#E1E2EC]">Invite link</span>
+                                <span class="text-[10px] font-semibold text-slate-700 dark:text-[#E1E2EC]">@Loc["Chat_InviteLink"]</span>
                             </button>
                         }
 
@@ -102,12 +104,12 @@
                         {
                             <button type="button"
                                     @onclick="ToggleManageSection"
-                                    title="Manage group settings"
+                                    title="@Loc["Chat_ManageGroupSettings"]"
                                     class="flex flex-col items-center justify-center gap-1 rounded-xl bg-white dark:bg-[#191B23] border @(showManageSection ? "border-[#0A1B2E] ring-2 ring-[#0A1B2E]/20 bg-[#0A1B2E]/5 dark:border-[#E1E8F0] dark:ring-[#E1E8F0]/20 dark:bg-[#112A46]" : "border-slate-200 dark:border-[rgba(255,255,255,0.08)] hover:bg-slate-100 dark:hover:bg-[#182030] hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)]") w-16 py-2 shadow-sm transition active:scale-95">
                                 <svg class="h-4 w-4 @(showManageSection ? "text-[#0A1B2E] dark:text-[#E1E8F0]" : "text-slate-600 dark:text-[#94A3B8]")" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                                 </svg>
-                                <span class="text-[10px] font-semibold @(showManageSection ? "text-[#0A1B2E] dark:text-[#E1E8F0]" : "text-slate-700 dark:text-[#E1E2EC]")">Manage</span>
+                                <span class="text-[10px] font-semibold @(showManageSection ? "text-[#0A1B2E] dark:text-[#E1E8F0]" : "text-slate-700 dark:text-[#E1E2EC]")">@Loc["Chat_Manage"]</span>
                             </button>
                         }
                     </div>
@@ -126,10 +128,10 @@
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                                 </svg>
-                                <span>Back</span>
+                                <span>@Loc["Common_Back"]</span>
                             </button>
                             <span class="text-xs font-bold text-slate-800 dark:text-[#E1E2EC] capitalize">
-                                Shared @selectedMediaCategory (@(mediaResult?.TotalCount ?? 0))
+                                @string.Format(Loc["Chat_SharedCategory"], GetMediaCategoryDisplayName(selectedMediaCategory), (mediaResult?.TotalCount ?? 0))
                             </span>
                         </div>
 
@@ -142,7 +144,7 @@
                         }
                         else if (mediaResult == null || mediaResult.Items.Count == 0)
                         {
-                            <p class="py-6 text-center text-xs text-slate-500 dark:text-[#94A3B8]">No shared @selectedMediaCategory found.</p>
+                            <p class="py-6 text-center text-xs text-slate-500 dark:text-[#94A3B8]">@string.Format(Loc["Chat_NoSharedCategoryFound"], GetMediaCategoryDisplayName(selectedMediaCategory))</p>
                         }
                         else
                         {
@@ -174,18 +176,18 @@
                                                     </svg>
                                                 </div>
                                                 <div class="min-w-0">
-                                                    <p class="truncate text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">@(string.IsNullOrWhiteSpace(item.FileName) ? "Video file" : item.FileName)</p>
+                                                    <p class="truncate text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">@(string.IsNullOrWhiteSpace(item.FileName) ? Loc["Chat_VideoFile"] : item.FileName)</p>
                                                     <p class="text-[10px] text-slate-500 dark:text-[#94A3B8]">@item.SenderDisplayName • @item.CreatedAt.ToLocalTime().ToString("MMM d, yyyy HH:mm")</p>
                                                 </div>
                                             </div>
                                             <div class="flex items-center gap-1.5 shrink-0">
                                                 <a href="@item.AttachmentUrl" target="_blank" download
                                                    class="rounded-lg bg-slate-100 dark:bg-[#182030] px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-[#E1E2EC] hover:bg-slate-200 dark:hover:bg-[#1D263B] transition">
-                                                    Open
+                                                    @Loc["Chat_Open"]
                                                 </a>
                                                 <button type="button" @onclick="() => TriggerViewInChat(item.MessageId)"
                                                          class="rounded-lg bg-[#0A1B2E]/5 dark:bg-[#182030] px-2 py-1 text-[11px] font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-[#0A1B2E]/10 dark:hover:bg-[#182030]/80 transition">
-                                                    View in chat
+                                                    @Loc["Chat_ViewInChat"]
                                                 </button>
                                             </div>
                                         </div>
@@ -205,7 +207,7 @@
                                                     </svg>
                                                 </div>
                                                 <div class="min-w-0">
-                                                    <p class="truncate text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">@(string.IsNullOrWhiteSpace(item.FileName) ? "Attachment" : item.FileName)</p>
+                                                    <p class="truncate text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">@(string.IsNullOrWhiteSpace(item.FileName) ? Loc["Chat_Attachment"] : item.FileName)</p>
                                                     <p class="text-[10px] text-slate-500 dark:text-[#94A3B8]">
                                                         @FormatFileSize(item.FileSizeByte) • @item.SenderDisplayName • @item.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")
                                                     </p>
@@ -214,11 +216,11 @@
                                             <div class="flex items-center gap-1.5 shrink-0">
                                                 <a href="@item.AttachmentUrl" target="_blank" download
                                                    class="rounded-lg bg-slate-100 dark:bg-[#182030] px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-[#E1E2EC] hover:bg-slate-200 dark:hover:bg-[#1D263B] transition">
-                                                    Download
+                                                    @Loc["Chat_Download"]
                                                 </a>
                                                 <button type="button" @onclick="() => TriggerViewInChat(item.MessageId)"
                                                          class="rounded-lg bg-[#0A1B2E]/5 dark:bg-[#182030] px-2 py-1 text-[11px] font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-[#0A1B2E]/10 dark:hover:bg-[#182030]/80 transition">
-                                                    View in chat
+                                                    @Loc["Chat_ViewInChat"]
                                                 </button>
                                             </div>
                                         </div>
@@ -231,7 +233,7 @@
                                 <div class="pt-2 text-center">
                                     <button type="button" @onclick="LoadMoreMediaAsync" disabled="@isLoadingSharedMedia"
                                             class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#191B23] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] hover:bg-slate-50 dark:hover:bg-[#182030] disabled:opacity-50">
-                                        @(isLoadingSharedMedia ? "Loading..." : "Load more")
+                                        @(isLoadingSharedMedia ? Loc["Chat_Loading"] + "..." : Loc["Common_LoadMore"])
                                     </button>
                                 </div>
                             }
@@ -244,9 +246,9 @@
                 @if (Thread.IsGroup)
                 {
                     <div class="pt-1">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8]">About</h3>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8]">@Loc["Chat_About"]</h3>
                         <p class="mt-1.5 whitespace-pre-wrap text-sm text-slate-700 dark:text-[#E1E2EC] leading-relaxed">
-                            @(string.IsNullOrWhiteSpace(Thread.Description) ? "No description provided." : Thread.Description)
+                            @(string.IsNullOrWhiteSpace(Thread.Description) ? Loc["Chat_NoDescription"] : Thread.Description)
                         </p>
                     </div>
                 }
@@ -260,7 +262,7 @@
                                 <svg class="h-3.5 w-3.5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                                 </svg>
-                                Group Settings & Administration
+                                @Loc["Chat_GroupSettingsAdmin"]
                             </h3>
 
                             @if (actionError is not null)
@@ -276,25 +278,25 @@
                                     {
                                         <div class="space-y-2.5">
                                              <div>
-                                                 <label for="mg-name" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-[#E1E2EC]">Group name</label>
+                                                 <label for="mg-name" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-[#E1E2EC]">@Loc["Chat_GroupName"]</label>
                                                  <input id="mg-name" type="text" @bind="editName"
                                                         class="w-full rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3 py-1.5 text-sm text-slate-900 dark:text-[#E1E2EC] focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none focus:ring-1 focus:ring-[#0A1B2E] dark:focus:ring-[#E1E8F0]" />
                                              </div>
                                              <div>
-                                                 <label for="mg-desc" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-[#E1E2EC]">Description</label>
+                                                 <label for="mg-desc" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-[#E1E2EC]">@Loc["Chat_GroupDescription"]</label>
                                                  <textarea id="mg-desc" @bind="editDescription" rows="2"
                                                            class="w-full resize-none rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3 py-1.5 text-sm text-slate-900 dark:text-[#E1E2EC] focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none focus:ring-1 focus:ring-[#0A1B2E] dark:focus:ring-[#E1E8F0]"></textarea>
                                              </div>
                                              <div class="flex items-center gap-2 pt-1">
                                                  <button type="button" @onclick="SaveInfoAsync" disabled="@IsSubmitting"
                                                          class="rounded-lg bg-[#0A1B2E] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white disabled:opacity-50">
-                                                     @(IsSubmitting ? "Saving…" : "Save changes")
+                                                     @(IsSubmitting ? Loc["Common_Saving"] : Loc["Chat_SaveChanges"])
                                                  </button>
                                                 <button type="button" @onclick="CancelEdit" disabled="@IsSubmitting"
                                                         class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#1D263B] disabled:opacity-50">
-                                                    Cancel
+                                                    @Loc["Common_Cancel"]
                                                 </button>
-                                            </div>
+                                             </div>
                                         </div>
                                     }
                                     else
@@ -304,7 +306,7 @@
                                             <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#94A3B8]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                                             </svg>
-                                            Edit group name & description
+                                            @Loc["Chat_EditGroupNameAndDesc"]
                                         </button>
                                     }
                                 </div>
@@ -317,7 +319,7 @@
                                             <svg class="h-3.5 w-3.5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
                                             </svg>
-                                            <span>Invite links</span>
+                                            <span>@Loc["Chat_InviteLinks"]</span>
                                         </div>
                                         <span class="rounded-full bg-slate-100 dark:bg-[#111622] px-2 py-0.5 text-[11px] font-bold text-slate-600 dark:text-[#94A3B8] font-mono">
                                             @(inviteLinks.Count > 0 ? inviteLinks.Count : (primaryInviteLink != null ? 1 : 1))
@@ -333,18 +335,18 @@
                                     @if (isEditingFee)
                                     {
                                         <div class="space-y-2.5">
-                                            <label for="mg-fee" class="block text-xs font-semibold text-slate-700 dark:text-[#E1E2EC]">Join fee (LinkDrops)</label>
+                                            <label for="mg-fee" class="block text-xs font-semibold text-slate-700 dark:text-[#E1E2EC]">@Loc["Chat_JoinFee"]</label>
                                             <input id="mg-fee" type="number" min="0" @bind="editFeeLinkDrops"
                                                    class="w-full rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3 py-1.5 text-sm font-semibold text-slate-900 dark:text-[#E1E2EC] focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none focus:ring-1 focus:ring-[#0A1B2E] dark:focus:ring-[#E1E8F0] font-mono" />
-                                            <p class="text-[11px] text-slate-500 dark:text-[#94A3B8]">A fee of 0 makes the group free.</p>
+                                            <p class="text-[11px] text-slate-500 dark:text-[#94A3B8]">@Loc["Chat_FeeZeroMakesFree"]</p>
                                             <div class="flex items-center gap-2 pt-1">
                                                 <button type="button" @onclick="SaveFeeAsync" disabled="@IsSubmitting"
                                                         class="rounded-lg bg-[#0A1B2E] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white disabled:opacity-50">
-                                                    @(IsSubmitting ? "Saving…" : "Update fee")
+                                                    @(IsSubmitting ? Loc["Common_Saving"] : Loc["Chat_UpdateFee"])
                                                 </button>
                                                 <button type="button" @onclick="CancelEditFee" disabled="@IsSubmitting"
                                                         class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#1D263B] disabled:opacity-50">
-                                                    Cancel
+                                                    @Loc["Common_Cancel"]
                                                 </button>
                                             </div>
                                         </div>
@@ -356,7 +358,7 @@
                                             <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#94A3B8]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33" />
                                             </svg>
-                                            Change join fee (@Thread.FeeLinkDrops LinkDrops)
+                                            @string.Format(Loc["Chat_ChangeJoinFee"], Thread.FeeLinkDrops)
                                         </button>
                                     }
                                 </div>
@@ -369,30 +371,30 @@
                                     @if (isEditingAccessMode)
                                     {
                                         <div class="space-y-2.5">
-                                            <label class="block text-xs font-semibold text-slate-700 dark:text-[#E1E2EC]">Access Mode</label>
+                                            <label class="block text-xs font-semibold text-slate-700 dark:text-[#E1E2EC]">@Loc["Chat_AccessMode"]</label>
                                             <div class="grid grid-cols-2 gap-2">
                                                 <button type="button" @onclick='() => editAccessMode = "PUBLIC"'
                                                         class="flex items-center justify-center gap-1.5 rounded-lg border p-2 text-xs font-semibold transition @(editAccessMode == "PUBLIC" ? "border-[#0A1B2E] bg-[#0A1B2E]/5 text-[#0A1B2E] dark:border-[#E1E8F0] dark:bg-[#112A46] dark:text-[#E1E8F0] ring-1 ring-[#0A1B2E] dark:ring-[#E1E8F0]" : "border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] text-slate-600 dark:text-[#94A3B8] hover:bg-slate-50 dark:hover:bg-[#1D263B]")">
                                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a14.5 14.5 0 0 0 0 20M12 2a14.5 14.5 0 0 1 0 20M2 12h20"/></svg>
-                                                    <span>Public</span>
+                                                    <span>@Loc["Chat_PublicGroup"]</span>
                                                 </button>
                                                 <button type="button" @onclick='() => editAccessMode = "PRIVATE"'
                                                         class="flex items-center justify-center gap-1.5 rounded-lg border p-2 text-xs font-semibold transition @(editAccessMode == "PRIVATE" ? "border-[#0A1B2E] bg-[#0A1B2E]/5 text-[#0A1B2E] dark:border-[#E1E8F0] dark:bg-[#112A46] dark:text-[#E1E8F0] ring-1 ring-[#0A1B2E] dark:ring-[#E1E8F0]" : "border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] text-slate-600 dark:text-[#94A3B8] hover:bg-slate-50 dark:hover:bg-[#1D263B]")">
                                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                                    <span>Private</span>
+                                                    <span>@Loc["Chat_PrivateGroup"]</span>
                                                 </button>
                                             </div>
                                             <p class="text-[11px] text-slate-500 dark:text-[#94A3B8]">
-                                                @(editAccessMode == "PRIVATE" ? "Private groups require approval before new members can join." : "Public groups allow anyone to join immediately.")
+                                                @(editAccessMode == "PRIVATE" ? Loc["Chat_PrivateGroupApprovalDesc"] : Loc["Chat_PublicGroupImmediateDesc"])
                                             </p>
                                             <div class="flex items-center gap-2 pt-1">
                                                 <button type="button" @onclick="SaveAccessModeAsync" disabled="@IsSubmitting"
                                                         class="rounded-lg bg-[#0A1B2E] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white disabled:opacity-50">
-                                                    @(IsSubmitting ? "Saving…" : "Save Access Mode")
+                                                    @(IsSubmitting ? Loc["Common_Saving"] : Loc["Chat_SaveAccessMode"])
                                                 </button>
                                                 <button type="button" @onclick="CancelEditAccessMode" disabled="@IsSubmitting"
                                                         class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#1D263B] disabled:opacity-50">
-                                                    Cancel
+                                                    @Loc["Common_Cancel"]
                                                 </button>
                                             </div>
                                         </div>
@@ -404,12 +406,12 @@
                                             @if (Thread.AccessMode == "PRIVATE")
                                             {
                                                 <svg class="h-4 w-4 text-slate-500 dark:text-[#94A3B8]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                                <span>Change access mode (Private)</span>
+                                                <span>@Loc["Chat_ChangeAccessModePrivate"]</span>
                                             }
                                             else
                                             {
                                                 <svg class="h-4 w-4 text-slate-500 dark:text-[#94A3B8]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a14.5 14.5 0 0 0 0 20M12 2a14.5 14.5 0 0 1 0 20M2 12h20"/></svg>
-                                                <span>Change access mode (Public)</span>
+                                                <span>@Loc["Chat_ChangeAccessModePublic"]</span>
                                             }
                                         </button>
                                     }
@@ -426,7 +428,7 @@
                                             <svg class="h-3.5 w-3.5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
                                             </svg>
-                                            <span>Join Requests</span>
+                                            <span>@Loc["Chat_JoinRequests"]</span>
                                         </div>
                                         @if (joinRequests.Count(r => r.Status == "PENDING_APPROVAL") > 0)
                                         {
@@ -441,11 +443,11 @@
                                         <div class="mt-2 space-y-2">
                                             @if (isLoadingJoinRequests)
                                             {
-                                                <p class="py-2 text-center text-xs text-slate-500 dark:text-[#94A3B8]">Loading join requests…</p>
+                                                <p class="py-2 text-center text-xs text-slate-500 dark:text-[#94A3B8]">@Loc["Chat_LoadingJoinRequests"]</p>
                                             }
                                             else if (joinRequests.Count == 0)
                                             {
-                                                <p class="py-2 text-center text-xs text-slate-500 dark:text-[#94A3B8]">No pending join requests.</p>
+                                                <p class="py-2 text-center text-xs text-slate-500 dark:text-[#94A3B8]">@Loc["Chat_NoPendingJoinRequests"]</p>
                                             }
                                             else
                                             {
@@ -467,7 +469,7 @@
                                                                         <p class="truncate text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">@(string.IsNullOrWhiteSpace(req.UserDisplayName) ? req.UserName : req.UserDisplayName)</p>
                                                                         @if (req.IsOnline)
                                                                         {
-                                                                            <span class="h-2 w-2 rounded-full bg-emerald-500" title="Online"></span>
+                                                                            <span class="h-2 w-2 rounded-full bg-emerald-500" title="@Loc["Chat_Online"]"></span>
                                                                         }
                                                                     </div>
                                                                     <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] font-mono">@req.RequestedAt.ToLocalTime().ToString("MMM d, HH:mm")</p>
@@ -478,29 +480,29 @@
                                                                 {
                                                                     <button type="button" @onclick="() => ApproveJoinRequestAsync(req.ChatGroupJoinRequestId)" disabled="@IsSubmitting"
                                                                             class="rounded bg-[#0A1B2E] px-2 py-1 text-[10px] font-semibold text-white transition hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white disabled:opacity-50">
-                                                                        Approve
+                                                                        @Loc["Chat_Approve"]
                                                                     </button>
                                                                     <button type="button" @onclick="() => RejectJoinRequestAsync(req.ChatGroupJoinRequestId)" disabled="@IsSubmitting"
                                                                             class="rounded border border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-2 py-1 text-[10px] font-semibold text-slate-600 dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#182030] disabled:opacity-50">
-                                                                        Reject
+                                                                        @Loc["Chat_Reject"]
                                                                     </button>
                                                                 }
                                                                 else if (req.Status == "APPROVED_WAITING_PAYMENT")
                                                                 {
                                                                     <span class="rounded bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
-                                                                        Approved (Waiting Payment)
+                                                                        @Loc["Chat_ApprovedWaitingPayment"]
                                                                     </span>
                                                                 }
                                                                 else if (req.Status == "REJECTED")
                                                                 {
                                                                     <span class="rounded bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 text-[10px] font-semibold text-rose-600 dark:text-rose-400">
-                                                                        Rejected
+                                                                        @Loc["Chat_Rejected"]
                                                                     </span>
                                                                 }
                                                                 else if (req.Status == "JOINED")
                                                                 {
                                                                     <span class="rounded bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                                                                        Joined
+                                                                        @Loc["Chat_Joined"]
                                                                     </span>
                                                                 }
                                                             </div>
@@ -523,7 +525,7 @@
                                 @if (isAdding)
                                 {
                                     <label for="mg-add-user" class="block text-xs font-semibold text-slate-700 dark:text-[#E1E2EC]">
-                                        @(IsPaidGroup ? "Invite members" : "Add members directly")
+                                        @(IsPaidGroup ? Loc["Chat_InviteMembers"] : Loc["Chat_AddMembersDirectly"])
                                     </label>
                                     <input @key="addInputKey"
                                            id="mg-add-user" type="text"
@@ -531,16 +533,16 @@
                                            @bind:event="oninput"
                                            @bind:after="OnAddSearchInputAsync"
                                            @onkeydown="OnAddSearchKeyDownAsync"
-                                           placeholder="Search user name..."
+                                           placeholder="@Loc["Chat_SearchUserNamePlaceholder"]"
                                            class="mt-1.5 w-full rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3 py-1.5 text-xs text-slate-900 dark:text-[#E1E2EC] placeholder:text-slate-400 dark:placeholder:text-[#94A3B8]/60 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none focus:ring-1 focus:ring-[#0A1B2E] dark:focus:ring-[#E1E8F0]" />
 
                                     @if (isSearching)
                                     {
-                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#94A3B8]">Searching…</p>
+                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#94A3B8]">@Loc["Chat_Searching"]</p>
                                     }
                                     else if (addCandidates.Count == 0 && addSearch.Trim().Length > 0)
                                      {
-                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#94A3B8]">No matching users found.</p>
+                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#94A3B8]">@Loc["Chat_NoMatchingUsers"]</p>
                                     }
                                     else
                                     {
@@ -561,7 +563,7 @@
                                                     </div>
                                                     <button type="button" @onclick="() => AddUserAsync(candidate.UserId)" disabled="@IsSubmitting"
                                                             class="shrink-0 rounded bg-[#0A1B2E] px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white disabled:opacity-50">
-                                                        Add
+                                                        @Loc["Chat_Add"]
                                                     </button>
                                                 </li>
                                             }
@@ -570,7 +572,7 @@
 
                                     <button type="button" @onclick="CancelAdd" disabled="@IsSubmitting"
                                             class="mt-2 rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3 py-1 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#1D263B] disabled:opacity-50">
-                                        Close
+                                        @Loc["Common_Close"]
                                     </button>
                                 }
                                 else
@@ -580,13 +582,12 @@
                                         <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#94A3B8]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
                                         </svg>
-                                        @(IsPaidGroup ? "Invite members" : "Add members directly")
+                                        @(IsPaidGroup ? Loc["Chat_InviteMembers"] : Loc["Chat_AddMembersDirectly"])
                                     </button>
                                     @if (IsPaidGroup)
                                     {
                                         <p class="mt-1.5 text-[11px] leading-relaxed text-slate-500 dark:text-[#94A3B8]">
-                                            Invited people are not members yet. They appear under pending invitations and must
-                                            pay the @Thread.FeeLinkDrops LinkDrops join fee to take part.
+                                            @string.Format(Loc["Chat_InvitedPeopleNotMembersNotice"], Thread.FeeLinkDrops)
                                         </p>
                                     }
                                 }
@@ -599,15 +600,15 @@
                             @if (IsPaidGroup)
                             {
                                 <div class="mt-3 border-t border-[#0A1B2E]/10 dark:border-[rgba(255,255,255,0.08)] pt-3">
-                                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8]">Pending invitations</h4>
+                                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8]">@Loc["Chat_PendingInvitations"]</h4>
 
                                     @if (IsLoadingInvitations)
                                     {
-                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#94A3B8]">Loading…</p>
+                                        <p class="mt-2 text-xs text-slate-500 dark:text-[#94A3B8]">@Loc["Chat_Loading"]</p>
                                     }
                                     else if (Invitations.Count == 0)
                                     {
-                                        <p class="mt-1.5 text-xs text-slate-500 dark:text-[#94A3B8]">No pending invitations.</p>
+                                        <p class="mt-1.5 text-xs text-slate-500 dark:text-[#94A3B8]">@Loc["Chat_NoPendingInvitations"]</p>
                                     }
                                     else
                                     {
@@ -626,12 +627,12 @@
                                                         }
                                                         <div class="min-w-0">
                                                             <p class="min-w-0 truncate text-xs text-slate-800 dark:text-[#E1E2EC]">@InviteeName(invite)</p>
-                                                            <p class="text-[11px] text-slate-500 dark:text-[#94A3B8] font-mono">Quoted @invite.FeeAtInviteLinkDrops LinkDrops · @invite.InvitedAt.ToLocalTime().ToString("MMM d, HH:mm")</p>
+                                                            <p class="text-[11px] text-slate-500 dark:text-[#94A3B8] font-mono">@string.Format(Loc["Chat_QuotedFeeAt"], invite.FeeAtInviteLinkDrops, invite.InvitedAt.ToLocalTime().ToString("MMM d, HH:mm"))</p>
                                                         </div>
                                                     </div>
                                                     <button type="button" @onclick="() => RevokeAsync(invite.InvitedUserId)" disabled="@IsSubmitting"
                                                             class="shrink-0 rounded bg-white dark:bg-[#191B23] px-2.5 py-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400 transition hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-50">
-                                                        Revoke
+                                                        @Loc["Chat_Revoke"]
                                                      </button>
                                                 </li>
                                             }
@@ -647,7 +648,7 @@
                                     <svg class="h-3.5 w-3.5 text-slate-500 dark:text-[#94A3B8]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
                                     </svg>
-                                    @(isBanning ? "Hide banned list" : "Banned members list")
+                                    @(isBanning ? Loc["Chat_HideBannedList"] : Loc["Chat_BannedMembersList"])
                                 </button>
 
                                 @if (isBanning)
@@ -655,7 +656,7 @@
                                     <ul class="mt-2 max-h-36 space-y-1 overflow-y-auto" role="list">
                                         @if (bannedMembers.Count == 0)
                                         {
-                                            <li class="py-2 text-center text-xs text-slate-500 dark:text-[#94A3B8]">No banned members.</li>
+                                            <li class="py-2 text-center text-xs text-slate-500 dark:text-[#94A3B8]">@Loc["Chat_NoBannedMembers"]</li>
                                         }
                                         else
                                         {
@@ -665,7 +666,7 @@
                                                     <span class="min-w-0 truncate text-xs text-slate-800 dark:text-[#E1E2EC]">@banned.BannedUserName</span>
                                                     <button type="button" @onclick="() => UnbanUserAsync(banned.BannedUserId)" disabled="@IsSubmitting"
                                                             class="shrink-0 rounded bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 transition hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-50">
-                                                        Unban
+                                                        @Loc["Chat_Unban"]
                                                     </button>
                                                 </li>
                                             }
@@ -682,17 +683,17 @@
                 {
                     <div class="pt-4">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8] font-mono">@Thread.MemberCount MEMBERS</h3>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8] font-mono">@string.Format(Loc["Chat_MembersHeader"], Thread.MemberCount)</h3>
                             @if (IsAdminOrOwner)
                             {
                                 <button type="button"
                                         @onclick="() => { showManageSection = true; isAdding = true; }"
-                                        title="Add Member"
+                                        title="@Loc["Chat_AddMembers"]"
                                         class="flex items-center gap-1 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-[#112A46] dark:hover:text-white">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
                                     </svg>
-                                    <span>Add</span>
+                                    <span>@Loc["Chat_Add"]</span>
                                 </button>
                             }
                         </div>
@@ -709,7 +710,7 @@
                             }
                             else if (Members.Count == 0)
                             {
-                                <li class="py-4 text-center text-xs text-slate-500 dark:text-[#94A3B8]">No members to display.</li>
+                                <li class="py-4 text-center text-xs text-slate-500 dark:text-[#94A3B8]">@Loc["Chat_NoMembersToDisplay"]</li>
                             }
                             else
                             {
@@ -730,7 +731,7 @@
                                                 }
                                                 @if (member.IsOnline)
                                                 {
-                                                    <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-[#111622] bg-emerald-500" title="Online"></span>
+                                                    <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-[#111622] bg-emerald-500" title="@Loc["Chat_Online"]"></span>
                                                 }
                                             </div>
                                             <div class="flex flex-col min-w-0">
@@ -738,11 +739,11 @@
                                                     <span class="truncate text-sm font-semibold text-slate-800 dark:text-[#E1E2EC]">@(string.IsNullOrWhiteSpace(member.DisplayName) ? member.UserName : member.DisplayName)</span>
                                                     @if (member.Role is "OWNER" or "ADMIN")
                                                     {
-                                                        <span class="shrink-0 rounded-md border @(member.Role == "OWNER" ? "border-amber-200 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E]/5 dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0]") px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider font-mono">@member.Role</span>
+                                                        <span class="shrink-0 rounded-md border @(member.Role == "OWNER" ? "border-amber-200 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E]/5 dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0]") px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider font-mono">@FormatRole(member.Role)</span>
                                                     }
                                                     @if (member.IsMuted)
                                                     {
-                                                        <span class="shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 p-0.5 text-rose-600 dark:text-rose-400" title="Muted">
+                                                        <span class="shrink-0 rounded-full bg-rose-50 dark:bg-rose-950/40 p-0.5 text-rose-600 dark:text-rose-400" title="@Loc["Chat_Muted"]">
                                                             <svg class="h-3 w-3 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.172 9.172A4 4 0 0 1 12 8c2.21 0 4 1.79 4 4v1.172M19.07 19.07A2 2 0 0 1 18 20H6a2 2 0 0 1-1.414-3.414l1.414-1.414V12a6 6 0 0 1 1.05-3.374M3 3l18 18"/></svg>
                                                         </span>
                                                     }
@@ -750,7 +751,7 @@
                                                 <span class="truncate text-[11px] text-slate-400 dark:text-[#94A3B8]">
                                                     @if (member.IsOnline)
                                                     {
-                                                        <span class="font-medium text-emerald-600 dark:text-emerald-400 font-mono">online</span>
+                                                        <span class="font-medium text-emerald-600 dark:text-emerald-400 font-mono">@Loc["Chat_Online"]</span>
                                                     }
                                                     else
                                                     {
@@ -766,7 +767,7 @@
                                                 <button type="button"
                                                         @onclick="() => ToggleMemberMenu(member.UserId)"
                                                         class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:text-[#94A3B8] dark:hover:bg-[#182030] dark:hover:text-white transition"
-                                                        title="Member options">
+                                                        title="@Loc["Chat_MemberOptions"]">
                                                     <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                                                         <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                                                     </svg>
@@ -785,7 +786,7 @@
                                                                         disabled="@IsSubmitting"
                                                                         class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-[#E1E2EC] hover:bg-[#0A1B2E]/5 dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition">
                                                                     <svg class="h-3.5 w-3.5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                                                    <span>Promote to Admin</span>
+                                                                    <span>@Loc["Chat_PromoteToAdmin"]</span>
                                                                 </button>
                                                             }
                                                             else if (member.Role == "ADMIN")
@@ -795,7 +796,7 @@
                                                                         disabled="@IsSubmitting"
                                                                         class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-[#E1E2EC] hover:bg-slate-100 dark:hover:bg-[#1D263B] transition">
                                                                     <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
-                                                                    <span>Demote to Member</span>
+                                                                    <span>@Loc["Chat_DemoteToMember"]</span>
                                                                 </button>
                                                             }
                                                         }
@@ -807,7 +808,7 @@
                                                                     disabled="@IsSubmitting"
                                                                     class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-[#E1E2EC] hover:bg-slate-100 dark:hover:bg-[#1D263B] transition">
                                                                 <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                                                                <span>Edit Permissions</span>
+                                                                <span>@Loc["Chat_EditPermissions"]</span>
                                                             </button>
                                                         }
 
@@ -820,7 +821,7 @@
                                                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                                                                 </svg>
-                                                                <span>Remove member</span>
+                                                                <span>@Loc["Chat_RemoveFromGroup"]</span>
                                                             </button>
                                                         }
 
@@ -833,7 +834,7 @@
                                                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
                                                                 </svg>
-                                                                <span>Ban member</span>
+                                                                <span>@Loc["Chat_BanUser"]</span>
                                                             </button>
                                                         }
                                                     </div>
@@ -846,29 +847,29 @@
                                         {
                                             <div class="mb-1 ml-2 mr-2 rounded-xl border border-[#0A1B2E]/15 dark:border-[rgba(255,255,255,0.08)] bg-[#0A1B2E]/5 dark:bg-[#191B23] p-3">
                                                 <p class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">
-                                                    Permissions for @(string.IsNullOrWhiteSpace(member.DisplayName) ? member.UserName : member.DisplayName)
+                                                    @string.Format(Loc["Chat_PermissionsForUser"], string.IsNullOrWhiteSpace(member.DisplayName) ? member.UserName : member.DisplayName)
                                                 </p>
 
                                                 <div class="mt-2 space-y-1.5">
                                                     <label class="flex items-center gap-2 text-xs text-slate-700 dark:text-[#E1E2EC]">
                                                         <input type="checkbox" @bind="editCanDeleteMessages" disabled="@IsSubmitting" class="h-3.5 w-3.5 rounded border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#0A1B2E] dark:accent-[#E1E8F0] focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/30" />
-                                                        <span>Delete messages</span>
+                                                        <span>@Loc["Chat_Perm_DeleteMessages"]</span>
                                                     </label>
                                                     <label class="flex items-center gap-2 text-xs text-slate-700 dark:text-[#E1E2EC]">
                                                         <input type="checkbox" @bind="editCanRemoveMembers" disabled="@IsSubmitting" class="h-3.5 w-3.5 rounded border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#0A1B2E] dark:accent-[#E1E8F0] focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/30" />
-                                                        <span>Remove members</span>
+                                                        <span>@Loc["Chat_Perm_RemoveMembers"]</span>
                                                     </label>
                                                     <label class="flex items-center gap-2 text-xs text-slate-700 dark:text-[#E1E2EC]">
                                                         <input type="checkbox" @bind="editCanBanMembers" disabled="@IsSubmitting" class="h-3.5 w-3.5 rounded border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#0A1B2E] dark:accent-[#E1E8F0] focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/30" />
-                                                        <span>Ban members</span>
+                                                        <span>@Loc["Chat_Perm_BanMembers"]</span>
                                                     </label>
                                                     <label class="flex items-center gap-2 text-xs text-slate-700 dark:text-[#E1E2EC]">
                                                         <input type="checkbox" @bind="editCanManageInviteLinks" disabled="@IsSubmitting" class="h-3.5 w-3.5 rounded border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#0A1B2E] dark:accent-[#E1E8F0] focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/30" />
-                                                        <span>Manage invite links</span>
+                                                        <span>@Loc["Chat_Perm_ManageInviteLinks"]</span>
                                                     </label>
                                                     <label class="flex items-center gap-2 text-xs text-slate-700 dark:text-[#E1E2EC]">
                                                         <input type="checkbox" @bind="editCanPinMessages" disabled="@IsSubmitting" class="h-3.5 w-3.5 rounded border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#0A1B2E] dark:accent-[#E1E8F0] focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/30" />
-                                                        <span>Pin messages</span>
+                                                        <span>@Loc["Chat_Perm_PinMessages"]</span>
                                                     </label>
                                                 </div>
 
@@ -877,13 +878,13 @@
                                                             @onclick="CancelPermissionEditor"
                                                             disabled="@IsSubmitting"
                                                             class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#111622] px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-[#94A3B8] transition hover:bg-slate-50 dark:hover:bg-[#182030]">
-                                                        Cancel
+                                                        @Loc["Common_Cancel"]
                                                     </button>
                                                     <button type="button"
                                                             @onclick="() => SavePermissionsAsync(member)"
                                                             disabled="@IsSubmitting"
                                                             class="rounded-lg bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white px-2.5 py-1 text-[11px] font-semibold transition disabled:opacity-60">
-                                                        @(IsSubmitting ? "Saving…" : "Save")
+                                                        @(IsSubmitting ? Loc["Common_Saving"] : Loc["Common_Save"])
                                                     </button>
                                                 </div>
                                             </div>
@@ -897,7 +898,7 @@
 
                 <!-- Shared Media Summary Section -->
                 <div class="pt-4">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8] mb-2 font-mono">SHARED MEDIA</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8] mb-2 font-mono">@Loc["Chat_SharedMedia"]</h3>
                     <div class="space-y-1">
                         <button type="button" @onclick='() => OpenMediaCategory("photos")'
                                 class="w-full flex items-center justify-between p-2.5 rounded-xl transition hover:bg-slate-50 dark:hover:bg-[#182030] border border-slate-100 dark:border-[rgba(255,255,255,0.08)]">
@@ -907,7 +908,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">Photos</span>
+                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">@Loc["Chat_SharedPhotos"]</span>
                             </div>
                             <div class="flex items-center gap-1.5 text-slate-400 dark:text-[#94A3B8]">
                                 <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] font-mono">@sharedMediaCounts.PhotoCount</span>
@@ -925,7 +926,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25z" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">Videos</span>
+                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">@Loc["Chat_SharedVideos"]</span>
                             </div>
                             <div class="flex items-center gap-1.5 text-slate-400 dark:text-[#94A3B8]">
                                 <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] font-mono">@sharedMediaCounts.VideoCount</span>
@@ -943,7 +944,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">Files</span>
+                                <span class="text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">@Loc["Chat_SharedFiles"]</span>
                             </div>
                             <div class="flex items-center gap-1.5 text-slate-400 dark:text-[#94A3B8]">
                                 <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] font-mono">@sharedMediaCounts.FileCount</span>
@@ -966,13 +967,13 @@
                     @onclick="OnToggleBlockUser"
                     disabled="@IsSubmitting"
                     class="rounded-lg border @(Thread.IsBlockedByMe ? "border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40" : "border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40") px-3.5 py-2 text-xs font-semibold transition disabled:opacity-50">
-                @(Thread.IsBlockedByMe ? "Unblock User" : "Block User")
+                @(Thread.IsBlockedByMe ? Loc["Chat_UnblockUser"] : Loc["Chat_BlockUser"])
             </button>
             <button type="button"
                     @onclick="() => showConfirmDeleteChatModal = true"
                     disabled="@IsSubmitting"
                     class="rounded-lg border border-rose-200 dark:border-rose-800/40 bg-white dark:bg-[#191B23] px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 transition hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-50">
-                Delete Chat
+                @Loc["Chat_DeleteChat"]
             </button>
         }
         @if (Thread.IsGroup && CanLeave)
@@ -980,19 +981,19 @@
             <button type="button"
                     @onclick="() => showConfirmLeaveModal = true"
                     class="rounded-lg border border-rose-200 dark:border-rose-800/40 bg-white dark:bg-[#191B23] px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 transition hover:bg-rose-50 dark:hover:bg-rose-950/40">
-                @(IsOwner ? "Delete and leave" : "Leave group")
+                @(IsOwner ? Loc["Chat_DeleteAndLeave"] : Loc["Chat_LeaveGroup"])
             </button>
         }
         <button type="button"
                 @onclick="OnClose"
                 class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#191B23] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#182030]">
-            Close
+            @Loc["Common_Close"]
         </button>
     </FooterContent>
 </ChatModal>
 
 <!-- Dedicated Confirmation Modal Box for Deleting 1:1 Chat -->
-<ChatModal IsOpen="showConfirmDeleteChatModal" Title="Delete Chat" MaxWidth="max-w-md" OnClose="() => showConfirmDeleteChatModal = false">
+<ChatModal IsOpen="showConfirmDeleteChatModal" Title="@Loc["Chat_DeleteChat"]" MaxWidth="max-w-md" OnClose="() => showConfirmDeleteChatModal = false">
     <ChildContent>
         <div class="flex items-start gap-4 p-5 bg-white dark:bg-[#111622]">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
@@ -1001,9 +1002,9 @@
                 </svg>
             </div>
             <div class="space-y-1">
-                <h3 class="text-sm font-semibold text-slate-900 dark:text-[#E1E2EC]">Delete chat history with @Thread.Title?</h3>
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-[#E1E2EC]">@string.Format(Loc["Chat_DeleteChatConfirmPrompt"], Thread.Title)</h3>
                 <p class="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">
-                    This will clear all messages in this conversation for you. The other user will still keep their copy of the conversation.
+                    @Loc["Chat_DeleteChatDisclaimerPrompt"]
                 </p>
             </div>
         </div>
@@ -1013,19 +1014,19 @@
                 @onclick="() => showConfirmDeleteChatModal = false"
                 disabled="@IsSubmitting"
                 class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#191B23] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#182030] disabled:opacity-50">
-            Cancel
+            @Loc["Common_Cancel"]
         </button>
         <button type="button"
                 @onclick="ConfirmDeleteChatAsync"
                 disabled="@IsSubmitting"
                 class="rounded-lg bg-rose-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-rose-500">
-            @(IsSubmitting ? "Deleting…" : "Delete chat")
+            @(IsSubmitting ? Loc["Chat_Deleting"] : Loc["Chat_DeleteChat"])
         </button>
     </FooterContent>
 </ChatModal>
 
 <!-- Dedicated Confirmation Modal Box for Leaving Group -->
-<ChatModal IsOpen="showConfirmLeaveModal" Title="Leave Group" MaxWidth="max-w-md" OnClose="() => showConfirmLeaveModal = false">
+<ChatModal IsOpen="showConfirmLeaveModal" Title="@Loc["Chat_LeaveGroup"]" MaxWidth="max-w-md" OnClose="() => showConfirmLeaveModal = false">
     <ChildContent>
         <div class="flex items-start gap-4 p-5 bg-white dark:bg-[#111622]">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
@@ -1036,18 +1037,16 @@
             <div class="space-y-1">
                 @if (IsOwner)
                 {
-                    <h3 class="text-sm font-semibold text-slate-900 dark:text-[#E1E2EC]">Leaving will delete this group</h3>
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-[#E1E2EC]">@Loc["Chat_LeavingWillDeleteGroup"]</h3>
                     <p class="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">
-                        You are the owner of <strong>@Thread.Title</strong>. Ownership cannot be
-                        transferred to another member, so leaving deletes the group for everyone.
-                        Everyone is removed and no one can rejoin.
+                        @string.Format(Loc["Chat_OwnerLeavingDescPrompt"], Thread.Title)
                     </p>
                 }
                 else
                 {
-                    <h3 class="text-sm font-semibold text-slate-900 dark:text-[#E1E2EC]">Are you sure you want to leave this group?</h3>
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-[#E1E2EC]">@Loc["Chat_ConfirmLeaveGroupPrompt"]</h3>
                     <p class="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">
-                        You will no longer be able to send or receive messages in <strong>@Thread.Title</strong> unless you are invited or join again.
+                        @string.Format(Loc["Chat_MemberLeavingDescPrompt"], Thread.Title)
                     </p>
                 }
             </div>
@@ -1058,22 +1057,22 @@
                 @onclick="() => showConfirmLeaveModal = false"
                 disabled="@IsSubmitting"
                 class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#191B23] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#182030] disabled:opacity-50">
-            Cancel
+            @Loc["Common_Cancel"]
         </button>
         <button type="button"
                 @onclick="ConfirmLeaveGroupAsync"
                 disabled="@IsSubmitting"
                 class="rounded-lg bg-rose-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-rose-500">
             @(IsSubmitting
-                ? (IsOwner ? "Deleting…" : "Leaving…")
-                : (IsOwner ? "Yes, delete group and leave" : "Yes, leave group"))
+                ? (IsOwner ? Loc["Chat_Deleting"] : Loc["Chat_Leaving"])
+                : (IsOwner ? Loc["Chat_YesDeleteGroupAndLeave"] : Loc["Chat_YesLeaveGroup"]))
         </button>
     </FooterContent>
 </ChatModal>
 
 
 <!-- Dedicated Invite Links Modal Box (Telegram Style) -->
-<ChatModal IsOpen="showInviteLinksModal" Title="Invite links" MaxWidth="max-w-md" OnClose="CloseInviteLinksModal">
+<ChatModal IsOpen="showInviteLinksModal" Title="@Loc["Chat_InviteLinks"]" MaxWidth="max-w-md" OnClose="CloseInviteLinksModal">
     <ChildContent>
         <div class="p-5 space-y-5 bg-white dark:bg-[#111622]">
             @if (copySuccessMessage != null)
@@ -1093,11 +1092,11 @@
             {
                 <!-- Primary Link Section -->
                 <div>
-                    <h4 class="text-xs font-bold text-slate-500 dark:text-[#94A3B8] uppercase tracking-wider mb-2 font-mono">Primary link</h4>
+                    <h4 class="text-xs font-bold text-slate-500 dark:text-[#94A3B8] uppercase tracking-wider mb-2 font-mono">@Loc["Chat_PrimaryLink"]</h4>
                     
                     <div class="rounded-xl border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-slate-50 dark:bg-[#191B23] p-3 flex items-center justify-between gap-2">
                         <span class="text-xs font-mono font-medium text-slate-800 dark:text-[#E1E2EC] truncate select-all">
-                            @(primaryInviteLink != null ? Navigation.ToAbsoluteUri($"/invite/{primaryInviteLink.Token}").ToString() : "Generating link…")
+                            @(primaryInviteLink != null ? Navigation.ToAbsoluteUri($"/invite/{primaryInviteLink.Token}").ToString() : Loc["Chat_GeneratingLink"])
                         </span>
                         <button type="button"
                                 @onclick="CopyPrimaryInviteLinkAsync"
@@ -1116,7 +1115,7 @@
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.375a9.06 9.06 0 00-1.5-.124H15.75" />
                             </svg>
-                            <span>Copy Link</span>
+                            <span>@Loc["Chat_CopyLink"]</span>
                         </button>
                         <button type="button"
                                 @onclick="CopyPrimaryInviteLinkAsync"
@@ -1124,7 +1123,7 @@
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
                             </svg>
-                            <span>Share Link</span>
+                            <span>@Loc["Chat_ShareLink"]</span>
                         </button>
                     </div>
                 </div>
@@ -1134,20 +1133,20 @@
                     @if (showCreateLinkInput)
                     {
                         <div class="space-y-3 bg-slate-50 dark:bg-[#191B23] p-3.5 rounded-xl border border-slate-200 dark:border-[rgba(255,255,255,0.08)]">
-                            <h5 class="text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">Create custom invite link</h5>
+                            <h5 class="text-xs font-semibold text-slate-800 dark:text-[#E1E2EC]">@Loc["Chat_CreateCustomInviteLink"]</h5>
                             <div>
-                                <label class="block text-[11px] font-medium text-slate-600 dark:text-[#94A3B8] mb-1">Link Name (optional)</label>
-                                <input type="text" @bind="newLinkName" placeholder="e.g. Social media promo"
+                                <label class="block text-[11px] font-medium text-slate-600 dark:text-[#94A3B8] mb-1">@Loc["Chat_LinkNameOptional"]</label>
+                                <input type="text" @bind="newLinkName" placeholder="@Loc["Chat_LinkNamePlaceholder"]"
                                        class="w-full rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] px-3 py-1.5 text-xs text-slate-900 dark:text-[#E1E2EC] placeholder:text-slate-400 dark:placeholder:text-[#94A3B8]/60 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none" />
                             </div>
                             <div class="flex items-center gap-2 pt-1">
                                 <button type="button" @onclick="CreateCustomLinkAsync" disabled="@isCreatingLink"
                                         class="rounded-lg bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50">
-                                    @(isCreatingLink ? "Creating…" : "Create Link")
+                                    @(isCreatingLink ? Loc["Chat_Creating"] : Loc["Chat_CreateLinkAction"])
                                 </button>
                                 <button type="button" @onclick="() => showCreateLinkInput = false"
                                         class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#191B23] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#E1E2EC] hover:bg-slate-50 dark:hover:bg-[#182030]">
-                                    Cancel
+                                    @Loc["Common_Cancel"]
                                 </button>
                             </div>
                         </div>
@@ -1162,7 +1161,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>
                             </div>
-                            <span>Create a New Link</span>
+                            <span>@Loc["Chat_CreateANewLink"]</span>
                         </button>
                     }
                 </div>
@@ -1171,15 +1170,15 @@
                 @if (inviteLinks.Count(l => !l.IsPrimary) > 0)
                 {
                     <div class="border-t border-slate-100 dark:border-[rgba(255,255,255,0.08)] pt-3 space-y-2">
-                        <h5 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8] font-mono">Other active links</h5>
+                        <h5 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8] font-mono">@Loc["Chat_OtherActiveLinks"]</h5>
                         <div class="max-h-36 overflow-y-auto space-y-2">
                             @foreach (var link in inviteLinks.Where(l => !l.IsPrimary))
                             {
                                 <div class="flex items-center justify-between rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#191B23] p-2.5 text-xs">
                                     <div class="min-w-0 pr-2">
-                                        <p class="font-semibold text-slate-800 dark:text-[#E1E2EC] truncate">@(string.IsNullOrWhiteSpace(link.Name) ? "Custom link" : link.Name)</p>
+                                        <p class="font-semibold text-slate-800 dark:text-[#E1E2EC] truncate">@(string.IsNullOrWhiteSpace(link.Name) ? Loc["Chat_CustomLink"] : link.Name)</p>
                                         <p class="font-mono text-[11px] text-slate-500 dark:text-[#94A3B8] truncate">@Navigation.ToAbsoluteUri($"/invite/{link.Token}")</p>
-                                        <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] font-mono">Used @link.UseCount times</p>
+                                        <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] font-mono">@string.Format(Loc["Chat_UsedCountTimes"], link.UseCount)</p>
                                     </div>
                                     <div class="flex items-center gap-1 shrink-0">
                                         <button type="button" @onclick="() => CopyInviteLinkAsync(link.Token)" class="p-1 text-slate-400 hover:text-[#0A1B2E] dark:text-[#94A3B8] dark:hover:text-[#E1E8F0]">
@@ -1200,7 +1199,7 @@
                 }
 
                 <p class="text-[11px] text-slate-400 dark:text-[#94A3B8] leading-relaxed pt-2">
-                    You can generate invite links that expire after they are used.
+                    @Loc["Chat_InviteLinksExpireNotice"]
                 </p>
             }
         </div>
@@ -1209,14 +1208,14 @@
         <button type="button"
                 @onclick="CloseInviteLinksModal"
                 class="w-full rounded-lg bg-[#0F172A] hover:bg-[#1E293B] text-white dark:bg-[#191B23] dark:hover:bg-[#182030] dark:text-[#E1E2EC] dark:border dark:border-[rgba(255,255,255,0.08)] px-4 py-2 text-xs font-semibold transition active:scale-[0.98]">
-            Done
+            @Loc["Chat_Done"]
         </button>
     </FooterContent>
 </ChatModal>
 
 @if (selectedPhotoItem != null)
 {
-    <ChatModal IsOpen="true" Title="Photo Preview" MaxWidth="max-w-xl" OnClose="() => selectedPhotoItem = null">
+    <ChatModal IsOpen="true" Title="@Loc["Chat_PhotoPreview"]" MaxWidth="max-w-xl" OnClose="() => selectedPhotoItem = null">
         <ChildContent>
             <div class="flex flex-col items-center bg-[#0B0E14] p-4 text-white rounded-b-xl">
                 <img src="@selectedPhotoItem.AttachmentUrl" alt="" class="max-h-[60vh] max-w-full rounded object-contain shadow-lg" />
@@ -1227,7 +1226,7 @@
                     </div>
                     <button type="button" @onclick="() => TriggerViewInChat(selectedPhotoItem.MessageId)"
                             class="rounded-lg bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white px-3 py-1.5 text-xs font-semibold transition active:scale-[0.98]">
-                        View in chat
+                        @Loc["Chat_ViewInChat"]
                     </button>
                 </div>
             </div>
@@ -1287,7 +1286,7 @@
         try
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", fullUrl);
-            copySuccessMessage = "Link copied to clipboard!";
+            copySuccessMessage = Loc["Chat_LinkCopiedToClipboard"];
         }
         catch
         {
@@ -1697,13 +1696,13 @@
     {
         if (string.IsNullOrWhiteSpace(editName))
         {
-            actionError = "The group name cannot be empty.";
+            actionError = Loc["Chat_GroupNameCannotBeEmpty"];
             return;
         }
 
         if (editName.Trim().Length > 100)
         {
-            actionError = "The group name cannot exceed 100 characters.";
+            actionError = Loc["Chat_GroupNameMax100"];
             return;
         }
 
@@ -1726,7 +1725,7 @@
         }
         else
         {
-            actionError = res.Message ?? "The group could not be updated.";
+            actionError = res.Message ?? Loc["Chat_GroupCouldNotBeUpdated"];
         }
     }
 
@@ -1762,7 +1761,7 @@
         }
         else
         {
-            actionError = res.Message ?? "The access mode could not be updated.";
+            actionError = res.Message ?? Loc["Chat_AccessModeCouldNotBeUpdated"];
         }
     }
 
@@ -1786,7 +1785,7 @@
         }
         else
         {
-            actionError = res.Message ?? "Could not load join requests.";
+            actionError = res.Message ?? Loc["Chat_CouldNotLoadJoinRequests"];
         }
         isLoadingJoinRequests = false;
     }
@@ -1801,7 +1800,7 @@
         }
         else
         {
-            actionError = res.Message ?? "Failed to approve join request.";
+            actionError = res.Message ?? Loc["Chat_FailedToApproveJoinRequest"];
         }
     }
 
@@ -1815,7 +1814,7 @@
         }
         else
         {
-            actionError = res.Message ?? "Failed to reject join request.";
+            actionError = res.Message ?? Loc["Chat_FailedToRejectJoinRequest"];
         }
     }
 
@@ -1823,7 +1822,7 @@
     {
         if (editFeeLinkDrops < 0)
         {
-            actionError = "The join fee cannot be negative.";
+            actionError = Loc["Chat_JoinFeeCannotBeNegative"];
             return;
         }
 
@@ -1838,7 +1837,7 @@
         }
         else
         {
-            actionError = res.Message ?? "The join fee could not be updated.";
+            actionError = res.Message ?? Loc["Chat_JoinFeeCouldNotBeUpdated"];
         }
     }
 
@@ -1854,13 +1853,13 @@
 
         if (!ChatGroupImagePolicy.IsAllowed(file.Name))
         {
-            actionError = $"Unsupported image type. Allowed: {ChatGroupImagePolicy.AllowedExtensionsDisplay}.";
+            actionError = string.Format(Loc["Chat_UnsupportedImageType"], ChatGroupImagePolicy.AllowedExtensionsDisplay);
             return;
         }
 
         if (file.Size > ChatGroupImagePolicy.MaxBytes)
         {
-            actionError = "Image is too large. The maximum is 5 MB.";
+            actionError = Loc["Chat_ImageTooLarge"];
             return;
         }
 
@@ -1890,7 +1889,7 @@
         }
         else
         {
-            actionError = res.Message ?? "The image could not be uploaded.";
+            actionError = res.Message ?? Loc["Chat_UploadFailed"];
         }
     }
 
@@ -2012,7 +2011,7 @@
 
         if (OnAddMembers is null)
         {
-            actionError = "Adding members is not available here.";
+            actionError = Loc["Chat_AddingMembersNotAvailable"];
             return;
         }
 
@@ -2046,7 +2045,7 @@
         }
         else
         {
-            actionError = res.Message ?? "The ban could not be lifted.";
+            actionError = res.Message ?? Loc["Chat_BanCouldNotBeLifted"];
         }
     }
 
@@ -2064,12 +2063,28 @@
             }
             else
             {
-                actionError = res.Message ?? "The banned members list could not be loaded.";
+                actionError = res.Message ?? Loc["Chat_BannedMembersListCouldNotBeLoaded"];
             }
         }
 
         await InvokeAsync(StateHasChanged);
     }
+
+    private string GetMediaCategoryDisplayName(string? category) => category switch
+    {
+        "photos" => Loc["Chat_SharedPhotos"],
+        "videos" => Loc["Chat_SharedVideos"],
+        "files" => Loc["Chat_SharedFiles"],
+        _ => category ?? string.Empty
+    };
+
+    private string FormatRole(string? role) => role switch
+    {
+        "OWNER" => Loc["Chat_Role_Owner"],
+        "ADMIN" => Loc["Chat_Role_Admin"],
+        "MEMBER" => Loc["Chat_Role_Member"],
+        _ => role ?? string.Empty
+    };
 
     private static string Initial(string? name)
     {

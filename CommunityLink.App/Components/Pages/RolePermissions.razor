@@ -3,8 +3,9 @@
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminRbacManage)]
 @inject RoleAndPermissionApiService RoleApi
 @inject ToastService Toast
+@inject IStringLocalizer<AppResources> Loc
 
-<PageTitle>Role Permissions — CommunityLink Admin</PageTitle>
+<PageTitle>@Loc["Admin_Rbac_PageTitle"]</PageTitle>
 
 <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -13,15 +14,15 @@
                 <svg class="w-6 h-6 text-[#557392] dark:text-[#C4D2E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
-                <span>Role &amp; Permission Matrix</span>
+                <span>@Loc["Admin_Rbac_Heading"]</span>
             </h1>
-            <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">Manage database-driven authorization permissions per role in real time.</p>
+            <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">@Loc["Admin_Rbac_Subtitle"]</p>
         </div>
         <div class="flex items-center gap-3">
             <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A] shadow-sm transition active:scale-[0.98]"
                     @onclick="OpenCreateRoleModal">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                <span>Add New Role</span>
+                <span>@Loc["Admin_Rbac_BtnAddRole"]</span>
             </button>
             @if (matrix != null)
             {
@@ -29,7 +30,7 @@
                 {
                     <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#475569] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)]">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                        <span>Fixed System Permissions</span>
+                        <span>@Loc["Admin_Rbac_BadgeFixedPerms"]</span>
                     </span>
                 }
                 else
@@ -39,12 +40,12 @@
                         @if (isSaving)
                         {
                             <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            <span>Saving...</span>
+                            <span>@Loc["Admin_Rbac_BtnSaving"]</span>
                         }
                         else
                         {
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                            <span>Save Changes</span>
+                            <span>@Loc["Admin_Rbac_BtnSaveChanges"]</span>
                         }
                     </button>
                 }
@@ -56,8 +57,8 @@
         <!-- Role Selection Sidebar -->
         <div class="space-y-2">
             <div class="flex items-center justify-between px-1 mb-2">
-                <h2 class="text-[10px] font-bold text-[#7A8CA6] dark:text-[#C4D2E1] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">Select Role</h2>
-                <span class="text-[11px] text-[#557392] dark:text-[#7A8CA6] font-semibold">@(roles?.Count ?? 0) Roles</span>
+                <h2 class="text-[10px] font-bold text-[#7A8CA6] dark:text-[#C4D2E1] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">@Loc["Admin_Rbac_SelectRoleHeading"]</h2>
+                <span class="text-[11px] text-[#557392] dark:text-[#7A8CA6] font-semibold">@string.Format(Loc["Admin_Rbac_RolesCount"], roles?.Count ?? 0)</span>
             </div>
 
             @if (roles != null)
@@ -73,19 +74,19 @@
                                     <span class="font-bold text-sm truncate @(isSel ? "text-[#0A1B2E] dark:text-[#E1E8F0]" : "text-[#334155] dark:text-[#C4D2E1]")">@r.Name</span>
                                     @if (r.IsSystemRole)
                                     {
-                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 shrink-0">System</span>
+                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 shrink-0">@Loc["Admin_Rbac_BadgeSystem"]</span>
                                     }
                                 </div>
                                 <div class="text-xs text-[#7A8CA6] dark:text-[#7A8CA6] font-mono mt-0.5 truncate">@r.Code</div>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[#F1F5F9] dark:bg-[#0A1B2E] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                                    @r.UserCount users
+                                    @string.Format(Loc["Admin_Rbac_UserCountBadge"], r.UserCount)
                                 </span>
                                 @if (!r.IsSystemRole && !string.Equals(r.Code, "ADMIN", StringComparison.OrdinalIgnoreCase) && !string.Equals(r.Code, "USER", StringComparison.OrdinalIgnoreCase))
                                 {
                                     <button class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition"
-                                            title="Delete Role"
+                                            title="@Loc["Admin_Rbac_TooltipDeleteRole"]"
                                             @onclick:stopPropagation="true"
                                             @onclick="() => PromptDeleteRole(r)">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -104,7 +105,7 @@
             {
                 <div class="p-12 text-center text-[#557392] dark:text-[#C4D2E1] bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-sm">
                     <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
-                    <p class="mt-2 text-sm font-medium">Loading permissions matrix...</p>
+                    <p class="mt-2 text-sm font-medium">@Loc["Admin_Rbac_LoadingMatrix"]</p>
                 </div>
             }
             else if (matrix != null)
@@ -113,13 +114,13 @@
                     <div class="px-6 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
                             <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm" style="font-family:'Manrope',sans-serif">
-                                Permissions for: <span class="text-[#557392] dark:text-[#C4D2E1]">@matrix.RoleName (@matrix.RoleCode)</span>
+                                @Loc["Admin_Rbac_PermissionsFor"] <span class="text-[#557392] dark:text-[#C4D2E1]">@matrix.RoleName (@matrix.RoleCode)</span>
                             </span>
                             @if (IsSelectedRoleAdmin)
                             {
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/50 flex items-center gap-1">
                                     <svg class="w-3 h-3 text-amber-600 dark:text-amber-400 fill-amber-600 dark:fill-amber-400" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                                    <span>ALL GRANTED (READ-ONLY)</span>
+                                    <span>@Loc["Admin_Rbac_BadgeAllGranted"]</span>
                                 </span>
                             }
                         </div>
@@ -130,18 +131,18 @@
                                         class="px-2.5 py-1 rounded text-xs font-semibold border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] bg-white dark:bg-[#1B3B5A] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] transition flex items-center gap-1.5 cursor-pointer shadow-sm"
                                         @onclick="() => ToggleSelectAll(!IsAllSelected)">
                                     <svg class="w-3.5 h-3.5 text-[#557392] dark:text-[#C4D2E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                                    <span>@(IsAllSelected ? "Deselect All" : "Select All")</span>
+                                    <span>@(IsAllSelected ? Loc["Admin_Rbac_BtnDeselectAll"] : Loc["Admin_Rbac_BtnSelectAll"])</span>
                                 </button>
                             }
                             <span class="text-xs text-[#7A8CA6] dark:text-[#C4D2E1] font-mono">
-                                @(IsSelectedRoleAdmin ? matrix.Permissions.Count : grantedCodes.Count) of @matrix.Permissions.Count granted
+                                @string.Format(Loc["Admin_Rbac_GrantedCount"], IsSelectedRoleAdmin ? matrix.Permissions.Count : grantedCodes.Count, matrix.Permissions.Count)
                             </span>
                             @if (!IsSelectedRoleSystem)
                             {
                                 <button class="text-xs font-semibold text-rose-600 hover:text-rose-800 flex items-center gap-1 transition"
                                         @onclick="() => PromptDeleteRole(CurrentSelectedRole)">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    <span>Delete Role</span>
+                                    <span>@Loc["Admin_Rbac_BtnDeleteRole"]</span>
                                 </button>
                             }
                         </div>
@@ -154,23 +155,23 @@
                                     <th class="w-16 px-6 py-3 text-center">
                                         @if (IsSelectedRoleAdmin)
                                         {
-                                            <span>No.</span>
+                                            <span>@Loc["Admin_Rbac_ColNo"]</span>
                                         }
                                         else
                                         {
                                             <div class="flex flex-col items-center gap-1">
                                                 <input type="checkbox"
                                                        class="w-[18px] h-[18px] rounded cursor-pointer accent-[#0A1B2E] dark:accent-[#E1E8F0]"
-                                                       title="Select / Deselect All Permissions"
+                                                       title="@Loc["Admin_Rbac_TooltipSelectAll"]"
                                                        checked="@IsAllSelected"
                                                        @onchange="(e) => ToggleSelectAll((bool)(e.Value ?? false))" />
-                                                <span class="text-[9px] font-bold tracking-tight">ALL</span>
+                                                <span class="text-[9px] font-bold tracking-tight">@Loc["Admin_Rbac_ColAll"]</span>
                                             </div>
                                         }
                                     </th>
-                                    <th class="px-6 py-3">Permission Code</th>
-                                    <th class="px-6 py-3">Name</th>
-                                    <th class="px-6 py-3">Module</th>
+                                    <th class="px-6 py-3">@Loc["Admin_Rbac_ColPermCode"]</th>
+                                    <th class="px-6 py-3">@Loc["Admin_Rbac_ColName"]</th>
+                                    <th class="px-6 py-3">@Loc["Admin_Rbac_ColModule"]</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.08)] text-sm">
@@ -219,7 +220,7 @@
                     <svg class="w-5 h-5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
-                    <h3 class="font-bold text-base text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">Create New Role</h3>
+                    <h3 class="font-bold text-base text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">@Loc["Admin_Rbac_ModalCreateTitle"]</h3>
                 </div>
                 <button @onclick="CloseCreateRoleModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-2xl leading-none">&times;</button>
             </div>
@@ -228,34 +229,34 @@
             {
                 <div class="space-y-4 text-xs">
                     <div>
-                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider mb-1">Role Code *</label>
+                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider mb-1">@Loc["Admin_Rbac_RoleCodeLabel"]</label>
                         <input type="text"
-                               placeholder="e.g. AUDITOR"
+                               placeholder="@Loc["Admin_Rbac_RoleCodePlaceholder"]"
                                @bind="createModel.RoleCode"
                                class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] font-mono uppercase text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] outline-none" />
-                        <p class="text-[11px] text-[#7A8CA6] mt-1">Unique uppercase system code.</p>
+                        <p class="text-[11px] text-[#7A8CA6] mt-1">@Loc["Admin_Rbac_RoleCodeHint"]</p>
                     </div>
 
                     <div>
-                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider mb-1">Role Name *</label>
+                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider mb-1">@Loc["Admin_Rbac_RoleNameLabel"]</label>
                         <input type="text"
-                               placeholder="e.g. Compliance Auditor"
+                               placeholder="@Loc["Admin_Rbac_RoleNamePlaceholder"]"
                                @bind="createModel.RoleName"
                                class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] outline-none" />
-                        <p class="text-[11px] text-[#7A8CA6] mt-1">Friendly display name.</p>
+                        <p class="text-[11px] text-[#7A8CA6] mt-1">@Loc["Admin_Rbac_RoleNameHint"]</p>
                     </div>
 
                     <div>
-                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider mb-1">Description *</label>
+                        <label class="block font-bold text-[#64748B] dark:text-[#C4D2E1] uppercase tracking-wider mb-1">@Loc["Admin_Rbac_RoleDescLabel"]</label>
                         <textarea rows="3"
-                                  placeholder="Describe the responsibilities and scope of this role..."
+                                  placeholder="@Loc["Admin_Rbac_RoleDescPlaceholder"]"
                                   @bind="createModel.Description"
                                   class="w-full px-3.5 py-2 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] outline-none resize-none"></textarea>
                     </div>
 
                     <div class="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 rounded-lg text-blue-800 dark:text-blue-300 text-[11px] flex items-center gap-2">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>This role will automatically receive default permissions identical to standard <strong>USER</strong> role upon creation.</span>
+                        <span>@Loc["Admin_Rbac_RoleNotice"]</span>
                     </div>
 
                     @if (!string.IsNullOrEmpty(createErrorMessage))
@@ -271,7 +272,7 @@
                         Cancel
                     </button>
                     <button @onclick="ProceedToCreateConfirm" class="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:bg-[#112A46] dark:hover:bg-white transition">
-                        Continue &gt;
+                        @Loc["Admin_Rbac_BtnContinue"]
                     </button>
                 </div>
             }
@@ -282,10 +283,10 @@
                     <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 mx-auto flex items-center justify-center">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-[#E1E8F0]">Are you sure you are going to add this new role?</h4>
+                    <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["Admin_Rbac_PromptCreateTitle"]</h4>
                     <div class="p-3 bg-slate-50 dark:bg-[#0A1B2E] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-lg text-left text-xs space-y-1 font-mono">
-                        <div><strong>Code:</strong> @createModel.RoleCode?.Trim().ToUpperInvariant()</div>
-                        <div><strong>Name:</strong> @createModel.RoleName?.Trim()</div>
+                        <div><strong>@Loc["Admin_Rbac_LabelCode"]</strong> @createModel.RoleCode?.Trim().ToUpperInvariant()</div>
+                        <div><strong>@Loc["Admin_Rbac_LabelName"]</strong> @createModel.RoleName?.Trim()</div>
                         <div class="text-[11px] text-slate-500 dark:text-[#7A8CA6] font-sans mt-1">@createModel.Description</div>
                     </div>
                 </div>
@@ -299,17 +300,17 @@
 
                 <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                     <button @onclick="() => showCreateConfirm = false" class="px-4 py-2 rounded-lg text-xs font-semibold border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-slate-700 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition" disabled="@isSubmittingCreate">
-                        Back
+                        @Loc["Admin_Rbac_BtnBack"]
                     </button>
                     <button @onclick="SubmitCreateRoleAsync" disabled="@isSubmittingCreate" class="px-5 py-2 rounded-lg text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:bg-[#112A46] dark:hover:bg-white transition flex items-center gap-1.5">
                         @if (isSubmittingCreate)
                         {
                             <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            <span>Creating...</span>
+                            <span>@Loc["Admin_Rbac_BtnCreating"]</span>
                         }
                         else
                         {
-                            <span>Confirm &amp; Create</span>
+                            <span>@Loc["Admin_Rbac_BtnConfirmCreate"]</span>
                         }
                     </button>
                 </div>
@@ -328,14 +329,14 @@
             </div>
 
             <div class="space-y-1">
-                <h3 class="font-bold text-base text-[#0A1B2E] dark:text-[#E1E8F0]">Are you sure you are going to delete this role?</h3>
+                <h3 class="font-bold text-base text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["Admin_Rbac_PromptDeleteTitle"]</h3>
                 <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">
-                    Role to remove: <strong class="text-[#0A1B2E] dark:text-white">@roleToDelete.Name (@roleToDelete.Code)</strong>
+                    @string.Format(Loc["Admin_Rbac_RoleToRemove"], roleToDelete.Name, roleToDelete.Code)
                 </p>
             </div>
 
             <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-lg text-amber-900 dark:text-amber-300 text-left text-xs leading-relaxed">
-                <strong>Notice:</strong> Any user currently assigned to this role will automatically turn into the default <strong>'USER'</strong> role.
+                @Loc["Admin_Rbac_DeleteNotice"]
             </div>
 
             @if (!string.IsNullOrEmpty(deleteErrorMessage))
@@ -347,17 +348,17 @@
 
             <div class="flex items-center justify-center gap-3 pt-2">
                 <button @onclick="CloseDeleteModal" class="px-4 py-2 rounded-lg text-xs font-semibold border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-slate-700 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition" disabled="@isSubmittingDelete">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button @onclick="ConfirmDeleteRoleAsync" disabled="@isSubmittingDelete" class="px-5 py-2 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition flex items-center gap-1.5">
                     @if (isSubmittingDelete)
                     {
                         <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <span>Deleting...</span>
+                        <span>@Loc["Admin_Rbac_BtnDeleting"]</span>
                     }
                     else
                     {
-                        <span>Yes, Delete Role</span>
+                        <span>@Loc["Admin_Rbac_BtnConfirmDelete"]</span>
                     }
                 </button>
             </div>
@@ -456,7 +457,7 @@
     {
         if (IsSelectedRoleAdmin)
         {
-            Toast.Info("ADMIN permissions are permanent and cannot be modified.");
+            Toast.Info(Loc["Admin_Rbac_Toast_AdminPermPermanent"]);
             return;
         }
 
@@ -466,10 +467,10 @@
         isSaving = false;
         if (res.IsSuccess)
         {
-            Toast.Success("Permissions saved successfully!");
+            Toast.Success(Loc["Admin_Rbac_Toast_Saved"]);
             await SelectRole(selectedRoleId);
         }
-        else Toast.Error(res.Message ?? "Failed to save permissions.");
+        else Toast.Error(res.Message ?? Loc["Admin_Rbac_Toast_SaveFailed"]);
     }
 
     // CREATE ROLE
@@ -493,17 +494,17 @@
         createErrorMessage = null;
         if (string.IsNullOrWhiteSpace(createModel.RoleCode))
         {
-            createErrorMessage = "Role Code is required.";
+            createErrorMessage = Loc["Admin_Rbac_Val_CodeRequired"];
             return;
         }
         if (string.IsNullOrWhiteSpace(createModel.RoleName))
         {
-            createErrorMessage = "Role Name is required.";
+            createErrorMessage = Loc["Admin_Rbac_Val_NameRequired"];
             return;
         }
         if (string.IsNullOrWhiteSpace(createModel.Description))
         {
-            createErrorMessage = "Role Description is required.";
+            createErrorMessage = Loc["Admin_Rbac_Val_DescRequired"];
             return;
         }
 
@@ -515,17 +516,17 @@
         {
             if (roles.Any(r => r.Code.Equals(normalizedCode, StringComparison.OrdinalIgnoreCase)))
             {
-                createErrorMessage = $"Role Code '{normalizedCode}' already exists.";
+                createErrorMessage = string.Format(Loc["Admin_Rbac_Val_CodeExists"], normalizedCode);
                 return;
             }
             if (roles.Any(r => r.Name.Equals(normalizedName, StringComparison.OrdinalIgnoreCase)))
             {
-                createErrorMessage = $"Role Name '{normalizedName}' already exists.";
+                createErrorMessage = string.Format(Loc["Admin_Rbac_Val_NameExists"], normalizedName);
                 return;
             }
             if (roles.Any(r => !string.IsNullOrEmpty(r.Description) && r.Description.Equals(normalizedDesc, StringComparison.OrdinalIgnoreCase)))
             {
-                createErrorMessage = $"Role Description '{normalizedDesc}' is already in use by another role.";
+                createErrorMessage = string.Format(Loc["Admin_Rbac_Val_DescExists"], normalizedDesc);
                 return;
             }
         }
@@ -543,7 +544,7 @@
             var res = await RoleApi.CreateRoleAsync(req);
             if (res.IsSuccess && res.Data != null)
             {
-                Toast.Success(res.Message ?? "Role created successfully!");
+                Toast.Success(res.Message ?? Loc["Admin_Rbac_Toast_Created"]);
                 showCreateModal = false;
                 selectedRoleId = res.Data.RoleId;
                 await LoadRolesAndSelectFirstAsync();
@@ -551,7 +552,7 @@
             }
             else
             {
-                createErrorMessage = res.Message ?? "Failed to create role.";
+                createErrorMessage = res.Message ?? Loc["Admin_Rbac_Toast_CreateFailed"];
             }
         }
         catch (Exception ex)
@@ -570,7 +571,7 @@
         if (role == null) return;
         if (role.IsSystemRole || string.Equals(role.Code, "ADMIN", StringComparison.OrdinalIgnoreCase) || string.Equals(role.Code, "USER", StringComparison.OrdinalIgnoreCase))
         {
-            Toast.Error("System roles (ADMIN and USER) cannot be deleted.");
+            Toast.Error(Loc["Admin_Rbac_Toast_SystemRoleCantDelete"]);
             return;
         }
 
@@ -596,14 +597,14 @@
             var res = await RoleApi.DeleteRoleAsync(roleToDelete.RoleId);
             if (res.IsSuccess)
             {
-                Toast.Success(res.Message ?? $"Role '{roleToDelete.Name}' deleted.");
+                Toast.Success(res.Message ?? string.Format(Loc["Admin_Rbac_Toast_RoleDeleted"], roleToDelete.Name));
                 showDeleteModal = false;
                 roleToDelete = null;
                 await LoadRolesAndSelectFirstAsync();
             }
             else
             {
-                deleteErrorMessage = res.Message ?? "Failed to delete role.";
+                deleteErrorMessage = res.Message ?? Loc["Admin_Rbac_Toast_DeleteFailed"];
             }
         }
         catch (Exception ex)

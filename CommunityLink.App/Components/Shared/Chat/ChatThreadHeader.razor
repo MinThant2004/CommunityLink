@@ -1,5 +1,7 @@
 @using CommunityLink.App.Components.Shared.Chat
 @using CommunityLink.Shared.Features.ChatGroup
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<AppResources> Loc
 
 @*
     Thread header for both 1:1 conversations and chat groups.
@@ -12,7 +14,7 @@
         {
             <button type="button"
                     @onclick="OnBack"
-                    aria-label="Back to conversations"
+                    aria-label="@Loc["Chat_BackToConversations"]"
                     class="shrink-0 rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] p-2 text-slate-600 dark:text-[#94A3B8] transition hover:bg-slate-50 dark:hover:bg-[#182030] hover:text-slate-900 dark:hover:text-[#E1E2EC] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:ring-offset-2 md:hidden">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -41,12 +43,12 @@
                     @if (Thread.IsGroup)
                     {
                         <span class="shrink-0 rounded border @(Thread.RequiresPayment ? "border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300" : "border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300") px-1.5 py-0.5 text-xs font-semibold">
-                            @Thread.Badge
+                            @(Thread.IsBanned ? Loc["Chat_Banned"] : (Thread.RequiresPayment ? Loc["Chat_Paid"] : Loc["Chat_Free"]))
                         </span>
                     }
                     else if (Thread.RequiresPayment)
                     {
-                        <span class="shrink-0 rounded border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">Paid</span>
+                        <span class="shrink-0 rounded border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">@Loc["Chat_Paid"]</span>
                     }
                 </span>
                 <span class="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500 dark:text-[#94A3B8]">
@@ -61,11 +63,11 @@
                     {
                         @if (Thread.IsOnline)
                         {
-                            <span class="font-medium text-emerald-600 dark:text-emerald-400">online</span>
+                            <span class="font-medium text-emerald-600 dark:text-emerald-400">@Loc["Chat_Online"]</span>
                         }
                         else
                         {
-                            <span class="truncate text-slate-500 dark:text-[#94A3B8]">@ChatThreadMapper.FormatPresenceText(false, Thread.OtherUserLastActiveAt)</span>
+                            <span class="truncate text-slate-500 dark:text-[#94A3B8]">@ChatThreadMapper.FormatPresenceText(false, Thread.OtherUserLastActiveAt, Loc)</span>
                         }
                     }
                     else if (Thread.IsGroup)
@@ -74,7 +76,7 @@
                         @if (Thread.UserRole is not null && Thread.UserRole != "NONE")
                         {
                             <span aria-hidden="true">·</span>
-                            <span class="text-[#0A1B2E] dark:text-[#E1E8F0]">@Thread.UserRole</span>
+                            <span class="text-[#0A1B2E] dark:text-[#E1E8F0]">@FormatRole(Thread.UserRole)</span>
                         }
                     }
                     else
@@ -109,10 +111,10 @@
                 <path d="M16 3l5 5-4 1-2.5 2.5L15 15l-2 2-4-4-4.5 4.5L4 17l4.5-4.5-4-4 2-2 3.5.5L12.5 4.5 13 3z" />
             </svg>
             <div class="min-w-0 flex-1">
-                <p class="text-xs font-semibold text-amber-900 dark:text-amber-300">Pinned message</p>
+                <p class="text-xs font-semibold text-amber-900 dark:text-amber-300">@Loc["Chat_PinnedMessage"]</p>
                 <p class="truncate text-sm text-amber-800 dark:text-amber-400">
                     <span class="font-medium">@PinnedMessage.SenderDisplayName:</span>
-                    @(string.IsNullOrWhiteSpace(PinnedMessage.Content) ? "Attachment" : PinnedMessage.Content)
+                    @(string.IsNullOrWhiteSpace(PinnedMessage.Content) ? Loc["Chat_Attachment"] : PinnedMessage.Content)
                 </p>
             </div>
             @if (CanUnpin)
@@ -120,8 +122,8 @@
                 <button type="button"
                         @onclick="OnUnpin"
                         @onclick:stopPropagation="true"
-                        title="Unpin message"
-                        aria-label="Unpin message"
+                        title="@Loc["Chat_UnpinMessage"]"
+                        aria-label="@Loc["Chat_UnpinMessage"]"
                         class="shrink-0 rounded-lg p-1.5 text-amber-600 dark:text-amber-400 transition hover:bg-amber-100 dark:hover:bg-amber-900/60 hover:text-amber-800 dark:hover:text-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -156,5 +158,13 @@
         }
     }
 
-    private string InfoButtonTitle => Thread.IsGroup ? "Group info and members" : "Conversation details";
+    private string InfoButtonTitle => Thread.IsGroup ? Loc["Chat_GroupInfoAndMembers"] : Loc["Chat_ConversationDetails"];
+
+    private string FormatRole(string? role) => (role?.ToUpperInvariant()) switch
+    {
+        "OWNER" => Loc["Chat_Role_Owner"],
+        "ADMIN" => Loc["Chat_Role_Admin"],
+        "MEMBER" => Loc["Chat_Role_Member"],
+        _ => role ?? string.Empty
+    };
 }

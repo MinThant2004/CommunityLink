@@ -3,28 +3,30 @@
 @using CommunityLink.App.Apis
 @using CommunityLink.App.Services
 @using CommunityLink.Shared.Features.LinkDrop
+@using Microsoft.Extensions.Localization
 @inject LinkDropApiService LinkDropApi
 @inject ToastService Toast
 @inject NavigationManager Navigation
 @inject IConfiguration Configuration
 @inject IJSRuntime JS
+@inject IStringLocalizer<AppResources> Loc
 @rendermode InteractiveServer
 @implements IAsyncDisposable
 
-<PageTitle>LinkDrop Treasury &amp; Top-Up — CommunityLink</PageTitle>
+<PageTitle>@Loc["LinkDrops_PageTitle"]</PageTitle>
 
 <div class="min-h-screen bg-[#F4F6F8] dark:bg-background font-body-md text-body-md text-on-surface antialiased transition-colors duration-200">
     <!-- Top System Directory Strip -->
     <section class="bg-surface-container-lowest/80 backdrop-blur-md border-b border-slate-200 dark:border-surface-container-high/30">
         <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-2 flex items-center justify-between gap-3">
             <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
-                <a href="/" class="hover:text-on-surface transition-colors flex items-center gap-1">Platform</a>
+                <a href="/" class="hover:text-on-surface transition-colors flex items-center gap-1">@Loc["LinkDrops_PlatformBreadcrumb"]</a>
                 <span class="material-symbols-outlined text-xs">chevron_right</span>
-                <span class="text-on-surface font-semibold">LinkDrop Treasury</span>
+                <span class="text-on-surface font-semibold">@Loc["LinkDrops_TreasuryBreadcrumb"]</span>
             </div>
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container text-[#0A1B2E] dark:text-[#E1E8F0] font-label-sm text-xs border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] animate-pulse"></span>1 Drop = 10 MMK
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] animate-pulse"></span>@Loc["LinkDrops_RateBadge"]
                 </span>
             </div>
         </div>
@@ -39,10 +41,10 @@
             <div class="space-y-1.5">
                 <div class="flex items-center gap-2">
                     <span class="text-[11px] font-extrabold uppercase tracking-wider text-on-surface-variant font-label-sm">
-                        Available Wallet Balance
+                        @Loc["LinkDrops_AvailableBalance"]
                     </span>
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-[#0A1B2E] dark:text-[#E1E8F0] font-label-sm text-[10px] font-bold border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
-                        1 Drop = 10 MMK
+                        @Loc["LinkDrops_RateBadge"]
                     </span>
                 </div>
 
@@ -50,9 +52,9 @@
                     <span class="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0A1B2E] dark:text-[#E1E8F0] tracking-tight font-mono">
                         @(wallet?.Balance.ToString("N0") ?? "0")
                     </span>
-                    <span class="text-base sm:text-lg font-black text-on-surface">Link Drops</span>
+                    <span class="text-base sm:text-lg font-black text-on-surface">@Loc["Creator_LinkDrops"]</span>
                     <span class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                        ≈ @(((wallet?.Balance ?? 0) * 10).ToString("N0")) MMK
+                        @string.Format(Loc["LinkDrops_ApproxMmk"], (((wallet?.Balance ?? 0) * 10).ToString("N0")))
                     </span>
                 </div>
 
@@ -60,13 +62,13 @@
                 <div class="flex flex-wrap items-center gap-3 text-xs text-on-surface-variant pt-0.5">
                     <span class="inline-flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0]"></span>
-                        <span>Purchased:</span>
+                        <span>@Loc["LinkDrops_PurchasedBalance"]</span>
                         <strong class="text-on-surface font-mono font-bold">@(wallet?.PurchasedBalance.ToString("N0") ?? "0")</strong>
                     </span>
                     <span class="text-on-surface-variant/40 hidden sm:inline">&bull;</span>
                     <span class="inline-flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span>Earned:</span>
+                        <span>@Loc["LinkDrops_EarnedBalance"]</span>
                         <strong class="text-on-surface font-mono font-bold">@(wallet?.EarnedBalance.ToString("N0") ?? "0")</strong>
                     </span>
                 </div>
@@ -80,7 +82,7 @@
                 <!-- 3D Spinning Prism Canvas Container (Large & clearly visible: 136px - 160px) -->
                 <div id="@heroPrismContainerId"
                      class="w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 relative z-10 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
-                     title="Interactive 3D LinkDrop Sovereign Prism — Click & drag to rotate">
+                     title="@Loc["LinkDrops_PrismTooltip"]">
                 </div>
             </div>
 
@@ -92,12 +94,12 @@
                 <button type="button" @onclick='() => SetTab("buy")'
                         class="px-3.5 py-2 rounded-lg font-label-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer @(activeTab == "buy" ? "bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] shadow-sm" : "text-on-surface-variant hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] hover:bg-[#0A1B2E]/5 dark:hover:bg-[#182030]")">
                     <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                    <span>Top-Up LinkDrops</span>
+                    <span>@Loc["LinkDrops_TabTopUp"]</span>
                 </button>
                 <button type="button" @onclick='() => SetTab("purchases")'
                         class="px-3.5 py-2 rounded-lg font-label-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer @(activeTab == "purchases" ? "bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] shadow-sm" : "text-on-surface-variant hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] hover:bg-[#0A1B2E]/5 dark:hover:bg-[#182030]")">
                     <span class="material-symbols-outlined text-sm">receipt_long</span>
-                    <span>My Purchases</span>
+                    <span>@Loc["LinkDrops_TabMyPurchases"]</span>
                     @if (userPurchases.Any(p => p.Status == "PENDING"))
                     {
                         <span class="px-2 py-0.5 text-[10px] bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] font-bold rounded-full border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
@@ -108,14 +110,14 @@
                 <button type="button" @onclick='() => SetTab("ledger")'
                         class="px-3.5 py-2 rounded-lg font-label-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer @(activeTab == "ledger" ? "bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] shadow-sm" : "text-on-surface-variant hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] hover:bg-[#0A1B2E]/5 dark:hover:bg-[#182030]")">
                     <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
-                    <span>Wallet &amp; Ledger</span>
+                    <span>@Loc["LinkDrops_TabLedger"]</span>
                 </button>
             </div>
 
             <!-- Protocol Badge -->
             <div class="flex items-center justify-between sm:justify-end gap-2 px-3 py-1 rounded-lg bg-surface-container border border-slate-200 dark:border-surface-container-high/30">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-on-surface-variant font-label-sm text-xs font-medium">Settlement Rails Active</span>
+                <span class="text-on-surface-variant font-label-sm text-xs font-medium">@Loc["LinkDrops_SettlementRailsActive"]</span>
             </div>
         </div>
 
@@ -133,28 +135,28 @@
                     </div>
                     <div class="space-y-1">
                         <span class="inline-block px-3 py-0.5 bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] text-[10px] font-bold rounded-full uppercase tracking-wider">
-                            Status: PENDING ADMIN VERIFICATION
+                            @Loc["LinkDrops_StatusPendingVerification"]
                         </span>
-                        <h2 class="text-xl font-bold text-on-surface">Payment Request Submitted!</h2>
+                        <h2 class="text-xl font-bold text-on-surface">@Loc["LinkDrops_PaymentRequestSubmitted"]</h2>
                         <p class="text-on-surface-variant text-xs max-w-sm mx-auto leading-relaxed">
-                            Your payment receipt slip and transaction reference have been received. LinkDrops will be credited after manual verification.
+                            @Loc["LinkDrops_PaymentRequestSubmittedDesc"]
                         </p>
                     </div>
 
                     <div class="bg-surface-container-low border border-surface-container-high/50 rounded-xl p-3 text-left text-xs space-y-2 max-w-sm mx-auto">
                         <div class="flex justify-between border-b border-slate-200 dark:border-surface-container-high/30 pb-1.5">
-                            <span class="text-on-surface-variant">Request Number:</span>
+                            <span class="text-on-surface-variant">@Loc["LinkDrops_RequestNumber"]</span>
                             <span class="font-mono text-on-surface font-bold">@submittedPurchaseNumber</span>
                         </div>
                         <div class="flex justify-between border-b border-slate-200 dark:border-surface-container-high/30 pb-1.5">
-                            <span class="text-on-surface-variant">Transaction ID:</span>
+                            <span class="text-on-surface-variant">@Loc["LinkDrops_TransactionId"]</span>
                             <span class="font-mono text-[#0A1B2E] dark:text-[#E1E8F0] font-bold">@transactionRefNo</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-on-surface-variant">Target Credit:</span>
+                            <span class="text-on-surface-variant">@Loc["LinkDrops_TargetCredit"]</span>
                             <span class="text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1">
                                 <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                                +@calculatedDrops.ToString("N0") Link Drops
+                                @string.Format(Loc["LinkDrops_TargetCreditDrops"], calculatedDrops.ToString("N0"))
                             </span>
                         </div>
                     </div>
@@ -163,12 +165,12 @@
                         <button type="button" @onclick='() => SetTab("purchases")'
                                 class="px-4 py-2 bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] font-bold text-xs rounded-lg transition-all shadow-sm cursor-pointer flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-sm">receipt_long</span>
-                            <span>Track in My Purchases</span>
+                            <span>@Loc["LinkDrops_TrackPurchasesBtn"]</span>
                         </button>
                         <button type="button" @onclick="ResetForm"
                                 class="px-4 py-2 bg-white dark:bg-surface-container hover:bg-slate-50 dark:hover:bg-surface-container-high text-on-surface font-bold text-xs rounded-lg transition-all border border-slate-200 dark:border-surface-container-high/50 hover:border-slate-300 dark:hover:border-surface-container-high cursor-pointer flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-sm">add_circle</span>
-                            <span>Submit Another Top-Up</span>
+                            <span>@Loc["LinkDrops_SubmitAnotherBtn"]</span>
                         </button>
                     </div>
                 </div>
@@ -184,9 +186,9 @@
                                 <div class="w-6 h-6 rounded-md bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] flex items-center justify-center font-bold text-xs">
                                     1
                                 </div>
-                                <h2 class="font-title-sm font-bold text-on-surface text-sm">Select LinkDrop Bundle</h2>
+                                <h2 class="font-title-sm font-bold text-on-surface text-sm">@Loc["LinkDrops_Step1Title"]</h2>
                             </div>
-                            <span class="text-xs text-on-surface-variant font-medium">1 Drop = 10 MMK</span>
+                            <span class="text-xs text-on-surface-variant font-medium">@Loc["LinkDrops_RateBadge"]</span>
                         </div>
 
                         <!-- Predefined Packages Grid -->
@@ -235,9 +237,9 @@
                                     <button type="button" @onclick="EnableCustomPurchase"
                                             class="px-2.5 py-1 bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] text-white font-bold text-xs rounded-md shrink-0 flex items-center gap-1 cursor-pointer">
                                         <span class="material-symbols-outlined text-xs">calculate</span>
-                                        <span>Custom Amount</span>
+                                        <span>@Loc["LinkDrops_CustomAmountBtn"]</span>
                                     </button>
-                                    <span class="text-xs text-on-surface-variant">Specify any amount in MMK</span>
+                                    <span class="text-xs text-on-surface-variant">@Loc["LinkDrops_CustomAmountDesc"]</span>
                                 </div>
 
                                 <!-- Quick Presets (MMK) -->
@@ -257,13 +259,13 @@
                                     <input type="number" min="10" step="100"
                                            @bind="customMmkAmount" @bind:after="OnCustomAmountChanged"
                                            class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-lowest border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs font-bold text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-[#0A1B2E] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:outline-none transition-colors"
-                                           placeholder="e.g. 10000 MMK" />
+                                           placeholder="@Loc["LinkDrops_CustomAmountPlaceholder"]" />
                                 </div>
                                 <div class="flex items-center justify-between sm:justify-start gap-2 bg-surface-container px-3 py-1.5 rounded-lg border border-slate-200 dark:border-surface-container-high/30">
-                                    <span class="text-xs text-on-surface-variant">Credits:</span>
+                                    <span class="text-xs text-on-surface-variant">@Loc["LinkDrops_CreditsLabel"]</span>
                                     <span class="text-xs font-black text-[#0A1B2E] dark:text-[#E1E8F0] inline-flex items-center gap-1 whitespace-nowrap">
                                         <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                                        <span>+@calculatedDrops.ToString("N0") Drops</span>
+                                        <span>@string.Format(Loc["LinkDrops_CreditsDrops"], calculatedDrops.ToString("N0"))</span>
                                     </span>
                                 </div>
                             </div>
@@ -277,9 +279,9 @@
                                 <div class="w-6 h-6 rounded-md bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] flex items-center justify-center font-bold text-xs">
                                     2
                                 </div>
-                                <h2 class="font-title-sm font-bold text-on-surface text-sm">Select Payment Gateway Rail</h2>
+                                <h2 class="font-title-sm font-bold text-on-surface text-sm">@Loc["LinkDrops_Step2Title"]</h2>
                             </div>
-                            <span class="text-xs text-on-surface-variant">@activeMethods.Count Rails Active</span>
+                            <span class="text-xs text-on-surface-variant">@string.Format(Loc["LinkDrops_RailsActiveCount"], activeMethods.Count)</span>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -326,22 +328,22 @@
                             <div class="bg-[#F8FAFC] dark:bg-[#182030]/30 border border-slate-200 dark:border-surface-container-high/50 border-l-[3px] border-l-[#0A1B2E] dark:border-l-[#E1E8F0] rounded-lg p-3 space-y-2.5">
                                 <div class="font-bold text-on-surface text-xs flex items-center gap-1.5">
                                     <span class="material-symbols-outlined text-sm text-[#0A1B2E] dark:text-[#E1E8F0]">info</span>
-                                    <span>Transfer Instructions &bull; @selectedPaymentMethod.MethodName</span>
+                                    <span>@string.Format(Loc["LinkDrops_TransferInstructions"], selectedPaymentMethod.MethodName)</span>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                                     <div class="md:col-span-8 space-y-2 text-xs">
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                             <div class="flex items-center justify-between gap-2 bg-[#F8FAFC] dark:bg-surface-container-lowest border border-[#E2E8F0] dark:border-surface-container-high/40 rounded px-2.5 py-1.5">
-                                                <span class="text-slate-800 dark:text-on-surface-variant whitespace-nowrap">Account Name:</span>
+                                                <span class="text-slate-800 dark:text-on-surface-variant whitespace-nowrap">@Loc["LinkDrops_AccountNameLabel"]</span>
                                                 <span class="font-bold text-on-surface text-right">@selectedPaymentMethod.AccountName</span>
                                             </div>
                                             <div class="flex items-center justify-between gap-2 bg-[#F8FAFC] dark:bg-surface-container-lowest border border-[#E2E8F0] dark:border-surface-container-high/40 rounded px-2.5 py-1.5">
-                                                <span class="text-slate-800 dark:text-on-surface-variant whitespace-nowrap">Account / Phone:</span>
+                                                <span class="text-slate-800 dark:text-on-surface-variant whitespace-nowrap">@Loc["LinkDrops_AccountNumberLabel"]</span>
                                                 <div class="flex items-center gap-1.5 min-w-0">
                                                     <span class="font-mono font-bold text-[#0A1B2E] dark:text-[#E1E8F0] truncate">@selectedPaymentMethod.AccountNumber</span>
-                                                    <button type="button" @onclick='() => CopyToClipboard(selectedPaymentMethod.AccountNumber, "Account number")'
+                                                    <button type="button" @onclick='() => CopyToClipboard(selectedPaymentMethod.AccountNumber, Loc["LinkDrops_AccountNumberText"])'
                                                             class="px-1.5 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface text-[10px] font-bold border border-slate-200 dark:border-surface-container-high/50 cursor-pointer flex items-center gap-1 shrink-0 transition-colors">
-                                                        <span class="material-symbols-outlined text-xs">content_copy</span> Copy
+                                                        <span class="material-symbols-outlined text-xs">content_copy</span> @Loc["LinkDrops_CopyBtn"]
                                                     </button>
                                                 </div>
                                             </div>
@@ -360,17 +362,17 @@
                                         <div class="md:col-span-4 text-center">
                                             <div class="bg-white p-1.5 rounded-lg border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] shadow-xs inline-block relative group cursor-pointer"
                                                  @onclick='() => OpenEnlargedImage(qrUrl, $"Payment QR Code — {selectedPaymentMethod.MethodName}")'
-                                                 title="Click to view enlarged QR Code">
+                                                 title="@Loc["LinkDrops_ClickToEnlargeQr"]">
                                                 <img src="@qrUrl" alt="Payment QR Code" class="w-24 h-24 object-contain transition group-hover:scale-105" />
                                                 <div class="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1.5">
                                                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
-                                                    <span>Zoom</span>
+                                                    <span>@Loc["LinkDrops_ZoomBtn"]</span>
                                                 </div>
                                             </div>
                                             <button type="button" @onclick='() => OpenEnlargedImage(qrUrl, $"Payment QR Code — {selectedPaymentMethod.MethodName}")'
                                                     class="text-[11px] text-[#0A1B2E] dark:text-[#E1E8F0] hover:underline font-semibold mt-1.5 block mx-auto cursor-pointer flex items-center justify-center gap-1">
                                                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
-                                                <span>Scan / Click to Zoom QR</span>
+                                                <span>@Loc["LinkDrops_ScanZoomQr"]</span>
                                             </button>
                                         </div>
                                     }
@@ -386,28 +388,28 @@
                                 <div class="w-6 h-6 rounded bg-[#0A1B2E] text-white dark:bg-[#112A46] dark:text-[#E1E8F0] dark:border dark:border-[rgba(196,210,225,0.20)] flex items-center justify-center font-bold text-xs">
                                     3
                                 </div>
-                                <h2 class="font-bold text-[#0F172A] dark:text-[#E1E2EC] text-xs" style="font-family:'Plus Jakarta Sans',sans-serif">Transaction Reference &amp; Receipt Proof</h2>
+                                <h2 class="font-bold text-[#0F172A] dark:text-[#E1E2EC] text-xs" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["LinkDrops_Step3Title"]</h2>
                             </div>
                             <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-[#34D399] font-mono text-xs">
                                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                <span>Escrow Protected</span>
+                                <span>@Loc["LinkDrops_EscrowProtected"]</span>
                             </span>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="space-y-1">
                                 <label class="block text-xs font-semibold text-[#0F172A] dark:text-[#E1E2EC]">
-                                    Transaction Reference ID <span class="text-rose-500">*</span>
+                                    @Loc["LinkDrops_FieldTxnRef"] <span class="text-rose-500">*</span>
                                 </label>
                                 <input type="text" @bind="transactionRefNo"
                                        class="w-full h-8 bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-2.5 text-xs font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC] placeholder:text-[#64748B] hover:border-slate-400 dark:hover:border-slate-600 focus:bg-white dark:focus:bg-[#111622] focus:border-[#0A1B2E] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:outline-none transition-colors"
-                                       placeholder="e.g. TXN9841203 or KBZ-892147" />
-                                <span class="text-[10px] text-[#64748B] dark:text-[#94A3B8] block">Copy reference ID from your banking app receipt</span>
+                                       placeholder="@Loc["LinkDrops_FieldTxnRefPlaceholder"]" />
+                                <span class="text-[10px] text-[#64748B] dark:text-[#94A3B8] block">@Loc["LinkDrops_FieldTxnRefHelp"]</span>
                             </div>
 
                             <div class="space-y-1">
                                 <label class="block text-xs font-semibold text-[#0F172A] dark:text-[#E1E2EC]">
-                                    Upload Payment Slip Screenshot <span class="text-rose-500">*</span>
+                                    @Loc["LinkDrops_FieldPaymentSlip"] <span class="text-rose-500">*</span>
                                 </label>
                                 <InputFile OnChange="OnFileInputChange" accept=".jpg,.jpeg,.png,.webp,.pdf"
                                            class="w-full h-8 px-2 text-xs text-[#64748B] dark:text-[#94A3B8] bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded file:mr-2.5 file:py-0.5 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#111622] file:text-[#0F172A] dark:file:text-[#E1E2EC] hover:file:bg-slate-200 cursor-pointer transition-colors" />
@@ -415,7 +417,7 @@
                                 @if (!string.IsNullOrEmpty(localPreviewDataUrl))
                                 {
                                     <div class="flex items-center gap-2.5 pt-1.5">
-                                        <div class="relative group cursor-pointer" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" title="Click to view full size">
+                                        <div class="relative group cursor-pointer" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" title="@Loc["LinkDrops_ClickToViewFullSize"]">
                                             <img src="@localPreviewDataUrl" alt="Receipt Preview" class="w-12 h-12 object-cover rounded border border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] shadow-xs transition group-hover:scale-105" />
                                             <div class="absolute inset-0 bg-black/40 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-[10px] font-bold">
                                                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
@@ -424,11 +426,11 @@
                                         <div class="space-y-0.5">
                                             <button type="button" @onclick="() => OpenEnlargedImage(localPreviewDataUrl)" class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:underline flex items-center gap-1 cursor-pointer">
                                                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
-                                                <span>View full size</span>
+                                                <span>@Loc["LinkDrops_ViewFullSize"]</span>
                                             </button>
                                             <div class="text-[10px] text-[#64748B] dark:text-[#94A3B8]">@uploadedProofFile?.Name</div>
                                             <button type="button" @onclick="ClearUploadedSlip" class="text-[11px] text-rose-500 hover:underline cursor-pointer">
-                                                Remove Screenshot
+                                                @Loc["LinkDrops_RemoveScreenshot"]
                                             </button>
                                         </div>
                                     </div>
@@ -437,35 +439,35 @@
                         </div>
 
                         <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-800 dark:text-on-surface">Optional Notes for Admin</label>
+                            <label class="block text-xs font-bold text-slate-800 dark:text-on-surface">@Loc["LinkDrops_FieldAdminNotes"]</label>
                             <input type="text" @bind="userNotes"
                                    class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-low border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-[#0A1B2E] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:outline-none transition-colors"
-                                   placeholder="Additional information or sender account details..." />
-                            <span class="text-[10px] text-slate-600 dark:text-on-surface-variant block">Optional — visible to admin only</span>
+                                   placeholder="@Loc["LinkDrops_FieldAdminNotesPlaceholder"]" />
+                            <span class="text-[10px] text-slate-600 dark:text-on-surface-variant block">@Loc["LinkDrops_FieldAdminNotesHelp"]</span>
                         </div>
 
                         <!-- SUBMIT ACTION BAR (Integrated at bottom of form) -->
                         <div class="border-t border-slate-200 dark:border-surface-container-high/30 pt-3 flex flex-col sm:flex-row items-center justify-between gap-3">
                             <div class="text-xs text-on-surface-variant flex items-center gap-1.5">
                                 <span class="material-symbols-outlined text-sm text-emerald-500">verified</span>
-                                <span>Manual verification &bull; Usually approved within 15 minutes</span>
+                                <span>@Loc["LinkDrops_VerificationNotice"]</span>
                             </div>
                             <div class="flex items-center gap-2.5 w-full sm:w-auto">
                                 <button type="button" @onclick="ResetForm"
                                         class="px-4 py-2 rounded-lg bg-white dark:bg-surface-container hover:bg-slate-50 dark:hover:bg-surface-container-high text-on-surface font-bold text-xs border border-slate-200 dark:border-surface-container-high/50 hover:border-slate-300 dark:hover:border-surface-container-high transition cursor-pointer">
-                                    Reset
+                                    @Loc["LinkDrops_ResetBtn"]
                                 </button>
                                 <button type="button" @onclick="SubmitPurchaseAsync" disabled="@isSubmitting"
                                         class="flex-1 sm:flex-none px-6 py-2.5 rounded-lg bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#E1E8F0] dark:text-[#0A1B2E] dark:hover:bg-white font-black text-xs transition shadow-md shadow-[#0A1B2E]/20 hover:shadow-lg active:translate-y-px cursor-pointer disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2">
                                     @if (isSubmitting)
                                     {
                                         <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
-                                        <span>Submitting...</span>
+                                        <span>@Loc["LinkDrops_SubmittingBtn"]</span>
                                     }
                                     else
                                     {
                                         <span class="material-symbols-outlined text-sm">payments</span>
-                                        <span>Pay @calculatedMmkPrice.ToString("N0") MMK &bull; Top Up +@calculatedDrops.ToString("N0") Drops</span>
+                                        <span>@string.Format(Loc["LinkDrops_PayTopUpBtn"], calculatedMmkPrice.ToString("N0"), calculatedDrops.ToString("N0"))</span>
                                     }
                                 </button>
                             </div>
@@ -486,27 +488,27 @@
                 
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-200 dark:border-surface-container-high/30 pb-2.5">
                     <div>
-                        <h2 class="font-title-sm font-bold text-on-surface text-sm">My Purchase Requests</h2>
-                        <p class="text-on-surface-variant text-xs">Track your past top-up submissions and admin approval status</p>
+                        <h2 class="font-title-sm font-bold text-on-surface text-sm">@Loc["LinkDrops_PurchasesTitle"]</h2>
+                        <p class="text-on-surface-variant text-xs">@Loc["LinkDrops_PurchasesSubtitle"]</p>
                     </div>
 
                     <!-- Status Filter Chips -->
                     <div class="flex items-center gap-1 overflow-x-auto">
                         <button type="button" @onclick='() => purchaseStatusFilter = "ALL"'
                                 class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "ALL" ? "border border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E] dark:bg-[#112A46] text-white dark:text-[#E1E8F0]" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
-                            All (@userPurchases.Count)
+                            @string.Format(Loc["LinkDrops_FilterAll"], userPurchases.Count)
                         </button>
                         <button type="button" @onclick='() => purchaseStatusFilter = "PENDING"'
                                 class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "PENDING" ? "border border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E] dark:bg-[#112A46] text-white dark:text-[#E1E8F0]" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
-                            Pending (@userPurchases.Count(p => p.Status == "PENDING"))
+                            @string.Format(Loc["LinkDrops_FilterPending"], userPurchases.Count(p => p.Status == "PENDING"))
                         </button>
                         <button type="button" @onclick='() => purchaseStatusFilter = "APPROVED"'
                                 class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "APPROVED" ? "border border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E] dark:bg-[#112A46] text-white dark:text-[#E1E8F0]" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
-                            Approved (@userPurchases.Count(p => p.Status == "APPROVED"))
+                            @string.Format(Loc["LinkDrops_FilterApproved"], userPurchases.Count(p => p.Status == "APPROVED"))
                         </button>
                         <button type="button" @onclick='() => purchaseStatusFilter = "REJECTED"'
                                 class="px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer @(purchaseStatusFilter == "REJECTED" ? "border border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E] dark:bg-[#112A46] text-white dark:text-[#E1E8F0]" : "border border-slate-300 dark:border-surface-container-high/50 bg-surface-container text-on-surface-variant hover:text-on-surface")">
-                            Rejected (@userPurchases.Count(p => p.Status == "REJECTED"))
+                            @string.Format(Loc["LinkDrops_FilterRejected"], userPurchases.Count(p => p.Status == "REJECTED"))
                         </button>
                     </div>
                 </div>
@@ -515,15 +517,15 @@
                 {
                     <div class="py-12 text-center text-on-surface-variant space-y-2">
                         <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-[#0A1B2E] dark:border-t-[#E1E8F0]"></div>
-                        <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">Loading purchase requests...</p>
+                        <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">@Loc["LinkDrops_LoadingPurchases"]</p>
                     </div>
                 }
                 else if (!FilteredPurchases.Any())
                 {
                     <div class="py-8 text-center text-on-surface-variant space-y-1">
                         <span class="material-symbols-outlined text-3xl text-on-surface-variant/40">receipt_long</span>
-                        <div class="text-xs font-bold text-on-surface">No purchase requests found</div>
-                        <p class="text-[11px] text-on-surface-variant">You haven't submitted any top-up requests matching this filter.</p>
+                        <div class="text-xs font-bold text-on-surface">@Loc["LinkDrops_NoPurchasesFound"]</div>
+                        <p class="text-[11px] text-on-surface-variant">@Loc["LinkDrops_NoPurchasesFoundDesc"]</p>
                     </div>
                 }
                 else
@@ -532,14 +534,14 @@
                         <table class="w-full text-left text-xs">
                             <thead class="bg-slate-50 dark:bg-surface-container text-on-surface-variant uppercase text-[10px] tracking-wider border-b border-surface-container-high/40">
                                 <tr>
-                                    <th class="p-2.5">Date</th>
-                                    <th class="p-2.5">Order Ref</th>
-                                    <th class="p-2.5">Transaction ID</th>
-                                    <th class="p-2.5">Bundle</th>
-                                    <th class="p-2.5">Amount (MMK)</th>
-                                    <th class="p-2.5">LinkDrops</th>
-                                    <th class="p-2.5">Status</th>
-                                    <th class="p-2.5 text-right">Action</th>
+                                    <th class="p-2.5">@Loc["LinkDrops_ColDate"]</th>
+                                    <th class="p-2.5">@Loc["LinkDrops_ColOrderRef"]</th>
+                                    <th class="p-2.5">@Loc["LinkDrops_ColTxnId"]</th>
+                                    <th class="p-2.5">@Loc["LinkDrops_ColBundle"]</th>
+                                    <th class="p-2.5">@Loc["LinkDrops_ColAmountMmk"]</th>
+                                    <th class="p-2.5">@Loc["LinkDrops_ColLinkDrops"]</th>
+                                    <th class="p-2.5">@Loc["LinkDrops_ColStatus"]</th>
+                                    <th class="p-2.5 text-right">@Loc["LinkDrops_ColAction"]</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 dark:divide-surface-container-high/30">
@@ -549,7 +551,7 @@
                                         <td class="p-2.5 font-mono text-on-surface-variant">@item.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
                                         <td class="p-2.5 font-mono font-bold text-on-surface">@item.PurchaseNumber</td>
                                         <td class="p-2.5 font-mono text-[#0A1B2E] dark:text-[#E1E8F0] font-bold">@item.TransactionReferenceNo</td>
-                                        <td class="p-2.5 text-on-surface">@(item.IsCustomPurchase ? "Custom Allocation" : item.SnapshotPackageName)</td>
+                                        <td class="p-2.5 text-on-surface">@(item.IsCustomPurchase ? Loc["LinkDrops_CustomAllocation"] : item.SnapshotPackageName)</td>
                                         <td class="p-2.5 font-bold text-on-surface">@item.SnapshotRealMoneyAmount.ToString("N0") MMK</td>
                                         <td class="p-2.5 font-black text-[#0A1B2E] dark:text-[#E1E8F0]">
                                             <span class="inline-flex items-center gap-1">
@@ -561,26 +563,26 @@
                                             @if (item.Status == "PENDING")
                                             {
                                                 <span class="px-2 py-0.5 bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] font-bold text-[10px] rounded-full inline-flex items-center gap-1">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] animate-pulse"></span>PENDING
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] animate-pulse"></span>@GetPurchaseStatusLabel(item.Status)
                                                 </span>
                                             }
                                             else if (item.Status == "APPROVED")
                                             {
                                                 <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold text-[10px] rounded-full inline-flex items-center gap-1">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>APPROVED
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>@GetPurchaseStatusLabel(item.Status)
                                                 </span>
                                             }
                                             else
                                             {
                                                 <span class="px-2 py-0.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold text-[10px] rounded-full inline-flex items-center gap-1">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>REJECTED
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>@GetPurchaseStatusLabel(item.Status)
                                                 </span>
                                             }
                                         </td>
                                         <td class="p-2.5 text-right">
                                             <button type="button" @onclick="() => selectedDetailPurchase = item"
                                                     class="px-2.5 py-1 bg-white dark:bg-surface-container hover:bg-slate-50 dark:hover:bg-surface-container-high text-on-surface rounded font-bold text-[11px] border border-slate-200 dark:border-surface-container-high/40 hover:border-slate-300 dark:hover:border-surface-container-high transition cursor-pointer">
-                                                Details
+                                                @Loc["LinkDrops_BtnDetails"]
                                             </button>
                                         </td>
                                     </tr>
@@ -601,22 +603,22 @@
                 <!-- Balance Summary Row -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-[#0A1B2E]/30 dark:hover:border-[rgba(196,210,225,0.30)] active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
-                        <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Current Balance</span>
+                        <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">@Loc["LinkDrops_CurrentBalance"]</span>
                         <div class="text-xl font-black text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-1.5 mt-0.5">
                             <LinkDropIcon Class="w-4 h-4 shrink-0" />
-                            <span>@(wallet?.Balance.ToString("N0") ?? "0") Drops</span>
+                            <span>@string.Format(Loc["LinkDrops_DropsCount"], (wallet?.Balance.ToString("N0") ?? "0"))</span>
                         </div>
                     </div>
                     <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-[#0A1B2E]/30 dark:hover:border-[rgba(196,210,225,0.30)] active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
-                        <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Total Purchased</span>
+                        <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">@Loc["LinkDrops_TotalPurchased"]</span>
                         <div class="text-xl font-black text-on-surface mt-0.5">
-                            @(wallet?.PurchasedBalance.ToString("N0") ?? "0") Drops
+                            @string.Format(Loc["LinkDrops_DropsCount"], (wallet?.PurchasedBalance.ToString("N0") ?? "0"))
                         </div>
                     </div>
                     <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] hover:border-[#0A1B2E]/30 dark:hover:border-[rgba(196,210,225,0.30)] active:translate-y-0 active:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
-                        <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Total Earned</span>
+                        <span class="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">@Loc["LinkDrops_TotalEarned"]</span>
                         <div class="text-xl font-black text-on-surface mt-0.5">
-                            @(wallet?.EarnedBalance.ToString("N0") ?? "0") Drops
+                            @string.Format(Loc["LinkDrops_DropsCount"], (wallet?.EarnedBalance.ToString("N0") ?? "0"))
                         </div>
                     </div>
                 </div>
@@ -624,20 +626,20 @@
                 <!-- Ledger Audit Table -->
                 <div class="rounded-xl bg-surface-container-lowest border border-black/5 dark:border-surface-container-high/40 p-4 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-xs space-y-3">
                     <div class="border-b border-slate-200 dark:border-surface-container-high/30 pb-2">
-                        <h2 class="font-title-sm font-bold text-on-surface text-sm">Wallet Transaction Ledger</h2>
-                        <p class="text-on-surface-variant text-xs">Immutable audit trail of all debits, credits, and platform settlements</p>
+                        <h2 class="font-title-sm font-bold text-on-surface text-sm">@Loc["LinkDrops_LedgerTitle"]</h2>
+                        <p class="text-on-surface-variant text-xs">@Loc["LinkDrops_LedgerSubtitle"]</p>
                     </div>
 
                     @if (isLoadingTransactions)
                     {
                         <div class="py-12 text-center text-on-surface-variant space-y-2">
                             <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 dark:border-slate-700 border-t-[#0A1B2E] dark:border-t-[#E1E8F0]"></div>
-                            <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">Loading wallet ledger...</p>
+                            <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">@Loc["LinkDrops_LoadingLedger"]</p>
                         </div>
                     }
                     else if (userTransactions.Count == 0)
                     {
-                        <div class="py-8 text-center text-on-surface-variant text-xs">No transactions logged on this wallet yet.</div>
+                        <div class="py-8 text-center text-on-surface-variant text-xs">@Loc["LinkDrops_NoTransactionsYet"]</div>
                     }
                     else
                     {
@@ -645,12 +647,12 @@
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-slate-50 dark:bg-surface-container text-on-surface-variant uppercase text-[10px] tracking-wider border-b border-surface-container-high/40">
                                     <tr>
-                                        <th class="p-2.5">Date</th>
-                                        <th class="p-2.5">Transaction Type</th>
-                                        <th class="p-2.5">Amount</th>
-                                        <th class="p-2.5">Balance Before</th>
-                                        <th class="p-2.5">Balance After</th>
-                                        <th class="p-2.5">Audit Notes</th>
+                                        <th class="p-2.5">@Loc["LinkDrops_ColDate"]</th>
+                                        <th class="p-2.5">@Loc["LinkDrops_ColTxnType"]</th>
+                                        <th class="p-2.5">@Loc["LinkDrops_ColAmount"]</th>
+                                        <th class="p-2.5">@Loc["LinkDrops_ColBalanceBefore"]</th>
+                                        <th class="p-2.5">@Loc["LinkDrops_ColBalanceAfter"]</th>
+                                        <th class="p-2.5">@Loc["LinkDrops_ColAuditNotes"]</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-200 dark:divide-surface-container-high/30">
@@ -660,7 +662,7 @@
                                             <td class="p-2.5 font-mono text-on-surface-variant">@tx.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
                                             <td class="p-2.5 font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@tx.TransactionType</td>
                                             <td class="p-2.5 font-black @(tx.Amount >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")">
-                                                @(tx.Amount >= 0 ? "+" : "")@tx.Amount.ToString("N0") Drops
+                                                @((tx.Amount >= 0 ? "+" : string.Empty))@string.Format(Loc["LinkDrops_DropsCount"], tx.Amount.ToString("N0"))
                                             </td>
                                             <td class="p-2.5 font-mono text-on-surface-variant">@tx.BalanceBefore.ToString("N0")</td>
                                             <td class="p-2.5 font-mono text-on-surface font-bold">@tx.BalanceAfter.ToString("N0")</td>
@@ -686,7 +688,7 @@
     <div class="fixed inset-0 bg-slate-900/60 dark:bg-[#0A0D14]/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] rounded-xl p-5 max-w-md w-full space-y-3.5 shadow-xl">
             <div class="flex justify-between items-center border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-2.5">
-                <h3 class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">Purchase Request Detail</h3>
+                <h3 class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["LinkDrops_DetailModalTitle"]</h3>
                 <button type="button" @onclick="() => selectedDetailPurchase = null" class="text-[#64748B] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] cursor-pointer p-1 transition-colors">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
@@ -694,25 +696,25 @@
 
             <div class="space-y-2 text-xs">
                 <div class="flex justify-between">
-                    <span class="text-[#64748B] dark:text-[#94A3B8]">Request #:</span>
+                    <span class="text-[#64748B] dark:text-[#94A3B8]">@Loc["LinkDrops_DetailRequestNum"]</span>
                     <span class="font-mono text-[#0F172A] dark:text-[#E1E2EC] font-bold">@selectedDetailPurchase.PurchaseNumber</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-[#64748B] dark:text-[#94A3B8]">Status:</span>
+                    <span class="text-[#64748B] dark:text-[#94A3B8]">@Loc["LinkDrops_DetailStatus"]</span>
                     <span class="font-bold uppercase @(selectedDetailPurchase.Status == "APPROVED" ? "text-emerald-600 dark:text-[#34D399]" : selectedDetailPurchase.Status == "REJECTED" ? "text-rose-600 dark:text-[#FFB4AB]" : "text-[#0A1B2E] dark:text-[#E1E8F0]")">
-                        @selectedDetailPurchase.Status
+                        @GetPurchaseStatusLabel(selectedDetailPurchase.Status)
                     </span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-[#64748B] dark:text-[#94A3B8]">Transaction ID:</span>
+                    <span class="text-[#64748B] dark:text-[#94A3B8]">@Loc["LinkDrops_DetailTxnId"]</span>
                     <span class="font-mono text-[#0A1B2E] dark:text-[#E1E8F0] font-bold">@selectedDetailPurchase.TransactionReferenceNo</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-[#64748B] dark:text-[#94A3B8]">Amount Paid:</span>
+                    <span class="text-[#64748B] dark:text-[#94A3B8]">@Loc["LinkDrops_DetailAmountPaid"]</span>
                     <span class="font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC]">@selectedDetailPurchase.SnapshotRealMoneyAmount.ToString("N0") MMK</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-[#64748B] dark:text-[#94A3B8]">Drops Granted:</span>
+                    <span class="text-[#64748B] dark:text-[#94A3B8]">@Loc["LinkDrops_DetailDropsGranted"]</span>
                     <span class="font-mono font-bold text-[#0A1B2E] dark:text-[#E1E8F0] inline-flex items-center gap-1">
                         <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                         <span>+@selectedDetailPurchase.SnapshotLinkDropAmount.ToString("N0")</span>
@@ -721,7 +723,7 @@
                 @if (!string.IsNullOrWhiteSpace(selectedDetailPurchase.RejectionReason))
                 {
                     <div class="bg-rose-500/10 border border-rose-500/20 rounded p-2.5 text-rose-700 dark:text-[#FFB4AB] space-y-1 mt-1.5 text-xs">
-                        <div class="font-bold">Rejection Reason:</div>
+                        <div class="font-bold">@Loc["LinkDrops_DetailRejectionReason"]</div>
                         <div>@selectedDetailPurchase.RejectionReason</div>
                     </div>
                 }
@@ -729,13 +731,13 @@
                 {
                     var proofUrl = BuildFileUrl(selectedDetailPurchase.Proof.FileUrl);
                     <div class="pt-1.5">
-                        <span class="text-[#64748B] dark:text-[#94A3B8] block mb-1">Receipt Proof Screenshot:</span>
+                        <span class="text-[#64748B] dark:text-[#94A3B8] block mb-1">@Loc["LinkDrops_DetailReceiptProof"]</span>
                         <div class="relative group cursor-pointer rounded overflow-hidden border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-[#F8FAFC] dark:bg-[#191B23] flex items-center justify-center p-1"
-                             @onclick="() => OpenEnlargedImage(proofUrl)" title="Click to view full size">
+                             @onclick="() => OpenEnlargedImage(proofUrl)" title="@Loc["LinkDrops_ClickToViewFullSize"]">
                             <img src="@proofUrl" alt="Receipt Proof" class="w-full max-h-52 object-contain rounded" />
                             <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1.5">
                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
-                                <span>Click to view full size</span>
+                                <span>@Loc["LinkDrops_ClickToViewFullSize"]</span>
                             </div>
                         </div>
                     </div>
@@ -744,7 +746,7 @@
 
             <div class="pt-1.5">
                 <button type="button" @onclick="() => selectedDetailPurchase = null" class="w-full py-2 bg-white dark:bg-[#191B23] hover:bg-slate-50 dark:hover:bg-[#1D263B] text-[#0F172A] dark:text-[#E1E2EC] font-semibold rounded text-xs border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] cursor-pointer transition">
-                    Close Detail
+                    @Loc["LinkDrops_CloseDetailBtn"]
                 </button>
             </div>
         </div>
@@ -761,7 +763,7 @@
         <div class="relative max-w-4xl max-h-[90vh] bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] rounded-xl p-4 shadow-2xl overflow-hidden flex flex-col items-center"
              @onclick:stopPropagation="true">
             <div class="w-full flex items-center justify-between pb-2 mb-2 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[#0F172A] dark:text-[#E1E2EC] px-1">
-                <span class="text-xs font-bold text-[#0F172A] dark:text-[#E1E2EC]">@(string.IsNullOrEmpty(lightboxTitle) ? "Enlarged Image View (Original Resolution)" : lightboxTitle)</span>
+                <span class="text-xs font-bold text-[#0F172A] dark:text-[#E1E2EC]">@(string.IsNullOrEmpty(lightboxTitle) ? Loc["LinkDrops_EnlargedImageView"] : lightboxTitle)</span>
                 <button type="button" @onclick="CloseLightbox" class="text-[#64748B] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] text-xs font-bold p-1 cursor-pointer">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
@@ -812,6 +814,14 @@
         string.Equals(purchaseStatusFilter, "ALL", StringComparison.OrdinalIgnoreCase)
             ? userPurchases
             : userPurchases.Where(p => string.Equals(p.Status, purchaseStatusFilter, StringComparison.OrdinalIgnoreCase));
+
+    private string GetPurchaseStatusLabel(string? status) => status?.ToUpperInvariant() switch
+    {
+        "PENDING" => Loc["LinkDrops_Status_Pending"],
+        "APPROVED" => Loc["LinkDrops_Status_Approved"],
+        "REJECTED" => Loc["LinkDrops_Status_Rejected"],
+        _ => status ?? string.Empty
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -974,7 +984,7 @@
         try
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
-            Toast.Success($"{label} copied to clipboard!");
+            Toast.Success(string.Format(Loc["LinkDrops_Toast_Copied"], label));
         }
         catch
         {
@@ -1016,10 +1026,10 @@
         localPreviewDataUrl = null;
     }
 
-    private void OpenEnlargedImage(string url, string title = "Enlarged Image View")
+    private void OpenEnlargedImage(string url, string? title = null)
     {
         lightboxImageUrl = url;
-        lightboxTitle = title;
+        lightboxTitle = title ?? Loc["LinkDrops_EnlargedImageView"];
         isLightboxOpen = true;
     }
 
@@ -1046,19 +1056,19 @@
     {
         if (selectedPaymentMethod == null)
         {
-            Toast.Error("Please select a payment method.");
+            Toast.Error(Loc["LinkDrops_Validation_SelectPaymentMethod"]);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(transactionRefNo))
         {
-            Toast.Error("Please enter your Transaction Reference ID.");
+            Toast.Error(Loc["LinkDrops_Validation_EnterTxnRef"]);
             return;
         }
 
         if (uploadedProofFile == null)
         {
-            Toast.Error("Please upload your payment slip receipt screenshot.");
+            Toast.Error(Loc["LinkDrops_Validation_UploadProof"]);
             return;
         }
 
@@ -1080,7 +1090,7 @@
 
         if (res.IsSuccess)
         {
-            Toast.Success("Payment request submitted successfully! Waiting for admin verification.");
+            Toast.Success(Loc["LinkDrops_Toast_SubmittedSuccess"]);
             submittedPurchaseNumber = res.Data?.PurchaseNumber ?? string.Empty;
             submissionCompleted = true;
             localPreviewDataUrl = null;
@@ -1088,7 +1098,7 @@
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to submit payment request.");
+            Toast.Error(res.Message ?? Loc["LinkDrops_Toast_SubmittedFailed"]);
         }
     }
 

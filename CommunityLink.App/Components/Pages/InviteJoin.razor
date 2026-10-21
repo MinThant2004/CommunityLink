@@ -3,12 +3,14 @@
 @using CommunityLink.App.Components.Shared.Chat
 @using CommunityLink.Shared.Features.ChatGroup
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<AppResources> Loc
 @inject ChatGroupApiService ChatGroupApi
 @inject LinkDropApiService LinkDropApi
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
-<PageTitle>Join Group - CommunityLink</PageTitle>
+<PageTitle>@Loc["Invite_PageTitle"]</PageTitle>
 
 <div class="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-slate-900 px-4 py-12 sm:px-6 lg:px-8">
     <div class="w-full max-w-md space-y-6 rounded-2xl border border-slate-800 bg-slate-950 p-8 shadow-2xl backdrop-blur-xl">
@@ -16,7 +18,7 @@
         {
             <div class="flex flex-col items-center justify-center py-12 space-y-4">
                 <div class="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
-                <p class="text-sm font-medium text-slate-400">Loading invite details…</p>
+                <p class="text-sm font-medium text-slate-400">@Loc["Invite_LoadingDetails"]</p>
             </div>
         }
         else if (error != null)
@@ -27,11 +29,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                     </svg>
                 </div>
-                <h2 class="text-xl font-bold text-white">Invalid Invite Link</h2>
+                <h2 class="text-xl font-bold text-white">@Loc["Invite_InvalidTitle"]</h2>
                 <p class="text-sm text-slate-400">@error</p>
                 <div class="pt-4">
                     <a href="/chat" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700">
-                        Go to Chat
+                        @Loc["Invite_Action_GoToChat"]
                     </a>
                 </div>
             </div>
@@ -57,14 +59,14 @@
                 <div class="space-y-1">
                     <h2 class="text-2xl font-bold tracking-tight text-white">@preview.GroupName</h2>
                     <div class="flex items-center justify-center gap-2 text-xs font-medium text-slate-400">
-                        <span>@preview.MemberCount member@(preview.MemberCount == 1 ? "" : "s")</span>
+                        <span>@(preview.MemberCount == 1 ? string.Format(Loc["Invite_Members_Single"], preview.MemberCount) : string.Format(Loc["Invite_Members_Count"], preview.MemberCount))</span>
                         <span>•</span>
                         <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold @(preview.AccessMode == "PRIVATE" ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" : "bg-slate-500/10 text-slate-400 border border-slate-500/20")">
-                            @(preview.AccessMode == "PRIVATE" ? "Private 🔒" : "Public 🌐")
+                            @(preview.AccessMode == "PRIVATE" ? Loc["Invite_Badge_Private"] : Loc["Invite_Badge_Public"])
                         </span>
                         <span>•</span>
                         <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold @(preview.ChatType == "PAID" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20")">
-                            @(preview.ChatType == "PAID" ? $"{preview.JoinFeeLinkDrops} Drops" : "Free Group")
+                            @(preview.ChatType == "PAID" ? string.Format(Loc["Invite_Badge_PaidDrops"], preview.JoinFeeLinkDrops) : Loc["Invite_Badge_Free"])
                         </span>
                     </div>
                 </div>
@@ -81,31 +83,31 @@
                     @if (!preview.IsValid)
                     {
                         <div class="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3.5 text-xs text-rose-300">
-                            @(preview.InvalidReason ?? "This invite link is no longer valid.")
+                            @(preview.InvalidReason ?? Loc["Invite_NoLongerValid"].Value)
                         </div>
                         <a href="/chat" class="w-full inline-flex items-center justify-center rounded-xl bg-slate-800 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
-                            Go to Chat
+                            @Loc["Invite_Action_GoToChat"]
                         </a>
                     }
                     else if (!isAuthenticated)
                     {
                         <div class="space-y-3">
                             <div class="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs font-medium text-amber-300">
-                                Please log in to join this group.
+                                @Loc["Invite_LoginPrompt"]
                             </div>
                             <a href="@($"/login?returnUrl={Uri.EscapeDataString($"/invite/{Token}")}")"
                                class="w-full flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-500">
-                                Log In
+                                @Loc["Invite_Action_LogIn"]
                             </a>
                         </div>
                     }
                     else if (preview.IsAlreadyMember)
                     {
                         <div class="rounded-xl border border-indigo-500/20 bg-indigo-500/10 p-3.5 text-xs text-indigo-300">
-                            You are already a member of this group.
+                            @Loc["Invite_AlreadyMember"]
                         </div>
                         <button type="button" @onclick="GoToChat" class="w-full inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-500">
-                            Open Chat
+                            @Loc["Invite_Action_OpenChat"]
                         </button>
                     }
                     else if (preview.IsBanned)
@@ -113,13 +115,13 @@
                         <div class="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-left space-y-1.5 select-none">
                             <p class="flex items-center gap-2 text-sm font-semibold text-rose-300">
                                 <span class="text-base">🚫</span>
-                                You are banned from this group.
+                                @Loc["Invite_Banned_Title"]
                             </p>
                             <p class="text-xs text-rose-200/90 leading-relaxed">
-                                You cannot access or send messages in this group.
+                                @Loc["Invite_Banned_Desc"]
                             </p>
                             <p class="text-xs text-slate-400 leading-relaxed pt-1">
-                                Please contact a group administrator if you believe this was a mistake.
+                                @Loc["Invite_Banned_Help"]
                             </p>
                         </div>
                     }
@@ -137,30 +139,30 @@
                             @if (preview.RequestStatus == "PENDING_APPROVAL")
                             {
                                 <div class="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-center space-y-1">
-                                    <p class="text-sm font-semibold text-amber-300">Join request sent</p>
-                                    <p class="text-xs text-amber-200/80">Waiting for approval from the group owner or admin.</p>
+                                    <p class="text-sm font-semibold text-amber-300">@Loc["Invite_Pending_Title"]</p>
+                                    <p class="text-xs text-amber-200/80">@Loc["Invite_Pending_Desc"]</p>
                                 </div>
                                 <button type="button" disabled
                                         class="w-full inline-flex items-center justify-center rounded-xl bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-400 cursor-not-allowed">
-                                    Pending Approval
+                                    @Loc["Invite_Action_PendingApproval"]
                                 </button>
                             }
                             else if (preview.RequestStatus == "REJECTED")
                             {
                                 <div class="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-center space-y-1">
-                                    <p class="text-sm font-semibold text-rose-300">Your join request was declined.</p>
-                                    <p class="text-xs text-rose-200/80">You cannot join this group at this time.</p>
+                                    <p class="text-sm font-semibold text-rose-300">@Loc["Invite_Declined_Title"]</p>
+                                    <p class="text-xs text-rose-200/80">@Loc["Invite_Declined_Desc"]</p>
                                 </div>
                                 <button type="button" disabled
                                         class="w-full inline-flex items-center justify-center rounded-xl bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-400 cursor-not-allowed">
-                                    Request Declined
+                                    @Loc["Invite_Action_RequestDeclined"]
                                 </button>
                             }
                             else if (preview.RequestStatus == "APPROVED_WAITING_PAYMENT")
                             {
                                 <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-center space-y-1">
-                                    <p class="text-sm font-semibold text-emerald-300">Your request was approved!</p>
-                                    <p class="text-xs text-emerald-200/80">Pay @preview.JoinFeeLinkDrops Link Drops to join this group.</p>
+                                    <p class="text-sm font-semibold text-emerald-300">@Loc["Invite_Approved_Title"]</p>
+                                    <p class="text-xs text-emerald-200/80">@string.Format(Loc["Invite_Approved_Desc"], preview.JoinFeeLinkDrops)</p>
                                 </div>
                                 <button type="button"
                                         @onclick="OnJoinButtonClickedAsync"
@@ -170,12 +172,12 @@
                                     {
                                         <span class="flex items-center gap-2">
                                             <span class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                                            Processing…
+                                            @Loc["Invite_Action_Processing"]
                                         </span>
                                     }
                                     else
                                     {
-                                        <span>Pay @preview.JoinFeeLinkDrops Drops & Join</span>
+                                        <span>@string.Format(Loc["Invite_Action_PayDropsAndJoin"], preview.JoinFeeLinkDrops)</span>
                                     }
                                 </button>
                             }
@@ -189,12 +191,12 @@
                                     {
                                         <span class="flex items-center gap-2">
                                             <span class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                                            Submitting request…
+                                            @Loc["Invite_Action_SubmittingRequest"]
                                         </span>
                                     }
                                     else
                                     {
-                                        <span>Request to Join</span>
+                                        <span>@Loc["Invite_Action_RequestToJoin"]</span>
                                     }
                                 </button>
                             }
@@ -209,12 +211,12 @@
                                 {
                                     <span class="flex items-center gap-2">
                                         <span class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                                        Joining group…
+                                        @Loc["Invite_Action_JoiningGroup"]
                                     </span>
                                 }
                                 else
                                 {
-                                    <span>@(preview.ChatType == "PAID" ? $"Pay {preview.JoinFeeLinkDrops} Drops & Join" : "Join Group")</span>
+                                    <span>@(preview.ChatType == "PAID" ? string.Format(Loc["Invite_Action_PayDropsAndJoin"], preview.JoinFeeLinkDrops) : Loc["Invite_Action_JoinGroup"])</span>
                                 }
                             </button>
                         }
@@ -231,7 +233,7 @@
     <UnlockChatModal IsOpen="showUnlockModal"
                      IsGroupUnlock="true"
                      SubjectName="@preview.GroupName"
-                     SubjectSubtitle="@($"{preview.MemberCount} members · Paid Group")"
+                     SubjectSubtitle="@string.Format(Loc["Invite_Modal_SubjectSubtitle"], preview.MemberCount)"
                      AvatarUrl="@preview.GroupAvatar"
                      FeeLinkDrops="@preview.JoinFeeLinkDrops"
                      Balance="@walletBalance"
@@ -284,7 +286,7 @@
     {
         if (string.IsNullOrWhiteSpace(Token))
         {
-            error = "No invite token was supplied.";
+            error = Loc["Invite_Error_NoToken"].Value;
             isLoading = false;
             return;
         }
@@ -301,7 +303,7 @@
         }
         else
         {
-            error = res.Error ?? "Could not load invite link details.";
+            error = res.Error ?? Loc["Invite_Error_LoadFailed"].Value;
         }
     }
 
@@ -335,7 +337,7 @@
         }
         else
         {
-            actionError = result.Error ?? "Failed to join group.";
+            actionError = result.Error ?? Loc["Invite_Error_JoinFailed"].Value;
         }
     }
 
@@ -355,7 +357,7 @@
         }
         else
         {
-            actionError = result.Error ?? "Failed to submit join request.";
+            actionError = result.Error ?? Loc["Invite_Error_RequestFailed"].Value;
         }
     }
 
@@ -385,7 +387,7 @@
         }
         else
         {
-            paymentError = result.Error ?? "Payment failed. Please check your LinkDrop balance.";
+            paymentError = result.Error ?? Loc["Invite_Error_PaymentFailed"].Value;
         }
     }
 
