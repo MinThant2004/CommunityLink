@@ -179,6 +179,14 @@ public class AdministrationController : ControllerBase
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
 
+    [HttpPost("accounts/assign-role")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserManage)]
+    public async Task<IActionResult> AssignAdminRole([FromBody] CommunityLink.Shared.Features.Administration.AssignAdminRoleRequestModel request, CancellationToken cancellationToken)
+    {
+        var result = await _adminService.AssignAdminRoleAsync(request, cancellationToken);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
     #region Content Moderation & Reporting
 
     [HttpPost("reports")]

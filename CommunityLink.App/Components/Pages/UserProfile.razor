@@ -236,12 +236,12 @@
         <div class="flex flex-col w-full">
             
             <!-- ================= COMPACT AMBIENT BACKDROP ================= -->
-            <div class="relative w-full overflow-hidden bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                <div class="absolute inset-0 pointer-events-none opacity-25">
+            <div class="relative w-full overflow-hidden bg-slate-100/80 dark:bg-[#0A1B2E] border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] transition-colors">
+                <div class="absolute inset-0 pointer-events-none opacity-20 dark:opacity-25">
                     <svg class="w-full h-full" height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <pattern height="32" id="prof-grid-pattern" patternUnits="userSpaceOnUse" width="32">
-                                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(196, 210, 225, 0.12)" stroke-width="1"></path>
+                                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" class="text-slate-400 dark:text-[#C4D2E1]" stroke-width="1"></path>
                             </pattern>
                             <radialGradient cx="75%" cy="30%" id="prof-aura" r="60%">
                                 <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25"></stop>
@@ -255,12 +255,12 @@
                 </div>
 
                 <div class="h-28 sm:h-36 max-w-[1400px] mx-auto px-4 sm:px-6 relative flex items-end justify-between pb-3">
-                    <div class="hidden sm:flex items-center gap-2 font-mono text-[10px] text-[#7A8CA6] tracking-wider uppercase">
+                    <div class="hidden sm:flex items-center gap-2 font-mono text-[10px] text-slate-500 dark:text-[#7A8CA6] tracking-wider uppercase">
                         <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span>NODE #@(profile.UserId) // SYNCHRONIZED</span>
                     </div>
                     <div class="ml-auto flex items-center gap-2">
-                        <span class="font-mono text-[10px] font-semibold px-2.5 py-0.5 rounded-[0.25rem] bg-[#1B3B5A]/90 text-[#C4D2E1] border border-[rgba(196,210,225,0.15)]">
+                        <span class="font-mono text-[10px] font-semibold px-2.5 py-0.5 rounded-[0.25rem] bg-white/90 dark:bg-[#1B3B5A]/90 text-slate-700 dark:text-[#C4D2E1] border border-slate-200 dark:border-[rgba(196,210,225,0.15)] shadow-xs">
                             @(profile.IsVerified ? "TIER 0 // VERIFIED FELLOW" : (profile.Role?.RoleName?.ToUpper() == "ADMIN" ? "GOVERNOR" : "MEMBER"))
                         </span>
                     </div>
@@ -329,6 +329,10 @@
                                     <h1 class="font-display text-xl sm:text-2xl font-extrabold text-[#0A1B2E] dark:text-white tracking-tight">
                                         @(string.IsNullOrWhiteSpace(profile.DisplayName) ? profile.UserName : profile.DisplayName)
                                     </h1>
+                                    @if (profile.IsVerified)
+                                    {
+                                        <VerifiedBadge CssClass="w-5 h-5 shrink-0 inline-block align-middle" />
+                                    }
 
                                     <!-- Verified Tier Badge -->
                                     @if (profile.Role?.RoleCode == "PUBLIC_FIGURE")
@@ -384,8 +388,8 @@
                                     @if (profile.IsVerified)
                                     {
                                         <span>•</span>
-                                        <span class="font-mono text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
-                                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                        <span class="font-mono text-[11px] font-semibold text-sky-600 dark:text-sky-400 inline-flex items-center gap-1">
+                                            <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
                                             <span>@Loc["Profile_Badge_CredentialAudited"]</span>
                                         </span>
                                     }
@@ -554,11 +558,26 @@
                         <!-- Right: SLA Metric Chips -->
                         <div class="flex flex-wrap items-center gap-2.5 flex-1 lg:justify-end">
                             <div class="px-3 py-2 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center gap-2.5">
-                                <span class="w-7 h-7 rounded-[0.25rem] @(profile.IsVerified ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400" : "bg-slate-100 dark:bg-slate-800 text-slate-500") flex items-center justify-center text-xs shrink-0">
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                </span>
+                                @if (profile.IsVerified)
+                                {
+                                    <span class="w-7 h-7 rounded-[0.25rem] bg-sky-50 dark:bg-sky-950/60 flex items-center justify-center shrink-0">
+                                        <VerifiedBadge CssClass="w-4 h-4 shrink-0" />
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="w-7 h-7 rounded-[0.25rem] bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center text-xs shrink-0">
+                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                    </span>
+                                }
                                 <div>
-                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(profile.IsVerified ? Loc["Profile_Reputation_VerifiedMember"] : Loc["Profile_Reputation_ActiveMember"])</div>
+                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white flex items-center gap-1.5">
+                                        <span>@(profile.IsVerified ? Loc["Profile_Reputation_VerifiedMember"] : Loc["Profile_Reputation_ActiveMember"])</span>
+                                        @if (profile.IsVerified)
+                                        {
+                                            <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
+                                        }
+                                    </div>
                                     <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">@(profile.Metrics.RatingCount > 0 ? Loc["Profile_Reputation_PeerRatings", profile.Metrics.RatingCount] : Loc["Profile_Reputation_NoPeerRatings"])</div>
                                 </div>
                             </div>

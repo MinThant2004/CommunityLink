@@ -26,7 +26,10 @@ public sealed class HttpCurrentUserContext(IHttpContextAccessor httpContextAcces
     public string? RoleCode => User?.FindFirst(ClaimTypes.Role)?.Value ?? User?.FindFirst("role")?.Value;
     public int? RoleId => int.TryParse(User?.FindFirst("role_id")?.Value, out var roleId) ? roleId : null;
     public bool IsAuthenticated => User?.Identity?.IsAuthenticated ?? false;
-    public bool IsAdmin => string.Equals(RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase) || (User?.HasClaim("permission", PermissionCatalog.AdminUserView) ?? false);
+    public bool IsAdmin => string.Equals(RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           (User?.HasClaim("permission", PermissionCatalog.AdminUserView) ?? false);
     public bool IsPremiumCreator => string.Equals(RoleCode, "DOMAIN_PROFESSIONAL", StringComparison.OrdinalIgnoreCase)
                                  || string.Equals(RoleCode, "PUBLIC_FIGURE", StringComparison.OrdinalIgnoreCase);
 }

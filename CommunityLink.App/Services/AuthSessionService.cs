@@ -9,6 +9,11 @@ public sealed class AuthSessionService(IHttpContextAccessor httpContextAccessor)
 {
     public ClaimsPrincipal BuildPrincipal(LoginResponseModel response)
     {
+        bool isAdminRole = string.Equals(response.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(response.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(response.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(response.RoleCode, "SUPERADMIN", StringComparison.OrdinalIgnoreCase);
+
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, response.UserId.ToString()),
@@ -20,6 +25,8 @@ public sealed class AuthSessionService(IHttpContextAccessor httpContextAccessor)
             new(ClaimTypes.Role, response.RoleCode),
             new("role", response.RoleCode),
             new("role_id", response.RoleId.ToString()),
+            new("role_type", isAdminRole ? "1" : "0"),
+            new("is_admin", isAdminRole ? "true" : "false"),
             new("access_token", response.AccessToken),
             new("session_id", response.SessionId),
             new("must_change_password", response.MustChangePassword.ToString().ToLowerInvariant())

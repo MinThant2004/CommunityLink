@@ -46,6 +46,8 @@ public static class AuthFlowEndpoints
             return Results.Redirect("/login");
         }).DisableAntiforgery();
 
+        endpoints.MapGet("/admin/login", () => Results.Redirect("/admin/portal-entry/login"));
+
         endpoints.MapPost("/account/admin/login",
             async ([FromForm] string email,
                    [FromForm] string password,
@@ -110,9 +112,9 @@ public static class AuthFlowEndpoints
 
         await sessions.SignInAsync(result.Data, rememberMe);
         
-        string defaultTarget = (result.Data.RoleCode?.ToUpperInvariant() == "ADMIN" || result.Data.RoleCode?.ToUpperInvariant() == "SUPERADMIN")
-            ? "/admin/dashboard"
-            : "/";
+        var normalizedRole = result.Data.RoleCode?.ToUpperInvariant();
+        bool isAdmin = normalizedRole == "ADMIN" || normalizedRole == "SUPERADMIN" || normalizedRole == "SYSTEM_ADMIN" || normalizedRole == "SYSTEMADMIN";
+        string defaultTarget = isAdmin ? "/admin/dashboard" : "/";
 
         var target = IsLocalUrl(returnUrl) ? returnUrl! : defaultTarget;
         return Results.Redirect(target);

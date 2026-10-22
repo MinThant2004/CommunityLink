@@ -361,8 +361,12 @@
                                         </a>
                                         <div>
                                             <div class="flex items-center gap-1.5 flex-wrap">
-                                                <a href="u/@(post.AuthorId > 0 ? post.AuthorId.ToString() : post.AuthorName)" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition block leading-tight" style="font-family:'Manrope',sans-serif">
-                                                    @post.AuthorName
+                                                <a href="u/@(post.AuthorId > 0 ? post.AuthorId.ToString() : post.AuthorName)" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition inline-flex items-center gap-1 leading-tight" style="font-family:'Manrope',sans-serif">
+                                                    <span>@post.AuthorName</span>
+                                                    @if (post.IsAuthorVerified)
+                                                    {
+                                                        <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
+                                                    }
                                                 </a>
                                                 @if (post.AuthorRoleCode == "PUBLIC_FIGURE")
                                                 {

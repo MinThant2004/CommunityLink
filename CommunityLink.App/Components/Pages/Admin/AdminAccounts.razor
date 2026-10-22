@@ -1,6 +1,7 @@
 @page "/admin/accounts"
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
 @inject AdministrationApiService AdminApi
+@inject RoleAndPermissionApiService RoleApi
 @inject ToastService Toast
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JS
@@ -109,10 +110,23 @@
                                     }
                                     else
                                     {
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold font-mono bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                            <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                            <span>@Loc["Admin_Accounts_RoleAdmin"]</span>
-                                        </span>
+                                        <select value="@admin.RoleId" @onchange="(e) => PromptAdminRoleChange(admin, e)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#182030] text-slate-700 dark:text-[#E1E8F0] outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 cursor-pointer">
+                                            @if (assignableAdminRoles.Count > 0)
+                                            {
+                                                @if (!assignableAdminRoles.Any(r => r.RoleId == admin.RoleId))
+                                                {
+                                                    <option value="@admin.RoleId" disabled selected>@admin.RoleName (@admin.RoleCode)</option>
+                                                }
+                                                @foreach (var r in assignableAdminRoles)
+                                                {
+                                                    <option value="@r.RoleId">@r.Name (@r.Code)</option>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <option value="@admin.RoleId">@admin.RoleName</option>
+                                            }
+                                        </select>
                                     }
                                 </td>
                                 <td class="px-6 py-4">
@@ -192,23 +206,20 @@
 
                 <div class="space-y-1.5">
                     <label class="block text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0] uppercase font-mono tracking-wider">@Loc["Admin_Accounts_ModalTypeLabel"]</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex flex-col p-3 rounded-lg border cursor-pointer transition @(!inviteIsSuperAdmin ? "border-[#0A1B2E] dark:border-[#E1E8F0] bg-[#F1F5F9] dark:bg-[#1B3B5A]" : "border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#0A1B2E]")">
-                            <div class="flex items-center gap-2">
-                                <input type="radio" name="adminType" checked="@(!inviteIsSuperAdmin)" @onchange="() => inviteIsSuperAdmin = false" />
-                                <span class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["Admin_Accounts_RoleAdmin"]</span>
-                            </div>
-                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] mt-1">@Loc["Admin_Accounts_TypeAdminDesc"]</span>
-                        </label>
-
-                        <label class="flex flex-col p-3 rounded-lg border cursor-pointer transition @(inviteIsSuperAdmin ? "border-[#0A1B2E] dark:border-[#E1E8F0] bg-[#F1F5F9] dark:bg-[#1B3B5A]" : "border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#0A1B2E]")">
-                            <div class="flex items-center gap-2">
-                                <input type="radio" name="adminType" checked="@(inviteIsSuperAdmin)" @onchange="() => inviteIsSuperAdmin = true" />
-                                <span class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["Admin_Accounts_RoleSuperAdmin"]</span>
-                            </div>
-                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] mt-1">@Loc["Admin_Accounts_TypeSuperAdminDesc"]</span>
-                        </label>
-                    </div>
+                    <select @bind="selectedAdminRoleId" class="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] transition">
+                        @if (adminRoles.Count == 0)
+                        {
+                            <option value="0">@Loc["Admin_Accounts_Loading"]</option>
+                        }
+                        else
+                        {
+                            @foreach (var r in adminRoles)
+                            {
+                                <option value="@r.RoleId">@r.Name (@r.Code)</option>
+                            }
+                        }
+                    </select>
+                    <p class="text-[11px] text-[#557392] dark:text-[#C4D2E1]">@Loc["Admin_Accounts_TypeAdminDesc"]</p>
                 </div>
 
                 <div class="p-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-xs text-[#557392] dark:text-[#C4D2E1] space-y-1">
@@ -239,8 +250,43 @@
     </div>
 }
 
+<!-- Modal: Confirm Admin Role Change -->
+@if (showRoleConfirmModal && pendingAdmin != null && pendingRole != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-[#0A1B2E]/50 backdrop-blur-xs p-4">
+        <div class="bg-white dark:bg-[#112A46] rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div class="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+            <div class="text-center space-y-1">
+                <h3 class="font-bold text-base text-[#0A1B2E] dark:text-[#E1E8F0]">Confirm Role Reassignment</h3>
+                <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">
+                    Change administrator <strong>@pendingAdmin.FullName</strong>'s role to <strong>@pendingRole.Name (@pendingRole.Code)</strong>?
+                </p>
+            </div>
+            <div class="flex items-center justify-center gap-3 pt-2">
+                <button @onclick="CancelAdminRoleChange" class="px-4 py-2 rounded-lg text-xs font-semibold border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-slate-700 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition" disabled="@isChangingRole">
+                    Cancel
+                </button>
+                <button @onclick="ConfirmAdminRoleChangeAsync" disabled="@isChangingRole" class="px-5 py-2 rounded-lg text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:bg-[#112A46] dark:hover:bg-white transition flex items-center gap-1.5">
+                    @if (isChangingRole)
+                    {
+                        <span class="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white dark:border-[#0A1B2E] border-t-transparent"></span>
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span>Confirm Change</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<AdminAccountModel> adminAccounts = [];
+    private List<RoleModel> adminRoles = [];
     private bool isLoading = true;
     private string searchFilter = "";
     private bool isCurrentCallerSuperAdmin;
@@ -248,9 +294,16 @@
     // Modal state
     private bool showInviteModal;
     private string targetEmail = "";
-    private bool inviteIsSuperAdmin = false;
+    private int selectedAdminRoleId = 0;
     private string? modalError;
     private bool isInviting;
+
+    // Role change modal state
+    private bool showRoleConfirmModal;
+    private AdminAccountModel? pendingAdmin;
+    private RoleModel? pendingRole;
+    private bool isChangingRole;
+    private List<RoleModel> assignableAdminRoles => adminRoles.Where(r => !string.Equals(r.Code, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) && !string.Equals(r.Code, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase)).ToList();
 
     // Generated Invite Link
     private string? generatedInviteLink;
@@ -266,9 +319,11 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         var roleCode = user.FindFirst("role")?.Value ?? user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-        isCurrentCallerSuperAdmin = string.Equals(roleCode, "SUPERADMIN", StringComparison.OrdinalIgnoreCase);
+        isCurrentCallerSuperAdmin = string.Equals(roleCode, "SUPERADMIN", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(roleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase);
 
         await LoadDataAsync();
+        await LoadAdminRolesAsync();
     }
 
     private async Task LoadDataAsync()
@@ -283,10 +338,28 @@
         isLoading = false;
     }
 
+    private async Task LoadAdminRolesAsync()
+    {
+        var rolesRes = await RoleApi.GetRolesAsync(roleType: 1);
+        if (rolesRes.IsSuccess && rolesRes.Data != null)
+        {
+            adminRoles = rolesRes.Data.ToList();
+            if (selectedAdminRoleId == 0 && adminRoles.Count > 0)
+            {
+                var defaultAdmin = adminRoles.FirstOrDefault(r => r.Code == "ADMIN") ?? adminRoles[0];
+                selectedAdminRoleId = defaultAdmin.RoleId;
+            }
+        }
+    }
+
     private void OpenInviteModal()
     {
         targetEmail = "";
-        inviteIsSuperAdmin = false;
+        if (adminRoles.Count > 0 && selectedAdminRoleId == 0)
+        {
+            var defaultAdmin = adminRoles.FirstOrDefault(r => r.Code == "ADMIN") ?? adminRoles[0];
+            selectedAdminRoleId = defaultAdmin.RoleId;
+        }
         modalError = null;
         showInviteModal = true;
     }
@@ -305,8 +378,19 @@
             return;
         }
 
+        if (selectedAdminRoleId == 0 && adminRoles.Count > 0)
+        {
+            selectedAdminRoleId = adminRoles[0].RoleId;
+        }
+
+        var chosenRole = adminRoles.FirstOrDefault(r => r.RoleId == selectedAdminRoleId);
+        var isSuperAdmin = chosenRole != null &&
+            (string.Equals(chosenRole.Code, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(chosenRole.Code, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase));
+
         isInviting = true;
-        var result = await AdminApi.CreateAdminInviteAsync(new CreateAdminInviteRequestModel(targetEmail.Trim(), null, inviteIsSuperAdmin));
+        var req = new CreateAdminInviteRequestModel(targetEmail.Trim(), null, isSuperAdmin, selectedAdminRoleId);
+        var result = await AdminApi.CreateAdminInviteAsync(req);
         isInviting = false;
 
         if (!result.IsSuccess)
@@ -345,5 +429,52 @@
         {
             Toast.Error(result.Message);
         }
+    }
+
+    private void PromptAdminRoleChange(AdminAccountModel admin, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var targetRoleId))
+        {
+            if (targetRoleId == admin.RoleId) return;
+            var targetRole = assignableAdminRoles.FirstOrDefault(r => r.RoleId == targetRoleId);
+            if (targetRole != null)
+            {
+                pendingAdmin = admin;
+                pendingRole = targetRole;
+                showRoleConfirmModal = true;
+            }
+        }
+    }
+
+    private void CancelAdminRoleChange()
+    {
+        showRoleConfirmModal = false;
+        pendingAdmin = null;
+        pendingRole = null;
+        StateHasChanged();
+    }
+
+    private async Task ConfirmAdminRoleChangeAsync()
+    {
+        if (pendingAdmin == null || pendingRole == null) return;
+
+        isChangingRole = true;
+        var req = new AssignAdminRoleRequestModel(pendingAdmin.AdminId, pendingRole.RoleId);
+        var res = await AdminApi.AssignAdminRoleAsync(req);
+        isChangingRole = false;
+
+        if (res.IsSuccess)
+        {
+            Toast.Success(res.Message);
+        }
+        else
+        {
+            Toast.Error(res.Message);
+        }
+
+        showRoleConfirmModal = false;
+        pendingAdmin = null;
+        pendingRole = null;
+        await LoadDataAsync();
     }
 }

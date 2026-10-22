@@ -9,7 +9,7 @@ namespace CommunityLink.Domain.Features.RoleAndPermission;
 
 public interface IRoleAndPermissionService
 {
-    Task<Result<IReadOnlyList<RoleModel>>> GetRolesAsync(CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<RoleModel>>> GetRolesAsync(int? roleType = null, CancellationToken cancellationToken = default);
     Task<Result<RolePermissionMatrixResponseModel>> GetRolePermissionsAsync(int roleId, CancellationToken cancellationToken = default);
     Task<Result> UpdateRolePermissionsAsync(UpdateRolePermissionsRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<RoleModel>> CreateRoleAsync(CreateRoleRequestModel request, CancellationToken cancellationToken = default);
@@ -24,10 +24,14 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
         if (currentUser.RoleId is null)
             return Result<IReadOnlyList<string>>.Success([]);
 
-        if (string.Equals(currentUser.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(currentUser.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(currentUser.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase))
         {
-            var all = await dbContext.TblPermissions.Where(p => !p.IsDeleted).Select(p => p.PermissionCode).ToListAsync(cancellationToken);
-            return Result<IReadOnlyList<string>>.Success(all);
+            var adminPerms = await dbContext.TblPermissions
+                .Where(p => !p.IsDeleted && p.Type == 1)
+                .Select(p => p.PermissionCode)
+                .ToListAsync(cancellationToken);
+            return Result<IReadOnlyList<string>>.Success(adminPerms);
         }
 
         var perms = await dbContext.TblRolePermissions
@@ -39,18 +43,26 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
         return Result<IReadOnlyList<string>>.Success(perms);
     }
 
-    public async Task<Result<IReadOnlyList<RoleModel>>> GetRolesAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<RoleModel>>> GetRolesAsync(int? roleType = null, CancellationToken cancellationToken = default)
     {
-        var roles = await dbContext.TblRoles
+        var query = dbContext.TblRoles
             .AsNoTracking()
-            .Where(r => !r.IsDeleted)
+            .Where(r => !r.IsDeleted);
+
+        if (roleType.HasValue)
+        {
+            query = query.Where(r => r.RoleType == roleType.Value);
+        }
+
+        var roles = await query
             .Select(r => new RoleModel(
                 r.RoleId,
                 r.RoleCode,
                 r.RoleName,
                 r.Description,
                 r.IsSystemRole,
-                r.TblUserRoles.Count + r.TblAdminRoles.Count))
+                r.RoleType == 1 ? r.TblAdminRoles.Count : r.TblUserRoles.Count,
+                r.RoleType))
             .ToListAsync(cancellationToken);
 
         return Result<IReadOnlyList<RoleModel>>.Success(roles);
@@ -61,18 +73,24 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
         var role = await dbContext.TblRoles.FindAsync([roleId], cancellationToken);
         if (role is null || role.IsDeleted) return Result<RolePermissionMatrixResponseModel>.Failure("Role not found.", ResultStatus.NotFound);
 
-        var allPermissions = await dbContext.TblPermissions.Where(p => !p.IsDeleted).AsNoTracking().ToListAsync(cancellationToken);
+        // Filter available permissions strictly matching the role's RoleType
+        var permissionsForType = await dbContext.TblPermissions
+            .Where(p => !p.IsDeleted && p.Type == role.RoleType)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
 
-        // If ADMIN, all permissions are always granted and dynamic
-        if (string.Equals(role.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase))
+        // If SYSTEM_ADMIN, all admin permissions are always granted and read-only
+        if (string.Equals(role.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(role.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase))
         {
-            var adminItems = allPermissions.Select(p => new RolePermissionItemModel(
+            var systemAdminItems = permissionsForType.Select(p => new RolePermissionItemModel(
                 p.PermissionCode,
                 p.PermissionName,
                 p.Module,
-                true)).ToList();
+                true,
+                p.Type)).ToList();
 
-            return Result<RolePermissionMatrixResponseModel>.Success(new(role.RoleId, role.RoleCode, role.RoleName, adminItems));
+            return Result<RolePermissionMatrixResponseModel>.Success(new(role.RoleId, role.RoleCode, role.RoleName, role.RoleType, systemAdminItems));
         }
 
         var activePermissionIds = await dbContext.TblRolePermissions
@@ -80,13 +98,14 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
             .Select(rp => rp.PermissionId)
             .ToListAsync(cancellationToken);
 
-        var items = allPermissions.Select(p => new RolePermissionItemModel(
+        var items = permissionsForType.Select(p => new RolePermissionItemModel(
             p.PermissionCode,
             p.PermissionName,
             p.Module,
-            activePermissionIds.Contains(p.PermissionId))).ToList();
+            activePermissionIds.Contains(p.PermissionId),
+            p.Type)).ToList();
 
-        return Result<RolePermissionMatrixResponseModel>.Success(new(role.RoleId, role.RoleCode, role.RoleName, items));
+        return Result<RolePermissionMatrixResponseModel>.Success(new(role.RoleId, role.RoleCode, role.RoleName, role.RoleType, items));
     }
 
     public async Task<Result> UpdateRolePermissionsAsync(UpdateRolePermissionsRequestModel request, CancellationToken cancellationToken = default)
@@ -94,25 +113,30 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
         var role = await dbContext.TblRoles.FindAsync([request.RoleId], cancellationToken);
         if (role is null || role.IsDeleted) return Result.Failure("Role not found.", ResultStatus.NotFound);
 
-        if (string.Equals(role.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(role.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(role.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase))
         {
-            return Result.Failure("ADMIN role permissions are fixed and cannot be edited.", ResultStatus.Forbidden);
+            return Result.Failure("Permissions for SYSTEM_ADMIN are locked and cannot be modified.", ResultStatus.Forbidden);
         }
 
-        var allPermissions = await dbContext.TblPermissions.Where(p => !p.IsDeleted).ToListAsync(cancellationToken);
+        // Only allow permissions matching the role's RoleType
+        var availablePermissions = await dbContext.TblPermissions
+            .Where(p => !p.IsDeleted && p.Type == role.RoleType)
+            .ToListAsync(cancellationToken);
+
         var existingMappings = await dbContext.TblRolePermissions
             .Where(rp => rp.RoleId == request.RoleId)
             .ToListAsync(cancellationToken);
 
         var previousCodes = existingMappings
             .Where(m => !m.IsDeleted)
-            .Join(allPermissions, m => m.PermissionId, p => p.PermissionId, (m, p) => p.PermissionCode)
+            .Join(availablePermissions, m => m.PermissionId, p => p.PermissionId, (m, p) => p.PermissionCode)
             .OrderBy(c => c)
             .ToList();
 
         var grantedSet = new HashSet<string>(request.GrantedPermissionCodes, StringComparer.OrdinalIgnoreCase);
 
-        foreach (var permission in allPermissions)
+        foreach (var permission in availablePermissions)
         {
             var mapping = existingMappings.FirstOrDefault(m => m.PermissionId == permission.PermissionId);
             var shouldGrant = grantedSet.Contains(permission.PermissionCode);
@@ -142,8 +166,8 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
             Action = "CHANGE",
             EntityName = "PERMISSION",
             EntityId = role.RoleId,
-            OldValues = $"Role: {role.RoleName} | Granted ({previousCodes.Count}): {string.Join(", ", previousCodes)}",
-            NewValues = $"Role: {role.RoleName} | Granted ({request.GrantedPermissionCodes.Count}): {string.Join(", ", request.GrantedPermissionCodes.OrderBy(x => x))}",
+            OldValues = $"Role: {role.RoleName} ({role.RoleCode}) | Granted ({previousCodes.Count}): {string.Join(", ", previousCodes)}",
+            NewValues = $"Role: {role.RoleName} ({role.RoleCode}) | Granted ({request.GrantedPermissionCodes.Count}): {string.Join(", ", request.GrantedPermissionCodes.OrderBy(x => x))}",
             ChangedColumns = "Permissions",
             CreatedAt = DateTime.UtcNow
         });
@@ -163,6 +187,7 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
         var normalizedCode = request.RoleCode.Trim().ToUpperInvariant();
         var normalizedName = request.RoleName.Trim();
         var normalizedDesc = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+        var roleType = request.RoleType == 1 ? 1 : 0; // 0 = User, 1 = Admin
 
         var codeExists = await dbContext.TblRoles.AnyAsync(r => !r.IsDeleted && r.RoleCode.ToUpper() == normalizedCode, cancellationToken);
         if (codeExists)
@@ -185,16 +210,18 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
             RoleName = normalizedName,
             Description = normalizedDesc,
             IsSystemRole = false,
+            RoleType = roleType,
             CreatedAt = DateTime.UtcNow
         };
 
         dbContext.TblRoles.Add(newRole);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        // Assign default USER permissions
-        var defaultCodes = PermissionCatalog.DefaultForRole("USER");
+        // Assign default permissions matching role domain
+        var defaultRoleLookup = roleType == 1 ? "ADMIN" : "DEFAULT_USER";
+        var defaultCodes = PermissionCatalog.DefaultForRole(defaultRoleLookup);
         var defaultPermissions = await dbContext.TblPermissions
-            .Where(p => !p.IsDeleted && defaultCodes.Contains(p.PermissionCode))
+            .Where(p => !p.IsDeleted && p.Type == roleType && defaultCodes.Contains(p.PermissionCode))
             .ToListAsync(cancellationToken);
 
         foreach (var p in defaultPermissions)
@@ -217,8 +244,8 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
             EntityName = "ROLE",
             EntityId = newRole.RoleId,
             OldValues = null,
-            NewValues = $"Code: {newRole.RoleCode}, Name: {newRole.RoleName}, Desc: {newRole.Description ?? "N/A"}",
-            ChangedColumns = "RoleCode, RoleName, Description",
+            NewValues = $"Code: {newRole.RoleCode}, Name: {newRole.RoleName}, RoleType: {(newRole.RoleType == 1 ? "Admin" : "User")}, Desc: {newRole.Description ?? "N/A"}",
+            ChangedColumns = "RoleCode, RoleName, RoleType, Description",
             CreatedAt = DateTime.UtcNow
         });
 
@@ -230,7 +257,8 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
             newRole.RoleName,
             newRole.Description,
             newRole.IsSystemRole,
-            0);
+            0,
+            newRole.RoleType);
 
         return Result<RoleModel>.Success(resultModel, $"Role '{newRole.RoleName}' created successfully.");
     }
@@ -241,24 +269,50 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
         if (role is null || role.IsDeleted)
             return Result.Failure("Role not found.", ResultStatus.NotFound);
 
-        if (role.IsSystemRole || string.Equals(role.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase) || string.Equals(role.RoleCode, "USER", StringComparison.OrdinalIgnoreCase))
+        // System protected roles: SYSTEM_ADMIN, ADMIN, DEFAULT_USER
+        if (role.IsSystemRole ||
+            string.Equals(role.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(role.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(role.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(role.RoleCode, "DEFAULT_USER", StringComparison.OrdinalIgnoreCase))
         {
-            return Result.Failure("System roles (ADMIN and USER) cannot be deleted.", ResultStatus.Forbidden);
+            return Result.Failure($"Protected roles (SYSTEM_ADMIN, ADMIN, and DEFAULT_USER) cannot be deleted.", ResultStatus.Forbidden);
         }
 
-        // Resolve default USER role
-        var defaultUserRole = await dbContext.TblRoles.FirstOrDefaultAsync(r => !r.IsDeleted && r.RoleCode == "USER", cancellationToken);
-        if (defaultUserRole is null)
+        string fallbackRoleCode;
+        if (role.RoleType == 1)
         {
-            return Result.Failure("Default USER role could not be found to reassign users.", ResultStatus.NotFound);
-        }
+            // Admin Domain Role deleted -> Fallback to ADMIN (never to SYSTEM_ADMIN)
+            var defaultAdminRole = await dbContext.TblRoles
+                .FirstOrDefaultAsync(r => !r.IsDeleted && r.RoleCode == "ADMIN" && r.RoleType == 1, cancellationToken);
 
-        // Reassign all active users assigned to this role to the default USER role
-        var userRoles = await dbContext.TblUserRoles.Where(ur => ur.RoleId == roleId).ToListAsync(cancellationToken);
-        foreach (var ur in userRoles)
+            if (defaultAdminRole is null)
+                return Result.Failure("Default 'ADMIN' fallback role could not be found to reassign admins.", ResultStatus.NotFound);
+
+            var adminRoles = await dbContext.TblAdminRoles.Where(ar => ar.RoleId == roleId).ToListAsync(cancellationToken);
+            foreach (var ar in adminRoles)
+            {
+                ar.RoleId = defaultAdminRole.RoleId;
+                ar.UpdatedAt = DateTime.UtcNow;
+            }
+            fallbackRoleCode = "ADMIN";
+        }
+        else
         {
-            ur.RoleId = defaultUserRole.RoleId;
-            ur.UpdatedAt = DateTime.UtcNow;
+            // User Domain Role deleted -> Fallback to DEFAULT_USER
+            var defaultUserRole = await dbContext.TblRoles
+                .FirstOrDefaultAsync(r => !r.IsDeleted && r.RoleCode == "DEFAULT_USER", cancellationToken);
+
+            if (defaultUserRole is null)
+                return Result.Failure("Default 'DEFAULT_USER' fallback role could not be found to reassign users.", ResultStatus.NotFound);
+
+            var userRoles = await dbContext.TblUserRoles.Where(ur => ur.RoleId == roleId).ToListAsync(cancellationToken);
+            foreach (var ur in userRoles)
+            {
+                ur.RoleId = defaultUserRole.RoleId;
+                ur.UpdatedAt = DateTime.UtcNow;
+            }
+            fallbackRoleCode = "DEFAULT_USER";
         }
 
         // Soft-delete the role
@@ -281,13 +335,13 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
             Action = "DELETE",
             EntityName = "ROLE",
             EntityId = role.RoleId,
-            OldValues = $"Code: {role.RoleCode}, Name: {role.RoleName}",
-            NewValues = "Deleted",
+            OldValues = $"Code: {role.RoleCode}, Name: {role.RoleName}, RoleType: {role.RoleType}",
+            NewValues = $"Deleted, Reassigned to {fallbackRoleCode}",
             ChangedColumns = "IsDeleted",
             CreatedAt = DateTime.UtcNow
         });
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        return Result.Success($"Role '{role.RoleName}' deleted successfully and associated users were reassigned to 'USER'.");
+        return Result.Success($"Role '{role.RoleName}' deleted successfully and associated accounts were reassigned to '{fallbackRoleCode}'.");
     }
 }

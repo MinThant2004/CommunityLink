@@ -4,6 +4,7 @@
 let _globeRenderer = null;
 let _globeAnimationId = null;
 let _globeResizeHandler = null;
+let _globeCleanups = [];
 
 window.initGlobe = function () {
     // Prevent double-init
@@ -11,7 +12,7 @@ window.initGlobe = function () {
         window.disposeGlobe();
     }
 
-    const container = document.getElementById('globe-canvas');
+    const container = document.getElementById('globe-canvas') || document.getElementById('threejs-container');
     if (!container || typeof THREE === 'undefined') return;
 
     const width = container.clientWidth || window.innerWidth;
@@ -492,21 +493,21 @@ window.initGlobe = function () {
     const dom = renderer.domElement;
     dom.style.cursor = 'grab';
 
-    dom.addEventListener('mousedown', (e) => {
+    const onMouseDown = (e) => {
         isDragging = true;
         autoRotate = false;
         dom.style.cursor = 'grabbing';
         prevMousePos = { x: e.clientX, y: e.clientY };
-    });
+    };
 
-    window.addEventListener('mouseup', () => {
+    const onMouseUp = () => {
         if (isDragging) {
             isDragging = false;
             dom.style.cursor = 'grab';
         }
-    });
+    };
 
-    window.addEventListener('mousemove', (e) => {
+    const onMouseMove = (e) => {
         if (!isDragging) return;
         const deltaX = e.clientX - prevMousePos.x;
         const deltaY = e.clientY - prevMousePos.y;
@@ -516,18 +517,17 @@ window.initGlobe = function () {
         targetRotX = Math.max(-1.1, Math.min(1.1, targetRotX));
 
         prevMousePos = { x: e.clientX, y: e.clientY };
-    });
+    };
 
-    // Touch controls
-    dom.addEventListener('touchstart', (e) => {
+    const onTouchStart = (e) => {
         if (e.touches.length === 1) {
             isDragging = true;
             autoRotate = false;
             prevMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         }
-    }, { passive: true });
+    };
 
-    window.addEventListener('touchmove', (e) => {
+    const onTouchMove = (e) => {
         if (!isDragging || e.touches.length !== 1) return;
         const deltaX = e.touches[0].clientX - prevMousePos.x;
         const deltaY = e.touches[0].clientY - prevMousePos.y;
@@ -537,18 +537,35 @@ window.initGlobe = function () {
         targetRotX = Math.max(-1.1, Math.min(1.1, targetRotX));
 
         prevMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }, { passive: true });
+    };
 
-    window.addEventListener('touchend', () => {
+    const onTouchEnd = () => {
         isDragging = false;
-    });
+    };
 
-    // Wheel to Zoom
-    dom.addEventListener('wheel', (e) => {
+    const onWheel = (e) => {
         e.preventDefault();
         camera.position.z += e.deltaY * 0.012;
         camera.position.z = Math.max(14, Math.min(32, camera.position.z));
-    }, { passive: false });
+    };
+
+    dom.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('mousemove', onMouseMove);
+    dom.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
+    dom.addEventListener('wheel', onWheel, { passive: false });
+
+    _globeCleanups.push(() => {
+        dom.removeEventListener('mousedown', onMouseDown);
+        window.removeEventListener('mouseup', onMouseUp);
+        window.removeEventListener('mousemove', onMouseMove);
+        dom.removeEventListener('touchstart', onTouchStart);
+        window.removeEventListener('touchmove', onTouchMove);
+        window.removeEventListener('touchend', onTouchEnd);
+        dom.removeEventListener('wheel', onWheel);
+    });
 
     // Animation Loop
     let time = 0;
@@ -601,6 +618,10 @@ window.disposeGlobe = function () {
     if (_globeResizeHandler) {
         window.removeEventListener('resize', _globeResizeHandler);
         _globeResizeHandler = null;
+    }
+    while (_globeCleanups.length > 0) {
+        const cleanup = _globeCleanups.pop();
+        try { cleanup(); } catch (e) { }
     }
     if (_globeRenderer) {
         _globeRenderer.dispose();

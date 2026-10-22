@@ -30,7 +30,7 @@ public class UserProfileDto
 
 public class UserRoleInfoDto
 {
-    public string RoleCode { get; set; } = "USER";
+    public string RoleCode { get; set; } = "DEFAULT_USER";
     public string RoleName { get; set; } = "Member";
     public string Badge { get; set; } = "👤";
 }

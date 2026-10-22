@@ -1213,6 +1213,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Module).HasMaxLength(100);
+            entity.Property(e => e.Type).HasDefaultValue(0);
             entity.Property(e => e.PermissionCode).HasMaxLength(100);
             entity.Property(e => e.PermissionName).HasMaxLength(100);
             entity.Property(e => e.RowVersion)
@@ -1469,6 +1470,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.RoleCode).HasMaxLength(100);
             entity.Property(e => e.RoleName).HasMaxLength(100);
+            entity.Property(e => e.RoleType).HasDefaultValue(0);
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();

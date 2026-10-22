@@ -1,4 +1,4 @@
-@using CommunityLink.App.Components.Shared.Chat
+﻿@using CommunityLink.App.Components.Shared.Chat
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<AppResources> Loc
 
@@ -154,9 +154,7 @@
                                                 <span class="truncate text-sm font-medium text-slate-900 dark:text-[#E1E2EC]">@person.DisplayName</span>
                                                 @if (person.IsVerified)
                                                 {
-                                                    <svg class="h-3.5 w-3.5 shrink-0 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-label="@Loc["Chat_Verified"]">
-                                                        <path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 0 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" />
-                                                    </svg>
+                                                    <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0 inline-block" />
                                                 }
                                             </span>
                                             <span class="mt-0.5 block truncate text-xs text-slate-500 dark:text-[#94A3B8]">@@@person.UserName</span>

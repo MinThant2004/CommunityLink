@@ -3,11 +3,14 @@
 @rendermode InteractiveServer
 @using System.IO
 @using System.Globalization
+@using CommunityLink.Shared.Security
 @inject CommunityApiService CommunityApi
 @inject ToastService Toast
 @inject NavigationManager Navigation
 @inject IWebHostEnvironment Environment
 @inject IStringLocalizer<AppResources> Loc
+@inject AuthenticationStateProvider AuthStateProvider
+@inject RoleAndPermissionApiService RoleApi
 
 <PageTitle>@Loc["Communities_PageTitle"]</PageTitle>
 
@@ -45,61 +48,76 @@
                 }
             </nav>
 
-            <!-- Hero Panel -->
-            <div class="relative rounded-xl bg-surface-container-low p-space-md md:p-space-lg overflow-hidden border border-surface-container-high/30">
-                <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+            @if (isAdmin)
+            {
+                <!-- Hero Panel (Admin Telemetry & Directory) -->
+                <div class="relative rounded-2xl bg-gradient-to-br from-white via-slate-50/95 to-sky-50/40 dark:from-surface-container-low dark:via-surface-container-low dark:to-surface-container-low p-space-md md:p-space-lg overflow-hidden border border-slate-200/90 dark:border-surface-container-high/40 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-[0_12px_36px_-6px_rgba(15,23,42,0.10),0_2px_8px_rgba(15,23,42,0.05)] hover:border-sky-300/70 dark:hover:border-primary/40 transition-all duration-300 group/hero">
+                    <!-- Ambient Decorative Shades (Soft colored depth in light mode) -->
+                    <div class="absolute -top-24 -left-24 w-80 h-80 bg-gradient-to-br from-sky-400/15 via-blue-400/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover/hero:scale-110 group-hover/hero:from-sky-400/25 transition-all duration-700"></div>
+                    <div class="absolute -bottom-24 -right-24 w-80 h-80 bg-gradient-to-tl from-indigo-400/15 via-purple-400/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover/hero:scale-110 group-hover/hero:from-indigo-400/25 transition-all duration-700"></div>
+                    <div class="absolute top-1/2 left-1/3 -translate-y-1/2 w-64 h-32 bg-amber-400/10 dark:bg-transparent rounded-full blur-3xl pointer-events-none"></div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
-                    <div class="lg:col-span-7 flex flex-col gap-space-sm">
-                        <div class="flex flex-wrap items-center gap-space-sm">
-                            <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase tracking-wider border border-primary/20">
-                                <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>@Loc["Communities_DirectoryIndex"]
-                            </span>
-                            <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm border border-secondary/20">
-                                <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>@string.Format(CultureInfo.CurrentUICulture, Loc["Communities_HubsIndexed"], totalHubCount)
-                            </span>
-                            @if (filterParentId.HasValue)
-                            {
-                                <button type="button" @onclick="ClearParentFilter"
-                                        class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-error/10 text-error font-label-sm text-label-sm border border-error/30 hover:bg-error/20 transition-colors cursor-pointer">
-                                    <span class="material-symbols-outlined text-xs">close</span>
-                                    <span class="truncate max-w-[10rem]">@filterParentName</span>
-                                </button>
-                            }
+                    <!-- Subtle Top Accent Highlight Line -->
+                    <div class="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-sky-500/50 dark:via-primary/40 to-transparent"></div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center relative z-10">
+                        <div class="lg:col-span-7 flex flex-col gap-space-sm">
+                            <div class="flex flex-wrap items-center gap-space-sm">
+                                <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-white/80 dark:bg-surface-container-highest text-sky-700 dark:text-primary font-label-sm text-label-sm uppercase tracking-wider border border-sky-300/60 dark:border-primary/20 shadow-2xs">
+                                    <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>@Loc["Communities_DirectoryIndex"]
+                                </span>
+                                <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-white/80 dark:bg-surface-container text-indigo-700 dark:text-secondary font-label-sm text-label-sm border border-indigo-300/60 dark:border-secondary/20 shadow-2xs">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-secondary animate-pulse"></span>@string.Format(CultureInfo.CurrentUICulture, Loc["Communities_HubsIndexed"], totalHubCount)
+                                </span>
+                                @if (filterParentId.HasValue)
+                                {
+                                    <button type="button" @onclick="ClearParentFilter"
+                                            class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-error/10 text-error font-label-sm text-label-sm border border-error/30 hover:bg-error/20 transition-colors cursor-pointer">
+                                        <span class="material-symbols-outlined text-xs">close</span>
+                                        <span class="truncate max-w-[10rem]">@filterParentName</span>
+                                    </button>
+                                }
+                            </div>
+
+                            <h1 class="font-headline-lg text-headline-lg md:text-display-md text-slate-900 dark:text-on-surface tracking-tight mt-space-xs font-bold">
+                                @(filterParentId.HasValue ? filterParentName : Loc["Communities_HeroTitle"])
+                            </h1>
+
+                            <p class="font-body-md text-body-md text-slate-600 dark:text-on-surface-variant max-w-2xl leading-relaxed">
+                                @Loc["Communities_HeroDescription"]
+                            </p>
+
+                            <div class="flex flex-wrap items-center gap-3 pt-space-sm mt-space-xs text-body-sm">
+                                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/80 dark:bg-surface-container/60 border border-slate-200/90 dark:border-surface-container-high/40 shadow-2xs hover:border-sky-400/60 hover:bg-white dark:hover:bg-surface-container hover:shadow-xs transition-all duration-200 group/stat">
+                                    <span class="flex items-center justify-center w-6 h-6 rounded-md bg-sky-500/10 text-sky-600 dark:text-primary group-hover/stat:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-sm">account_tree</span>
+                                    </span>
+                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">@Loc["Communities_Metric_ParentHubs"]</span>
+                                    <span class="font-mono font-bold text-slate-900 dark:text-on-surface text-sm">@rootHubCount</span>
+                                </div>
+                                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/80 dark:bg-surface-container/60 border border-slate-200/90 dark:border-surface-container-high/40 shadow-2xs hover:border-indigo-400/60 hover:bg-white dark:hover:bg-surface-container hover:shadow-xs transition-all duration-200 group/stat">
+                                    <span class="flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-secondary group-hover/stat:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-sm">hub</span>
+                                    </span>
+                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">@Loc["Communities_Metric_SubCommunities"]</span>
+                                    <span class="font-mono font-bold text-slate-900 dark:text-on-surface text-sm">@subHubCount</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <h1 class="font-headline-lg text-headline-lg md:text-display-md text-on-surface tracking-tight mt-space-xs font-bold">
-                            @(filterParentId.HasValue ? filterParentName : Loc["Communities_HeroTitle"])
-                        </h1>
+                        <!-- Graph Card with soft background depth & interactive hover effects -->
+                        <div class="lg:col-span-5 relative flex flex-col bg-white/95 dark:bg-surface-container-lowest/70 p-space-md rounded-xl border border-slate-200/90 dark:border-surface-container-high/40 backdrop-blur-md shadow-[0_2px_14px_-2px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_24px_-4px_rgba(15,23,42,0.12)] hover:border-sky-400/60 dark:hover:border-primary/50 transition-all duration-300 group/graph overflow-hidden">
+                            <!-- Internal subtle corner glows for the chart card -->
+                            <div class="absolute -top-10 -right-10 w-28 h-28 bg-gradient-to-br from-sky-400/15 to-transparent rounded-full blur-xl pointer-events-none group-hover/graph:scale-125 transition-transform duration-500"></div>
+                            <div class="absolute -bottom-10 -left-10 w-28 h-28 bg-gradient-to-tr from-indigo-400/15 to-transparent rounded-full blur-xl pointer-events-none group-hover/graph:scale-125 transition-transform duration-500"></div>
 
-                        <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl leading-relaxed">
-                            @Loc["Communities_HeroDescription"]
-                        </p>
-
-                        <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 pt-space-sm mt-space-xs text-body-sm text-body-sm">
-                            <span class="flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-xs text-primary">account_tree</span>
-                                <span class="text-on-surface-variant">@Loc["Communities_Metric_ParentHubs"]</span>
-                                <span class="font-mono font-bold text-on-surface">@rootHubCount</span>
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-xs text-secondary">account_tree</span>
-                                <span class="text-on-surface-variant">@Loc["Communities_Metric_SubCommunities"]</span>
-                                <span class="font-mono font-bold text-on-surface">@subHubCount</span>
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-xs text-primary">groups</span>
-                                <span class="text-on-surface-variant">@Loc["Communities_Metric_Members"]</span>
-                                <span class="font-mono font-bold text-on-surface">@FormatCompact(totalMemberCount)</span>
-                            </span>
+                            <div class="relative z-10">
+                                <TelemetryChart Title="@Loc["TelemetryChart_NetworkTitle"]" PrimaryLabel="@Loc["TelemetryChart_Members"]" SecondaryLabel="@Loc["TelemetryChart_Posts"]" Values="liquiditySeries" SecondaryValues="velocitySeries" Labels="chartLabels" Highlight="@networkHighlight" />
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="lg:col-span-5 flex flex-col bg-surface-container-lowest/60 p-space-md rounded-xl border border-surface-container-high/30 backdrop-blur-sm">
-                        <TelemetryChart Title="@Loc["TelemetryChart_NetworkTitle"]" PrimaryLabel="@Loc["TelemetryChart_Members"]" SecondaryLabel="@Loc["TelemetryChart_Posts"]" Values="liquiditySeries" SecondaryValues="velocitySeries" Labels="chartLabels" Highlight="@networkHighlight" />
                     </div>
                 </div>
-            </div>
+            }
         </div>
 
         <!-- Filter Strip -->
@@ -125,18 +143,14 @@
 
             <div class="flex flex-wrap items-center gap-space-sm w-full lg:w-auto">
                 <!-- Joined / Browse Tabs -->
-                <div class="inline-flex items-center gap-1 p-1 rounded-lg bg-slate-100 dark:bg-surface-container border border-slate-200 dark:border-surface-container-high/30 shadow-xs">
-                    <button type="button" @onclick='() => SetTab("joined")'
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-label-md text-label-md font-semibold transition-all cursor-pointer @(activeTab == "joined" ? "bg-white dark:bg-primary text-slate-900 dark:text-on-primary shadow-xs" : "text-slate-600 dark:text-on-surface-variant hover:text-slate-900 dark:hover:text-white")">
-                        <span class="material-symbols-outlined text-sm text-rose-500 dark:text-inherit" style="font-variation-settings: 'FILL' 1;">favorite</span>
-                        <span>@Loc["Communities_Tab_Joined"]</span>
-                        <span class="px-1.5 py-0.5 rounded font-mono text-label-sm @(activeTab == "joined" ? "bg-slate-100 dark:bg-on-primary/20 text-slate-900 dark:text-white font-bold" : "bg-slate-200/70 dark:bg-surface-container-high text-slate-600 dark:text-on-surface-variant")">@joinedCount</span>
+                <div class="flex items-center gap-1 p-0.5 bg-surface-container-low rounded-lg border border-surface-container-high/30">
+                    <button type="button" id="tab-joined" @onclick='() => SetTab("joined")'
+                            class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer @(activeTab == "joined" ? "bg-[#0A1B2E] dark:bg-white text-white dark:text-[#0A1B2E] shadow-xs" : "text-on-surface-variant hover:text-on-surface")">
+                        @Loc["Communities_Tab_Joined"]
                     </button>
-                    <button type="button" @onclick='() => SetTab("browse")'
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-label-md text-label-md font-semibold transition-all cursor-pointer @(activeTab == "browse" ? "bg-white dark:bg-primary text-slate-900 dark:text-on-primary shadow-xs" : "text-slate-600 dark:text-on-surface-variant hover:text-slate-900 dark:hover:text-white")">
-                        <span class="material-symbols-outlined text-sm text-indigo-500 dark:text-inherit">travel_explore</span>
-                        <span>@Loc["Communities_Tab_Browse"]</span>
-                        <span class="px-1.5 py-0.5 rounded font-mono text-label-sm @(activeTab == "browse" ? "bg-slate-100 dark:bg-on-primary/20 text-slate-900 dark:text-white font-bold" : "bg-slate-200/70 dark:bg-surface-container-high text-slate-600 dark:text-on-surface-variant")">@browseCount</span>
+                    <button type="button" id="tab-browse" @onclick='() => SetTab("browse")'
+                            class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer @(activeTab == "browse" ? "bg-[#0A1B2E] dark:bg-white text-white dark:text-[#0A1B2E] shadow-xs" : "text-on-surface-variant hover:text-on-surface")">
+                        @Loc["Communities_Tab_Browse"]
                     </button>
                 </div>
 
@@ -158,12 +172,15 @@
                     }
                 </div>
 
-                <!-- Create Community Button -->
-                <button type="button" @onclick="OpenCreateModal"
-                        class="px-3.5 py-1.5 bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#1E3A8A] dark:hover:bg-[#1D4ED8] text-white rounded-lg font-label-md text-label-md font-bold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer shadow-xs border border-transparent dark:border-blue-400/30">
-                    <span class="material-symbols-outlined text-sm text-white">add</span>
-                    <span class="text-white font-bold">@Loc["Communities_CreateHubBtn"]</span>
-                </button>
+                <!-- Create Community Button (shown only if permission is granted) -->
+                @if (canCreateCommunity)
+                {
+                    <button type="button" @onclick="OpenCreateModal"
+                            class="px-3.5 py-1.5 bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#1E3A8A] dark:hover:bg-[#1D4ED8] text-white rounded-lg font-label-md text-label-md font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer border border-[#0A1B2E] dark:border-[#1E3A8A]">
+                        <span class="material-symbols-outlined text-base">add_circle</span>
+                        <span>@Loc["Communities_CreateHubBtn"]</span>
+                    </button>
+                }
             </div>
         </div>
 
@@ -206,152 +223,92 @@
             else
             {
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-space-lg">
-                    @for (var cIdx = 0; cIdx < ActiveCommunities.Count; cIdx++)
+                    @for (var cIdx = 0; cIdx < DisplayedCommunities.Count; cIdx++)
                     {
-                        var community = ActiveCommunities[cIdx];
+                        var community = DisplayedCommunities[cIdx];
                         var isSub = community.ParentCommunityId.HasValue;
                         var cardIndex = cIdx;
                         var bannerUrl = GetBannerUrl(community);
 
-                        <div class="group flex flex-col justify-between rounded-xl bg-surface-container-low hover:bg-surface-container transition-all duration-300 overflow-hidden relative border border-slate-300 dark:border-[rgba(196,210,225,0.22)] shadow-sm hover:shadow-md hover:border-primary/50">
-                            <div class="absolute inset-x-0 top-0 h-1 opacity-80 @GetGlowGradientForIndex(cardIndex)"></div>
+                        <div class="relative overflow-hidden bg-[#d9ecfe] dark:bg-[#0f2233] rounded-2xl flex flex-col justify-between border border-slate-200/80 hover:border-slate-300 dark:border-white/[0.08] dark:hover:border-white/15 shadow-[0_2px_8px_-2px_rgba(10,27,46,0.06),0_1px_3px_rgba(10,27,46,0.04)] hover:shadow-[0_8px_20px_-4px_rgba(10,27,46,0.1),0_2px_6px_rgba(10,27,46,0.05)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5),0_1px_3px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_8px_28px_-2px_rgba(0,0,0,0.7)] transition-all group">
 
-                            <div class="p-space-md flex flex-col gap-space-sm">
-                                <!-- Banner (without gradient shadow overlay) -->
-                                <div class="relative h-36 rounded-lg overflow-hidden bg-surface-container-lowest border border-slate-200 dark:border-surface-container-high/30">
-                                    <img src="@bannerUrl" alt="@community.Name"
-                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <div class="relative z-10 flex flex-col justify-between h-full">
+                                <div class="p-space-md flex flex-col gap-space-sm">
+                                    <!-- Banner -->
+                                    <div class="relative h-36 rounded-xl overflow-hidden bg-surface-container-lowest border border-slate-200/80 dark:border-white/[0.08]">
+                                        <img src="@bannerUrl" alt="@community.Name"
+                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                    </div>
 
-                                    <div class="absolute top-3 left-3 flex items-center gap-2">
-                                        <span class="px-2 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-[#0A1B2E] dark:text-primary font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1 border border-slate-300/80 dark:border-primary/20 truncate max-w-[70%] font-semibold shadow-xs">
-                                            <span class="material-symbols-outlined text-xs shrink-0 text-primary">@GetCategoryIcon(isSub, cardIndex)</span>
-                                            <span class="truncate">@(community.CategoryName ?? (isSub ? Loc["Communities_Card_SubCommunityFallback"] : Loc["Communities_Card_ParentHubFallback"]))</span>
+                                    <!-- Title (moved below the banner) -->
+                                    <div class="font-title-md text-base text-slate-900 dark:text-on-surface font-bold tracking-tight truncate">@community.Name</div>
+
+                                    <!-- Description -->
+                                    <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 leading-relaxed">
+                                        @(string.IsNullOrWhiteSpace(community.Description)
+                                            ? Loc["Communities_Card_NoDescription"]
+                                            : community.Description)
+                                    </p>
+
+                                    <!-- Metrics -->
+                                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-body-sm py-space-xs px-space-sm rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.06]">
+                                        <span class="flex items-center gap-1 text-on-surface font-semibold">
+                                            <span class="material-symbols-outlined text-xs text-primary">groups</span>
+                                            @FormatCompact(community.MemberCount) @Loc["Communities_Metric_Members"]
+                                        </span>
+                                        <span class="text-on-surface-variant">•</span>
+                                        <span class="flex items-center gap-1 text-primary font-medium">
+                                            <span class="material-symbols-outlined text-xs">account_tree</span>
+                                            @(isSub ? community.GroupCount.ToString() : community.SubCommunityCount.ToString()) @(isSub ? Loc["Communities_Card_Groups"] : Loc["Communities_Card_SubHubs"])
                                         </span>
                                     </div>
 
-                                    <div class="absolute bottom-2 left-2 right-2 p-2 rounded-lg bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md border border-slate-200/80 dark:border-surface-container-high/30 flex items-center justify-between gap-2 shadow-xs">
-                                        <div class="min-w-0">
-                                            <span class="block font-label-sm text-[10px] text-slate-500 dark:text-on-surface-variant uppercase tracking-wider font-semibold truncate">@GetTierLabel(isSub)</span>
-                                            <div class="font-title-md text-sm text-slate-900 dark:text-on-surface font-bold tracking-tight truncate">@community.Name</div>
-                                        </div>
-
-                                        <div class="flex -space-x-2 shrink-0 items-center">
-                                            @if (community.MemberAvatarUrls != null && community.MemberAvatarUrls.Any())
-                                            {
-                                                @foreach (var avatar in community.MemberAvatarUrls.Take(2))
-                                                {
-                                                    <div class="w-7 h-7 rounded-full bg-surface-container-high overflow-hidden border-2 border-white dark:border-surface-container-lowest shadow-xs">
-                                                        <img class="w-full h-full object-cover" src="@avatar" alt="@Loc["Communities_Card_AltMemberAvatar"]" />
-                                                    </div>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-surface-container-highest text-slate-800 dark:text-on-surface-variant font-label-sm text-xs flex items-center justify-center font-bold border-2 border-white dark:border-surface-container-lowest shadow-xs">
-                                                    @InitialOf(community.Name)
-                                                </div>
-                                            }
-
-                                            @if (community.ExtraMemberCount > 0)
-                                            {
-                                                <div class="w-7 h-7 rounded-full bg-primary text-on-primary font-label-sm text-[10px] flex items-center justify-center font-bold border-2 border-white dark:border-surface-container-lowest shadow-xs">
-                                                    +@community.ExtraMemberCount
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
                                 </div>
 
-                                <!-- Description -->
-                                <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 leading-relaxed">
-                                    @(string.IsNullOrWhiteSpace(community.Description)
-                                        ? Loc["Communities_Card_NoDescription"]
-                                        : community.Description)
-                                </p>
+                                <!-- Actions -->
+                                <div class="p-space-md pt-0 flex items-stretch gap-space-sm">
+                                    <a class="flex-1 py-2 px-space-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-[#0A1B2E] dark:text-primary font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all no-underline cursor-pointer border border-slate-300/80 dark:border-white/10 font-bold"
+                                       href="@(isSub ? $"groups?subCommunityId={community.CommunityId}" : $"/sub-communities/{community.CommunityId}")">
+                                        <span class="truncate">@(isSub ? Loc["Communities_Card_SeeGroups"] : Loc["Communities_Card_SeeSubCommunities"])</span>
+                                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                                    </a>
 
-                                <!-- Metrics -->
-                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-body-sm py-space-xs px-space-sm rounded-lg bg-surface-container-lowest/50 border border-slate-200 dark:border-surface-container-high/20">
-                                    <span class="flex items-center gap-1 text-on-surface font-semibold">
-                                        <span class="material-symbols-outlined text-xs text-primary">groups</span>
-                                        @string.Format(CultureInfo.CurrentUICulture, Loc["Communities_Card_Members"], FormatCompact(community.MemberCount))
-                                    </span>
-                                    <span class="text-on-surface-variant">•</span>
-                                    <span class="flex items-center gap-1 text-primary font-medium">
-                                        <span class="material-symbols-outlined text-xs">account_tree</span>
-                                        @(isSub ? string.Format(CultureInfo.CurrentUICulture, Loc["Communities_Card_Groups"], community.GroupCount) : string.Format(CultureInfo.CurrentUICulture, Loc["Communities_Card_SubHubs"], community.SubCommunityCount))
-                                    </span>
-                                    <span class="text-on-surface-variant">•</span>
-                                    <span class="flex items-center gap-1 text-secondary font-medium">
-                                        <span class="material-symbols-outlined text-xs">article</span>
-                                        @string.Format(CultureInfo.CurrentUICulture, Loc["Communities_Card_Posts"], FormatCompact(community.PostCount))
-                                    </span>
+                                    @if (community.IsJoined)
+                                    {
+                                        <button type="button" @onclick="() => PromptLeaveCommunity(community)"
+                                                class="flex-1 py-2 px-space-sm rounded-lg bg-rose-500/10 hover:bg-rose-500/20 active:bg-rose-500/25 text-rose-600 dark:text-rose-400 font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-rose-500/25 dark:border-rose-500/30 font-bold shadow-xs">
+                                            <span class="material-symbols-outlined text-sm text-rose-600 dark:text-rose-400">logout</span>
+                                            <span>@Loc["Communities_Card_Leave"]</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" @onclick="() => JoinCommunity(community.CommunityId)"
+                                                class="flex-1 py-2 px-space-sm rounded-lg bg-[#0A1B2E] hover:bg-[#153252] text-white dark:bg-[#D4AF37] dark:hover:bg-[#F2CA50] dark:text-[#0A1B2E] font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all font-bold cursor-pointer shadow-sm border border-[#0A1B2E] dark:border-[#D4AF37]">
+                                            <span class="material-symbols-outlined text-sm text-white dark:text-[#0A1B2E]">lock_open</span>
+                                            <span class="text-white dark:text-[#0A1B2E] font-bold">@Loc["Communities_Card_Join"]</span>
+                                        </button>
+                                    }
                                 </div>
-
-                                <!-- Child entities -->
-                                <div class="flex flex-col gap-space-xs pt-space-xs">
-                                    <span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant flex items-center gap-1 font-semibold">
-                                        <span class="material-symbols-outlined text-xs text-primary">hub</span>
-                                        @(isSub ? string.Format(CultureInfo.CurrentUICulture, Loc["Communities_Card_WorkingGroupsTitle"], community.GroupCount) : string.Format(CultureInfo.CurrentUICulture, Loc["Communities_Card_SubCommunitiesTitle"], community.SubCommunityCount))
-                                    </span>
-
-                                    <div class="grid grid-cols-1 gap-1.5 mt-1">
-                                        @if (community.TopChildItems != null && community.TopChildItems.Any())
-                                        {
-                                            @for (var i = 0; i < Math.Min(3, community.TopChildItems.Count); i++)
-                                            {
-                                                var child = community.TopChildItems[i];
-                                                <div class="flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-surface-container-lowest hover:bg-surface-container-high transition-colors border border-slate-200 dark:border-surface-container-high/10">
-                                                    <div class="flex items-center gap-2 min-w-0 pr-2">
-                                                        <span class="material-symbols-outlined text-sm shrink-0 @(i % 2 == 0 ? "text-primary" : "text-secondary")">@GetChildIcon(i)</span>
-                                                        <span class="font-body-sm text-body-sm text-on-surface truncate">@child.Name</span>
-                                                    </div>
-                                                    <div class="flex items-center gap-1.5 shrink-0">
-                                                        <span class="font-label-sm text-label-sm font-mono text-on-surface-variant">@child.MemberCount.ToString("N0")</span>
-                                                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase px-1.5 py-0.5 rounded bg-surface-container-high font-mono">@child.ItemType</span>
-                                                    </div>
-                                                </div>
-                                            }
-                                        }
-                                        else
-                                        {
-                                            <div class="px-space-sm py-3 rounded-lg bg-surface-container-lowest/50 border border-dashed border-slate-300 dark:border-surface-container-high/30 text-center font-body-sm text-body-sm text-on-surface-variant">
-                                                @(isSub ? Loc["Communities_Card_NoGroups"] : Loc["Communities_Card_NoSubCommunities"])
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Actions -->
-                            <div class="p-space-md pt-0 flex items-stretch gap-space-sm">
-                                <a class="flex-1 py-2 px-space-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] text-[#0A1B2E] dark:text-[#E2E8F0] dark:hover:bg-[#334155] font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all no-underline cursor-pointer border border-slate-300 dark:border-slate-600 font-bold shadow-xs"
-                                   href="@(isSub ? $"groups?subCommunityId={community.CommunityId}" : $"/sub-communities/{community.CommunityId}")">
-                                    <span class="truncate">@(isSub ? Loc["Communities_Card_SeeGroups"] : Loc["Communities_Card_SeeSubCommunities"])</span>
-                                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                                </a>
-
-                                @if (community.IsJoined)
-                                {
-                                    <button type="button" @onclick="() => PromptLeaveCommunity(community)"
-                                            class="flex-1 py-2 px-space-sm rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-rose-700 font-bold shadow-xs">
-                                        <span class="material-symbols-outlined text-sm">logout</span>
-                                        <span>@Loc["Communities_Card_Leave"]</span>
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="button" @onclick="() => JoinCommunity(community.CommunityId)"
-                                            class="flex-1 py-2 px-space-sm rounded-lg bg-primary text-on-primary hover:bg-primary-fixed-dim font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all font-bold cursor-pointer shadow-xs">
-                                        <span class="material-symbols-outlined text-sm">lock_open</span>
-                                        <span>@Loc["Communities_Card_Join"]</span>
-                                    </button>
-                                }
                             </div>
                         </div>
                     }
                 </div>
+
+                @if (ActiveCommunities.Count > MaxInitialCommunities)
+                {
+                    <div class="flex justify-center mt-space-lg">
+                        <button type="button" @onclick="() => showAllCommunities = !showAllCommunities"
+                                class="px-5 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md font-bold flex items-center gap-2 border border-surface-container-high/40 transition-all cursor-pointer shadow-xs hover:shadow-sm">
+                            <span>@(showAllCommunities ? "See Less" : $"See More ({ActiveCommunities.Count - MaxInitialCommunities} more)")</span>
+                            <span class="material-symbols-outlined text-sm transition-transform @(showAllCommunities ? "rotate-180" : "")">expand_more</span>
+                        </button>
+                    </div>
+                }
             }
         </div>
+
+
     </div>
 </div>
 
@@ -619,6 +576,7 @@
     private bool isLeaving;
 
     // Create modal state
+    private bool canCreateCommunity;
     private bool showCreateModal;
     private bool isSubmitting;
     private bool isSubCommunityCreation;
@@ -636,8 +594,12 @@
         "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80"
     ];
 
+    private bool showAllCommunities = false;
+    private const int MaxInitialCommunities = 12; // 4 rows on desktop (3 cols/row)
+
     private void OnTypeFilterChanged()
     {
+        showAllCommunities = false;
         StateHasChanged();
     }
 
@@ -666,6 +628,9 @@
             return list.ToList();
         }
     }
+
+    private IReadOnlyList<CommunityModel> DisplayedCommunities =>
+        showAllCommunities ? ActiveCommunities : ActiveCommunities.Take(MaxInitialCommunities).ToList();
 
     private int joinedCount => communities?.Count(c => c.IsJoined && (!filterParentId.HasValue || c.ParentCommunityId == filterParentId.Value) && (selectedTypeFilter == "ALL" || (selectedTypeFilter == "COMMUNITIES" ? !c.ParentCommunityId.HasValue : c.ParentCommunityId.HasValue))) ?? 0;
     private int browseCount => communities?.Count(c => !c.IsJoined && (!filterParentId.HasValue || c.ParentCommunityId == filterParentId.Value) && (selectedTypeFilter == "ALL" || (selectedTypeFilter == "COMMUNITIES" ? !c.ParentCommunityId.HasValue : c.ParentCommunityId.HasValue))) ?? 0;
@@ -751,14 +716,50 @@
         _ => "verified_user"
     };
 
+    private bool isAdmin = false;
+
     protected override async Task OnInitializedAsync()
     {
-        await LoadCommunitiesAsync();
+        await Task.WhenAll(CheckPermissionsAsync(), LoadCommunitiesAsync());
+    }
+
+    private async Task CheckPermissionsAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                isAdmin = user.IsInRole("ADMIN") ||
+                          string.Equals(user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                          user.HasClaim("permission", PermissionCatalog.AdminUserView);
+                if (isAdmin)
+                {
+                    canCreateCommunity = true;
+                }
+                else
+                {
+                    var permRes = await RoleApi.GetMyPermissionsAsync();
+                    if (permRes.IsSuccess && permRes.Data != null)
+                    {
+                        canCreateCommunity = permRes.Data.Any(p =>
+                            p.Equals("COMMUNITY.CREATE", StringComparison.OrdinalIgnoreCase) ||
+                            p.Equals("SUBCOMMUNITY.CREATE", StringComparison.OrdinalIgnoreCase));
+                    }
+                }
+            }
+        }
+        catch
+        {
+            canCreateCommunity = false;
+        }
     }
 
     private void SetTab(string tab)
     {
         activeTab = tab;
+        showAllCommunities = false;
     }
 
     private async Task LoadCommunitiesAsync()
@@ -779,6 +780,7 @@
     private async Task ClearSearch()
     {
         searchTerm = "";
+        showAllCommunities = false;
         await LoadCommunitiesAsync();
     }
 
@@ -810,6 +812,7 @@
 
     private void OpenCreateModal()
     {
+        if (!canCreateCommunity) return;
         communityName = "";
         communityDesc = "";
         uploadedBannerUrl = null;

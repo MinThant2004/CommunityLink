@@ -910,12 +910,12 @@ public class UserProfileService : IUserProfileService
     {
         // 1. Role Info & Badge
         var primaryRole = user.TblUserRoles.FirstOrDefault(ur => !ur.IsDeleted)?.Role;
-        var roleCode = primaryRole?.RoleCode ?? "USER";
+        var roleCode = primaryRole?.RoleCode ?? "DEFAULT_USER";
         var roleName = primaryRole?.RoleName ?? "Member";
         var badge = roleCode switch
         {
-            "DOMAIN_PRO" => "⭐",
-            "PUBLIC_FIGURE" or "ADMIN" or "SUPER_ADMIN" => "🏛️",
+            "DOMAIN_PROFESSIONAL" or "DOMAIN_PRO" => "⭐",
+            "PUBLIC_FIGURE" or "ADMIN" or "SUPER_ADMIN" or "SYSTEM_ADMIN" => "🏛️",
             _ => "👤"
         };
 

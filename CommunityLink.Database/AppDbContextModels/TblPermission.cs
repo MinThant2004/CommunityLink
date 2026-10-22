@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -12,6 +12,8 @@ public partial class TblPermission
     public string PermissionName { get; set; } = null!;
 
     public string Module { get; set; } = null!;
+
+    public int Type { get; set; }
 
     public string? Description { get; set; }
 

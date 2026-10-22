@@ -1,4 +1,6 @@
 @using CommunityLink.App.Services
+@using CommunityLink.App.Components.Shared
+@using CommunityLink.App.Components.Pages
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<AppResources> Loc
 @inject CultureService CultureService
@@ -7,7 +9,24 @@
 <div @key="CultureService.CurrentCultureName" class="h-full">
     <Router AppAssembly="typeof(Program).Assembly">
         <Found Context="routeData">
-            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+                <NotAuthorized>
+                    @if (context.User.Identity?.IsAuthenticated == true)
+                    {
+                        <AccessDenied />
+                    }
+                    else
+                    {
+                        <RedirectToLogin />
+                    }
+                </NotAuthorized>
+                <Authorizing>
+                    <div class="flex items-center justify-center min-h-[50vh] text-slate-500 text-sm">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-700 dark:border-slate-300 border-t-transparent mr-3"></div>
+                        <span>@Loc["Common_Loading"]</span>
+                    </div>
+                </Authorizing>
+            </AuthorizeRouteView>
             <FocusOnNavigate RouteData="routeData" Selector="h1" />
         </Found>
         <NotFound>
