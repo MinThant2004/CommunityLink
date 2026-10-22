@@ -779,13 +779,6 @@ else if (dashboard != null)
                         <span>People</span>
                     </button>
                 </div>
-                <!-- Community Status Indicator -->
-                <div class="flex items-center gap-3.5 flex-wrap text-xs text-on-surface-variant">
-                    <div class="flex items-center gap-1 font-mono text-[10.5px]">
-                        <span class="material-symbols-outlined text-[14px] text-primary">verified_user</span>
-                        <span>Audited Network</span>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -883,7 +876,7 @@ else if (dashboard != null)
                                     <!-- Post Header -->
                                     <div class="flex items-start justify-between">
                                         <div class="flex items-center gap-2.5">
-                                            <div class="relative shrink-0">
+                                            <a href="u/@(post.AuthorId > 0 ? post.AuthorId.ToString() : post.AuthorName)" class="relative shrink-0 block hover:opacity-85 transition-opacity">
                                                 @if (!string.IsNullOrWhiteSpace(post.AuthorAvatar))
                                                 {
                                                     <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-9 h-9 rounded-full object-cover ring-1 ring-white/10" />
@@ -900,24 +893,27 @@ else if (dashboard != null)
                                                         <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
                                                     </span>
                                                 }
-                                            </div>
+                                            </a>
 
                                             <div class="flex flex-col">
                                                 <div class="flex items-center gap-1.5 flex-wrap">
-                                                    <a href="u/@post.AuthorName" class="text-xs sm:text-sm font-bold text-on-surface hover:text-secondary transition-colors inline-flex items-center gap-1">
+                                                    <a href="u/@(post.AuthorId > 0 ? post.AuthorId.ToString() : post.AuthorName)" class="text-xs sm:text-sm font-bold text-on-surface hover:text-secondary transition-colors inline-flex items-center gap-1">
                                                         <span>@post.AuthorName</span>
                                                         @if (post.IsAuthorVerified)
                                                         {
                                                             <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
                                                         }
                                                     </a>
-                                                    @if (post.AuthorRoleCode == "PUBLIC_FIGURE")
+                                                </div>
+                                                <div class="flex items-center gap-1 text-[10px] text-outline font-mono">
+                                                    <span>@GetRelativeTime(post.CreatedAt)</span>
+                                                    @if (!string.IsNullOrWhiteSpace(post.GroupName))
                                                     {
-                                                        <span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-on-surface-variant font-mono text-[9px] uppercase font-bold">Lead</span>
+                                                        <span>• @post.GroupName</span>
                                                     }
-                                                    else if (post.AuthorRoleCode == "DOMAIN_PROFESSIONAL")
+                                                    else if (!string.IsNullOrWhiteSpace(post.CommunityName) && post.CommunityName != "General")
                                                     {
-                                                        <span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-on-surface-variant font-mono text-[9px] uppercase font-bold">Pro</span>
+                                                        <span>• @post.CommunityName</span>
                                                     }
                                                 </div>
                                             </div>
@@ -1005,12 +1001,32 @@ else if (dashboard != null)
                                             else
                                             {
                                                 <div class="flex items-center gap-2">
-                                                    <span class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0]">@post.OriginalPost.AuthorName</span>
-                                                    @if (!string.IsNullOrWhiteSpace(post.OriginalPost.CommunityName))
-                                                    {
-                                                        <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.OriginalPost.CommunityName</span>
-                                                    }
-                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.OriginalPost.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")</span>
+                                                    <a href="u/@(post.OriginalPost.AuthorId > 0 ? post.OriginalPost.AuthorId.ToString() : (!string.IsNullOrWhiteSpace(post.OriginalPost.AuthorUserName) ? post.OriginalPost.AuthorUserName : post.OriginalPost.AuthorName))" class="relative shrink-0 block hover:opacity-85 transition-opacity">
+                                                        @if (!string.IsNullOrWhiteSpace(post.OriginalPost.AuthorAvatar))
+                                                        {
+                                                            <img src="@post.OriginalPost.AuthorAvatar" alt="@post.OriginalPost.AuthorName" class="w-7 h-7 rounded-full object-cover ring-1 ring-white/10" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="w-7 h-7 rounded-full bg-surface-container text-on-surface font-bold text-[11px] flex items-center justify-center ring-1 ring-white/10 font-mono">
+                                                                @(string.IsNullOrWhiteSpace(post.OriginalPost.AuthorName) ? "U" : post.OriginalPost.AuthorName[..1].ToUpperInvariant())
+                                                            </div>
+                                                        }
+                                                    </a>
+                                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                                        <a href="u/@(post.OriginalPost.AuthorId > 0 ? post.OriginalPost.AuthorId.ToString() : (!string.IsNullOrWhiteSpace(post.OriginalPost.AuthorUserName) ? post.OriginalPost.AuthorUserName : post.OriginalPost.AuthorName))" class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-secondary hover:underline transition-colors">
+                                                            @post.OriginalPost.AuthorName
+                                                        </a>
+                                                        @if (!string.IsNullOrWhiteSpace(post.OriginalPost.GroupName))
+                                                        {
+                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.OriginalPost.GroupName</span>
+                                                        }
+                                                        else if (!string.IsNullOrWhiteSpace(post.OriginalPost.CommunityName) && post.OriginalPost.CommunityName != "General")
+                                                        {
+                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.OriginalPost.CommunityName</span>
+                                                        }
+                                                        <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.OriginalPost.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                                    </div>
                                                 </div>
                                                 <p class="text-xs text-[#0A1B2E] dark:text-[#E1E8F0] whitespace-pre-line leading-relaxed">
                                                     @post.OriginalPost.Content
@@ -1147,7 +1163,7 @@ else if (dashboard != null)
                                             </button>
                                             <button type="button" @onclick="() => OpenHomeShareModal(post.PostId)"
                                                     class="flex items-center gap-1 text-xs text-on-surface-variant hover:text-secondary transition-colors cursor-pointer">
-                                                <span class="material-symbols-outlined text-[17px]">cached</span>
+                                                <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
                                                 <span>@post.ShareCount</span>
                                             </button>
                                         </div>
@@ -1220,10 +1236,6 @@ else if (dashboard != null)
                                                         <a href="u/@(!string.IsNullOrWhiteSpace(poll.AuthorUserName) ? poll.AuthorUserName : poll.AuthorName)" class="text-xs sm:text-sm font-bold text-on-surface hover:text-secondary transition-colors">
                                                             @poll.AuthorName
                                                         </a>
-                                                        <span class="px-1.5 py-0.2 rounded-full bg-primary/10 text-primary font-mono text-[9px] uppercase font-bold flex items-center gap-0.5">
-                                                            <span class="material-symbols-outlined text-[11px]">poll</span>
-                                                            <span>Poll</span>
-                                                        </span>
                                                         @if (!string.IsNullOrWhiteSpace(poll.GroupName))
                                                         {
                                                             <span class="text-[10px] text-outline font-mono">• @poll.GroupName</span>
@@ -1374,8 +1386,8 @@ else if (dashboard != null)
                                                             <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
                                                         }
                                                     </a>
-                                                    <span class="text-[11px] text-outline truncate">
-                                                        @(string.IsNullOrWhiteSpace(person.Headline) ? GetRoleBadgeText(person) : person.Headline)
+                                                    <span class="text-[11px] text-outline truncate" title="@(!string.IsNullOrWhiteSpace(person.Headline) ? person.Headline : (!string.IsNullOrWhiteSpace(person.Bio) ? person.Bio : GetRoleBadgeText(person)))">
+                                                        @(TruncateWords(!string.IsNullOrWhiteSpace(person.Headline) ? person.Headline : (!string.IsNullOrWhiteSpace(person.Bio) ? person.Bio : GetRoleBadgeText(person)), 6))
                                                     </span>
                                                 </div>
                                             </div>
@@ -2335,8 +2347,8 @@ else if (dashboard != null)
     private long userLinkDropBalance = 1450;
 
     private int PeopleCountAll => dashboard?.People?.Count ?? 0;
-    private int PeopleCountPublicFigure => dashboard?.People?.Count(p => p.RoleCode == "PUBLIC_FIGURE") ?? 0;
-    private int PeopleCountDomainPro => dashboard?.People?.Count(p => p.RoleCode == "DOMAIN_PROFESSIONAL") ?? 0;
+    private int PeopleCountPublicFigure => dashboard?.People?.Count(p => string.Equals(p.RoleCode, "PUBLIC_FIGURE", StringComparison.OrdinalIgnoreCase)) ?? 0;
+    private int PeopleCountDomainPro => dashboard?.People?.Count(p => string.Equals(p.RoleCode, "DOMAIN_PROFESSIONAL", StringComparison.OrdinalIgnoreCase) || string.Equals(p.RoleCode, "DOMAIN_PRO", StringComparison.OrdinalIgnoreCase)) ?? 0;
 
     private void SetPeopleRoleFilter(string filter)
     {
@@ -2371,11 +2383,11 @@ else if (dashboard != null)
 
             if (selectedPeopleRoleFilter == "PUBLIC_FIGURE")
             {
-                list = list.Where(p => p.RoleCode == "PUBLIC_FIGURE");
+                list = list.Where(p => string.Equals(p.RoleCode, "PUBLIC_FIGURE", StringComparison.OrdinalIgnoreCase));
             }
             else if (selectedPeopleRoleFilter == "DOMAIN_PROFESSIONAL")
             {
-                list = list.Where(p => p.RoleCode == "DOMAIN_PROFESSIONAL");
+                list = list.Where(p => string.Equals(p.RoleCode, "DOMAIN_PROFESSIONAL", StringComparison.OrdinalIgnoreCase) || string.Equals(p.RoleCode, "DOMAIN_PRO", StringComparison.OrdinalIgnoreCase));
             }
 
             if (peopleSortOption == "followed")
@@ -3109,7 +3121,7 @@ else if (dashboard != null)
         if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
         if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
         if (span.TotalDays < 7) return $"{(int)span.TotalDays}d ago";
-        return dt.ToString("MMM dd, yyyy");
+        return dt.ToLocalTime().ToString("dd-MM-yyyy");
     }
 
     private async Task CopyCodeSnippetAsync(string? code)
@@ -3155,6 +3167,14 @@ else if (dashboard != null)
             "MODERATOR" => "Moderator",
             _ => person.IsVerified ? "Verified Member" : "Active Member"
         };
+    }
+
+    private static string TruncateWords(string? text, int maxWords = 6)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        var words = text.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length <= maxWords) return text.Trim();
+        return string.Join(" ", words.Take(maxWords)) + "...";
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

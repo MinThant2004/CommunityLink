@@ -131,9 +131,10 @@ public sealed class PostService(
                     {
                         query = query.Where(p =>
                             p.AuthorId == currentUserId.Value ||
+                            followedAuthorIds.Contains(p.AuthorId) ||
                             (p.GroupId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)) ||
                             (p.CommunityId.HasValue && !p.GroupId.HasValue && joinedCommunityIds.Contains(p.CommunityId.Value)) ||
-                            (!p.GroupId.HasValue && !p.CommunityId.HasValue && (followedAuthorIds.Contains(p.AuthorId) || p.AuthorId == currentUserId.Value)));
+                            (!p.GroupId.HasValue && !p.CommunityId.HasValue));
                     }
                     else
                     {

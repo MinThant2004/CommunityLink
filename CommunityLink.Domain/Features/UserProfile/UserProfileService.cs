@@ -46,7 +46,8 @@ public class UserProfileService : IUserProfileService
         if (string.IsNullOrWhiteSpace(userNameOrId))
             return Result<UserProfileDto>.Failure("Username or User ID is required.", ResultStatus.ValidationError);
 
-        var cleaned = userNameOrId.Trim().TrimStart('@').Trim();
+        var rawInput = userNameOrId.Trim().TrimStart('@').Trim();
+        var cleaned = Uri.UnescapeDataString(rawInput).Trim().TrimStart('@').Trim();
 
         TblUser? user = null;
 
@@ -66,16 +67,17 @@ public class UserProfileService : IUserProfileService
             user = await _dbContext.TblUsers
                 .Include(u => u.TblUserRoles)
                     .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => u.NormalizedUserName == normalized && !u.IsDeleted, cancellationToken);
+                .FirstOrDefaultAsync(u => (u.NormalizedUserName == normalized || u.UserName == cleaned) && !u.IsDeleted, cancellationToken);
         }
 
         // 3. Fallback: Check by DisplayName (exact or case-insensitive)
         if (user == null)
         {
+            var upperCleaned = cleaned.ToUpperInvariant();
             user = await _dbContext.TblUsers
                 .Include(u => u.TblUserRoles)
                     .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => (u.DisplayName == cleaned || u.DisplayName.ToUpper() == cleaned.ToUpper()) && !u.IsDeleted, cancellationToken);
+                .FirstOrDefaultAsync(u => (u.DisplayName == cleaned || (u.DisplayName != null && u.DisplayName.ToUpper() == upperCleaned)) && !u.IsDeleted, cancellationToken);
         }
 
         if (user == null)
@@ -405,6 +407,7 @@ public class UserProfileService : IUserProfileService
                 .AsSplitQuery()
                 .Include(p => p.Author)
                 .Include(p => p.Community)
+                .Include(p => p.Group)
                 .Include(p => p.TblPostImages)
                 .Include(p => p.TblPostLikes)
                 .Include(p => p.TblComments)
@@ -574,6 +577,8 @@ public class UserProfileService : IUserProfileService
                 .Include(sp => sp.Post)
                     .ThenInclude(p => p.Community)
                 .Include(sp => sp.Post)
+                    .ThenInclude(p => p.Group)
+                .Include(sp => sp.Post)
                     .ThenInclude(p => p.TblPostImages)
                 .Include(sp => sp.Post)
                     .ThenInclude(p => p.TblPostLikes)
@@ -624,6 +629,7 @@ public class UserProfileService : IUserProfileService
                 .AsSplitQuery()
                 .Include(p => p.Author)
                 .Include(p => p.Community)
+                .Include(p => p.Group)
                 .Include(p => p.TblPostImages)
                 .Include(p => p.TblPolls)
                     .ThenInclude(poll => poll.TblPollOptions)
@@ -1212,7 +1218,7 @@ public class UserProfileService : IUserProfileService
             HasPoll = p.HasPoll,
             Poll = pollDto,
             CommunityId = p.CommunityId ?? 0,
-            CommunityName = p.Community != null ? p.Community.Name : "General",
+            CommunityName = p.Group != null ? p.Group.Name : ((p.Community != null && p.Community.Name != "General") ? p.Community.Name : string.Empty),
             AuthorUserId = p.AuthorId,
             AuthorUserName = p.Author != null ? p.Author.UserName : "unknown",
             AuthorDisplayName = p.Author != null ? (p.Author.DisplayName ?? p.Author.UserName) : "Unknown",

@@ -92,17 +92,18 @@ public sealed class DashboardService(
                     null))
                 .ToListAsync(cancellationToken);
 
-            // Followed people first, then other users by rating / verification
-            var topPeople = rawPeople
+            // Followed people first, then verified and rated professionals, then alphabetically
+            var allPeople = rawPeople
                 .OrderByDescending(u => u.IsFollowedByCurrentUser)
+                .ThenByDescending(u => u.RoleCode == "PUBLIC_FIGURE" || u.RoleCode == "DOMAIN_PROFESSIONAL")
+                .ThenByDescending(u => u.IsVerified)
                 .ThenByDescending(u => u.AverageRating ?? 0)
                 .ThenBy(u => u.DisplayName)
-                .Take(20)
                 .ToList();
 
-            var topPersonIds = topPeople.Select(p => p.UserId).ToList();
+            var allPersonIds = allPeople.Select(p => p.UserId).ToList();
             var rawSkills = await dbContext.TblUserSkills
-                .Where(s => topPersonIds.Contains(s.UserId) && !s.IsDeleted)
+                .Where(s => allPersonIds.Contains(s.UserId) && !s.IsDeleted)
                 .OrderBy(s => s.DisplayOrder)
                 .Select(s => new { s.UserId, s.SkillName })
                 .ToListAsync(cancellationToken);
@@ -111,7 +112,7 @@ public sealed class DashboardService(
                 .GroupBy(s => s.UserId)
                 .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(s => s.SkillName).Take(4).ToList());
 
-            var people = topPeople
+            var people = allPeople
                 .Select(p => p with { Skills = skillsMap.TryGetValue(p.UserId, out var sk) ? sk : [] })
                 .ToList();
 

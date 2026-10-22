@@ -115,9 +115,10 @@ public sealed class PollService(
                 {
                     baseQuery = baseQuery.Where(p =>
                         ((p.Post != null && p.Post.AuthorId == currentUserId.Value) || p.CreatedBy == currentUserId.Value) ||
+                        followedAuthorIds.Contains(p.Post != null ? p.Post.AuthorId : (p.CreatedBy ?? 0)) ||
                         (p.Post != null && p.Post.GroupId.HasValue && joinedGroupIds.Contains(p.Post.GroupId.Value)) ||
                         (p.Post != null && p.Post.CommunityId.HasValue && !p.Post.GroupId.HasValue && joinedCommunityIds.Contains(p.Post.CommunityId.Value)) ||
-                        ((p.Post == null || (!p.Post.GroupId.HasValue && !p.Post.CommunityId.HasValue)) && (followedAuthorIds.Contains(p.Post != null ? p.Post.AuthorId : (p.CreatedBy ?? 0)) || (p.Post != null ? p.Post.AuthorId : p.CreatedBy) == currentUserId.Value)));
+                        (p.Post == null || (!p.Post.GroupId.HasValue && !p.Post.CommunityId.HasValue)));
                 }
                 else
                 {

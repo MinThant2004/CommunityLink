@@ -13,16 +13,6 @@
 <PageTitle>Communities — CommunityLink</PageTitle>
 
 <div class="min-h-screen bg-background font-body-md text-body-md text-on-surface antialiased transition-colors duration-200">
-    <!-- Top Directory Strip -->
-    <section class="bg-surface-container-lowest/80 backdrop-blur-md border-b border-surface-container-high/30">
-        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-space-sm flex items-center justify-between gap-3">
-            <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
-                <a href="/" class="hover:text-on-surface transition-colors flex items-center gap-1">Platform</a>
-                <span class="material-symbols-outlined text-xs">chevron_right</span>
-                <span class="text-on-surface font-semibold">Community Directory</span>
-            </div>
-        </div>
-    </section>
 
     <div class="relative w-full overflow-hidden">
         <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
@@ -317,27 +307,36 @@
                                 </div>
 
                                 <!-- Actions -->
-                                <div class="p-space-md pt-0 flex items-stretch gap-space-sm">
-                                    <a class="flex-1 py-2 px-space-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-[#0A1B2E] dark:text-primary font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all no-underline cursor-pointer border border-slate-300/80 dark:border-white/10 font-bold"
+                                <div class="p-space-md pt-0 flex flex-wrap items-stretch gap-2">
+                                    <a class="flex-1 min-w-[110px] py-2 px-space-sm rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-900 font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all no-underline cursor-pointer border border-blue-200 font-bold"
                                        href="@(isSub ? $"groups?subCommunityId={community.CommunityId}" : $"/sub-communities/{community.CommunityId}")">
                                         <span class="truncate">@(isSub ? "See Groups" : "See Sub_Community")</span>
                                         <span class="material-symbols-outlined text-sm">arrow_forward</span>
                                     </a>
 
+                                    @if (canCreateCommunity || isAdmin)
+                                    {
+                                        <button type="button" @onclick="() => OpenEditModal(community)"
+                                                class="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold shadow-xs">
+                                            <span class="material-symbols-outlined text-sm text-white">edit_note</span>
+                                            <span>Edit</span>
+                                        </button>
+                                    }
+
                                     @if (community.IsJoined)
                                     {
                                         <button type="button" @onclick="() => PromptLeaveCommunity(community)"
-                                                class="flex-1 py-2 px-space-sm rounded-lg bg-rose-500/10 hover:bg-rose-500/20 active:bg-rose-500/25 text-rose-600 dark:text-rose-400 font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-rose-500/25 dark:border-rose-500/30 font-bold shadow-xs">
-                                            <span class="material-symbols-outlined text-sm text-rose-600 dark:text-rose-400">logout</span>
+                                                class="px-3 py-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-rose-200 font-bold shadow-xs">
+                                            <span class="material-symbols-outlined text-sm text-rose-600">logout</span>
                                             <span>Leave</span>
                                         </button>
                                     }
                                     else
                                     {
                                         <button type="button" @onclick="() => JoinCommunity(community.CommunityId)"
-                                                class="flex-1 py-2 px-space-sm rounded-lg bg-[#0A1B2E] hover:bg-[#153252] text-white dark:bg-[#D4AF37] dark:hover:bg-[#F2CA50] dark:text-[#0A1B2E] font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all font-bold cursor-pointer shadow-sm border border-[#0A1B2E] dark:border-[#D4AF37]">
-                                            <span class="material-symbols-outlined text-sm text-white dark:text-[#0A1B2E]">lock_open</span>
-                                            <span class="text-white dark:text-[#0A1B2E] font-bold">Join</span>
+                                                class="px-4 py-2 rounded-lg bg-blue-800 hover:bg-blue-900 text-white font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all font-bold cursor-pointer shadow-sm border border-blue-900">
+                                            <span class="material-symbols-outlined text-sm text-white">lock_open</span>
+                                            <span class="text-white font-bold">Join</span>
                                         </button>
                                     }
                                 </div>
@@ -610,6 +609,186 @@
     </div>
 }
 
+<!-- Edit Community & Audit History Modal (Option A) -->
+@if (showEditModal && editingCommunity != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-blue-950/60 backdrop-blur-sm p-4">
+        <div class="relative bg-white rounded-xl shadow-2xl border border-blue-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div class="px-6 py-4 bg-blue-600 text-white flex items-center justify-between border-b border-blue-700">
+                <div class="flex items-center gap-2.5">
+                    <span class="material-symbols-outlined text-xl text-blue-100">edit_note</span>
+                    <div>
+                        <h3 class="text-base font-bold text-white">
+                            Edit @(editingCommunity.ParentCommunityId.HasValue ? "Sub-Community" : "Community"): @editingCommunity.Name
+                        </h3>
+                        <p class="text-xs text-blue-100 font-medium">Manage details & inspect field modification audit history</p>
+                    </div>
+                </div>
+                <button type="button" @onclick="CloseEditModal" class="p-1 rounded-lg text-blue-200 hover:text-white hover:bg-blue-700 transition">
+                    <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+            </div>
+
+            <!-- Tab Navigation (Pure Blue Tailwind) -->
+            <div class="flex border-b border-blue-200 bg-blue-50/60 px-6 pt-2 gap-4">
+                <button type="button" @onclick="() => editModalTab = 0"
+                        class="pb-2.5 px-3 text-xs font-bold border-b-2 transition flex items-center gap-1.5 @(editModalTab == 0 ? "border-blue-600 text-blue-700" : "border-transparent text-blue-900/60 hover:text-blue-900")">
+                    <span class="material-symbols-outlined text-sm">tune</span>
+                    <span>Edit Details</span>
+                </button>
+                <button type="button" @onclick="() => SwitchToAuditTab()"
+                        class="pb-2.5 px-3 text-xs font-bold border-b-2 transition flex items-center gap-1.5 @(editModalTab == 1 ? "border-blue-600 text-blue-700" : "border-transparent text-blue-900/60 hover:text-blue-900")">
+                    <span class="material-symbols-outlined text-sm">history</span>
+                    <span>Audit History</span>
+                    @if (auditLogs != null)
+                    {
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-100 text-blue-800 font-semibold font-mono">@auditLogs.Count</span>
+                    }
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6 overflow-y-auto flex-1">
+                @if (editModalTab == 0)
+                {
+                    <!-- Tab 0: Edit Form -->
+                    <div class="space-y-4">
+                        @if (!string.IsNullOrEmpty(editModalError))
+                        {
+                            <div class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                                <span class="material-symbols-outlined text-base shrink-0">error</span>
+                                <span>@editModalError</span>
+                            </div>
+                        }
+
+                        <div>
+                            <label class="block text-xs font-bold text-blue-950 mb-1">
+                                Name <span class="text-rose-600">*</span>
+                            </label>
+                            <input type="text"
+                                   class="w-full px-3 py-2 text-xs rounded-lg bg-white text-blue-950 placeholder-blue-300 border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+                                   placeholder="Enter community or sub-community name"
+                                   @bind="editName" />
+                            <p class="text-[11px] text-blue-700/70 mt-1">Must be unique across communities and sub-communities.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-blue-950 mb-1">
+                                Description
+                            </label>
+                            <textarea rows="4"
+                                      class="w-full px-3 py-2 text-xs rounded-lg bg-white text-blue-950 placeholder-blue-300 border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 leading-relaxed transition"
+                                      placeholder="Describe the mandate, purpose, or topics..."
+                                      @bind="editDescription"></textarea>
+                        </div>
+
+                        <div class="p-3 bg-blue-50 rounded-lg border border-blue-200 text-blue-900 text-xs flex items-start gap-2">
+                            <span class="material-symbols-outlined text-base text-blue-600 shrink-0">info</span>
+                            <span class="text-[11px] leading-relaxed">
+                                Note: Changing Name or Description creates a persistent audit entry with old & new values, timestamp, and your user record.
+                            </span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Tab 1: Audit History (Option A Table) -->
+                    <div>
+                        @if (isLoadingAudits)
+                        {
+                            <div class="py-12 flex flex-col items-center justify-center text-blue-600 gap-2">
+                                <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                <span class="text-xs font-medium text-blue-900">Loading audit history...</span>
+                            </div>
+                        }
+                        else if (auditLogs == null || auditLogs.Count == 0)
+                        {
+                            <div class="py-10 text-center border-2 border-dashed border-blue-200 rounded-xl bg-blue-50/50 p-6">
+                                <span class="material-symbols-outlined text-3xl text-blue-400 mb-1">manage_search</span>
+                                <h4 class="text-xs font-bold text-blue-950">No modification records found</h4>
+                                <p class="text-[11px] text-blue-700/80 mt-0.5">This entity has not had any logged edits yet.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="overflow-x-auto border border-blue-200 rounded-lg">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-blue-600 text-white font-bold text-[11px] tracking-wider uppercase">
+                                        <tr>
+                                            <th class="py-2.5 px-3">No.</th>
+                                            <th class="py-2.5 px-3">Type</th>
+                                            <th class="py-2.5 px-3">Old-Value</th>
+                                            <th class="py-2.5 px-3">New-Value</th>
+                                            <th class="py-2.5 px-3">Editor</th>
+                                            <th class="py-2.5 px-3">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-blue-100 bg-white text-blue-950 font-medium">
+                                        @for (int i = 0; i < auditLogs.Count; i++)
+                                        {
+                                            var item = auditLogs[i];
+                                            <tr class="hover:bg-blue-50/80 transition-colors">
+                                                <td class="py-2.5 px-3 font-mono font-bold text-blue-700">@(i + 1)</td>
+                                                <td class="py-2.5 px-3">
+                                                    <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase @(item.FieldChanged == "Name" ? "bg-blue-100 text-blue-800" : "bg-sky-100 text-sky-800")">
+                                                        @item.FieldChanged
+                                                    </span>
+                                                </td>
+                                                <td class="py-2.5 px-3 max-w-[140px] truncate text-slate-500 font-normal" title="@item.OldValue">
+                                                    @(string.IsNullOrEmpty(item.OldValue) ? "—" : item.OldValue)
+                                                </td>
+                                                <td class="py-2.5 px-3 max-w-[140px] truncate text-blue-950 font-semibold" title="@item.NewValue">
+                                                    @(string.IsNullOrEmpty(item.NewValue) ? "—" : item.NewValue)
+                                                </td>
+                                                <td class="py-2.5 px-3 text-blue-900 font-semibold whitespace-nowrap">
+                                                    @item.EditorName
+                                                </td>
+                                                <td class="py-2.5 px-3 text-blue-700/70 text-[11px] font-mono whitespace-nowrap">
+                                                    @item.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Modal Actions -->
+            <div class="px-6 py-3.5 bg-blue-50/80 border-t border-blue-200 flex items-center justify-between">
+                <span class="text-[11px] text-blue-700 font-medium">
+                    @(editingCommunity.ParentCommunityId.HasValue ? "Sub-Community ID: " : "Community ID: ")@editingCommunity.CommunityId
+                </span>
+                <div class="flex items-center gap-2">
+                    <button type="button" @onclick="CloseEditModal" disabled="@isSubmittingEdit"
+                            class="px-3.5 py-1.5 text-xs font-bold text-blue-900 hover:bg-blue-100 rounded-lg border border-blue-300 transition">
+                        Cancel
+                    </button>
+                    @if (editModalTab == 0)
+                    {
+                        <button type="button" @onclick="SubmitEditCommunityAsync" disabled="@isSubmittingEdit"
+                                class="px-4 py-1.5 text-xs font-bold rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5">
+                            @if (isSubmittingEdit)
+                            {
+                                <div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                <span>Saving...</span>
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined text-xs">save</span>
+                                <span>Save Changes</span>
+                            }
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private IReadOnlyList<CommunityModel>? communities;
     private string? searchTerm;
@@ -647,6 +826,17 @@
 
     private bool showAllCommunities = false;
     private const int MaxInitialCommunities = 12; // 4 rows on desktop (3 cols/row)
+
+    // Edit modal & Audit log state (Option A)
+    private bool showEditModal;
+    private CommunityModel? editingCommunity;
+    private string editName = "";
+    private string editDescription = "";
+    private string? editModalError;
+    private bool isSubmittingEdit;
+    private int editModalTab = 0; // 0 = Edit Details, 1 = Audit History
+    private bool isLoadingAudits;
+    private IReadOnlyList<CommunityAuditModel>? auditLogs;
 
     private void OnTypeFilterChanged()
     {
@@ -1027,6 +1217,95 @@
         finally
         {
             isLeaving = false;
+        }
+    }
+
+    private void OpenEditModal(CommunityModel community)
+    {
+        editingCommunity = community;
+        editName = community.Name ?? "";
+        editDescription = community.Description ?? "";
+        editModalError = null;
+        editModalTab = 0;
+        auditLogs = null;
+        showEditModal = true;
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        editingCommunity = null;
+        editModalError = null;
+        auditLogs = null;
+    }
+
+    private async Task SwitchToAuditTab()
+    {
+        editModalTab = 1;
+        if (editingCommunity == null) return;
+
+        isLoadingAudits = true;
+        try
+        {
+            var res = await CommunityApi.GetCommunityAuditsAsync(editingCommunity.CommunityId);
+            if (res.IsSuccess && res.Data != null)
+            {
+                auditLogs = res.Data;
+            }
+            else
+            {
+                auditLogs = Array.Empty<CommunityAuditModel>();
+            }
+        }
+        catch (Exception ex)
+        {
+            auditLogs = Array.Empty<CommunityAuditModel>();
+            editModalError = $"Failed to load audits: {ex.Message}";
+        }
+        finally
+        {
+            isLoadingAudits = false;
+        }
+    }
+
+    private async Task SubmitEditCommunityAsync()
+    {
+        if (editingCommunity == null) return;
+        editModalError = null;
+
+        if (string.IsNullOrWhiteSpace(editName))
+        {
+            editModalError = "Please enter a valid name.";
+            return;
+        }
+
+        isSubmittingEdit = true;
+        try
+        {
+            var req = new EditCommunityRequestModel(
+                Name: editName.Trim(),
+                Description: string.IsNullOrWhiteSpace(editDescription) ? null : editDescription.Trim()
+            );
+
+            var res = await CommunityApi.UpdateCommunityAsync(editingCommunity.CommunityId, req);
+            if (res.IsSuccess)
+            {
+                Toast.Success("Changes saved successfully!");
+                CloseEditModal();
+                await LoadCommunitiesAsync();
+            }
+            else
+            {
+                editModalError = res.Message ?? "Failed to save changes. Duplicate name may exist.";
+            }
+        }
+        catch (Exception ex)
+        {
+            editModalError = $"Error saving changes: {ex.Message}";
+        }
+        finally
+        {
+            isSubmittingEdit = false;
         }
     }
 }

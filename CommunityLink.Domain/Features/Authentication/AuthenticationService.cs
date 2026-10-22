@@ -175,7 +175,16 @@ public class AuthenticationService : IAuthenticationService
         if (user == null || user.IsDeleted)
             return Result<LoginResponseModel>.Failure("Invalid email or password.", ResultStatus.Unauthorized);
 
-        bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+        bool isValidPassword = false;
+        try
+        {
+            isValidPassword = !string.IsNullOrEmpty(user.PasswordHash) && BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+        }
+        catch (Exception)
+        {
+            isValidPassword = false;
+        }
+
         if (!isValidPassword)
             return Result<LoginResponseModel>.Failure("Invalid email or password.", ResultStatus.Unauthorized);
 
