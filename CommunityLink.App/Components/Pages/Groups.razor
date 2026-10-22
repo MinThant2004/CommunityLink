@@ -277,24 +277,7 @@
                         var isCreator = currentUserId.HasValue && grp.CreatorId == currentUserId.Value;
                         var photoUrl = GetGroupPhoto(grp);
 
-                        <div class="relative overflow-hidden bg-white hover:bg-slate-50/70 dark:bg-[#131722] dark:hover:bg-[#171C28] rounded-2xl flex flex-col justify-between border border-slate-200/80 hover:border-slate-300 dark:border-white/[0.08] dark:hover:border-white/15 shadow-[0_2px_8px_-2px_rgba(10,27,46,0.06),0_1px_3px_rgba(10,27,46,0.04)] hover:shadow-[0_8px_20px_-4px_rgba(10,27,46,0.1),0_2px_6px_rgba(10,27,46,0.05)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5),0_1px_3px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_8px_28px_-2px_rgba(0,0,0,0.7)] transition-all group">
-
-                            <!-- Decorative Soft Color Shades (Smooth Corner Wash Inspired by People Cards) -->
-                            @if (cardIndex % 3 == 0)
-                            {
-                                <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-sky-500/20 via-blue-500/10 to-transparent dark:from-sky-400/20 dark:via-blue-500/10 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-sky-500/10 dark:bg-sky-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                            }
-                            else if (cardIndex % 3 == 1)
-                            {
-                                <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-blue-600/20 via-cyan-500/10 to-transparent dark:from-blue-400/25 dark:via-cyan-400/15 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-blue-500/10 dark:bg-cyan-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                            }
-                            else
-                            {
-                                <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-indigo-500/15 via-sky-400/10 to-transparent dark:from-indigo-400/20 dark:via-sky-400/10 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-sky-400/10 dark:bg-indigo-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                            }
+                        <div class="relative overflow-hidden bg-[#d9ecfe] dark:bg-[#0f2233] rounded-2xl flex flex-col justify-between border border-slate-200/80 hover:border-slate-300 dark:border-white/[0.08] dark:hover:border-white/15 shadow-[0_2px_8px_-2px_rgba(10,27,46,0.06),0_1px_3px_rgba(10,27,46,0.04)] hover:shadow-[0_8px_20px_-4px_rgba(10,27,46,0.1),0_2px_6px_rgba(10,27,46,0.05)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5),0_1px_3px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_8px_28px_-2px_rgba(0,0,0,0.7)] transition-all group">
 
                             <div class="relative z-10 flex flex-col justify-between h-full">
                                 <div class="p-space-md flex flex-col gap-space-sm">
@@ -323,27 +306,11 @@
                                             }
                                         </div>
 
-                                        <div class="absolute bottom-2 left-2 right-2 p-2 rounded-lg bg-sky-50/95 dark:bg-[#0f243c]/95 backdrop-blur-md border border-sky-200/70 dark:border-sky-500/20 flex items-center justify-between gap-2 shadow-xs">
-                                            <div class="min-w-0">
-                                                <a href="/group/@grp.GroupId"
-                                                   class="block font-title-md text-sm text-slate-900 dark:text-on-surface font-bold tracking-tight truncate hover:text-primary transition-colors">
-                                                    @grp.Name
-                                                </a>
-                                            </div>
+                                    </div>
 
-                                            @if (!string.IsNullOrWhiteSpace(grp.AvatarUrl) && grp.AvatarUrl != grp.BannerUrl)
-                                            {
-                                                <div class="w-7 h-7 rounded-full bg-surface-container-high overflow-hidden border-2 border-white dark:border-surface-container-lowest shrink-0 shadow-xs">
-                                                    <img class="w-full h-full object-cover" src="@grp.AvatarUrl" alt="@grp.Name" />
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-surface-container-highest text-slate-800 dark:text-on-surface-variant font-label-sm text-xs flex items-center justify-center font-bold border-2 border-white dark:border-surface-container-lowest shrink-0 shadow-xs">
-                                                    @InitialOf(grp.Name)
-                                                </div>
-                                            }
-                                        </div>
+                                    <!-- Group Name (below photo) -->
+                                    <div class="font-title-md text-base text-slate-900 dark:text-on-surface font-bold tracking-tight truncate">
+                                        <a href="/group/@grp.GroupId" class="hover:text-primary transition-colors">@grp.Name</a>
                                     </div>
 
                                     <!-- Description -->
@@ -363,11 +330,6 @@
                                         <span class="flex items-center gap-1 text-primary font-medium">
                                             <span class="material-symbols-outlined text-xs">article</span>
                                             @FormatCompact(grp.PostCount) Posts
-                                        </span>
-                                        <span class="text-on-surface-variant">•</span>
-                                        <span class="flex items-center gap-1 text-secondary font-medium">
-                                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
-                                            @RatingLabel(grp)
                                         </span>
                                     </div>
 
@@ -394,9 +356,9 @@
                                     @if (grp.IsJoined)
                                     {
                                         <button type="button" disabled
-                                                class="flex-1 py-2 px-space-sm rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/70 dark:hover:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 cursor-default border-2 border-emerald-400 dark:border-emerald-500 shadow-sm">
-                                            <span class="material-symbols-outlined text-base text-emerald-600 dark:text-emerald-400 font-bold" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                            <span class="font-bold text-emerald-800 dark:text-emerald-200">Joined</span>
+                                                class="flex-1 py-2 px-space-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-slate-200 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 cursor-default border border-slate-300/80 dark:border-white/10 shadow-xs">
+                                            <span class="material-symbols-outlined text-sm">check</span>
+                                            <span class="truncate">Joined</span>
                                         </button>
                                         @if (isCreator)
                                         {

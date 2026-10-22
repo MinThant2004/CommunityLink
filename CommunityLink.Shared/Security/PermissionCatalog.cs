@@ -8,8 +8,14 @@ public static class PermissionCatalog
 
     // User Permissions (Type = 0)
     public const string CommunityView = "COMMUNITY.VIEW";
+    public const string CommunityCreate = "COMMUNITY.CREATE";
+    public const string SubCommunityCreate = "SUBCOMMUNITY.CREATE";
+    public const string CommunityManage = "COMMUNITY.MANAGE";
+    public const string CommunityModerate = "COMMUNITY.MODERATE";
     public const string GroupView = "GROUP.VIEW";
     public const string GroupCreate = "GROUP.CREATE";
+    public const string GroupManage = "GROUP.MANAGE";
+    public const string GroupManagement = "GROUP.MANAGEMENT";
     public const string PostView = "POST.VIEW";
     public const string PostCreate = "POST.CREATE";
     public const string PostStandaloneCreate = "POST.STANDALONE.CREATE";
@@ -25,13 +31,7 @@ public static class PermissionCatalog
     public const string CreatorEarnings = "CREATOR.EARNINGS";
     public const string CreatorPayouts = "CREATOR.PAYOUTS";
 
-    // Admin Permissions (Type = 1)
-    public const string CommunityCreate = "COMMUNITY.CREATE";
-    public const string SubCommunityCreate = "SUBCOMMUNITY.CREATE";
-    public const string CommunityManage = "COMMUNITY.MANAGE";
-    public const string CommunityModerate = "COMMUNITY.MODERATE";
-    public const string GroupManage = "GROUP.MANAGE";
-    public const string GroupManagement = "GROUP.MANAGEMENT";
+    // Admin Permissions (Type = 1) - Platform Governance & Oversight Only
     public const string AdminUserView = "ADMIN.USER.VIEW";
     public const string AdminUserManage = "ADMIN.USER.MANAGE";
     public const string AdminRbacManage = "ADMIN.RBAC.MANAGE";
@@ -41,8 +41,14 @@ public static class PermissionCatalog
     [
         // User Domain Permissions (Type = 0)
         new(CommunityView, "View Communities", "Community", "/communities", 0, false, true),
+        new(CommunityCreate, "Create Community", "Community", "/communities/create", 0, false, false),
+        new(SubCommunityCreate, "Create Sub-Community", "Community", "/communities/create", 0, false, false),
+        new(CommunityManage, "Manage Community Settings", "Community", null, 0, false, false),
+        new(CommunityModerate, "Moderate Communities & Join Requests", "Moderation", "/admin/communities", 0, false, false),
         new(GroupView, "View Groups", "Group", "/groups", 0, false, true),
         new(GroupCreate, "Create Group", "Group", "/groups", 0, false, true),
+        new(GroupManage, "Manage Group Settings", "Group", null, 0, false, false),
+        new(GroupManagement, "Group Moderation & Active Status", "Content Moderation", "/admin/content-moderation?tab=groups", 0, false, false),
         new(PostView, "View Feed Posts", "Post", "/feed", 0, false, true),
         new(PostCreate, "Create Post", "Post", "/feed", 0, false, true),
         new(PostStandaloneCreate, "Create Standalone Post & Poll", "Post", null, 0, false, true),
@@ -58,13 +64,7 @@ public static class PermissionCatalog
         new(CreatorEarnings, "View Creator Earnings", "Creator", "/creator/earnings", 0, false, false),
         new(CreatorPayouts, "Manage Creator Payouts", "Creator", "/creator/payouts", 0, false, false),
 
-        // Admin Domain Permissions (Type = 1)
-        new(CommunityCreate, "Create Community", "Community", "/communities/create", 1, true, false),
-        new(SubCommunityCreate, "Create Sub-Community", "Community", "/communities/create", 1, true, false),
-        new(CommunityManage, "Manage Community Settings", "Community", null, 1, true, false),
-        new(CommunityModerate, "Moderate Communities & Join Requests", "Moderation", "/admin/communities", 1, true, false),
-        new(GroupManage, "Manage Group Settings", "Group", null, 1, true, false),
-        new(GroupManagement, "Group Moderation & Active Status", "Content Moderation", "/admin/content-moderation?tab=groups", 1, true, false),
+        // Admin Domain Permissions (Type = 1) - Platform Governance & Oversight Only
         new(AdminUserView, "View Admin Users", "Administration", "/admin/users", 1, true, false),
         new(AdminUserManage, "Manage Admin Users", "Administration", "/admin/users", 1, true, false),
         new(AdminRbacManage, "Manage RBAC Matrix", "Administration", "/admin/rbac", 1, true, false),
@@ -73,11 +73,19 @@ public static class PermissionCatalog
 
     public static IReadOnlyList<string> DefaultForRole(string roleCode) => roleCode.ToUpperInvariant() switch
     {
-        "SYSTEM_ADMIN" or "SYSTEMADMIN" => All.Where(x => x.Type == 1).Select(x => x.Code).ToArray(),
-        "ADMIN" => All.Where(x => x.Type == 1).Select(x => x.Code).ToArray(),
+        "SYSTEM_ADMIN" or "SYSTEMADMIN" => All.Select(x => x.Code).ToArray(),
+        "ADMIN" => All.Where(x => x.Type == 1 || x.Code == CommunityModerate || x.Code == GroupManagement).Select(x => x.Code).ToArray(),
         "DEFAULT_USER" or "USER" or "MEMBER" => All.Where(x => x.Type == 0 && x.MemberDefault).Select(x => x.Code).ToArray(),
-        "MODERATOR" => All.Where(x => x.Type == 0).Select(x => x.Code).ToArray(),
-        "DOMAIN_PROFESSIONAL" or "DOMAIN_PRO" or "PUBLIC_FIGURE" => All.Where(x => x.Type == 0 && (x.MemberDefault || x.Code == GroupChatCreate || x.Code == CreatorEarnings || x.Code == CreatorPayouts)).Select(x => x.Code).ToArray(),
+        "MODERATOR" => All.Where(x => x.Type == 0 && (x.MemberDefault || x.Code == CommunityModerate || x.Code == GroupManagement || x.Code == PostManagement)).Select(x => x.Code).ToArray(),
+        "DOMAIN_PROFESSIONAL" or "DOMAIN_PRO" or "PUBLIC_FIGURE" => All.Where(x => x.Type == 0 && (
+            x.MemberDefault || 
+            x.Code == CommunityCreate || 
+            x.Code == SubCommunityCreate || 
+            x.Code == CommunityManage || 
+            x.Code == GroupManage || 
+            x.Code == GroupChatCreate || 
+            x.Code == CreatorEarnings || 
+            x.Code == CreatorPayouts)).Select(x => x.Code).ToArray(),
         _ => []
     };
 }

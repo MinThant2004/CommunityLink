@@ -222,24 +222,7 @@
                         var cardIndex = cIdx;
                         var bannerUrl = GetBannerUrl(community);
 
-                        <div class="relative overflow-hidden bg-white hover:bg-slate-50/70 dark:bg-[#131722] dark:hover:bg-[#171C28] rounded-2xl flex flex-col justify-between border border-slate-200/80 hover:border-slate-300 dark:border-white/[0.08] dark:hover:border-white/15 shadow-[0_2px_8px_-2px_rgba(10,27,46,0.06),0_1px_3px_rgba(10,27,46,0.04)] hover:shadow-[0_8px_20px_-4px_rgba(10,27,46,0.1),0_2px_6px_rgba(10,27,46,0.05)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5),0_1px_3px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_8px_28px_-2px_rgba(0,0,0,0.7)] transition-all group">
-
-                            <!-- Decorative Soft Color Shades (Smooth Corner Wash Inspired by People Cards) -->
-                            @if (cardIndex % 3 == 0)
-                            {
-                                <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-sky-500/20 via-blue-500/10 to-transparent dark:from-sky-400/20 dark:via-blue-500/10 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-sky-500/10 dark:bg-sky-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                            }
-                            else if (cardIndex % 3 == 1)
-                            {
-                                <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-blue-600/20 via-cyan-500/10 to-transparent dark:from-blue-400/25 dark:via-cyan-400/15 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-blue-500/10 dark:bg-cyan-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                            }
-                            else
-                            {
-                                <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-indigo-500/15 via-sky-400/10 to-transparent dark:from-indigo-400/20 dark:via-sky-400/10 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-sky-400/10 dark:bg-indigo-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                            }
+                        <div class="relative overflow-hidden bg-[#d9ecfe] dark:bg-[#0f2233] rounded-2xl flex flex-col justify-between border border-slate-200/80 hover:border-slate-300 dark:border-white/[0.08] dark:hover:border-white/15 shadow-[0_2px_8px_-2px_rgba(10,27,46,0.06),0_1px_3px_rgba(10,27,46,0.04)] hover:shadow-[0_8px_20px_-4px_rgba(10,27,46,0.1),0_2px_6px_rgba(10,27,46,0.05)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5),0_1px_3px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_8px_28px_-2px_rgba(0,0,0,0.7)] transition-all group">
 
                             <div class="relative z-10 flex flex-col justify-between h-full">
                                 <div class="p-space-md flex flex-col gap-space-sm">
@@ -247,14 +230,10 @@
                                     <div class="relative h-36 rounded-xl overflow-hidden bg-surface-container-lowest border border-slate-200/80 dark:border-white/[0.08]">
                                         <img src="@bannerUrl" alt="@community.Name"
                                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-
-                                        <!-- Banner Title (soft blue background, PARENT COMMUNITY line removed) -->
-                                        <div class="absolute bottom-2 left-2 right-2 p-2 rounded-lg bg-sky-50/95 dark:bg-[#0f243c]/95 backdrop-blur-md border border-sky-200/70 dark:border-sky-500/20 flex items-center justify-between gap-2 shadow-xs">
-                                            <div class="min-w-0 flex-1">
-                                                <div class="font-title-md text-sm text-slate-900 dark:text-on-surface font-bold tracking-tight truncate">@community.Name</div>
-                                            </div>
-                                        </div>
                                     </div>
+
+                                    <!-- Title (moved below the banner) -->
+                                    <div class="font-title-md text-base text-slate-900 dark:text-on-surface font-bold tracking-tight truncate">@community.Name</div>
 
                                     <!-- Description -->
                                     <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 leading-relaxed">
@@ -274,46 +253,8 @@
                                             <span class="material-symbols-outlined text-xs">account_tree</span>
                                             @(isSub ? community.GroupCount.ToString() : community.SubCommunityCount.ToString()) @(isSub ? "Groups" : "Sub-Hubs")
                                         </span>
-                                        <span class="text-on-surface-variant">•</span>
-                                        <span class="flex items-center gap-1 text-secondary font-medium">
-                                            <span class="material-symbols-outlined text-xs">article</span>
-                                            @FormatCompact(community.PostCount) Posts
-                                        </span>
                                     </div>
 
-                                    <!-- Child entities -->
-                                    <div class="flex flex-col gap-space-xs pt-space-xs">
-                                        <span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant flex items-center gap-1 font-semibold">
-                                            <span class="material-symbols-outlined text-xs text-primary">hub</span>
-                                            @(isSub ? "Working Groups" : "Sub-Communities") (@(isSub ? community.GroupCount : community.SubCommunityCount))
-                                        </span>
-
-                                        <div class="grid grid-cols-1 gap-1.5 mt-1">
-                                            @if (community.TopChildItems != null && community.TopChildItems.Any())
-                                            {
-                                                @for (var i = 0; i < Math.Min(3, community.TopChildItems.Count); i++)
-                                                {
-                                                    var child = community.TopChildItems[i];
-                                                    <div class="flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-slate-50/80 dark:bg-white/[0.02] hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-colors border border-slate-200/70 dark:border-white/[0.06]">
-                                                        <div class="flex items-center gap-2 min-w-0 pr-2">
-                                                            <span class="material-symbols-outlined text-sm shrink-0 @(i % 2 == 0 ? "text-primary" : "text-secondary")">@GetChildIcon(i)</span>
-                                                            <span class="font-body-sm text-body-sm text-on-surface truncate">@child.Name</span>
-                                                        </div>
-                                                        <div class="flex items-center gap-1.5 shrink-0">
-                                                            <span class="font-label-sm text-label-sm font-mono text-on-surface-variant">@child.MemberCount.ToString("N0")</span>
-                                                            <span class="font-label-sm text-label-sm text-on-surface-variant uppercase px-1.5 py-0.5 rounded bg-surface-container-high font-mono">@child.ItemType</span>
-                                                        </div>
-                                                    </div>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <div class="px-space-sm py-3 rounded-lg bg-slate-50/50 dark:bg-white/[0.02] border border-dashed border-slate-300 dark:border-white/[0.08] text-center font-body-sm text-body-sm text-on-surface-variant">
-                                                    No @(isSub ? "groups" : "sub-communities") registered yet.
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
                                 </div>
 
                                 <!-- Actions -->

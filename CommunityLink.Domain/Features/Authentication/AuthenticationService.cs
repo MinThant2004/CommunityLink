@@ -17,7 +17,7 @@ namespace CommunityLink.Domain.Features.Authentication;
 
 public class AuthenticationService : IAuthenticationService
 {
-    private const string MemberRoleCode = "MEMBER";
+    private const string MemberRoleCode = "DEFAULT_USER";
     private const string AdminRoleCode = "ADMIN";
     private const string SuperAdminRoleCode = "SUPERADMIN";
     private const int MinPasswordLength = 8;
@@ -500,9 +500,7 @@ public class AuthenticationService : IAuthenticationService
 
     private async Task<(string RoleCode, int RoleId)> ResolveMemberRoleAsync()
     {
-        var role = await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "DEFAULT_USER" && !r.IsDeleted)
-                   ?? await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "USER" && !r.IsDeleted)
-                   ?? await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == MemberRoleCode && !r.IsDeleted);
+        var role = await _dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "DEFAULT_USER" && !r.IsDeleted);
         return (role?.RoleCode ?? "DEFAULT_USER", role?.RoleId ?? 3);
     }
 

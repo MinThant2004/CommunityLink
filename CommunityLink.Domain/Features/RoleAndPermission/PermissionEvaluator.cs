@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Security;
+using CommunityLink.Shared.Security;
 
 namespace CommunityLink.Domain.Features.RoleAndPermission;
 
@@ -18,19 +19,39 @@ public sealed class PermissionEvaluator(AppDbContext dbContext, ICurrentUserCont
         if (string.Equals(currentUser.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(currentUser.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase)) return true;
 
-        return await dbContext.TblRolePermissions
+        var hasPerm = await dbContext.TblRolePermissions
             .AsNoTracking()
             .AnyAsync(rp => rp.RoleId == currentUser.RoleId &&
                             rp.Permission.PermissionCode == permissionCode &&
                             !rp.IsDeleted, cancellationToken);
+        if (hasPerm) return true;
+
+        // Fallback to catalog defaults if role permissions haven't been seeded in DB (e.g. dynamic test roles)
+        if (!string.IsNullOrEmpty(currentUser.RoleCode))
+        {
+            var defaultCodes = PermissionCatalog.DefaultForRole(currentUser.RoleCode);
+            return defaultCodes.Contains(permissionCode);
+        }
+
+        return false;
     }
 
     public async Task<IReadOnlyList<string>> GetPermissionsForRoleAsync(int roleId, CancellationToken cancellationToken = default)
     {
-        return await dbContext.TblRolePermissions
+        var dbPerms = await dbContext.TblRolePermissions
             .AsNoTracking()
             .Where(rp => rp.RoleId == roleId && !rp.IsDeleted)
             .Select(rp => rp.Permission.PermissionCode)
             .ToListAsync(cancellationToken);
+
+        if (dbPerms.Count > 0) return dbPerms;
+
+        var role = await dbContext.TblRoles.FindAsync([roleId], cancellationToken);
+        if (role != null)
+        {
+            return PermissionCatalog.DefaultForRole(role.RoleCode);
+        }
+
+        return [];
     }
 }

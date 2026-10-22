@@ -38,7 +38,7 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
         }
 
         var defaultUserRole = await dbContext.TblRoles
-            .FirstOrDefaultAsync(r => !r.IsDeleted && (r.RoleCode == "DEFAULT_USER" || r.RoleCode == "MEMBER" || r.RoleCode == "USER"), cancellationToken);
+            .FirstOrDefaultAsync(r => !r.IsDeleted && r.RoleCode == "DEFAULT_USER", cancellationToken);
         if (defaultUserRole is null)
         {
             return Result<int>.Failure("Default user fallback role could not be resolved during subscription expiration.", ResultStatus.NotFound);
@@ -275,7 +275,7 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
         return Result<UserSubscriptionStatusDto>.Success(new UserSubscriptionStatusDto(
             HasActiveSubscription: false,
             TierName: "Normal User",
-            TargetRoleCode: "USER",
+            TargetRoleCode: "DEFAULT_USER",
             Status: "Inactive",
             StartDateUtc: null,
             ExpiresAtUtc: null,

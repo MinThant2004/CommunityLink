@@ -78,7 +78,7 @@ public sealed class DashboardService(
                     u.DisplayName,
                     u.AvatarUrl,
                     u.Bio,
-                    u.TblUserRoles.Where(r => !r.IsDeleted).Select(r => r.Role.RoleCode).FirstOrDefault() ?? "MEMBER",
+                    u.TblUserRoles.Where(r => !r.IsDeleted).Select(r => r.Role.RoleCode).FirstOrDefault() ?? "DEFAULT_USER",
                     u.IsVerified,
                     u.TblCommunityMembers.Count(m => !m.IsDeleted),
                     u.TblPosts.Count(p => !p.IsDeleted),

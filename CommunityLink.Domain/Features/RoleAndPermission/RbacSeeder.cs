@@ -362,17 +362,13 @@ public static class RbacSeeder
         await db.SaveChangesAsync();
 
         // 2. Seed Roles
-        // User Domain Roles (RoleType = 0): DEFAULT_USER (System Role), MEMBER, MODERATOR, DOMAIN_PROFESSIONAL, PUBLIC_FIGURE
-        // Admin Domain Roles (RoleType = 1): SYSTEM_ADMIN (System Role), ADMIN (System Role)
+        // User Domain Roles (RoleType = 0): DEFAULT_USER (System Role, Undeletable Default Fallback), DOMAIN_PROFESSIONAL, PUBLIC_FIGURE
+        // Admin Domain Roles (RoleType = 1): SYSTEM_ADMIN (System Role, Undeletable), ADMIN (System Role, Undeletable Fallback)
         var rolesToSeed = new (string Code, string Name, string Description, bool IsSystem, int RoleType)[]
         {
             ("SYSTEM_ADMIN", "System Administrator", "Full system administrator with unchangeable permissions", true, 1),
             ("ADMIN", "Administrator", "Default administrator account with customizable permissions", true, 1),
             ("DEFAULT_USER", "Default User", "Default standard user role assigned to all regular users", true, 0),
-            ("USER", "User", "Legacy user role", false, 0),
-            ("MODERATOR", "Community Moderator", "Manages community content & moderation", false, 0),
-            ("MEMBER", "Community Member", "Standard user account", false, 0),
-            ("DOMAIN_PRO", "Domain Professional", "Verified domain expert", false, 0),
             ("DOMAIN_PROFESSIONAL", "Domain Professional", "Domain Professional premium creator account", false, 0),
             ("PUBLIC_FIGURE", "Public Figure", "Notable community creator or public figure", false, 0)
         };
@@ -431,8 +427,32 @@ public static class RbacSeeder
 
         if (db.Database.IsRelational())
         {
-            // Sync IsSystemRole in the database so only SYSTEM_ADMIN, ADMIN, and DEFAULT_USER are 1
+            // Reassign any leftover legacy roles to DEFAULT_USER or ADMIN, then clean them up
             await db.Database.ExecuteSqlRawAsync(@"
+                DECLARE @DefaultUserId INT = (SELECT RoleId FROM dbo.TblRole WHERE RoleCode = 'DEFAULT_USER');
+                DECLARE @AdminId INT = (SELECT RoleId FROM dbo.TblRole WHERE RoleCode = 'ADMIN');
+
+                IF @DefaultUserId IS NOT NULL
+                BEGIN
+                    UPDATE dbo.TblUserRole 
+                    SET RoleId = @DefaultUserId 
+                    WHERE RoleId IN (SELECT RoleId FROM dbo.TblRole WHERE RoleCode NOT IN ('SYSTEM_ADMIN', 'ADMIN', 'DEFAULT_USER', 'DOMAIN_PROFESSIONAL', 'PUBLIC_FIGURE'));
+                END;
+
+                IF @AdminId IS NOT NULL
+                BEGIN
+                    UPDATE dbo.TblAdminRole 
+                    SET RoleId = @AdminId 
+                    WHERE RoleId IN (SELECT RoleId FROM dbo.TblRole WHERE RoleCode NOT IN ('SYSTEM_ADMIN', 'ADMIN', 'DEFAULT_USER', 'DOMAIN_PROFESSIONAL', 'PUBLIC_FIGURE'));
+                END;
+
+                DELETE FROM dbo.TblRolePermission 
+                WHERE RoleId IN (SELECT RoleId FROM dbo.TblRole WHERE RoleCode NOT IN ('SYSTEM_ADMIN', 'ADMIN', 'DEFAULT_USER', 'DOMAIN_PROFESSIONAL', 'PUBLIC_FIGURE'));
+
+                DELETE FROM dbo.TblRole 
+                WHERE RoleCode NOT IN ('SYSTEM_ADMIN', 'ADMIN', 'DEFAULT_USER', 'DOMAIN_PROFESSIONAL', 'PUBLIC_FIGURE');
+
+                -- Sync IsSystemRole in the database so strictly SYSTEM_ADMIN, ADMIN, and DEFAULT_USER are 1
                 UPDATE dbo.TblRole
                 SET IsSystemRole = CASE 
                     WHEN UPPER(RoleCode) IN ('SYSTEM_ADMIN', 'ADMIN', 'DEFAULT_USER') THEN 1 
@@ -445,14 +465,18 @@ public static class RbacSeeder
 
                 UPDATE dbo.TblPermission
                 SET Type = 0
-                WHERE UPPER(PermissionCode) IN ('POST.STANDALONE.CREATE', 'POST.DELETE', 'POLL.CREATE', 'POST.MANAGEMENT');");
+                WHERE UPPER(PermissionCode) IN (
+                    'POST.STANDALONE.CREATE', 'POST.DELETE', 'POLL.CREATE', 'POST.MANAGEMENT',
+                    'COMMUNITY.CREATE', 'SUBCOMMUNITY.CREATE', 'COMMUNITY.MANAGE', 'COMMUNITY.MODERATE',
+                    'GROUP.MANAGE', 'GROUP.MANAGEMENT'
+                );");
         }
 
         // 3. Seed Default Admin & Demo Users
         if (!await db.TblUsers.AnyAsync())
         {
             var adminRole = await db.TblRoles.FirstAsync(r => r.RoleCode == "ADMIN");
-            var memberRole = await db.TblRoles.FirstAsync(r => r.RoleCode == "MEMBER");
+            var defaultUserRole = await db.TblRoles.FirstAsync(r => r.RoleCode == "DEFAULT_USER");
 
             var adminUser = new TblUser
             {
@@ -486,7 +510,7 @@ public static class RbacSeeder
             db.TblUsers.Add(demoMember);
             await db.SaveChangesAsync();
 
-            db.TblUserRoles.Add(new TblUserRole { UserId = demoMember.UserId, RoleId = memberRole.RoleId, CreatedAt = DateTime.UtcNow });
+            db.TblUserRoles.Add(new TblUserRole { UserId = demoMember.UserId, RoleId = defaultUserRole.RoleId, CreatedAt = DateTime.UtcNow });
             await db.SaveChangesAsync();
         }
 

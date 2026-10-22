@@ -7,6 +7,7 @@
 @inject ToastService Toast
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
+@inject RoleAndPermissionApiService RoleApi
 @inject IWebHostEnvironment Environment
 
 <PageTitle>@(selectedParent != null ? $"{selectedParent.Name} Sub-Communities" : "Sub-Communities") — CommunityLink</PageTitle>
@@ -158,12 +159,15 @@
                         <span>Sort: @sortMode</span>
                     </button>
 
-                    <!-- Propose Sub-Community Button -->
-                    <button type="button" @onclick="OpenCreateSubModal"
-                            class="px-3.5 py-1.5 bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-primary dark:hover:bg-primary-fixed-dim text-white dark:text-on-primary rounded-xl font-label-md text-label-md font-bold flex items-center gap-1.5 shrink-0 transition-all shadow-sm cursor-pointer border border-[#0A1B2E] dark:border-primary">
-                        <span class="material-symbols-outlined text-sm text-white dark:text-on-primary">add</span>
-                        <span class="text-white dark:text-on-primary font-bold">Propose Sub-Hub</span>
-                    </button>
+                    <!-- Propose Sub-Community Button (shown only if permission is granted) -->
+                    @if (canCreateSubCommunity)
+                    {
+                        <button type="button" @onclick="OpenCreateSubModal"
+                                class="px-3.5 py-1.5 bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-primary dark:hover:bg-primary-fixed-dim text-white dark:text-on-primary rounded-xl font-label-md text-label-md font-bold flex items-center gap-1.5 shrink-0 transition-all shadow-sm cursor-pointer border border-[#0A1B2E] dark:border-primary">
+                            <span class="material-symbols-outlined text-sm text-white dark:text-on-primary">add</span>
+                            <span class="text-white dark:text-on-primary font-bold">Propose Sub-Hub</span>
+                        </button>
+                    }
                 </div>
             </div>
 
@@ -181,10 +185,13 @@
                                 ? "No sub-communities have been chartered under this hub yet. Be the first to establish a node." 
                                 : $"No sub-communities match '{searchTerm}'.")
                         </p>
-                        <button type="button" @onclick="OpenCreateSubModal" class="mt-4 px-space-md py-2 rounded-xl bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-primary dark:hover:bg-primary-fixed-dim text-white dark:text-on-primary font-label-lg font-bold inline-flex items-center gap-2 cursor-pointer shadow-sm">
-                            <span class="material-symbols-outlined text-sm text-white dark:text-on-primary">add</span>
-                            <span class="text-white dark:text-on-primary">Propose New Sub-Community</span>
-                        </button>
+                        @if (canCreateSubCommunity)
+                        {
+                            <button type="button" @onclick="OpenCreateSubModal" class="mt-4 px-space-md py-2 rounded-xl bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-primary dark:hover:bg-primary-fixed-dim text-white dark:text-on-primary font-label-lg font-bold inline-flex items-center gap-2 cursor-pointer shadow-sm">
+                                <span class="material-symbols-outlined text-sm text-white dark:text-on-primary">add</span>
+                                <span class="text-white dark:text-on-primary">Propose New Sub-Community</span>
+                            </button>
+                        }
                     </div>
                 }
                 else
@@ -199,24 +206,7 @@
                             var glowGradient = GetGlowGradientForIndex(cardIndex);
                             var isJoined = sub.IsJoined || joinedCommunityIds.Contains(sub.CommunityId);
 
-                            <div class="relative overflow-hidden bg-white hover:bg-slate-50/70 dark:bg-[#131722] dark:hover:bg-[#171C28] rounded-2xl flex flex-col justify-between border border-slate-200/80 hover:border-slate-300 dark:border-white/[0.08] dark:hover:border-white/15 shadow-[0_2px_8px_-2px_rgba(10,27,46,0.06),0_1px_3px_rgba(10,27,46,0.04)] hover:shadow-[0_8px_20px_-4px_rgba(10,27,46,0.1),0_2px_6px_rgba(10,27,46,0.05)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5),0_1px_3px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_8px_28px_-2px_rgba(0,0,0,0.7)] transition-all group">
-
-                                <!-- Decorative Soft Color Shades (Smooth Corner Wash Inspired by Communities Cards) -->
-                                @if (cardIndex % 3 == 0)
-                                {
-                                    <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-sky-500/20 via-blue-500/10 to-transparent dark:from-sky-400/20 dark:via-blue-500/10 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                    <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-sky-500/10 dark:bg-sky-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                                }
-                                else if (cardIndex % 3 == 1)
-                                {
-                                    <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-blue-600/20 via-cyan-500/10 to-transparent dark:from-blue-400/25 dark:via-cyan-400/15 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                    <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-blue-500/10 dark:bg-cyan-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                                }
-                                else
-                                {
-                                    <div class="absolute top-0 right-0 w-72 sm:w-80 h-60 sm:h-72 bg-gradient-to-bl from-indigo-500/15 via-sky-400/10 to-transparent dark:from-indigo-400/20 dark:via-sky-400/10 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                    <div class="absolute -bottom-8 -left-8 w-44 h-44 bg-sky-400/10 dark:bg-indigo-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                                }
+                            <div class="relative overflow-hidden bg-[#d9ecfe] dark:bg-[#0f2233] rounded-2xl flex flex-col justify-between border border-slate-200/80 hover:border-slate-300 dark:border-white/[0.08] dark:hover:border-white/15 shadow-[0_2px_8px_-2px_rgba(10,27,46,0.06),0_1px_3px_rgba(10,27,46,0.04)] hover:shadow-[0_8px_20px_-4px_rgba(10,27,46,0.1),0_2px_6px_rgba(10,27,46,0.05)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5),0_1px_3px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_8px_28px_-2px_rgba(0,0,0,0.7)] transition-all group">
 
                                 <div class="relative z-10 flex flex-col justify-between h-full">
                                     <div class="p-space-md flex flex-col gap-space-sm">
@@ -226,50 +216,10 @@
                                                  src="@banner"
                                                  alt="@sub.Name" />
 
-                                            <!-- Category Pill Badge -->
-                                            <div class="absolute top-3 left-3 flex items-center gap-2">
-                                                <span class="px-2.5 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-[#0A1B2E] dark:text-primary font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1 border border-slate-300/80 dark:border-primary/20 font-semibold shadow-xs">
-                                                    <span class="material-symbols-outlined text-xs text-primary">@GetCategoryIconForIndex(cardIndex)</span>
-                                                    <span>@(sub.CategoryName ?? "Capital & Syndicate")</span>
-                                                </span>
-                                            </div>
-
-                                            <!-- Bottom-Left Title & Bottom-Right Avatar Pile (with soft blue styling) -->
-                                            <div class="absolute bottom-2 left-2 right-2 p-2 rounded-lg bg-sky-50/95 dark:bg-[#0f243c]/95 backdrop-blur-md border border-sky-200/70 dark:border-sky-500/20 flex items-center justify-between gap-2 shadow-xs">
-                                            <div class="min-w-0">
-                                                <span class="font-label-sm text-[10px] text-slate-500 dark:text-on-surface-variant uppercase tracking-wider font-semibold truncate block">@tierTitle</span>
-                                                <div class="font-title-md text-sm text-slate-900 dark:text-on-surface font-bold tracking-tight truncate">
-                                                    @sub.Name
-                                                </div>
-                                            </div>
-
-                                            <!-- Member Avatar Pile -->
-                                            <div class="flex -space-x-2 shrink-0 items-center">
-                                                @if (sub.MemberAvatarUrls != null && sub.MemberAvatarUrls.Any())
-                                                {
-                                                    @foreach (var avatar in sub.MemberAvatarUrls.Take(2))
-                                                    {
-                                                        <div class="w-7 h-7 rounded-full bg-surface-container-high overflow-hidden border-2 border-white dark:border-surface-container-lowest shadow-xs">
-                                                            <img class="w-full h-full object-cover" src="@avatar" alt="Member Avatar" />
-                                                        </div>
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-surface-container-highest text-slate-800 dark:text-on-surface-variant font-label-sm text-xs flex items-center justify-center font-bold border-2 border-white dark:border-surface-container-lowest shadow-xs">
-                                                        @InitialOf(sub.Name)
-                                                    </div>
-                                                }
-
-                                                @if (sub.ExtraMemberCount > 0)
-                                                {
-                                                    <div class="w-7 h-7 rounded-full bg-primary text-on-primary font-label-sm text-[10px] flex items-center justify-center font-bold border-2 border-white dark:border-surface-container-lowest shadow-xs">
-                                                        +@sub.ExtraMemberCount
-                                                    </div>
-                                                }
-                                            </div>
                                         </div>
-                                    </div>
+
+                                        <!-- Title -->
+                                        <div class="font-title-md text-base text-slate-900 dark:text-on-surface font-bold tracking-tight truncate">@sub.Name</div>
 
                                     <!-- Description -->
                                     <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 leading-relaxed">
@@ -289,52 +239,8 @@
                                             <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
                                             @(sub.DomainProCount + sub.PublicFigureCount) Luminaries
                                         </span>
-                                        <span class="text-on-surface-variant">•</span>
-                                        <span class="flex items-center gap-1 text-secondary font-medium">
-                                            <span class="material-symbols-outlined text-xs">bolt</span>
-                                            @sub.GroupCount Workgroups
-                                        </span>
                                     </div>
 
-                                    <!-- Related Groups Sub-Section -->
-                                    <div class="flex flex-col gap-space-xs pt-space-xs">
-                                        <span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant flex items-center gap-1 font-semibold">
-                                            <span class="material-symbols-outlined text-xs text-primary">hub</span>
-                                            Working Groups (@sub.GroupCount)
-                                        </span>
-
-                                        <div class="grid grid-cols-1 gap-1.5 mt-1">
-                                            @if (sub.TopChildItems != null && sub.TopChildItems.Any())
-                                            {
-                                                @for (var gIdx = 0; gIdx < sub.TopChildItems.Count; gIdx++)
-                                                {
-                                                    var groupItem = sub.TopChildItems[gIdx];
-                                                    var itemIcon = GetGroupIconForIndex(gIdx);
-                                                    var itemColor = gIdx % 2 == 0 ? "text-primary" : "text-secondary";
-
-                                                    <a href="groups?groupId=@groupItem.Id"
-                                                       class="flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-surface-container-lowest hover:bg-surface-container-high transition-colors cursor-pointer group/item border border-surface-container-high/10 no-underline">
-                                                        <div class="flex items-center gap-2 min-w-0 pr-2">
-                                                            <span class="material-symbols-outlined @itemColor text-sm shrink-0">@itemIcon</span>
-                                                            <span class="font-body-sm text-body-sm text-on-surface group-hover/item:text-primary transition-colors truncate">
-                                                                @groupItem.Name
-                                                            </span>
-                                                        </div>
-                                                        <div class="flex items-center gap-1.5 shrink-0">
-                                                            <span class="font-label-sm text-label-sm font-mono text-on-surface-variant">@groupItem.MemberCount.ToString("N0")</span>
-                                                            <span class="font-label-sm text-label-sm text-on-surface-variant uppercase px-1.5 py-0.5 rounded bg-surface-container-high font-mono">Group</span>
-                                                        </div>
-                                                    </a>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <div class="px-space-sm py-3 rounded-lg bg-surface-container-lowest/50 border border-dashed border-surface-container-high/30 text-center font-body-sm text-body-sm text-on-surface-variant">
-                                                    No working groups registered yet.
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
                                 </div>
 
                                 <!-- Card Dedicated Action Buttons Footer -->
@@ -544,6 +450,7 @@
     ];
 
     private bool isAdmin = false;
+    private bool canCreateSubCommunity = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -561,6 +468,21 @@
                 isAdmin = user.IsInRole("ADMIN") ||
                           string.Equals(user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
                           user.HasClaim("permission", PermissionCatalog.AdminUserView);
+
+                if (isAdmin)
+                {
+                    canCreateSubCommunity = true;
+                }
+                else
+                {
+                    var permRes = await RoleApi.GetMyPermissionsAsync();
+                    if (permRes.IsSuccess && permRes.Data != null)
+                    {
+                        canCreateSubCommunity = permRes.Data.Any(p =>
+                            p.Equals(PermissionCatalog.SubCommunityCreate, StringComparison.OrdinalIgnoreCase) ||
+                            p.Equals(PermissionCatalog.CommunityCreate, StringComparison.OrdinalIgnoreCase));
+                    }
+                }
             }
         }
         catch { }

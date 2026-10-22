@@ -277,7 +277,7 @@ public sealed class AdministrationService(
                 u.Email,
                 u.Bio,
                 u.AvatarUrl,
-                u.TblUserRoles.Select(r => r.Role.RoleCode).FirstOrDefault() ?? "MEMBER",
+                u.TblUserRoles.Select(r => r.Role.RoleCode).FirstOrDefault() ?? "DEFAULT_USER",
                 u.TblUserRoles.Select(r => r.Role.RoleId).FirstOrDefault(),
                 u.IsActive,
                 u.CreatedAt))

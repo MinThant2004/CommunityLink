@@ -269,13 +269,12 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
         if (role is null || role.IsDeleted)
             return Result.Failure("Role not found.", ResultStatus.NotFound);
 
-        // System protected roles: SYSTEM_ADMIN, ADMIN, DEFAULT_USER (and legacy USER)
+        // System protected roles: SYSTEM_ADMIN, ADMIN, DEFAULT_USER
         if (role.IsSystemRole ||
             string.Equals(role.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(role.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(role.RoleCode, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(role.RoleCode, "DEFAULT_USER", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(role.RoleCode, "USER", StringComparison.OrdinalIgnoreCase))
+            string.Equals(role.RoleCode, "DEFAULT_USER", StringComparison.OrdinalIgnoreCase))
         {
             return Result.Failure($"Protected roles (SYSTEM_ADMIN, ADMIN, and DEFAULT_USER) cannot be deleted.", ResultStatus.Forbidden);
         }
@@ -302,7 +301,7 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
         {
             // User Domain Role deleted -> Fallback to DEFAULT_USER
             var defaultUserRole = await dbContext.TblRoles
-                .FirstOrDefaultAsync(r => !r.IsDeleted && (r.RoleCode == "DEFAULT_USER" || r.RoleCode == "USER"), cancellationToken);
+                .FirstOrDefaultAsync(r => !r.IsDeleted && r.RoleCode == "DEFAULT_USER", cancellationToken);
 
             if (defaultUserRole is null)
                 return Result.Failure("Default 'DEFAULT_USER' fallback role could not be found to reassign users.", ResultStatus.NotFound);
