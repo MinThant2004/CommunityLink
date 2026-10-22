@@ -1,4 +1,4 @@
-@page "/admin"
+﻿@page "/admin"
 @page "/admin/dashboard"
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
 @inject AdministrationApiService AdminApi
@@ -17,10 +17,10 @@
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </span>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">
+                    <h1 class="text-2xl font-bold tracking-tight text-[#0A1B2E] dark:text-[#E1E8F0] font-display">
                         @Loc["Admin_Dashboard_Title"]
                     </h1>
-                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-0.5">@Loc["Admin_Dashboard_Subtitle"]</p>
+                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1.5">@Loc["Admin_Dashboard_Subtitle"]</p>
                 </div>
             </div>
         </div>
@@ -61,7 +61,7 @@
                     </span>
                 </div>
                 <div class="mt-4">
-                    <div class="text-3xl font-black text-[#0A1B2E] dark:text-white" style="font-family:'Manrope',sans-serif">
+                    <div class="text-3xl font-black text-[#0A1B2E] dark:text-white font-display">
                         @model.Stats.TotalUsers.ToString("N0")
                     </div>
                     <div class="mt-1.5 flex items-center justify-between text-xs">
@@ -84,7 +84,7 @@
                     </span>
                 </div>
                 <div class="mt-4">
-                    <div class="text-3xl font-black text-[#0A1B2E] dark:text-white" style="font-family:'Manrope',sans-serif">
+                    <div class="text-3xl font-black text-[#0A1B2E] dark:text-white font-display">
                         @model.Stats.TotalCommunities.ToString("N0")
                     </div>
                     <div class="mt-1.5 flex items-center justify-between text-xs">
@@ -107,7 +107,7 @@
                     </span>
                 </div>
                 <div class="mt-4">
-                    <div class="text-3xl font-black text-[#0A1B2E] dark:text-white" style="font-family:'Manrope',sans-serif">
+                    <div class="text-3xl font-black text-[#0A1B2E] dark:text-white font-display">
                         @FormatCompact(model.Stats.CurrentMonthLinkDropSold) <span class="text-xs font-bold text-amber-500">LD</span>
                     </div>
                     <div class="mt-1.5 flex items-center justify-between text-xs">
@@ -144,11 +144,11 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
-                            <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">
+                            <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] font-display">
                                 @Loc["Admin_Dashboard_UserGrowthTitle"]
                             </h2>
                         </div>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-0.5">@Loc["Admin_Dashboard_UserGrowthDesc"]</p>
+                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1.5">@Loc["Admin_Dashboard_UserGrowthDesc"]</p>
                     </div>
                     <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
                         @string.Format(Loc["Admin_Dashboard_NewMembersCount"], model.Trends.Sum(t => t.NewUsers))
@@ -214,11 +214,11 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-                            <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">
+                            <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] font-display">
                                 @Loc["Admin_Dashboard_LdVolumeTitle"]
                             </h2>
                         </div>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-0.5">@Loc["Admin_Dashboard_LdVolumeDesc"]</p>
+                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1.5">@Loc["Admin_Dashboard_LdVolumeDesc"]</p>
                     </div>
                     <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                         @string.Format(Loc["Admin_Dashboard_LdMoved"], FormatCompact(model.Trends.Sum(t => t.LinkDropVolume)))
@@ -284,7 +284,7 @@
             <div class="lg:col-span-2 bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-xs">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                     <div>
-                        <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2" style="font-family:'Manrope',sans-serif">
+                        <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2 font-display">
                             <svg class="w-4 h-4 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
                             <span>@Loc["Admin_Dashboard_ModQueueTitle"]</span>
                         </h2>
@@ -333,7 +333,7 @@
             <!-- Quick Access Directory Links -->
             <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-xs flex flex-col justify-between">
                 <div>
-                    <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]" style="font-family:'Manrope',sans-serif">
+                    <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] font-display">
                         @Loc["Admin_Dashboard_PortalsTitle"]
                     </h2>
 

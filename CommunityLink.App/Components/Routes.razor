@@ -1,29 +1,51 @@
+@using CommunityLink.App.Services
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<AppResources> Loc
+@inject CultureService CultureService
+@implements IDisposable
 
-<Router AppAssembly="typeof(Program).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>@Loc["NotFound_PageTitle"]</PageTitle>
-        <LayoutView Layout="typeof(Layout.MainLayout)">
-            <div class="min-h-[70vh] flex flex-col items-center justify-center text-center px-4 py-16">
-                <div class="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-6 shadow-sm border border-indigo-200 dark:border-indigo-900/50">
-                    <span class="material-symbols-outlined text-3xl">search_off</span>
+<div @key="CultureService.CurrentCultureName" class="h-full">
+    <Router AppAssembly="typeof(Program).Assembly">
+        <Found Context="routeData">
+            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <PageTitle>@Loc["NotFound_PageTitle"]</PageTitle>
+            <LayoutView Layout="typeof(Layout.MainLayout)">
+                <div class="min-h-[70vh] flex flex-col items-center justify-center text-center px-4 py-16">
+                    <div class="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-6 shadow-sm border border-indigo-200 dark:border-indigo-900/50">
+                        <span class="material-symbols-outlined text-3xl">search_off</span>
+                    </div>
+                    <h1 class="text-3xl font-extrabold text-[#0A1B2E] dark:text-[#E1E8F0] tracking-tight mb-2">
+                        @Loc["NotFound_Heading"]
+                    </h1>
+                    <p class="text-sm text-[#557392] dark:text-[#7A8CA6] max-w-md mx-auto mb-8 leading-relaxed">
+                        @Loc["NotFound_Message"]
+                    </p>
+                    <a href="" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-semibold text-xs hover:opacity-90 transition shadow-sm">
+                        <span class="material-symbols-outlined text-base">arrow_back</span>
+                        <span>@Loc["NotFound_ReturnHome"]</span>
+                    </a>
                 </div>
-                <h1 class="text-3xl font-extrabold text-[#0A1B2E] dark:text-[#E1E8F0] tracking-tight mb-2">
-                    @Loc["NotFound_Heading"]
-                </h1>
-                <p class="text-sm text-[#557392] dark:text-[#7A8CA6] max-w-md mx-auto mb-8 leading-relaxed">
-                    @Loc["NotFound_Message"]
-                </p>
-                <a href="" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-semibold text-xs hover:opacity-90 transition shadow-sm">
-                    <span class="material-symbols-outlined text-base">arrow_back</span>
-                    <span>@Loc["NotFound_ReturnHome"]</span>
-                </a>
-            </div>
-        </LayoutView>
-    </NotFound>
-</Router>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        CultureService.OnCultureChanged += HandleCultureChanged;
+    }
+
+    private void HandleCultureChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        CultureService.OnCultureChanged -= HandleCultureChanged;
+    }
+}

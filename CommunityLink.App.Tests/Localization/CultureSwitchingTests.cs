@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -22,6 +22,8 @@ public class CultureSwitchingTests : BunitContext
     public CultureSwitchingTests()
     {
         Services.AddLocalization(options => options.ResourcesPath = "Resources");
+        Services.AddScoped<CultureService>();
+        Services.AddScoped<Microsoft.Extensions.Localization.IStringLocalizer<CommunityLink.App.AppResources>, DynamicAppStringLocalizer>();
     }
 
     [Fact]
@@ -243,6 +245,50 @@ public class CultureSwitchingTests : BunitContext
 
             var expectedReturnUrl = Uri.EscapeDataString("/link-drops");
             Assert.Contains($"/culture/set?culture=my&returnUrl={expectedReturnUrl}", myLink.GetAttribute("href"));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = prevCulture;
+            CultureInfo.CurrentUICulture = prevUiCulture;
+        }
+    }
+
+    [Fact]
+    public void LanguageSelector_ClickingMyanmarLink_TriggersZeroReloadCultureChange_WithoutNavigation()
+    {
+        var prevCulture = CultureInfo.CurrentCulture;
+        var prevUiCulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            var enCulture = new CultureInfo("en");
+            CultureInfo.CurrentCulture = enCulture;
+            CultureInfo.CurrentUICulture = enCulture;
+
+            var navMan = Services.GetRequiredService<NavigationManager>();
+            navMan.NavigateTo("http://localhost/chat?tab=active");
+            var initialUri = navMan.Uri;
+
+            var cultureService = Services.GetRequiredService<CultureService>();
+            Assert.False(cultureService.IsMyanmar);
+            Assert.Equal("en", cultureService.CurrentCultureName);
+
+            var cut = Render<LanguageSelector>();
+            var links = cut.FindAll("a");
+            var myLink = links[1];
+
+            // Click Myanmar link in-place
+            myLink.Click();
+
+            // CultureService state updated in-place without reloading or navigating away
+            Assert.True(cultureService.IsMyanmar);
+            Assert.Equal("my", cultureService.CurrentCultureName);
+            Assert.Equal(initialUri, navMan.Uri);
+
+            // Active indicator toggles
+            var updatedLinks = cut.FindAll("a");
+            Assert.Null(updatedLinks[0].GetAttribute("aria-current"));
+            Assert.Equal("true", updatedLinks[1].GetAttribute("aria-current"));
         }
         finally
         {

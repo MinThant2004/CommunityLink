@@ -1,4 +1,4 @@
-using CommunityLink.App.Components;
+﻿using CommunityLink.App.Components;
 using CommunityLink.App.Apis;
 using CommunityLink.App.Services;
 using CommunityLink.Shared.Security;
@@ -18,6 +18,9 @@ builder.Services.AddLocalization(options =>
 {
     options.ResourcesPath = "Resources";
 });
+builder.Services.AddScoped<CultureService>();
+builder.Services.AddScoped<Microsoft.Extensions.Localization.IStringLocalizer<CommunityLink.App.AppResources>, DynamicAppStringLocalizer>();
+builder.Services.AddScoped<Microsoft.Extensions.Localization.IStringLocalizer>(sp => sp.GetRequiredService<Microsoft.Extensions.Localization.IStringLocalizer<CommunityLink.App.AppResources>>());
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();

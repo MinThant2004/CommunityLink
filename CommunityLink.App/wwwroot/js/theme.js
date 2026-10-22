@@ -1,4 +1,4 @@
-// CommunityLink Executive Design System - Theme Manager
+﻿// CommunityLink Executive Design System - Theme Manager
 (function () {
     const THEME_KEY = 'communitylink_theme';
 
@@ -40,5 +40,12 @@
             applyTheme(theme);
             return theme;
         }
+    };
+
+    window.setCulturePreference = function (culture) {
+        var canonical = (culture && culture.toLowerCase().startsWith('my')) ? 'my' : 'en';
+        var cookieVal = encodeURIComponent('c=' + canonical + '|uic=' + canonical);
+        document.cookie = '.AspNetCore.Culture=' + cookieVal + ';path=/;max-age=31536000;SameSite=Lax';
+        document.documentElement.lang = canonical;
     };
 })();

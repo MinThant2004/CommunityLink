@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+﻿/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
     './Components/**/*.razor',
@@ -8,8 +8,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+        sans: ['Inter', 'Pyidaungsu', 'Noto Sans Myanmar', 'system-ui', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'Pyidaungsu', 'Noto Sans Myanmar', 'sans-serif'],
+        myanmar: ['Pyidaungsu', 'Noto Sans Myanmar', 'Myanmar Text', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
