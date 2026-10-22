@@ -1,3 +1,31 @@
+/* ============================================================
+   SELF-HOSTED MYANMAR UNICODE WEBFONTS (Pyidaungsu & Noto Sans)
+   ============================================================ */
+@font-face {
+  font-family: 'Pyidaungsu';
+  src: url('/fonts/Pyidaungsu-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pyidaungsu';
+  src: url('/fonts/Pyidaungsu-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Myanmar';
+  src: url('/fonts/NotoSansMyanmar.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+1000-109F, U+200C-200D, U+25CC, U+A92E, U+A9E0-A9FE, U+AA60-AA7F, U+116D0-116E3;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -548,3 +576,44 @@
   transition: all 0.3s ease;
 }
 
+
+/* ============================================================
+   MYANMAR UNICODE TYPOGRAPHY & VERTICAL RHYTHM (lang="my")
+   ============================================================ */
+html[lang="my"],
+html[lang="my"] body,
+html[lang="my"] button,
+html[lang="my"] input,
+html[lang="my"] select,
+html[lang="my"] textarea,
+html[lang="my"] [style*="font-family"] {
+  font-family: 'Pyidaungsu', 'Noto Sans Myanmar', 'Myanmar Text', sans-serif !important;
+}
+
+html[lang="my"] body {
+  line-height: 1.65;
+}
+
+/* Prevent tight line-height from clipping Myanmar stacked consonants and vowels */
+html[lang="my"] .leading-none,
+html[lang="my"] .leading-tight,
+html[lang="my"] .leading-snug {
+  line-height: 1.45 !important;
+}
+
+html[lang="my"] h1,
+html[lang="my"] h2,
+html[lang="my"] h3,
+html[lang="my"] h4,
+html[lang="my"] h5,
+html[lang="my"] h6 {
+  line-height: 1.45;
+  letter-spacing: normal !important;
+}
+
+/* Give subtitles breathing room so they do not collide with heading descenders (e.g. ဌာန) */
+html[lang="my"] h1 + p,
+html[lang="my"] h2 + p,
+html[lang="my"] h3 + p {
+  margin-top: 0.375rem !important;
+}

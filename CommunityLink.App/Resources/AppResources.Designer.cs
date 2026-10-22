@@ -61,6 +61,285 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to • Active filters applied.
+        /// </summary>
+        public static string Activity_ActiveFiltersApplied {
+            get {
+                return ResourceManager.GetString("Activity_ActiveFiltersApplied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear all filters.
+        /// </summary>
+        public static string Activity_BtnClearFilters {
+            get {
+                return ResourceManager.GetString("Activity_BtnClearFilters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete.
+        /// </summary>
+        public static string Activity_BtnDelete {
+            get {
+                return ResourceManager.GetString("Activity_BtnDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Record.
+        /// </summary>
+        public static string Activity_BtnDeleteRecord {
+            get {
+                return ResourceManager.GetString("Activity_BtnDeleteRecord", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting....
+        /// </summary>
+        public static string Activity_BtnDeleting {
+            get {
+                return ResourceManager.GetString("Activity_BtnDeleting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Refresh.
+        /// </summary>
+        public static string Activity_BtnRefresh {
+            get {
+                return ResourceManager.GetString("Activity_BtnRefresh", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset Filters.
+        /// </summary>
+        public static string Activity_BtnResetFilters {
+            get {
+                return ResourceManager.GetString("Activity_BtnResetFilters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove this item from your timeline?.
+        /// </summary>
+        public static string Activity_DeleteModalDesc {
+            get {
+                return ResourceManager.GetString("Activity_DeleteModalDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Note: This only removes the activity log record; it does not undo or unlike the underlying post or group..
+        /// </summary>
+        public static string Activity_DeleteModalNote {
+            get {
+                return ResourceManager.GetString("Activity_DeleteModalNote", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Activity Log.
+        /// </summary>
+        public static string Activity_DeleteModalTitle {
+            get {
+                return ResourceManager.GetString("Activity_DeleteModalTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activity Timeline.
+        /// </summary>
+        public static string Activity_Heading {
+            get {
+                return ResourceManager.GetString("Activity_Heading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading your activity history....
+        /// </summary>
+        public static string Activity_Loading {
+            get {
+                return ResourceManager.GetString("Activity_Loading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When you publish posts, like content, leave comments, share posts, or manage groups, your audit records will appear here..
+        /// </summary>
+        public static string Activity_NoActivitiesDesc {
+            get {
+                return ResourceManager.GetString("Activity_NoActivitiesDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No activities recorded yet.
+        /// </summary>
+        public static string Activity_NoActivitiesTitle {
+            get {
+                return ResourceManager.GetString("Activity_NoActivitiesTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Try modifying your search text, feature dropdown, or date range filters..
+        /// </summary>
+        public static string Activity_NoMatchesDesc {
+            get {
+                return ResourceManager.GetString("Activity_NoMatchesDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No activities match your filters.
+        /// </summary>
+        public static string Activity_NoMatchesTitle {
+            get {
+                return ResourceManager.GetString("Activity_NoMatchesTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All Features &amp; Actions.
+        /// </summary>
+        public static string Activity_OptAll {
+            get {
+                return ResourceManager.GetString("Activity_OptAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comments.
+        /// </summary>
+        public static string Activity_OptComment {
+            get {
+                return ResourceManager.GetString("Activity_OptComment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Group Creations.
+        /// </summary>
+        public static string Activity_OptGroupCreate {
+            get {
+                return ResourceManager.GetString("Activity_OptGroupCreate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Group Member Reviews.
+        /// </summary>
+        public static string Activity_OptGroupJoinReview {
+            get {
+                return ResourceManager.GetString("Activity_OptGroupJoinReview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Likes (Posts &amp; Reactions).
+        /// </summary>
+        public static string Activity_OptLike {
+            get {
+                return ResourceManager.GetString("Activity_OptLike", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other Activities.
+        /// </summary>
+        public static string Activity_OptOther {
+            get {
+                return ResourceManager.GetString("Activity_OptOther", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Posts (Published).
+        /// </summary>
+        public static string Activity_OptPost {
+            get {
+                return ResourceManager.GetString("Activity_OptPost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shares.
+        /// </summary>
+        public static string Activity_OptShare {
+            get {
+                return ResourceManager.GetString("Activity_OptShare", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activity — CommunityLink.
+        /// </summary>
+        public static string Activity_PageTitle {
+            get {
+                return ResourceManager.GetString("Activity_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search by action, keyword, or person&apos;s name (e.g. Post, Like, Min Thant)....
+        /// </summary>
+        public static string Activity_SearchPlaceholder {
+            get {
+                return ResourceManager.GetString("Activity_SearchPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Showing {0} of {1} logged activities.
+        /// </summary>
+        public static string Activity_ShowingCount {
+            get {
+                return ResourceManager.GetString("Activity_ShowingCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A comprehensive chronological audit of all your posts, likes, comments, shares, and group actions..
+        /// </summary>
+        public static string Activity_Subtitle {
+            get {
+                return ResourceManager.GetString("Activity_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activity log removed..
+        /// </summary>
+        public static string Activity_Toast_Deleted {
+            get {
+                return ResourceManager.GetString("Activity_Toast_Deleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to delete activity log..
+        /// </summary>
+        public static string Activity_Toast_DeleteFailed {
+            get {
+                return ResourceManager.GetString("Activity_Toast_DeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Activity Log.
+        /// </summary>
+        public static string Activity_TooltipDelete {
+            get {
+                return ResourceManager.GetString("Activity_TooltipDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Activate.
         /// </summary>
         public static string Admin_Accounts_Activate {
@@ -277,6 +556,15 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to admin.name@gmail.com.
+        /// </summary>
+        public static string Admin_Accounts_ModalEmailPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_Accounts_ModalEmailPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enter the admin&apos;s Gmail/Email. A secure 15-minute link will be sent for password creation..
         /// </summary>
         public static string Admin_Accounts_ModalSubtitle {
@@ -372,6 +660,24 @@ namespace CommunityLink.App.Resources {
         public static string Admin_Accounts_ReadOnlyTitle {
             get {
                 return ResourceManager.GetString("Admin_Accounts_ReadOnlyTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ADMIN.
+        /// </summary>
+        public static string Admin_Accounts_RoleAdmin {
+            get {
+                return ResourceManager.GetString("Admin_Accounts_RoleAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SYSTEMADMIN.
+        /// </summary>
+        public static string Admin_Accounts_RoleSuperAdmin {
+            get {
+                return ResourceManager.GetString("Admin_Accounts_RoleSuperAdmin", resourceCulture);
             }
         }
         
@@ -1573,6 +1879,15 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to export CSV report..
+        /// </summary>
+        public static string Admin_Finance_ExportCsvFailed {
+            get {
+                return ResourceManager.GetString("Admin_Finance_ExportCsvFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Exporting....
         /// </summary>
         public static string Admin_Finance_Exporting {
@@ -2032,6 +2347,1158 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account Holder Name.
+        /// </summary>
+        public static string Admin_LinkDrops_AccountHolderLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_AccountHolderLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account Holder Name.
+        /// </summary>
+        public static string Admin_LinkDrops_AccountHolderPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_AccountHolderPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account / Phone Number.
+        /// </summary>
+        public static string Admin_LinkDrops_AccountNumberLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_AccountNumberLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account or Phone Number.
+        /// </summary>
+        public static string Admin_LinkDrops_AccountNumberPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_AccountNumberPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active (visible for purchase).
+        /// </summary>
+        public static string Admin_LinkDrops_ActiveCheckboxLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ActiveCheckboxLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add New Payment Channel.
+        /// </summary>
+        public static string Admin_LinkDrops_AddMethodHeading {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_AddMethodHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All purchase requests have been reviewed!.
+        /// </summary>
+        public static string Admin_LinkDrops_AllReviewed {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_AllReviewed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This will credit {0} Drops to user {1}..
+        /// </summary>
+        public static string Admin_LinkDrops_ApproveModalDesc {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ApproveModalDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Approve Purchase Request #{0}.
+        /// </summary>
+        public static string Admin_LinkDrops_ApproveModalTitle {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ApproveModalTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Optional audit notes....
+        /// </summary>
+        public static string Admin_LinkDrops_ApproveNotesPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ApproveNotesPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrative Portal.
+        /// </summary>
+        public static string Admin_LinkDrops_BadgeAdminPortal {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BadgeAdminPortal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bonus Drops.
+        /// </summary>
+        public static string Admin_LinkDrops_BonusDropsLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BonusDropsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. 0.
+        /// </summary>
+        public static string Admin_LinkDrops_BonusDropsPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BonusDropsPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to + Add Channel.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnAddChannel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnAddChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to + Add Package.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnAddPackage {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnAddPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Approve.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnApprove {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnApprove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm &amp; Credit Wallet.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnConfirmCredit {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnConfirmCredit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm Rejection.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnConfirmReject {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnConfirmReject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disable.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnDisable {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnDisable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnEnable {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnEnable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reject.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnReject {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnReject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save Channel.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnSaveChannel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnSaveChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save Package.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnSavePackage {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnSavePackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save Exchange Rates.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnSaveRates {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnSaveRates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View QR.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnViewQr {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnViewQr", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Receipt.
+        /// </summary>
+        public static string Admin_LinkDrops_BtnViewReceipt {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_BtnViewReceipt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Channel Name.
+        /// </summary>
+        public static string Admin_LinkDrops_ChannelNameLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ChannelNameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. KBZ Pay, AYA Pay.
+        /// </summary>
+        public static string Admin_LinkDrops_ChannelNamePlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ChannelNamePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account Holder.
+        /// </summary>
+        public static string Admin_LinkDrops_ColAccountHolder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColAccountHolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account Number.
+        /// </summary>
+        public static string Admin_LinkDrops_ColAccountNumber {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColAccountNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Actions.
+        /// </summary>
+        public static string Admin_LinkDrops_ColActions {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColActions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bonus.
+        /// </summary>
+        public static string Admin_LinkDrops_ColBonus {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColBonus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Buyer.
+        /// </summary>
+        public static string Admin_LinkDrops_ColBuyer {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColBuyer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Channel &amp; Logo.
+        /// </summary>
+        public static string Admin_LinkDrops_ColChannelLogo {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColChannelLogo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Channel &amp; Ref No..
+        /// </summary>
+        public static string Admin_LinkDrops_ColChannelRef {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColChannelRef", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drops.
+        /// </summary>
+        public static string Admin_LinkDrops_ColDrops {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColDrops", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drops Granted.
+        /// </summary>
+        public static string Admin_LinkDrops_ColDropsGranted {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColDropsGranted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        public static string Admin_LinkDrops_ColEdit {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColEdit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package.
+        /// </summary>
+        public static string Admin_LinkDrops_ColPackage {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package / Type.
+        /// </summary>
+        public static string Admin_LinkDrops_ColPackageType {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColPackageType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Price.
+        /// </summary>
+        public static string Admin_LinkDrops_ColPrice {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColPrice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Proof Receipt.
+        /// </summary>
+        public static string Admin_LinkDrops_ColProofReceipt {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColProofReceipt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Purchase #.
+        /// </summary>
+        public static string Admin_LinkDrops_ColPurchaseNo {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColPurchaseNo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to QR Code.
+        /// </summary>
+        public static string Admin_LinkDrops_ColQrCode {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColQrCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Real Money.
+        /// </summary>
+        public static string Admin_LinkDrops_ColRealMoney {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColRealMoney", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Status.
+        /// </summary>
+        public static string Admin_LinkDrops_ColStatus {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Status Action.
+        /// </summary>
+        public static string Admin_LinkDrops_ColStatusAction {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ColStatusAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Pending Review.
+        /// </summary>
+        public static string Admin_LinkDrops_CountPendingReview {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_CountPendingReview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create New Package.
+        /// </summary>
+        public static string Admin_LinkDrops_CreatePkgHeading {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_CreatePkgHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CNY (¥).
+        /// </summary>
+        public static string Admin_LinkDrops_CurrencyCny {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_CurrencyCny", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MMK (Ks).
+        /// </summary>
+        public static string Admin_LinkDrops_CurrencyMmk {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_CurrencyMmk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to USD ($).
+        /// </summary>
+        public static string Admin_LinkDrops_CurrencyUsd {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_CurrencyUsd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current logo.
+        /// </summary>
+        public static string Admin_LinkDrops_CurrentLogo {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_CurrentLogo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current QR.
+        /// </summary>
+        public static string Admin_LinkDrops_CurrentQr {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_CurrentQr", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom Purchase.
+        /// </summary>
+        public static string Admin_LinkDrops_CustomPurchase {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_CustomPurchase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description (Optional).
+        /// </summary>
+        public static string Admin_LinkDrops_DescriptionLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_DescriptionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        public static string Admin_LinkDrops_DescriptionPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_DescriptionPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Display Order.
+        /// </summary>
+        public static string Admin_LinkDrops_DisplayOrderLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_DisplayOrderLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Display Order.
+        /// </summary>
+        public static string Admin_LinkDrops_DisplayOrderPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_DisplayOrderPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Link Drops Amount.
+        /// </summary>
+        public static string Admin_LinkDrops_DropsAmountLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_DropsAmountLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. 100.
+        /// </summary>
+        public static string Admin_LinkDrops_DropsAmountPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_DropsAmountPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Payment Channel.
+        /// </summary>
+        public static string Admin_LinkDrops_EditChannelTitle {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_EditChannelTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Package.
+        /// </summary>
+        public static string Admin_LinkDrops_EditPkgTitle {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_EditPkgTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Example: 1,000 Link Drops = ¥{0} CNY.
+        /// </summary>
+        public static string Admin_LinkDrops_ExampleCny {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ExampleCny", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Example: 100 Link Drops = {0} MMK.
+        /// </summary>
+        public static string Admin_LinkDrops_ExampleMmk {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ExampleMmk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Example: 1,000 Link Drops = ${0} USD.
+        /// </summary>
+        public static string Admin_LinkDrops_ExampleUsd {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ExampleUsd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Link Drops Review &amp; Catalog.
+        /// </summary>
+        public static string Admin_LinkDrops_Heading {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Heading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Transfer Instructions (Optional).
+        /// </summary>
+        public static string Admin_LinkDrops_InstructionsLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_InstructionsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payment instructions shown to buyers.
+        /// </summary>
+        public static string Admin_LinkDrops_InstructionsPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_InstructionsPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to International.
+        /// </summary>
+        public static string Admin_LinkDrops_International {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_International", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading pending verification queue....
+        /// </summary>
+        public static string Admin_LinkDrops_LoadingPending {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_LoadingPending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading exchange rates....
+        /// </summary>
+        public static string Admin_LinkDrops_LoadingRates {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_LoadingRates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Type Logo.
+        /// </summary>
+        public static string Admin_LinkDrops_LogoLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_LogoLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No image.
+        /// </summary>
+        public static string Admin_LinkDrops_NoImage {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_NoImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        public static string Admin_LinkDrops_None {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Link Drops Verification - Admin Portal.
+        /// </summary>
+        public static string Admin_LinkDrops_PageTitle {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package Name.
+        /// </summary>
+        public static string Admin_LinkDrops_PkgNameLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_PkgNameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. 100 Link Drops.
+        /// </summary>
+        public static string Admin_LinkDrops_PkgNamePlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_PkgNamePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Price (MMK).
+        /// </summary>
+        public static string Admin_LinkDrops_PriceMmkLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_PriceMmkLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. 1000.
+        /// </summary>
+        public static string Admin_LinkDrops_PriceMmkPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_PriceMmkPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Primary Currency.
+        /// </summary>
+        public static string Admin_LinkDrops_PrimaryCurrency {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_PrimaryCurrency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Receipt Proof.
+        /// </summary>
+        public static string Admin_LinkDrops_ProofModalTitle {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_ProofModalTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to QR Code Image.
+        /// </summary>
+        public static string Admin_LinkDrops_QrCodeLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_QrCodeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending Payment Verification Requests.
+        /// </summary>
+        public static string Admin_LinkDrops_QueueHeading {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_QueueHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1 Link Drop = (CNY).
+        /// </summary>
+        public static string Admin_LinkDrops_RateCnyLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_RateCnyLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1 Link Drop = (MMK).
+        /// </summary>
+        public static string Admin_LinkDrops_RateMmkLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_RateMmkLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure the exact conversion pricing for 1 Link Drop across supported currencies. When buyers purchase tokens or choose their currency in the wallet, prices calculate automatically using these live rates..
+        /// </summary>
+        public static string Admin_LinkDrops_RatesDesc {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_RatesDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Link Drop Exchange Rate Settings.
+        /// </summary>
+        public static string Admin_LinkDrops_RatesHeading {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_RatesHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rates update instantly across the entire platform upon saving..
+        /// </summary>
+        public static string Admin_LinkDrops_RatesInstantNotice {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_RatesInstantNotice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1 Link Drop = (USD).
+        /// </summary>
+        public static string Admin_LinkDrops_RateUsdLabel {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_RateUsdLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ref: {0}.
+        /// </summary>
+        public static string Admin_LinkDrops_RefPrefix {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_RefPrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regional.
+        /// </summary>
+        public static string Admin_LinkDrops_Regional {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Regional", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the reason for rejection (visible to buyer):.
+        /// </summary>
+        public static string Admin_LinkDrops_RejectModalDesc {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_RejectModalDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reject Purchase Request #{0}.
+        /// </summary>
+        public static string Admin_LinkDrops_RejectModalTitle {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_RejectModalTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reason (e.g. Unverified ref number, invalid slip photo).
+        /// </summary>
+        public static string Admin_LinkDrops_RejectReasonPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_RejectReasonPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active.
+        /// </summary>
+        public static string Admin_LinkDrops_StatusActive {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_StatusActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disabled.
+        /// </summary>
+        public static string Admin_LinkDrops_StatusDisabled {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_StatusDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Review pending user payment receipts, approve token wallet allocations, and manage purchase packages..
+        /// </summary>
+        public static string Admin_LinkDrops_Subtitle {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Methods ({0}).
+        /// </summary>
+        public static string Admin_LinkDrops_TabMethods {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_TabMethods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Packages Catalog ({0}).
+        /// </summary>
+        public static string Admin_LinkDrops_TabPackages {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_TabPackages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending Queue ({0}).
+        /// </summary>
+        public static string Admin_LinkDrops_TabPending {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_TabPending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exchange Rates &amp; Currencies.
+        /// </summary>
+        public static string Admin_LinkDrops_TabRates {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_TabRates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to approve purchase..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_ApproveFailed {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_ApproveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Purchase #{0} approved successfully..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_ApproveSuccess {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_ApproveSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payment method created successfully..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_MethodCreated {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_MethodCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create payment method..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_MethodCreateFailed {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_MethodCreateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payment method status updated..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_MethodStatusUpdated {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_MethodStatusUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payment channel updated successfully..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_MethodUpdated {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_MethodUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update channel..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_MethodUpdateFailed {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_MethodUpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MMK rate must be greater than zero..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_MmkPositive {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_MmkPositive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package created successfully..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_PkgCreated {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_PkgCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package status updated..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_PkgStatusUpdated {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_PkgStatusUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package updated successfully..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_PkgUpdated {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_PkgUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update package..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_PkgUpdateFailed {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_PkgUpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update exchange rates..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_RatesFailed {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_RatesFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exchange rates updated successfully!.
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_RatesSuccess {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_RatesSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to reject purchase..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_RejectFailed {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_RejectFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please enter a reason for rejection..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_RejectReasonRequired {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_RejectReasonRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Purchase #{0} rejected..
+        /// </summary>
+        public static string Admin_LinkDrops_Toast_RejectSuccess {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_Toast_RejectSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Refresh.
+        /// </summary>
+        public static string Admin_LinkDrops_TooltipRefresh {
+            get {
+                return ResourceManager.GetString("Admin_LinkDrops_TooltipRefresh", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Approve.
+        /// </summary>
+        public static string Admin_Mod_ActionApprove {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ActionApprove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ban.
+        /// </summary>
+        public static string Admin_Mod_ActionBan {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ActionBan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderation Action.
+        /// </summary>
+        public static string Admin_Mod_ActionGeneric {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ActionGeneric", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Action:.
+        /// </summary>
+        public static string Admin_Mod_ActionLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ActionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make Active.
+        /// </summary>
+        public static string Admin_Mod_ActionMakeActive {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ActionMakeActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make Inactive.
+        /// </summary>
+        public static string Admin_Mod_ActionMakeInactive {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ActionMakeInactive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select a reason or provide a notice. The content owner will receive an immediate in-app notification explaining why this action was taken..
+        /// </summary>
+        public static string Admin_Mod_ActionNoticeDesc {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ActionNoticeDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unban.
+        /// </summary>
+        public static string Admin_Mod_ActionUnban {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ActionUnban", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Activate Group.
         /// </summary>
         public static string Admin_Mod_ActivateGroup {
@@ -2041,11 +3508,119 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to  and search &quot;{0}&quot;.
+        /// </summary>
+        public static string Admin_Mod_AndSearch {
+            get {
+                return ResourceManager.GetString("Admin_Mod_AndSearch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply Moderation.
+        /// </summary>
+        public static string Admin_Mod_ApplyModerationBtn {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ApplyModerationBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attached File.
+        /// </summary>
+        public static string Admin_Mod_AttachedFile {
+            get {
+                return ResourceManager.GetString("Admin_Mod_AttachedFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attached File / Code ({0}).
+        /// </summary>
+        public static string Admin_Mod_AttachedFileCode {
+            get {
+                return ResourceManager.GetString("Admin_Mod_AttachedFileCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attached Images ({0}).
+        /// </summary>
+        public static string Admin_Mod_AttachedImagesCount {
+            get {
+                return ResourceManager.GetString("Admin_Mod_AttachedImagesCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Author:.
+        /// </summary>
+        public static string Admin_Mod_AuthorLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_AuthorLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private Mode.
+        /// </summary>
+        public static string Admin_Mod_BadgePrivateMode {
+            get {
+                return ResourceManager.GetString("Admin_Mod_BadgePrivateMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ban Content.
         /// </summary>
         public static string Admin_Mod_BanContent {
             get {
                 return ResourceManager.GetString("Admin_Mod_BanContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ban {0}.
+        /// </summary>
+        public static string Admin_Mod_BanContentType {
+            get {
+                return ResourceManager.GetString("Admin_Mod_BanContentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ban Reason.
+        /// </summary>
+        public static string Admin_Mod_BanReasonLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_BanReasonLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm {0}.
+        /// </summary>
+        public static string Admin_Mod_ConfirmModalTitle {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ConfirmModalTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Content.
+        /// </summary>
+        public static string Admin_Mod_ContentLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ContentLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} DETAILS.
+        /// </summary>
+        public static string Admin_Mod_ContentTypeDetails {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ContentTypeDetails", resourceCulture);
             }
         }
         
@@ -2068,11 +3643,47 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creator.
+        /// </summary>
+        public static string Admin_Mod_CreatorLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_CreatorLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Explain the decision or add context....
+        /// </summary>
+        public static string Admin_Mod_CustomReasonPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_Mod_CustomReasonPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom Setup Message / Note.
+        /// </summary>
+        public static string Admin_Mod_CustomSetupNoteLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_CustomSetupNoteLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Deactivate Group.
         /// </summary>
         public static string Admin_Mod_DeactivateGroup {
             get {
                 return ResourceManager.GetString("Admin_Mod_DeactivateGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deactivation Notice.
+        /// </summary>
+        public static string Admin_Mod_DeactivationNoticeLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_DeactivationNoticeLabel", resourceCulture);
             }
         }
         
@@ -2131,6 +3742,24 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Group:.
+        /// </summary>
+        public static string Admin_Mod_GroupLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_GroupLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Group: {0}.
+        /// </summary>
+        public static string Admin_Mod_GroupPrefix {
+            get {
+                return ResourceManager.GetString("Admin_Mod_GroupPrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Group Management &amp; Moderation.
         /// </summary>
         public static string Admin_Mod_HeadingGroups {
@@ -2149,11 +3778,83 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hub:.
+        /// </summary>
+        public static string Admin_Mod_HubLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_HubLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hub: {0}.
+        /// </summary>
+        public static string Admin_Mod_HubPrefix {
+            get {
+                return ResourceManager.GetString("Admin_Mod_HubPrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Images.
+        /// </summary>
+        public static string Admin_Mod_ImageCountPlural {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ImageCountPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Image.
+        /// </summary>
+        public static string Admin_Mod_ImageCountSingular {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ImageCountSingular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to in {0}.
+        /// </summary>
+        public static string Admin_Mod_InSubCommunity {
+            get {
+                return ResourceManager.GetString("Admin_Mod_InSubCommunity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading content moderation queue....
         /// </summary>
         public static string Admin_Mod_LoadingQueue {
             get {
                 return ResourceManager.GetString("Admin_Mod_LoadingQueue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderation Notice.
+        /// </summary>
+        public static string Admin_Mod_ModerationNoticeLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ModerationNoticeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No content found matching filter ({0}){1}..
+        /// </summary>
+        public static string Admin_Mod_NoContentFound {
+            get {
+                return ResourceManager.GetString("Admin_Mod_NoContentFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No groups found matching filter ({0}){1}..
+        /// </summary>
+        public static string Admin_Mod_NoGroupsFound {
+            get {
+                return ResourceManager.GetString("Admin_Mod_NoGroupsFound", resourceCulture);
             }
         }
         
@@ -2172,6 +3873,33 @@ namespace CommunityLink.App.Resources {
         public static string Admin_Mod_PageTitlePost {
             get {
                 return ResourceManager.GetString("Admin_Mod_PageTitlePost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poll Question.
+        /// </summary>
+        public static string Admin_Mod_PollQuestionLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_PollQuestionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} posts.
+        /// </summary>
+        public static string Admin_Mod_PostCount {
+            get {
+                return ResourceManager.GetString("Admin_Mod_PostCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Posted {0}.
+        /// </summary>
+        public static string Admin_Mod_PostedAt {
+            get {
+                return ResourceManager.GetString("Admin_Mod_PostedAt", resourceCulture);
             }
         }
         
@@ -2257,6 +3985,33 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} Reports.
+        /// </summary>
+        public static string Admin_Mod_ReportCountPlural {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ReportCountPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Report.
+        /// </summary>
+        public static string Admin_Mod_ReportCountSingular {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ReportCountSingular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported {0}.
+        /// </summary>
+        public static string Admin_Mod_ReportedAt {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ReportedAt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reported by {0}:.
         /// </summary>
         public static string Admin_Mod_ReportedBy {
@@ -2271,6 +4026,60 @@ namespace CommunityLink.App.Resources {
         public static string Admin_Mod_RestoreContent {
             get {
                 return ResourceManager.GetString("Admin_Mod_RestoreContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search groups by group name....
+        /// </summary>
+        public static string Admin_Mod_SearchGroupsPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_Mod_SearchGroupsPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search posts &amp; polls by author name or description/content....
+        /// </summary>
+        public static string Admin_Mod_SearchPostsPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_Mod_SearchPostsPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select Preset Reason.
+        /// </summary>
+        public static string Admin_Mod_SelectPresetReasonLabel {
+            get {
+                return ResourceManager.GetString("Admin_Mod_SelectPresetReasonLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active.
+        /// </summary>
+        public static string Admin_Mod_StatusActive {
+            get {
+                return ResourceManager.GetString("Admin_Mod_StatusActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Banned.
+        /// </summary>
+        public static string Admin_Mod_StatusBanned {
+            get {
+                return ResourceManager.GetString("Admin_Mod_StatusBanned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inactive (Posting Locked).
+        /// </summary>
+        public static string Admin_Mod_StatusInactivePostingLocked {
+            get {
+                return ResourceManager.GetString("Admin_Mod_StatusInactivePostingLocked", resourceCulture);
             }
         }
         
@@ -2320,6 +4129,33 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Action {0} applied..
+        /// </summary>
+        public static string Admin_Mod_Toast_ActionApplied {
+            get {
+                return ResourceManager.GetString("Admin_Mod_Toast_ActionApplied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Action failed..
+        /// </summary>
+        public static string Admin_Mod_Toast_ActionFailed {
+            get {
+                return ResourceManager.GetString("Admin_Mod_Toast_ActionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully updated to {0}..
+        /// </summary>
+        public static string Admin_Mod_Toast_ActionUpdated {
+            get {
+                return ResourceManager.GetString("Admin_Mod_Toast_ActionUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to dismiss report..
         /// </summary>
         public static string Admin_Mod_Toast_DismissFailed {
@@ -2329,11 +4165,128 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error: {0}.
+        /// </summary>
+        public static string Admin_Mod_Toast_GenericError {
+            get {
+                return ResourceManager.GetString("Admin_Mod_Toast_GenericError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error loading queue: {0}.
+        /// </summary>
+        public static string Admin_Mod_Toast_LoadQueueError {
+            get {
+                return ResourceManager.GetString("Admin_Mod_Toast_LoadQueueError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderation action failed..
+        /// </summary>
+        public static string Admin_Mod_Toast_ModerationFailed {
+            get {
+                return ResourceManager.GetString("Admin_Mod_Toast_ModerationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Report dismissed..
         /// </summary>
         public static string Admin_Mod_Toast_ReportDismissed {
             get {
                 return ResourceManager.GetString("Admin_Mod_Toast_ReportDismissed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ban post - hidden from all except author &amp; admin.
+        /// </summary>
+        public static string Admin_Mod_TooltipBanPost {
+            get {
+                return ResourceManager.GetString("Admin_Mod_TooltipBanPost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ban post - only admin and author will be able to see it.
+        /// </summary>
+        public static string Admin_Mod_TooltipBanPostOnlyAuthorAdmin {
+            get {
+                return ResourceManager.GetString("Admin_Mod_TooltipBanPostOnlyAuthorAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make group inactive (disables new posts &amp; polls, existing posts receive comments/likes).
+        /// </summary>
+        public static string Admin_Mod_TooltipMakeGroupInactive {
+            get {
+                return ResourceManager.GetString("Admin_Mod_TooltipMakeGroupInactive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reactivate group to allow new posts and polls.
+        /// </summary>
+        public static string Admin_Mod_TooltipReactivateGroup {
+            get {
+                return ResourceManager.GetString("Admin_Mod_TooltipReactivateGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set group inactive: Disables new posts/polls, but preserves likes/comments/shares.
+        /// </summary>
+        public static string Admin_Mod_TooltipSetGroupInactive {
+            get {
+                return ResourceManager.GetString("Admin_Mod_TooltipSetGroupInactive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unban post and restore full visibility.
+        /// </summary>
+        public static string Admin_Mod_TooltipUnbanPost {
+            get {
+                return ResourceManager.GetString("Admin_Mod_TooltipUnbanPost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unban {0}.
+        /// </summary>
+        public static string Admin_Mod_UnbanContentType {
+            get {
+                return ResourceManager.GetString("Admin_Mod_UnbanContentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Group.
+        /// </summary>
+        public static string Admin_Mod_ViewGroupBtn {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ViewGroupBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Poll.
+        /// </summary>
+        public static string Admin_Mod_ViewPoll {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ViewPoll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Post.
+        /// </summary>
+        public static string Admin_Mod_ViewPost {
+            get {
+                return ResourceManager.GetString("Admin_Mod_ViewPost", resourceCulture);
             }
         }
         
@@ -2694,6 +4647,1122 @@ namespace CommunityLink.App.Resources {
         public static string Admin_Payouts_Toast_RejectSuccess {
             get {
                 return ResourceManager.GetString("Admin_Payouts_Toast_RejectSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected error processing payout: {0}.
+        /// </summary>
+        public static string Admin_Payouts_Toast_UnexpectedError {
+            get {
+                return ResourceManager.GetString("Admin_Payouts_Toast_UnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan is currently active &amp; visible on the upgrade page.
+        /// </summary>
+        public static string Admin_Plans_ActiveCheckboxLabel {
+            get {
+                return ResourceManager.GetString("Admin_Plans_ActiveCheckboxLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DOMAIN PRO.
+        /// </summary>
+        public static string Admin_Plans_BadgeDomainPro {
+            get {
+                return ResourceManager.GetString("Admin_Plans_BadgeDomainPro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PUBLIC FIGURE.
+        /// </summary>
+        public static string Admin_Plans_BadgePublicFigure {
+            get {
+                return ResourceManager.GetString("Admin_Plans_BadgePublicFigure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Billing Interval *.
+        /// </summary>
+        public static string Admin_Plans_BillingIntervalLabel {
+            get {
+                return ResourceManager.GetString("Admin_Plans_BillingIntervalLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activate.
+        /// </summary>
+        public static string Admin_Plans_BtnActivate {
+            get {
+                return ResourceManager.GetString("Admin_Plans_BtnActivate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create Plan.
+        /// </summary>
+        public static string Admin_Plans_BtnCreatePlan {
+            get {
+                return ResourceManager.GetString("Admin_Plans_BtnCreatePlan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deactivate.
+        /// </summary>
+        public static string Admin_Plans_BtnDeactivate {
+            get {
+                return ResourceManager.GetString("Admin_Plans_BtnDeactivate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        public static string Admin_Plans_BtnEdit {
+            get {
+                return ResourceManager.GetString("Admin_Plans_BtnEdit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save Changes.
+        /// </summary>
+        public static string Admin_Plans_BtnSaveChanges {
+            get {
+                return ResourceManager.GetString("Admin_Plans_BtnSaveChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saving....
+        /// </summary>
+        public static string Admin_Plans_BtnSaving {
+            get {
+                return ResourceManager.GetString("Admin_Plans_BtnSaving", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create New Plan.
+        /// </summary>
+        public static string Admin_Plans_CreateNewPlan {
+            get {
+                return ResourceManager.GetString("Admin_Plans_CreateNewPlan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create Plan Now.
+        /// </summary>
+        public static string Admin_Plans_CreatePlanNow {
+            get {
+                return ResourceManager.GetString("Admin_Plans_CreatePlanNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drops / {0}.
+        /// </summary>
+        public static string Admin_Plans_DropsPerInterval {
+            get {
+                return ResourceManager.GetString("Admin_Plans_DropsPerInterval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duration (Days) *.
+        /// </summary>
+        public static string Admin_Plans_DurationDaysLabel {
+            get {
+                return ResourceManager.GetString("Admin_Plans_DurationDaysLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Get started by creating your first plan configuration for Domain Professional or Public Figure..
+        /// </summary>
+        public static string Admin_Plans_EmptyDesc {
+            get {
+                return ResourceManager.GetString("Admin_Plans_EmptyDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Subscription Plans Found.
+        /// </summary>
+        public static string Admin_Plans_EmptyTitle {
+            get {
+                return ResourceManager.GetString("Admin_Plans_EmptyTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Premium Subscription Plans.
+        /// </summary>
+        public static string Admin_Plans_Heading {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Heading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interval: {0} ({1} Days).
+        /// </summary>
+        public static string Admin_Plans_IntervalInfo {
+            get {
+                return ResourceManager.GetString("Admin_Plans_IntervalInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Primary currency deducted for tier upgrades..
+        /// </summary>
+        public static string Admin_Plans_LinkDropCostHint {
+            get {
+                return ResourceManager.GetString("Admin_Plans_LinkDropCostHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LinkDrop Points Cost *.
+        /// </summary>
+        public static string Admin_Plans_LinkDropCostLabel {
+            get {
+                return ResourceManager.GetString("Admin_Plans_LinkDropCostLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading subscription plans....
+        /// </summary>
+        public static string Admin_Plans_Loading {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Loading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create New Subscription Plan.
+        /// </summary>
+        public static string Admin_Plans_ModalCreateTitle {
+            get {
+                return ResourceManager.GetString("Admin_Plans_ModalCreateTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Subscription Plan.
+        /// </summary>
+        public static string Admin_Plans_ModalEditTitle {
+            get {
+                return ResourceManager.GetString("Admin_Plans_ModalEditTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No specific perks enumerated..
+        /// </summary>
+        public static string Admin_Plans_NoPerks {
+            get {
+                return ResourceManager.GetString("Admin_Plans_NoPerks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Annual.
+        /// </summary>
+        public static string Admin_Plans_OptAnnual {
+            get {
+                return ResourceManager.GetString("Admin_Plans_OptAnnual", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom.
+        /// </summary>
+        public static string Admin_Plans_OptCustom {
+            get {
+                return ResourceManager.GetString("Admin_Plans_OptCustom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monthly.
+        /// </summary>
+        public static string Admin_Plans_OptMonthly {
+            get {
+                return ResourceManager.GetString("Admin_Plans_OptMonthly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Quarterly.
+        /// </summary>
+        public static string Admin_Plans_OptQuarterly {
+            get {
+                return ResourceManager.GetString("Admin_Plans_OptQuarterly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Semi-Annual.
+        /// </summary>
+        public static string Admin_Plans_OptSemiAnnual {
+            get {
+                return ResourceManager.GetString("Admin_Plans_OptSemiAnnual", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Premium Subscription Plans — Admin Control Panel.
+        /// </summary>
+        public static string Admin_Plans_PageTitle {
+            get {
+                return ResourceManager.GetString("Admin_Plans_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Perks &amp; Entitlements.
+        /// </summary>
+        public static string Admin_Plans_PerksHeading {
+            get {
+                return ResourceManager.GetString("Admin_Plans_PerksHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Perks &amp; Highlights (One perk per line).
+        /// </summary>
+        public static string Admin_Plans_PerksInputLabel {
+            get {
+                return ResourceManager.GetString("Admin_Plans_PerksInputLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1-on-1 Paid Advisory Engine&amp;#10;Public Peer Rating &amp; Review Card&amp;#10;Sub-Community Ownership.
+        /// </summary>
+        public static string Admin_Plans_PerksInputPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_Plans_PerksInputPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan Name *.
+        /// </summary>
+        public static string Admin_Plans_PlanNameLabel {
+            get {
+                return ResourceManager.GetString("Admin_Plans_PlanNameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. Domain Professional (Quarterly).
+        /// </summary>
+        public static string Admin_Plans_PlanNamePlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_Plans_PlanNamePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal ledger / reference value..
+        /// </summary>
+        public static string Admin_Plans_ReferenceFiatHint {
+            get {
+                return ResourceManager.GetString("Admin_Plans_ReferenceFiatHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference Fiat (MMK).
+        /// </summary>
+        public static string Admin_Plans_ReferenceFiatLabel {
+            get {
+                return ResourceManager.GetString("Admin_Plans_ReferenceFiatLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference: {0} MMK.
+        /// </summary>
+        public static string Admin_Plans_ReferenceMmk {
+            get {
+                return ResourceManager.GetString("Admin_Plans_ReferenceMmk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Domain Professional role.
+        /// </summary>
+        public static string Admin_Plans_RoleDomainProDesc {
+            get {
+                return ResourceManager.GetString("Admin_Plans_RoleDomainProDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Domain Pro.
+        /// </summary>
+        public static string Admin_Plans_RoleDomainProTitle {
+            get {
+                return ResourceManager.GetString("Admin_Plans_RoleDomainProTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public Figure VIP role.
+        /// </summary>
+        public static string Admin_Plans_RolePublicFigureDesc {
+            get {
+                return ResourceManager.GetString("Admin_Plans_RolePublicFigureDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public Figure.
+        /// </summary>
+        public static string Admin_Plans_RolePublicFigureTitle {
+            get {
+                return ResourceManager.GetString("Admin_Plans_RolePublicFigureTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ACTIVE.
+        /// </summary>
+        public static string Admin_Plans_StatusActive {
+            get {
+                return ResourceManager.GetString("Admin_Plans_StatusActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to INACTIVE.
+        /// </summary>
+        public static string Admin_Plans_StatusInactive {
+            get {
+                return ResourceManager.GetString("Admin_Plans_StatusInactive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure membership tier pricing, durations, LinkDrop points cost, and feature perks for Domain Professional and Public Figure upgrades..
+        /// </summary>
+        public static string Admin_Plans_Subtitle {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All Tiers ({0}).
+        /// </summary>
+        public static string Admin_Plans_TabAll {
+            get {
+                return ResourceManager.GetString("Admin_Plans_TabAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Domain Professional ({0}).
+        /// </summary>
+        public static string Admin_Plans_TabDomainPro {
+            get {
+                return ResourceManager.GetString("Admin_Plans_TabDomainPro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public Figure VIP ({0}).
+        /// </summary>
+        public static string Admin_Plans_TabPublicFigure {
+            get {
+                return ResourceManager.GetString("Admin_Plans_TabPublicFigure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target Membership Tier *.
+        /// </summary>
+        public static string Admin_Plans_TargetTierLabel {
+            get {
+                return ResourceManager.GetString("Admin_Plans_TargetTierLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create plan..
+        /// </summary>
+        public static string Admin_Plans_Toast_CreateFailed {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Toast_CreateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New subscription plan created!.
+        /// </summary>
+        public static string Admin_Plans_Toast_CreateSuccess {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Toast_CreateSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to delete plan..
+        /// </summary>
+        public static string Admin_Plans_Toast_DeleteFailed {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Toast_DeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan deleted successfully..
+        /// </summary>
+        public static string Admin_Plans_Toast_DeleteSuccess {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Toast_DeleteSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load plans..
+        /// </summary>
+        public static string Admin_Plans_Toast_LoadFailed {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Toast_LoadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update plan status..
+        /// </summary>
+        public static string Admin_Plans_Toast_StatusFailed {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Toast_StatusFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan is now {0}..
+        /// </summary>
+        public static string Admin_Plans_Toast_StatusNow {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Toast_StatusNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update plan..
+        /// </summary>
+        public static string Admin_Plans_Toast_UpdateFailed {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Toast_UpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan updated successfully!.
+        /// </summary>
+        public static string Admin_Plans_Toast_UpdateSuccess {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Toast_UpdateSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Plan.
+        /// </summary>
+        public static string Admin_Plans_TooltipDelete {
+            get {
+                return ResourceManager.GetString("Admin_Plans_TooltipDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Plan.
+        /// </summary>
+        public static string Admin_Plans_TooltipEdit {
+            get {
+                return ResourceManager.GetString("Admin_Plans_TooltipEdit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LinkDrop Points Cost must be greater than zero..
+        /// </summary>
+        public static string Admin_Plans_Val_CostPositive {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Val_CostPositive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan name is required..
+        /// </summary>
+        public static string Admin_Plans_Val_NameRequired {
+            get {
+                return ResourceManager.GetString("Admin_Plans_Val_NameRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ALL GRANTED (READ-ONLY).
+        /// </summary>
+        public static string Admin_Rbac_BadgeAllGranted {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BadgeAllGranted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fixed System Permissions.
+        /// </summary>
+        public static string Admin_Rbac_BadgeFixedPerms {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BadgeFixedPerms", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to System.
+        /// </summary>
+        public static string Admin_Rbac_BadgeSystem {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BadgeSystem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add New Role.
+        /// </summary>
+        public static string Admin_Rbac_BtnAddRole {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnAddRole", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Back.
+        /// </summary>
+        public static string Admin_Rbac_BtnBack {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnBack", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm &amp; Create.
+        /// </summary>
+        public static string Admin_Rbac_BtnConfirmCreate {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnConfirmCreate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Yes, Delete Role.
+        /// </summary>
+        public static string Admin_Rbac_BtnConfirmDelete {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnConfirmDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Continue &gt;.
+        /// </summary>
+        public static string Admin_Rbac_BtnContinue {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnContinue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating....
+        /// </summary>
+        public static string Admin_Rbac_BtnCreating {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnCreating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Role.
+        /// </summary>
+        public static string Admin_Rbac_BtnDeleteRole {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnDeleteRole", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting....
+        /// </summary>
+        public static string Admin_Rbac_BtnDeleting {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnDeleting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deselect All.
+        /// </summary>
+        public static string Admin_Rbac_BtnDeselectAll {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnDeselectAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save Changes.
+        /// </summary>
+        public static string Admin_Rbac_BtnSaveChanges {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnSaveChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saving....
+        /// </summary>
+        public static string Admin_Rbac_BtnSaving {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnSaving", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select All.
+        /// </summary>
+        public static string Admin_Rbac_BtnSelectAll {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_BtnSelectAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ALL.
+        /// </summary>
+        public static string Admin_Rbac_ColAll {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_ColAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Module.
+        /// </summary>
+        public static string Admin_Rbac_ColModule {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_ColModule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        public static string Admin_Rbac_ColName {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_ColName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No..
+        /// </summary>
+        public static string Admin_Rbac_ColNo {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_ColNo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Permission Code.
+        /// </summary>
+        public static string Admin_Rbac_ColPermCode {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_ColPermCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notice: Any user currently assigned to this role will automatically turn into the default &apos;USER&apos; role..
+        /// </summary>
+        public static string Admin_Rbac_DeleteNotice {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_DeleteNotice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} of {1} granted.
+        /// </summary>
+        public static string Admin_Rbac_GrantedCount {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_GrantedCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role &amp; Permission Matrix.
+        /// </summary>
+        public static string Admin_Rbac_Heading {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Heading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code:.
+        /// </summary>
+        public static string Admin_Rbac_LabelCode {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_LabelCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name:.
+        /// </summary>
+        public static string Admin_Rbac_LabelName {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_LabelName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading permissions matrix....
+        /// </summary>
+        public static string Admin_Rbac_LoadingMatrix {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_LoadingMatrix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create New Role.
+        /// </summary>
+        public static string Admin_Rbac_ModalCreateTitle {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_ModalCreateTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role Permissions — CommunityLink Admin.
+        /// </summary>
+        public static string Admin_Rbac_PageTitle {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Permissions for:.
+        /// </summary>
+        public static string Admin_Rbac_PermissionsFor {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_PermissionsFor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you are going to add this new role?.
+        /// </summary>
+        public static string Admin_Rbac_PromptCreateTitle {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_PromptCreateTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you are going to delete this role?.
+        /// </summary>
+        public static string Admin_Rbac_PromptDeleteTitle {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_PromptDeleteTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unique uppercase system code..
+        /// </summary>
+        public static string Admin_Rbac_RoleCodeHint {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RoleCodeHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role Code *.
+        /// </summary>
+        public static string Admin_Rbac_RoleCodeLabel {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RoleCodeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. AUDITOR.
+        /// </summary>
+        public static string Admin_Rbac_RoleCodePlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RoleCodePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description *.
+        /// </summary>
+        public static string Admin_Rbac_RoleDescLabel {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RoleDescLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Describe the responsibilities and scope of this role....
+        /// </summary>
+        public static string Admin_Rbac_RoleDescPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RoleDescPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Friendly display name..
+        /// </summary>
+        public static string Admin_Rbac_RoleNameHint {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RoleNameHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role Name *.
+        /// </summary>
+        public static string Admin_Rbac_RoleNameLabel {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RoleNameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. Compliance Auditor.
+        /// </summary>
+        public static string Admin_Rbac_RoleNamePlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RoleNamePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This role will automatically receive default permissions identical to standard USER role upon creation..
+        /// </summary>
+        public static string Admin_Rbac_RoleNotice {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RoleNotice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Roles.
+        /// </summary>
+        public static string Admin_Rbac_RolesCount {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RolesCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role to remove: {0} ({1}).
+        /// </summary>
+        public static string Admin_Rbac_RoleToRemove {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RoleToRemove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select Role.
+        /// </summary>
+        public static string Admin_Rbac_SelectRoleHeading {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_SelectRoleHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manage database-driven authorization permissions per role in real time..
+        /// </summary>
+        public static string Admin_Rbac_Subtitle {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ADMIN permissions are permanent and cannot be modified..
+        /// </summary>
+        public static string Admin_Rbac_Toast_AdminPermPermanent {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Toast_AdminPermPermanent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role created successfully!.
+        /// </summary>
+        public static string Admin_Rbac_Toast_Created {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Toast_Created", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create role..
+        /// </summary>
+        public static string Admin_Rbac_Toast_CreateFailed {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Toast_CreateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to delete role..
+        /// </summary>
+        public static string Admin_Rbac_Toast_DeleteFailed {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Toast_DeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role &apos;{0}&apos; deleted..
+        /// </summary>
+        public static string Admin_Rbac_Toast_RoleDeleted {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Toast_RoleDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Permissions saved successfully!.
+        /// </summary>
+        public static string Admin_Rbac_Toast_Saved {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Toast_Saved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save permissions..
+        /// </summary>
+        public static string Admin_Rbac_Toast_SaveFailed {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Toast_SaveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to System roles (ADMIN and USER) cannot be deleted..
+        /// </summary>
+        public static string Admin_Rbac_Toast_SystemRoleCantDelete {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Toast_SystemRoleCantDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Role.
+        /// </summary>
+        public static string Admin_Rbac_TooltipDeleteRole {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_TooltipDeleteRole", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select / Deselect All Permissions.
+        /// </summary>
+        public static string Admin_Rbac_TooltipSelectAll {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_TooltipSelectAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} users.
+        /// </summary>
+        public static string Admin_Rbac_UserCountBadge {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_UserCountBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role Code &apos;{0}&apos; already exists..
+        /// </summary>
+        public static string Admin_Rbac_Val_CodeExists {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Val_CodeExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role Code is required..
+        /// </summary>
+        public static string Admin_Rbac_Val_CodeRequired {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Val_CodeRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role Description &apos;{0}&apos; is already in use by another role..
+        /// </summary>
+        public static string Admin_Rbac_Val_DescExists {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Val_DescExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role Description is required..
+        /// </summary>
+        public static string Admin_Rbac_Val_DescRequired {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Val_DescRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role Name &apos;{0}&apos; already exists..
+        /// </summary>
+        public static string Admin_Rbac_Val_NameExists {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Val_NameExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role Name is required..
+        /// </summary>
+        public static string Admin_Rbac_Val_NameRequired {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_Val_NameRequired", resourceCulture);
             }
         }
         
@@ -3400,6 +6469,537 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Approve &amp; Issue Badge.
+        /// </summary>
+        public static string Admin_Verif_ApproveIssueBtn {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ApproveIssueBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Admin Audit Action.
+        /// </summary>
+        public static string Admin_Verif_AuditActionHeading {
+            get {
+                return ResourceManager.GetString("Admin_Verif_AuditActionHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Audit Record ({0}).
+        /// </summary>
+        public static string Admin_Verif_AuditRecord {
+            get {
+                return ResourceManager.GetString("Admin_Verif_AuditRecord", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Back Face View.
+        /// </summary>
+        public static string Admin_Verif_BackFace {
+            get {
+                return ResourceManager.GetString("Admin_Verif_BackFace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inspect ID.
+        /// </summary>
+        public static string Admin_Verif_BtnInspect {
+            get {
+                return ResourceManager.GetString("Admin_Verif_BtnInspect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Government Identity Card Credentials.
+        /// </summary>
+        public static string Admin_Verif_CardCredentialsHeading {
+            get {
+                return ResourceManager.GetString("Admin_Verif_CardCredentialsHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Actions.
+        /// </summary>
+        public static string Admin_Verif_ColActions {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ColActions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Applicant.
+        /// </summary>
+        public static string Admin_Verif_ColApplicant {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ColApplicant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Legal Name.
+        /// </summary>
+        public static string Admin_Verif_ColLegalName {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ColLegalName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payment.
+        /// </summary>
+        public static string Admin_Verif_ColPayment {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ColPayment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Status.
+        /// </summary>
+        public static string Admin_Verif_ColStatus {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ColStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submitted At.
+        /// </summary>
+        public static string Admin_Verif_ColSubmittedAt {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ColSubmittedAt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target Tier.
+        /// </summary>
+        public static string Admin_Verif_ColTargetTier {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ColTargetTier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There are no verification requests matching your selected filter at this time..
+        /// </summary>
+        public static string Admin_Verif_EmptyDesc {
+            get {
+                return ResourceManager.GetString("Admin_Verif_EmptyDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Applications Found.
+        /// </summary>
+        public static string Admin_Verif_EmptyTitle {
+            get {
+                return ResourceManager.GetString("Admin_Verif_EmptyTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rejecting will automatically refund {0} LinkDrops to {1}&apos;s wallet..
+        /// </summary>
+        public static string Admin_Verif_EscrowNoticeDesc {
+            get {
+                return ResourceManager.GetString("Admin_Verif_EscrowNoticeDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Escrow Notice:.
+        /// </summary>
+        public static string Admin_Verif_EscrowNoticePrefix {
+            get {
+                return ResourceManager.GetString("Admin_Verif_EscrowNoticePrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LinkDrop Escrow Paid.
+        /// </summary>
+        public static string Admin_Verif_EscrowPaidLabel {
+            get {
+                return ResourceManager.GetString("Admin_Verif_EscrowPaidLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Front Face View.
+        /// </summary>
+        public static string Admin_Verif_FrontFace {
+            get {
+                return ResourceManager.GetString("Admin_Verif_FrontFace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Identity Verification Audits.
+        /// </summary>
+        public static string Admin_Verif_Heading {
+            get {
+                return ResourceManager.GetString("Admin_Verif_Heading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Click anywhere to close.
+        /// </summary>
+        public static string Admin_Verif_LightboxClose {
+            get {
+                return ResourceManager.GetString("Admin_Verif_LightboxClose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading identity audits....
+        /// </summary>
+        public static string Admin_Verif_Loading {
+            get {
+                return ResourceManager.GetString("Admin_Verif_Loading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Applying for {0} ({1}).
+        /// </summary>
+        public static string Admin_Verif_ModalSubtitle {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ModalSubtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Identity Audit: {0}.
+        /// </summary>
+        public static string Admin_Verif_ModalTitle {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ModalTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No back-side image uploaded.
+        /// </summary>
+        public static string Admin_Verif_NoBackImage {
+            get {
+                return ResourceManager.GetString("Admin_Verif_NoBackImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None specified.
+        /// </summary>
+        public static string Admin_Verif_NoneSpecified {
+            get {
+                return ResourceManager.GetString("Admin_Verif_NoneSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notes:.
+        /// </summary>
+        public static string Admin_Verif_NotesLabel {
+            get {
+                return ResourceManager.GetString("Admin_Verif_NotesLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. Identity verified against government database or reason if declining....
+        /// </summary>
+        public static string Admin_Verif_NotesPlaceholder {
+            get {
+                return ResourceManager.GetString("Admin_Verif_NotesPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not provided.
+        /// </summary>
+        public static string Admin_Verif_NotProvided {
+            get {
+                return ResourceManager.GetString("Admin_Verif_NotProvided", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open Full ↗.
+        /// </summary>
+        public static string Admin_Verif_OpenFull {
+            get {
+                return ResourceManager.GetString("Admin_Verif_OpenFull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Optional Notes / Reason.
+        /// </summary>
+        public static string Admin_Verif_OptionalNotesLabel {
+            get {
+                return ResourceManager.GetString("Admin_Verif_OptionalNotesLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Identity Verification Audits — Admin Control Panel.
+        /// </summary>
+        public static string Admin_Verif_PageTitle {
+            get {
+                return ResourceManager.GetString("Admin_Verif_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direct.
+        /// </summary>
+        public static string Admin_Verif_PaymentDirect {
+            get {
+                return ResourceManager.GetString("Admin_Verif_PaymentDirect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} LD Points.
+        /// </summary>
+        public static string Admin_Verif_PointsSuffix {
+            get {
+                return ResourceManager.GetString("Admin_Verif_PointsSuffix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Processed on {0}.
+        /// </summary>
+        public static string Admin_Verif_ProcessedOn {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ProcessedOn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Professional Profile URL.
+        /// </summary>
+        public static string Admin_Verif_ProfileUrlLabel {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ProfileUrlLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Refresh List.
+        /// </summary>
+        public static string Admin_Verif_RefreshList {
+            get {
+                return ResourceManager.GetString("Admin_Verif_RefreshList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reject &amp; Refund.
+        /// </summary>
+        public static string Admin_Verif_RejectRefundBtn {
+            get {
+                return ResourceManager.GetString("Admin_Verif_RejectRefundBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Review Status.
+        /// </summary>
+        public static string Admin_Verif_ReviewStatusLabel {
+            get {
+                return ResourceManager.GetString("Admin_Verif_ReviewStatusLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Approved.
+        /// </summary>
+        public static string Admin_Verif_StatusApproved {
+            get {
+                return ResourceManager.GetString("Admin_Verif_StatusApproved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending Audit.
+        /// </summary>
+        public static string Admin_Verif_StatusPending {
+            get {
+                return ResourceManager.GetString("Admin_Verif_StatusPending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rejected.
+        /// </summary>
+        public static string Admin_Verif_StatusRejected {
+            get {
+                return ResourceManager.GetString("Admin_Verif_StatusRejected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submission Date.
+        /// </summary>
+        public static string Admin_Verif_SubmissionDateLabel {
+            get {
+                return ResourceManager.GetString("Admin_Verif_SubmissionDateLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inspect official government credentials, legal identities, and LinkDrop payments submitted for premium badge upgrades..
+        /// </summary>
+        public static string Admin_Verif_Subtitle {
+            get {
+                return ResourceManager.GetString("Admin_Verif_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All Records ({0}).
+        /// </summary>
+        public static string Admin_Verif_TabAll {
+            get {
+                return ResourceManager.GetString("Admin_Verif_TabAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Approved ({0}).
+        /// </summary>
+        public static string Admin_Verif_TabApproved {
+            get {
+                return ResourceManager.GetString("Admin_Verif_TabApproved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending Review ({0}).
+        /// </summary>
+        public static string Admin_Verif_TabPending {
+            get {
+                return ResourceManager.GetString("Admin_Verif_TabPending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rejected ({0}).
+        /// </summary>
+        public static string Admin_Verif_TabRejected {
+            get {
+                return ResourceManager.GetString("Admin_Verif_TabRejected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Domain Pro.
+        /// </summary>
+        public static string Admin_Verif_TierDomainPro {
+            get {
+                return ResourceManager.GetString("Admin_Verif_TierDomainPro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VIP Figure.
+        /// </summary>
+        public static string Admin_Verif_TierVIP {
+            get {
+                return ResourceManager.GetString("Admin_Verif_TierVIP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to approve verification..
+        /// </summary>
+        public static string Admin_Verif_Toast_ApproveFailed {
+            get {
+                return ResourceManager.GetString("Admin_Verif_Toast_ApproveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verification for {0} successfully approved! Badge issued..
+        /// </summary>
+        public static string Admin_Verif_Toast_ApproveSuccess {
+            get {
+                return ResourceManager.GetString("Admin_Verif_Toast_ApproveSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to fetch verification audits..
+        /// </summary>
+        public static string Admin_Verif_Toast_FetchFailed {
+            get {
+                return ResourceManager.GetString("Admin_Verif_Toast_FetchFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error: {0}.
+        /// </summary>
+        public static string Admin_Verif_Toast_GenericError {
+            get {
+                return ResourceManager.GetString("Admin_Verif_Toast_GenericError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to reject verification..
+        /// </summary>
+        public static string Admin_Verif_Toast_RejectFailed {
+            get {
+                return ResourceManager.GetString("Admin_Verif_Toast_RejectFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please provide a reason in the notes field before rejecting..
+        /// </summary>
+        public static string Admin_Verif_Toast_RejectNotesRequired {
+            get {
+                return ResourceManager.GetString("Admin_Verif_Toast_RejectNotesRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verification for {0} rejected and points refunded..
+        /// </summary>
+        public static string Admin_Verif_Toast_RejectSuccess {
+            get {
+                return ResourceManager.GetString("Admin_Verif_Toast_RejectSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account Username.
+        /// </summary>
+        public static string Admin_Verif_UsernameLabel {
+            get {
+                return ResourceManager.GetString("Admin_Verif_UsernameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work / Corporate Email.
+        /// </summary>
+        public static string Admin_Verif_WorkEmailLabel {
+            get {
+                return ResourceManager.GetString("Admin_Verif_WorkEmailLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 15-MIN TOKEN.
         /// </summary>
         public static string Auth_15MinToken {
@@ -3985,6 +7585,24 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enter the 6-digit verification code.
+        /// </summary>
+        public static string Auth_OtpAriaLabel {
+            get {
+                return ResourceManager.GetString("Auth_OtpAriaLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Digit {0} of 6.
+        /// </summary>
+        public static string Auth_OtpDigitAriaLabel {
+            get {
+                return ResourceManager.GetString("Auth_OtpDigitAriaLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to OTP EXPIRATION:.
         /// </summary>
         public static string Auth_OtpExpiration {
@@ -4080,6 +7698,24 @@ namespace CommunityLink.App.Resources {
         public static string Auth_ProvisioningEmail {
             get {
                 return ResourceManager.GetString("Auth_ProvisioningEmail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Jane Doe.
+        /// </summary>
+        public static string Auth_Register_FullNamePlaceholder {
+            get {
+                return ResourceManager.GetString("Auth_Register_FullNamePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to janedoe.
+        /// </summary>
+        public static string Auth_Register_UsernamePlaceholder {
+            get {
+                return ResourceManager.GetString("Auth_Register_UsernamePlaceholder", resourceCulture);
             }
         }
         
@@ -5038,6 +8674,15 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deleting....
+        /// </summary>
+        public static string Chat_Deleting {
+            get {
+                return ResourceManager.GetString("Chat_Deleting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delivered.
         /// </summary>
         public static string Chat_Delivered {
@@ -5695,6 +9340,15 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Leaving....
+        /// </summary>
+        public static string Chat_Leaving {
+            get {
+                return ResourceManager.GetString("Chat_Leaving", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Leaving will delete this group.
         /// </summary>
         public static string Chat_LeavingWillDeleteGroup {
@@ -5727,6 +9381,15 @@ namespace CommunityLink.App.Resources {
         public static string Chat_LinkNamePlaceholder {
             get {
                 return ResourceManager.GetString("Chat_LinkNamePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading....
+        /// </summary>
+        public static string Chat_Loading {
+            get {
+                return ResourceManager.GetString("Chat_Loading", resourceCulture);
             }
         }
         
@@ -5871,6 +9534,15 @@ namespace CommunityLink.App.Resources {
         public static string Chat_Mute {
             get {
                 return ResourceManager.GetString("Chat_Mute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Muted.
+        /// </summary>
+        public static string Chat_Muted {
+            get {
+                return ResourceManager.GetString("Chat_Muted", resourceCulture);
             }
         }
         
@@ -6438,6 +10110,15 @@ namespace CommunityLink.App.Resources {
         public static string Chat_Read {
             get {
                 return ResourceManager.GetString("Chat_Read", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Opening Chat….
+        /// </summary>
+        public static string Chat_Redirect_Opening {
+            get {
+                return ResourceManager.GetString("Chat_Redirect_Opening", resourceCulture);
             }
         }
         
@@ -7495,6 +11176,24 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Back.
+        /// </summary>
+        public static string Common_Back {
+            get {
+                return ResourceManager.GetString("Common_Back", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Breadcrumbs.
+        /// </summary>
+        public static string Common_Breadcrumbs {
+            get {
+                return ResourceManager.GetString("Common_Breadcrumbs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string Common_Cancel {
@@ -7513,11 +11212,47 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close dialog.
+        /// </summary>
+        public static string Common_CloseDialog {
+            get {
+                return ResourceManager.GetString("Common_CloseDialog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dismiss.
+        /// </summary>
+        public static string Common_Dismiss {
+            get {
+                return ResourceManager.GetString("Common_Dismiss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Language selection.
+        /// </summary>
+        public static string Common_LanguageSelection {
+            get {
+                return ResourceManager.GetString("Common_LanguageSelection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading....
         /// </summary>
         public static string Common_Loading {
             get {
                 return ResourceManager.GetString("Common_Loading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Load more.
+        /// </summary>
+        public static string Common_LoadMore {
+            get {
+                return ResourceManager.GetString("Common_LoadMore", resourceCulture);
             }
         }
         
@@ -7585,6 +11320,15 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Saving....
+        /// </summary>
+        public static string Common_Saving {
+            get {
+                return ResourceManager.GetString("Common_Saving", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search.
         /// </summary>
         public static string Common_Search {
@@ -7594,11 +11338,38 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Switch language to English.
+        /// </summary>
+        public static string Common_SwitchToEnglish {
+            get {
+                return ResourceManager.GetString("Common_SwitchToEnglish", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Switch language to Myanmar.
+        /// </summary>
+        public static string Common_SwitchToMyanmar {
+            get {
+                return ResourceManager.GetString("Common_SwitchToMyanmar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Try again.
         /// </summary>
         public static string Common_TryAgain {
             get {
                 return ResourceManager.GetString("Common_TryAgain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uploading....
+        /// </summary>
+        public static string Common_Uploading {
+            get {
+                return ResourceManager.GetString("Common_Uploading", resourceCulture);
             }
         }
         
@@ -9286,6 +13057,240 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Discover hubs now!.
+        /// </summary>
+        public static string Dashboard_Action_DiscoverHubsNow {
+            get {
+                return ResourceManager.GetString("Dashboard_Action_DiscoverHubsNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Explore.
+        /// </summary>
+        public static string Dashboard_Action_Explore {
+            get {
+                return ResourceManager.GetString("Dashboard_Action_Explore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Explore Hubs.
+        /// </summary>
+        public static string Dashboard_Action_ExploreHubs {
+            get {
+                return ResourceManager.GetString("Dashboard_Action_ExploreHubs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to My Feed.
+        /// </summary>
+        public static string Dashboard_Action_MyFeed {
+            get {
+                return ResourceManager.GetString("Dashboard_Action_MyFeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open.
+        /// </summary>
+        public static string Dashboard_Action_Open {
+            get {
+                return ResourceManager.GetString("Dashboard_Action_Open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open Feed →.
+        /// </summary>
+        public static string Dashboard_Action_OpenFeed {
+            get {
+                return ResourceManager.GetString("Dashboard_Action_OpenFeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View All →.
+        /// </summary>
+        public static string Dashboard_Action_ViewAll {
+            get {
+                return ResourceManager.GetString("Dashboard_Action_ViewAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} members · {1} posts.
+        /// </summary>
+        public static string Dashboard_Card_MembersAndPosts {
+            get {
+                return ResourceManager.GetString("Dashboard_Card_MembersAndPosts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You are a member of all available hubs!.
+        /// </summary>
+        public static string Dashboard_Empty_AllHubsJoined {
+            get {
+                return ResourceManager.GetString("Dashboard_Empty_AllHubsJoined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No communities joined yet..
+        /// </summary>
+        public static string Dashboard_Empty_CommunitiesJoined {
+            get {
+                return ResourceManager.GetString("Dashboard_Empty_CommunitiesJoined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No recent posts found in your feed..
+        /// </summary>
+        public static string Dashboard_Empty_RecentPosts {
+            get {
+                return ResourceManager.GetString("Dashboard_Empty_RecentPosts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load dashboard data..
+        /// </summary>
+        public static string Dashboard_Error_Fallback {
+            get {
+                return ResourceManager.GetString("Dashboard_Error_Fallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading your personalized dashboard....
+        /// </summary>
+        public static string Dashboard_Loading {
+            get {
+                return ResourceManager.GetString("Dashboard_Loading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to My Dashboard — CommunityLink.
+        /// </summary>
+        public static string Dashboard_PageTitle {
+            get {
+                return ResourceManager.GetString("Dashboard_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to My Communities.
+        /// </summary>
+        public static string Dashboard_Section_MyCommunities {
+            get {
+                return ResourceManager.GetString("Dashboard_Section_MyCommunities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recent Activity Feed.
+        /// </summary>
+        public static string Dashboard_Section_RecentActivity {
+            get {
+                return ResourceManager.GetString("Dashboard_Section_RecentActivity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recommended Hubs.
+        /// </summary>
+        public static string Dashboard_Section_RecommendedHubs {
+            get {
+                return ResourceManager.GetString("Dashboard_Section_RecommendedHubs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active.
+        /// </summary>
+        public static string Dashboard_Stat_Active {
+            get {
+                return ResourceManager.GetString("Dashboard_Stat_Active", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active Polls.
+        /// </summary>
+        public static string Dashboard_Stat_ActivePolls {
+            get {
+                return ResourceManager.GetString("Dashboard_Stat_ActivePolls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feed Posts.
+        /// </summary>
+        public static string Dashboard_Stat_FeedPosts {
+            get {
+                return ResourceManager.GetString("Dashboard_Stat_FeedPosts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Messages.
+        /// </summary>
+        public static string Dashboard_Stat_Messages {
+            get {
+                return ResourceManager.GetString("Dashboard_Stat_Messages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to My Hubs.
+        /// </summary>
+        public static string Dashboard_Stat_MyHubs {
+            get {
+                return ResourceManager.GetString("Dashboard_Stat_MyHubs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} unread.
+        /// </summary>
+        public static string Dashboard_Stat_UnreadCount {
+            get {
+                return ResourceManager.GetString("Dashboard_Stat_UnreadCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tailored for you.
+        /// </summary>
+        public static string Dashboard_Subtitle_TailoredForYou {
+            get {
+                return ResourceManager.GetString("Dashboard_Subtitle_TailoredForYou", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Welcome back, {0}!.
+        /// </summary>
+        public static string Dashboard_Welcome {
+            get {
+                return ResourceManager.GetString("Dashboard_Welcome", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Here is your personal activity hub and community updates..
+        /// </summary>
+        public static string Dashboard_WelcomeSubtitle {
+            get {
+                return ResourceManager.GetString("Dashboard_WelcomeSubtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Join Group.
         /// </summary>
         public static string GroupDetail_Action_JoinGroup {
@@ -10834,6 +14839,15 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to delete poll..
+        /// </summary>
+        public static string GroupDetail_Toast_DeletePollFailed {
+            get {
+                return ResourceManager.GetString("GroupDetail_Toast_DeletePollFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} image(s) attached!.
         /// </summary>
         public static string GroupDetail_Toast_ImagesAttached {
@@ -12112,6 +16126,492 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Authenticate Existing Node.
+        /// </summary>
+        public static string Guest_Cta_AuthenticateExisting {
+            get {
+                return ResourceManager.GetString("Guest_Cta_AuthenticateExisting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter Home Hub →.
+        /// </summary>
+        public static string Guest_Cta_EnterHomeHub {
+            get {
+                return ResourceManager.GetString("Guest_Cta_EnterHomeHub", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Provision Free Node →.
+        /// </summary>
+        public static string Guest_Cta_ProvisionFreeNode {
+            get {
+                return ResourceManager.GetString("Guest_Cta_ProvisionFreeNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Join thousands of professionals, researchers, and creators across 27 global hubs..
+        /// </summary>
+        public static string Guest_Cta_Subtitle {
+            get {
+                return ResourceManager.GetString("Guest_Cta_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ready to Connect to the Protocol?.
+        /// </summary>
+        public static string Guest_Cta_Title {
+            get {
+                return ResourceManager.GetString("Guest_Cta_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Broadcast updates, rich media, and announcements directly to connected node feeds with comment governance..
+        /// </summary>
+        public static string Guest_Feature_Broadcast_Desc {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Broadcast_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Synchronized Broadcast Feeds.
+        /// </summary>
+        public static string Guest_Feature_Broadcast_Title {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Broadcast_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Structured hierarchies for parent hubs and specialized sub-communities with granular RBAC permissions..
+        /// </summary>
+        public static string Guest_Feature_Hubs_Desc {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Hubs_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tiered Community Hubs.
+        /// </summary>
+        public static string Guest_Feature_Hubs_Title {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Hubs_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Frontier Intelligence forum session scheduled for 15:00 UTC..
+        /// </summary>
+        public static string Guest_Feature_Messaging_DemoLeft {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Messaging_DemoLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Node attendance confirmed. Syncing briefing payload..
+        /// </summary>
+        public static string Guest_Feature_Messaging_DemoRight {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Messaging_DemoRight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sub-second SignalR direct messaging and threaded room conversations. Zero latency, peer-verified protocol with instant synchronization..
+        /// </summary>
+        public static string Guest_Feature_Messaging_Desc {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Messaging_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Real-Time Encrypted Messaging.
+        /// </summary>
+        public static string Guest_Feature_Messaging_Title {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Messaging_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DEFERRED 28%.
+        /// </summary>
+        public static string Guest_Feature_Polls_DemoDeferred {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Polls_DemoDeferred", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PROTOCOL UPGRADE 72%.
+        /// </summary>
+        public static string Guest_Feature_Polls_DemoUpgrade {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Polls_DemoUpgrade", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Execute real-time community polls with single or ranked voting. Live telemetry visualizes voter distribution instantly..
+        /// </summary>
+        public static string Guest_Feature_Polls_Desc {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Polls_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consensus Polls &amp; Ballots.
+        /// </summary>
+        public static string Guest_Feature_Polls_Title {
+            get {
+                return ResourceManager.GetString("Guest_Feature_Polls_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to From encrypted real-time messaging to democratic consensus voting — engineered for sovereign communities..
+        /// </summary>
+        public static string Guest_Features_Desc {
+            get {
+                return ResourceManager.GetString("Guest_Features_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to COLLABORATIVE ARCHITECTURE.
+        /// </summary>
+        public static string Guest_Features_Tag {
+            get {
+                return ResourceManager.GetString("Guest_Features_Tag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Institutional Features for Global Hubs.
+        /// </summary>
+        public static string Guest_Features_Title {
+            get {
+                return ResourceManager.GetString("Guest_Features_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BLAZOR &amp; .NET 10.
+        /// </summary>
+        public static string Guest_Footer_BlazorNet10 {
+            get {
+                return ResourceManager.GetString("Guest_Footer_BlazorNet10", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ENTERPRISE RBAC.
+        /// </summary>
+        public static string Guest_Footer_EnterpriseRbac {
+            get {
+                return ResourceManager.GetString("Guest_Footer_EnterpriseRbac", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SIGNALR REAL-TIME.
+        /// </summary>
+        public static string Guest_Footer_SignalR {
+            get {
+                return ResourceManager.GetString("Guest_Footer_SignalR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to STANDARD V2.0.
+        /// </summary>
+        public static string Guest_Footer_StandardV2 {
+            get {
+                return ResourceManager.GetString("Guest_Footer_StandardV2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connecting verified global communities with institutional precision..
+        /// </summary>
+        public static string Guest_Footer_Tagline {
+            get {
+                return ResourceManager.GetString("Guest_Footer_Tagline", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authenticate.
+        /// </summary>
+        public static string Guest_Hero_Authenticate {
+            get {
+                return ResourceManager.GetString("Guest_Hero_Authenticate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VERIFIED GLOBAL HUBS · ENCRYPTED SIGNALR.
+        /// </summary>
+        public static string Guest_Hero_Badge {
+            get {
+                return ResourceManager.GetString("Guest_Hero_Badge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter Node Dashboard.
+        /// </summary>
+        public static string Guest_Hero_EnterNodeDashboard {
+            get {
+                return ResourceManager.GetString("Guest_Hero_EnterNodeDashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Explore Communities.
+        /// </summary>
+        public static string Guest_Hero_ExploreCommunities {
+            get {
+                return ResourceManager.GetString("Guest_Hero_ExploreCommunities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Provision Account.
+        /// </summary>
+        public static string Guest_Hero_ProvisionAccount {
+            get {
+                return ResourceManager.GetString("Guest_Hero_ProvisionAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SCROLL TO EXPLORE.
+        /// </summary>
+        public static string Guest_Hero_ScrollToExplore {
+            get {
+                return ResourceManager.GetString("Guest_Hero_ScrollToExplore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active Nodes.
+        /// </summary>
+        public static string Guest_Hero_StatActiveNodes {
+            get {
+                return ResourceManager.GetString("Guest_Hero_StatActiveNodes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Continents.
+        /// </summary>
+        public static string Guest_Hero_StatContinents {
+            get {
+                return ResourceManager.GetString("Guest_Hero_StatContinents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Global Hubs.
+        /// </summary>
+        public static string Guest_Hero_StatGlobalHubs {
+            get {
+                return ResourceManager.GetString("Guest_Hero_StatGlobalHubs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connect, collaborate, and exchange ideas with verified peers across global hubs. Real-time messaging, consensus polls, and institutional workspaces in a unified interface..
+        /// </summary>
+        public static string Guest_Hero_Subtitle {
+            get {
+                return ResourceManager.GetString("Guest_Hero_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One Platform..
+        /// </summary>
+        public static string Guest_Hero_Title {
+            get {
+                return ResourceManager.GetString("Guest_Hero_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Every Community..
+        /// </summary>
+        public static string Guest_Hero_TitleAccent {
+            get {
+                return ResourceManager.GetString("Guest_Hero_TitleAccent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Get connected to the verified network seamlessly without friction..
+        /// </summary>
+        public static string Guest_How_Desc {
+            get {
+                return ResourceManager.GetString("Guest_How_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create your verified member account with email validation and cryptographic node profile..
+        /// </summary>
+        public static string Guest_How_Step1_Desc {
+            get {
+                return ResourceManager.GetString("Guest_How_Step1_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Provision Identity.
+        /// </summary>
+        public static string Guest_How_Step1_Title {
+            get {
+                return ResourceManager.GetString("Guest_How_Step1_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select from curated global hubs, specialized interest groups, and verified circles..
+        /// </summary>
+        public static string Guest_How_Step2_Desc {
+            get {
+                return ResourceManager.GetString("Guest_How_Step2_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Join Hubs &amp; Spaces.
+        /// </summary>
+        public static string Guest_How_Step2_Title {
+            get {
+                return ResourceManager.GetString("Guest_How_Step2_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Participate in encrypted discussions, cast votes in consensus polls, and build your reputation..
+        /// </summary>
+        public static string Guest_How_Step3_Desc {
+            get {
+                return ResourceManager.GetString("Guest_How_Step3_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Engage &amp; Collaborate.
+        /// </summary>
+        public static string Guest_How_Step3_Title {
+            get {
+                return ResourceManager.GetString("Guest_How_Step3_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ONBOARDING PROTOCOL.
+        /// </summary>
+        public static string Guest_How_Tag {
+            get {
+                return ResourceManager.GetString("Guest_How_Tag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Establish Your Node in 3 Steps.
+        /// </summary>
+        public static string Guest_How_Title {
+            get {
+                return ResourceManager.GetString("Guest_How_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter Dashboard.
+        /// </summary>
+        public static string Guest_Nav_EnterDashboard {
+            get {
+                return ResourceManager.GetString("Guest_Nav_EnterDashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Features.
+        /// </summary>
+        public static string Guest_Nav_Features {
+            get {
+                return ResourceManager.GetString("Guest_Nav_Features", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How It Works.
+        /// </summary>
+        public static string Guest_Nav_HowItWorks {
+            get {
+                return ResourceManager.GetString("Guest_Nav_HowItWorks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Log In.
+        /// </summary>
+        public static string Guest_Nav_LogIn {
+            get {
+                return ResourceManager.GetString("Guest_Nav_LogIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sign Up Free.
+        /// </summary>
+        public static string Guest_Nav_SignUpFree {
+            get {
+                return ResourceManager.GetString("Guest_Nav_SignUpFree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggle Theme.
+        /// </summary>
+        public static string Guest_Nav_ToggleTheme {
+            get {
+                return ResourceManager.GetString("Guest_Nav_ToggleTheme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VERIFIED NODE PROTOCOL.
+        /// </summary>
+        public static string Guest_Nav_VerifiedNodeProtocol {
+            get {
+                return ResourceManager.GetString("Guest_Nav_VerifiedNodeProtocol", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Welcome to CommunityLink — Verified Global Community Network.
+        /// </summary>
+        public static string Guest_PageTitle {
+            get {
+                return ResourceManager.GetString("Guest_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attach .txt files (Choose multiple).
         /// </summary>
         public static string Home_Broadcast_AttachFilesPrompt {
@@ -12288,6 +16788,33 @@ namespace CommunityLink.App.Resources {
         public static string Home_Broadcast_UploadingImages {
             get {
                 return ResourceManager.GetString("Home_Broadcast_UploadingImages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All group dispatches conform to the CommunityLink Charter and member guidelines..
+        /// </summary>
+        public static string Home_Charter_Desc {
+            get {
+                return ResourceManager.GetString("Home_Charter_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Read Community Guidelines.
+        /// </summary>
+        public static string Home_Charter_ReadGuidelines {
+            get {
+                return ResourceManager.GetString("Home_Charter_ReadGuidelines", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Community Charter.
+        /// </summary>
+        public static string Home_Charter_Title {
+            get {
+                return ResourceManager.GetString("Home_Charter_Title", resourceCulture);
             }
         }
         
@@ -12499,11 +17026,29 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Private.
+        /// </summary>
+        public static string Home_Feed_Private {
+            get {
+                return ResourceManager.GetString("Home_Feed_Private", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Only you can view this post.
         /// </summary>
         public static string Home_Feed_PrivateTooltip {
             get {
                 return ResourceManager.GetString("Home_Feed_PrivateTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public.
+        /// </summary>
+        public static string Home_Feed_Public {
+            get {
+                return ResourceManager.GetString("Home_Feed_Public", resourceCulture);
             }
         }
         
@@ -12607,6 +17152,15 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to load dashboard data..
+        /// </summary>
+        public static string Home_Feed_Toast_DashboardLoadFailed {
+            get {
+                return ResourceManager.GetString("Home_Feed_Toast_DashboardLoadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to vote: {0}.
         /// </summary>
         public static string Home_Feed_Toast_VoteFailed {
@@ -12630,6 +17184,744 @@ namespace CommunityLink.App.Resources {
         public static string Home_Feed_UnsaveTooltip {
             get {
                 return ResourceManager.GetString("Home_Feed_UnsaveTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Accessible.
+        /// </summary>
+        public static string Home_Groups_AccessibleCount {
+            get {
+                return ResourceManager.GetString("Home_Groups_AccessibleCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active Working Group.
+        /// </summary>
+        public static string Home_Groups_ActiveWorkingGroup {
+            get {
+                return ResourceManager.GetString("Home_Groups_ActiveWorkingGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All Groups.
+        /// </summary>
+        public static string Home_Groups_AllGroups {
+            get {
+                return ResourceManager.GetString("Home_Groups_AllGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Access ballots, RFC transcripts, and ratified standards..
+        /// </summary>
+        public static string Home_Groups_ArchiveDesc {
+            get {
+                return ResourceManager.GetString("Home_Groups_ArchiveDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Looking for concluded working groups?.
+        /// </summary>
+        public static string Home_Groups_ArchiveTitle {
+            get {
+                return ResourceManager.GetString("Home_Groups_ArchiveTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consortium Catalog.
+        /// </summary>
+        public static string Home_Groups_CatalogTitle {
+            get {
+                return ResourceManager.GetString("Home_Groups_CatalogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Collaborative working group..
+        /// </summary>
+        public static string Home_Groups_DefaultDescFallback {
+            get {
+                return ResourceManager.GetString("Home_Groups_DefaultDescFallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dispatches.
+        /// </summary>
+        public static string Home_Groups_DispatchesLabel {
+            get {
+                return ResourceManager.GetString("Home_Groups_DispatchesLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Domain Group.
+        /// </summary>
+        public static string Home_Groups_DomainGroupFallback {
+            get {
+                return ResourceManager.GetString("Home_Groups_DomainGroupFallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Try searching with different keywords or choosing &quot;All&quot;..
+        /// </summary>
+        public static string Home_Groups_Empty_Desc {
+            get {
+                return ResourceManager.GetString("Home_Groups_Empty_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No groups match your current filter..
+        /// </summary>
+        public static string Home_Groups_Empty_Title {
+            get {
+                return ResourceManager.GetString("Home_Groups_Empty_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter Group.
+        /// </summary>
+        public static string Home_Groups_EnterGroup {
+            get {
+                return ResourceManager.GetString("Home_Groups_EnterGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All ({0}).
+        /// </summary>
+        public static string Home_Groups_Filter_All {
+            get {
+                return ResourceManager.GetString("Home_Groups_Filter_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Governance ({0}).
+        /// </summary>
+        public static string Home_Groups_Filter_Governance {
+            get {
+                return ResourceManager.GetString("Home_Groups_Filter_Governance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Joined ({0}).
+        /// </summary>
+        public static string Home_Groups_Filter_Joined {
+            get {
+                return ResourceManager.GetString("Home_Groups_Filter_Joined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syndicates ({0}).
+        /// </summary>
+        public static string Home_Groups_Filter_Syndicates {
+            get {
+                return ResourceManager.GetString("Home_Groups_Filter_Syndicates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Technical ({0}).
+        /// </summary>
+        public static string Home_Groups_Filter_Technical {
+            get {
+                return ResourceManager.GetString("Home_Groups_Filter_Technical", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In Review.
+        /// </summary>
+        public static string Home_Groups_InReview {
+            get {
+                return ResourceManager.GetString("Home_Groups_InReview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Join.
+        /// </summary>
+        public static string Home_Groups_JoinBtn {
+            get {
+                return ResourceManager.GetString("Home_Groups_JoinBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Join Group.
+        /// </summary>
+        public static string Home_Groups_JoinGroup {
+            get {
+                return ResourceManager.GetString("Home_Groups_JoinGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Leads:.
+        /// </summary>
+        public static string Home_Groups_LeadsLabel {
+            get {
+                return ResourceManager.GetString("Home_Groups_LeadsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Members.
+        /// </summary>
+        public static string Home_Groups_MembersLabel {
+            get {
+                return ResourceManager.GetString("Home_Groups_MembersLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending Approval.
+        /// </summary>
+        public static string Home_Groups_PendingApproval {
+            get {
+                return ResourceManager.GetString("Home_Groups_PendingApproval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Collaborative working group and sovereign research circle..
+        /// </summary>
+        public static string Home_Groups_PremierDescFallback {
+            get {
+                return ResourceManager.GetString("Home_Groups_PremierDescFallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Premier Group.
+        /// </summary>
+        public static string Home_Groups_PremierGroup {
+            get {
+                return ResourceManager.GetString("Home_Groups_PremierGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Rating.
+        /// </summary>
+        public static string Home_Groups_RatingTemplate {
+            get {
+                return ResourceManager.GetString("Home_Groups_RatingTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset Filters.
+        /// </summary>
+        public static string Home_Groups_ResetFilters {
+            get {
+                return ResourceManager.GetString("Home_Groups_ResetFilters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scale.
+        /// </summary>
+        public static string Home_Groups_ScaleLabel {
+            get {
+                return ResourceManager.GetString("Home_Groups_ScaleLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} members • {1} posts.
+        /// </summary>
+        public static string Home_Groups_ScaleSummary {
+            get {
+                return ResourceManager.GetString("Home_Groups_ScaleSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search groups by topic or name....
+        /// </summary>
+        public static string Home_Groups_SearchPlaceholder {
+            get {
+                return ResourceManager.GetString("Home_Groups_SearchPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activity.
+        /// </summary>
+        public static string Home_Groups_Sort_Activity {
+            get {
+                return ResourceManager.GetString("Home_Groups_Sort_Activity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Members.
+        /// </summary>
+        public static string Home_Groups_Sort_Members {
+            get {
+                return ResourceManager.GetString("Home_Groups_Sort_Members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rating.
+        /// </summary>
+        public static string Home_Groups_Sort_Rating {
+            get {
+                return ResourceManager.GetString("Home_Groups_Sort_Rating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sort:.
+        /// </summary>
+        public static string Home_Groups_SortLabel {
+            get {
+                return ResourceManager.GetString("Home_Groups_SortLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sub-Communities.
+        /// </summary>
+        public static string Home_Groups_SubCommunities {
+            get {
+                return ResourceManager.GetString("Home_Groups_SubCommunities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Join domain working groups, research circles, and community teams..
+        /// </summary>
+        public static string Home_Groups_Subtitle {
+            get {
+                return ResourceManager.GetString("Home_Groups_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Collaborative Groups &amp; Sub-Communities.
+        /// </summary>
+        public static string Home_Groups_Title {
+            get {
+                return ResourceManager.GetString("Home_Groups_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Archive.
+        /// </summary>
+        public static string Home_Groups_ViewArchive {
+            get {
+                return ResourceManager.GetString("Home_Groups_ViewArchive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Working Groups.
+        /// </summary>
+        public static string Home_Groups_WorkingGroups {
+            get {
+                return ResourceManager.GetString("Home_Groups_WorkingGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ecosystem Home — CommunityLink.
+        /// </summary>
+        public static string Home_PageTitle {
+            get {
+                return ResourceManager.GetString("Home_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Online / Available.
+        /// </summary>
+        public static string Home_People_Availability_Default {
+            get {
+                return ResourceManager.GetString("Home_People_Availability_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active ecosystem contributor and domain specialist in the verified network..
+        /// </summary>
+        public static string Home_People_BioFallback {
+            get {
+                return ResourceManager.GetString("Home_People_BioFallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear Filters.
+        /// </summary>
+        public static string Home_People_ClearFilters {
+            get {
+                return ResourceManager.GetString("Home_People_ClearFilters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Community Rating.
+        /// </summary>
+        public static string Home_People_CommunityRating {
+            get {
+                return ResourceManager.GetString("Home_People_CommunityRating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contributions.
+        /// </summary>
+        public static string Home_People_Contributions {
+            get {
+                return ResourceManager.GetString("Home_People_Contributions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direct Communication.
+        /// </summary>
+        public static string Home_People_DirectCommunication {
+            get {
+                return ResourceManager.GetString("Home_People_DirectCommunication", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direct 1:1 Message.
+        /// </summary>
+        public static string Home_People_DirectMessage {
+            get {
+                return ResourceManager.GetString("Home_People_DirectMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Drops.
+        /// </summary>
+        public static string Home_People_DropsFee {
+            get {
+                return ResourceManager.GetString("Home_People_DropsFee", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Try clearing the search query or selecting &quot;All&quot;..
+        /// </summary>
+        public static string Home_People_Empty_Desc {
+            get {
+                return ResourceManager.GetString("Home_People_Empty_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No members found matching your filters..
+        /// </summary>
+        public static string Home_People_Empty_Title {
+            get {
+                return ResourceManager.GetString("Home_People_Empty_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ALL ({0}).
+        /// </summary>
+        public static string Home_People_Filter_All {
+            get {
+                return ResourceManager.GetString("Home_People_Filter_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DOMAIN PROFESSIONALS ({0}).
+        /// </summary>
+        public static string Home_People_Filter_DomainPro {
+            get {
+                return ResourceManager.GetString("Home_People_Filter_DomainPro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PUBLIC FIGURES ({0}).
+        /// </summary>
+        public static string Home_People_Filter_PublicFigure {
+            get {
+                return ResourceManager.GetString("Home_People_Filter_PublicFigure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Follow.
+        /// </summary>
+        public static string Home_People_FollowBtn {
+            get {
+                return ResourceManager.GetString("Home_People_FollowBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Following.
+        /// </summary>
+        public static string Home_People_FollowingBtn {
+            get {
+                return ResourceManager.GetString("Home_People_FollowingBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Posts Published.
+        /// </summary>
+        public static string Home_People_PostsPublished {
+            get {
+                return ResourceManager.GetString("Home_People_PostsPublished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} ratings.
+        /// </summary>
+        public static string Home_People_RatingsCount {
+            get {
+                return ResourceManager.GetString("Home_People_RatingsCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verified.
+        /// </summary>
+        public static string Home_People_RatingVerified {
+            get {
+                return ResourceManager.GetString("Home_People_RatingVerified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search members....
+        /// </summary>
+        public static string Home_People_SearchPlaceholder {
+            get {
+                return ResourceManager.GetString("Home_People_SearchPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to See More.
+        /// </summary>
+        public static string Home_People_SeeMore {
+            get {
+                return ResourceManager.GetString("Home_People_SeeMore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to General Discussion.
+        /// </summary>
+        public static string Home_People_Skill_GeneralDiscussion {
+            get {
+                return ResourceManager.GetString("Home_People_Skill_GeneralDiscussion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verified Fellow.
+        /// </summary>
+        public static string Home_People_Skill_VerifiedFellow {
+            get {
+                return ResourceManager.GetString("Home_People_Skill_VerifiedFellow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active Now.
+        /// </summary>
+        public static string Home_People_Sort_ActiveNow {
+            get {
+                return ResourceManager.GetString("Home_People_Sort_ActiveNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All.
+        /// </summary>
+        public static string Home_People_Sort_All {
+            get {
+                return ResourceManager.GetString("Home_People_Sort_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to People you followed.
+        /// </summary>
+        public static string Home_People_Sort_Followed {
+            get {
+                return ResourceManager.GetString("Home_People_Sort_Followed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specialties &amp; Skills.
+        /// </summary>
+        public static string Home_People_SpecialtiesAndSkills {
+            get {
+                return ResourceManager.GetString("Home_People_SpecialtiesAndSkills", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Full Profile.
+        /// </summary>
+        public static string Home_People_ViewFullProfile {
+            get {
+                return ResourceManager.GetString("Home_People_ViewFullProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add extra context or instructions for participants....
+        /// </summary>
+        public static string Home_Poll_ContextPlaceholder {
+            get {
+                return ResourceManager.GetString("Home_Poll_ContextPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create Poll.
+        /// </summary>
+        public static string Home_Poll_CreateBtn {
+            get {
+                return ResourceManager.GetString("Home_Poll_CreateBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating....
+        /// </summary>
+        public static string Home_Poll_CreatingBtn {
+            get {
+                return ResourceManager.GetString("Home_Poll_CreatingBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create Public Poll.
+        /// </summary>
+        public static string Home_Poll_ModalTitle {
+            get {
+                return ResourceManager.GetString("Home_Poll_ModalTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Allow voters to select multiple options.
+        /// </summary>
+        public static string Home_Poll_MultipleOptions {
+            get {
+                return ResourceManager.GetString("Home_Poll_MultipleOptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. Which ecosystem initiative should we fund first?.
+        /// </summary>
+        public static string Home_Poll_QuestionPlaceholder {
+            get {
+                return ResourceManager.GetString("Home_Poll_QuestionPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public poll created successfully!.
+        /// </summary>
+        public static string Home_Poll_Toast_Created {
+            get {
+                return ResourceManager.GetString("Home_Poll_Toast_Created", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create poll: {0}.
+        /// </summary>
+        public static string Home_Poll_Toast_CreateFailedWithReason {
+            get {
+                return ResourceManager.GetString("Home_Poll_Toast_CreateFailedWithReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FRI.
+        /// </summary>
+        public static string Home_Quorum_Day_Friday {
+            get {
+                return ResourceManager.GetString("Home_Quorum_Day_Friday", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MON.
+        /// </summary>
+        public static string Home_Quorum_Day_Monday {
+            get {
+                return ResourceManager.GetString("Home_Quorum_Day_Monday", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TOM.
+        /// </summary>
+        public static string Home_Quorum_Day_Tomorrow {
+            get {
+                return ResourceManager.GetString("Home_Quorum_Day_Tomorrow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No upcoming quorums scheduled..
+        /// </summary>
+        public static string Home_Quorum_Empty {
+            get {
+                return ResourceManager.GetString("Home_Quorum_Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}:00 UTC • {1} Members.
+        /// </summary>
+        public static string Home_Quorum_ScheduleTemplate {
+            get {
+                return ResourceManager.GetString("Home_Quorum_ScheduleTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upcoming Quorums.
+        /// </summary>
+        public static string Home_Quorum_UpcomingTitle {
+            get {
+                return ResourceManager.GetString("Home_Quorum_UpcomingTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View group.
+        /// </summary>
+        public static string Home_Quorum_ViewGroupAria {
+            get {
+                return ResourceManager.GetString("Home_Quorum_ViewGroupAria", resourceCulture);
             }
         }
         
@@ -12684,6 +17976,15 @@ namespace CommunityLink.App.Resources {
         public static string Home_Recycle_Toast_Failed {
             get {
                 return ResourceManager.GetString("Home_Recycle_Toast_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scroll to top.
+        /// </summary>
+        public static string Home_ScrollToTop {
+            get {
+                return ResourceManager.GetString("Home_ScrollToTop", resourceCulture);
             }
         }
         
@@ -12859,11 +18160,101 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creator.
+        /// </summary>
+        public static string Home_Sidebar_RoleCreator {
+            get {
+                return ResourceManager.GetString("Home_Sidebar_RoleCreator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Domain Pro.
+        /// </summary>
+        public static string Home_Sidebar_RoleDomainPro {
+            get {
+                return ResourceManager.GetString("Home_Sidebar_RoleDomainPro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Community Lead.
+        /// </summary>
+        public static string Home_Sidebar_RoleLead {
+            get {
+                return ResourceManager.GetString("Home_Sidebar_RoleLead", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderator.
+        /// </summary>
+        public static string Home_Sidebar_RoleModerator {
+            get {
+                return ResourceManager.GetString("Home_Sidebar_RoleModerator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public Figure.
+        /// </summary>
+        public static string Home_Sidebar_RolePublicFigure {
+            get {
+                return ResourceManager.GetString("Home_Sidebar_RolePublicFigure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to See all ({0}).
         /// </summary>
         public static string Home_Sidebar_SeeAll {
             get {
                 return ResourceManager.GetString("Home_Sidebar_SeeAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Follow action failed: {0}.
+        /// </summary>
+        public static string Home_Sidebar_Toast_FollowFailed {
+            get {
+                return ResourceManager.GetString("Home_Sidebar_Toast_FollowFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Following member!.
+        /// </summary>
+        public static string Home_Sidebar_Toast_Following {
+            get {
+                return ResourceManager.GetString("Home_Sidebar_Toast_Following", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Joined group successfully!.
+        /// </summary>
+        public static string Home_Sidebar_Toast_JoinedGroup {
+            get {
+                return ResourceManager.GetString("Home_Sidebar_Toast_JoinedGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Join group failed: {0}.
+        /// </summary>
+        public static string Home_Sidebar_Toast_JoinGroupFailed {
+            get {
+                return ResourceManager.GetString("Home_Sidebar_Toast_JoinGroupFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unfollowed member..
+        /// </summary>
+        public static string Home_Sidebar_Toast_Unfollowed {
+            get {
+                return ResourceManager.GetString("Home_Sidebar_Toast_Unfollowed", resourceCulture);
             }
         }
         
@@ -12882,6 +18273,465 @@ namespace CommunityLink.App.Resources {
         public static string Home_Sidebar_ViewAll {
             get {
                 return ResourceManager.GetString("Home_Sidebar_ViewAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plain Text Document • {0} characters.
+        /// </summary>
+        public static string Home_TextFileModal_HeaderMeta {
+            get {
+                return ResourceManager.GetString("Home_TextFileModal_HeaderMeta", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active.
+        /// </summary>
+        public static string Home_Treasury_ActiveStatus {
+            get {
+                return ResourceManager.GetString("Home_Treasury_ActiveStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Applications.
+        /// </summary>
+        public static string Home_Treasury_Applications {
+            get {
+                return ResourceManager.GetString("Home_Treasury_Applications", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Allocated for group research grants and tooling bounties..
+        /// </summary>
+        public static string Home_Treasury_Desc {
+            get {
+                return ResourceManager.GetString("Home_Treasury_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Grant Proposals.
+        /// </summary>
+        public static string Home_Treasury_GrantProposals {
+            get {
+                return ResourceManager.GetString("Home_Treasury_GrantProposals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Grant Treasury.
+        /// </summary>
+        public static string Home_Treasury_GrantTreasury {
+            get {
+                return ResourceManager.GetString("Home_Treasury_GrantTreasury", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gov ({0}%).
+        /// </summary>
+        public static string Home_Treasury_LegendGov {
+            get {
+                return ResourceManager.GetString("Home_Treasury_LegendGov", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syndicates ({0}%).
+        /// </summary>
+        public static string Home_Treasury_LegendSyndicates {
+            get {
+                return ResourceManager.GetString("Home_Treasury_LegendSyndicates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tech ({0}%).
+        /// </summary>
+        public static string Home_Treasury_LegendTech {
+            get {
+                return ResourceManager.GetString("Home_Treasury_LegendTech", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Memberships.
+        /// </summary>
+        public static string Home_Treasury_Memberships {
+            get {
+                return ResourceManager.GetString("Home_Treasury_Memberships", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to My Standing.
+        /// </summary>
+        public static string Home_Treasury_MyStanding {
+            get {
+                return ResourceManager.GetString("Home_Treasury_MyStanding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading ecosystem feeds, community channels, and updates....
+        /// </summary>
+        public static string Home_Workspace_SyncDesc {
+            get {
+                return ResourceManager.GetString("Home_Workspace_SyncDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Synchronizing Workspace.
+        /// </summary>
+        public static string Home_Workspace_SyncTitle {
+            get {
+                return ResourceManager.GetString("Home_Workspace_SyncTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Go to Chat.
+        /// </summary>
+        public static string Invite_Action_GoToChat {
+            get {
+                return ResourceManager.GetString("Invite_Action_GoToChat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Join Group.
+        /// </summary>
+        public static string Invite_Action_JoinGroup {
+            get {
+                return ResourceManager.GetString("Invite_Action_JoinGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Joining group….
+        /// </summary>
+        public static string Invite_Action_JoiningGroup {
+            get {
+                return ResourceManager.GetString("Invite_Action_JoiningGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Log In.
+        /// </summary>
+        public static string Invite_Action_LogIn {
+            get {
+                return ResourceManager.GetString("Invite_Action_LogIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open Chat.
+        /// </summary>
+        public static string Invite_Action_OpenChat {
+            get {
+                return ResourceManager.GetString("Invite_Action_OpenChat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pay {0} Drops &amp; Join.
+        /// </summary>
+        public static string Invite_Action_PayDropsAndJoin {
+            get {
+                return ResourceManager.GetString("Invite_Action_PayDropsAndJoin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending Approval.
+        /// </summary>
+        public static string Invite_Action_PendingApproval {
+            get {
+                return ResourceManager.GetString("Invite_Action_PendingApproval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Processing….
+        /// </summary>
+        public static string Invite_Action_Processing {
+            get {
+                return ResourceManager.GetString("Invite_Action_Processing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Request Declined.
+        /// </summary>
+        public static string Invite_Action_RequestDeclined {
+            get {
+                return ResourceManager.GetString("Invite_Action_RequestDeclined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Request to Join.
+        /// </summary>
+        public static string Invite_Action_RequestToJoin {
+            get {
+                return ResourceManager.GetString("Invite_Action_RequestToJoin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submitting request….
+        /// </summary>
+        public static string Invite_Action_SubmittingRequest {
+            get {
+                return ResourceManager.GetString("Invite_Action_SubmittingRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You are already a member of this group..
+        /// </summary>
+        public static string Invite_AlreadyMember {
+            get {
+                return ResourceManager.GetString("Invite_AlreadyMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pay {0} Link Drops to join this group..
+        /// </summary>
+        public static string Invite_Approved_Desc {
+            get {
+                return ResourceManager.GetString("Invite_Approved_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your request was approved!.
+        /// </summary>
+        public static string Invite_Approved_Title {
+            get {
+                return ResourceManager.GetString("Invite_Approved_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Free Group.
+        /// </summary>
+        public static string Invite_Badge_Free {
+            get {
+                return ResourceManager.GetString("Invite_Badge_Free", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Drops.
+        /// </summary>
+        public static string Invite_Badge_PaidDrops {
+            get {
+                return ResourceManager.GetString("Invite_Badge_PaidDrops", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private 🔒.
+        /// </summary>
+        public static string Invite_Badge_Private {
+            get {
+                return ResourceManager.GetString("Invite_Badge_Private", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public 🌐.
+        /// </summary>
+        public static string Invite_Badge_Public {
+            get {
+                return ResourceManager.GetString("Invite_Badge_Public", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot access or send messages in this group..
+        /// </summary>
+        public static string Invite_Banned_Desc {
+            get {
+                return ResourceManager.GetString("Invite_Banned_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please contact a group administrator if you believe this was a mistake..
+        /// </summary>
+        public static string Invite_Banned_Help {
+            get {
+                return ResourceManager.GetString("Invite_Banned_Help", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You are banned from this group..
+        /// </summary>
+        public static string Invite_Banned_Title {
+            get {
+                return ResourceManager.GetString("Invite_Banned_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot join this group at this time..
+        /// </summary>
+        public static string Invite_Declined_Desc {
+            get {
+                return ResourceManager.GetString("Invite_Declined_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your join request was declined..
+        /// </summary>
+        public static string Invite_Declined_Title {
+            get {
+                return ResourceManager.GetString("Invite_Declined_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to join group..
+        /// </summary>
+        public static string Invite_Error_JoinFailed {
+            get {
+                return ResourceManager.GetString("Invite_Error_JoinFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not load invite link details..
+        /// </summary>
+        public static string Invite_Error_LoadFailed {
+            get {
+                return ResourceManager.GetString("Invite_Error_LoadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No invite token was supplied..
+        /// </summary>
+        public static string Invite_Error_NoToken {
+            get {
+                return ResourceManager.GetString("Invite_Error_NoToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payment failed. Please check your LinkDrop balance..
+        /// </summary>
+        public static string Invite_Error_PaymentFailed {
+            get {
+                return ResourceManager.GetString("Invite_Error_PaymentFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to submit join request..
+        /// </summary>
+        public static string Invite_Error_RequestFailed {
+            get {
+                return ResourceManager.GetString("Invite_Error_RequestFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid Invite Link.
+        /// </summary>
+        public static string Invite_InvalidTitle {
+            get {
+                return ResourceManager.GetString("Invite_InvalidTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading invite details….
+        /// </summary>
+        public static string Invite_LoadingDetails {
+            get {
+                return ResourceManager.GetString("Invite_LoadingDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please log in to join this group..
+        /// </summary>
+        public static string Invite_LoginPrompt {
+            get {
+                return ResourceManager.GetString("Invite_LoginPrompt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} members.
+        /// </summary>
+        public static string Invite_Members_Count {
+            get {
+                return ResourceManager.GetString("Invite_Members_Count", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} member.
+        /// </summary>
+        public static string Invite_Members_Single {
+            get {
+                return ResourceManager.GetString("Invite_Members_Single", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} members · Paid Group.
+        /// </summary>
+        public static string Invite_Modal_SubjectSubtitle {
+            get {
+                return ResourceManager.GetString("Invite_Modal_SubjectSubtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This invite link is no longer valid..
+        /// </summary>
+        public static string Invite_NoLongerValid {
+            get {
+                return ResourceManager.GetString("Invite_NoLongerValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Join Group - CommunityLink.
+        /// </summary>
+        public static string Invite_PageTitle {
+            get {
+                return ResourceManager.GetString("Invite_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waiting for approval from the group owner or admin..
+        /// </summary>
+        public static string Invite_Pending_Desc {
+            get {
+                return ResourceManager.GetString("Invite_Pending_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Join request sent.
+        /// </summary>
+        public static string Invite_Pending_Title {
+            get {
+                return ResourceManager.GetString("Invite_Pending_Title", resourceCulture);
             }
         }
         
@@ -14038,6 +19888,15 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close sidebar.
+        /// </summary>
+        public static string Nav_CloseSidebar {
+            get {
+                return ResourceManager.GetString("Nav_CloseSidebar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Communities.
         /// </summary>
         public static string Nav_Communities {
@@ -14191,6 +20050,15 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Verified Member.
+        /// </summary>
+        public static string Nav_VerifiedMember {
+            get {
+                return ResourceManager.GetString("Nav_VerifiedMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to View Node →.
         /// </summary>
         public static string Nav_ViewNode {
@@ -14214,6 +20082,42 @@ namespace CommunityLink.App.Resources {
         public static string Nav_Welcome {
             get {
                 return ResourceManager.GetString("Nav_Welcome", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Page Not Found.
+        /// </summary>
+        public static string NotFound_Heading {
+            get {
+                return ResourceManager.GetString("NotFound_Heading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sorry, the page you are looking for does not exist or has been moved..
+        /// </summary>
+        public static string NotFound_Message {
+            get {
+                return ResourceManager.GetString("NotFound_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Page Not Found | CommunityLink.
+        /// </summary>
+        public static string NotFound_PageTitle {
+            get {
+                return ResourceManager.GetString("NotFound_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Back to Home.
+        /// </summary>
+        public static string NotFound_ReturnHome {
+            get {
+                return ResourceManager.GetString("NotFound_ReturnHome", resourceCulture);
             }
         }
         
@@ -14272,11 +20176,56 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0}d ago.
+        /// </summary>
+        public static string Notifications_Time_DaysAgo {
+            get {
+                return ResourceManager.GetString("Notifications_Time_DaysAgo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}h ago.
+        /// </summary>
+        public static string Notifications_Time_HoursAgo {
+            get {
+                return ResourceManager.GetString("Notifications_Time_HoursAgo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Just now.
+        /// </summary>
+        public static string Notifications_Time_JustNow {
+            get {
+                return ResourceManager.GetString("Notifications_Time_JustNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}m ago.
+        /// </summary>
+        public static string Notifications_Time_MinutesAgo {
+            get {
+                return ResourceManager.GetString("Notifications_Time_MinutesAgo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Notifications.
         /// </summary>
         public static string Notifications_Title {
             get {
                 return ResourceManager.GetString("Notifications_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unread.
+        /// </summary>
+        public static string Notifications_UnreadBadge {
+            get {
+                return ResourceManager.GetString("Notifications_UnreadBadge", resourceCulture);
             }
         }
         
@@ -14403,6 +20352,654 @@ namespace CommunityLink.App.Resources {
         public static string PaidChat_Title {
             get {
                 return ResourceManager.GetString("PaidChat_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comment.
+        /// </summary>
+        public static string Polls_Action_Comment {
+            get {
+                return ResourceManager.GetString("Polls_Action_Comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Like.
+        /// </summary>
+        public static string Polls_Action_Like {
+            get {
+                return ResourceManager.GetString("Polls_Action_Like", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share.
+        /// </summary>
+        public static string Polls_Action_Share {
+            get {
+                return ResourceManager.GetString("Polls_Action_Share", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active.
+        /// </summary>
+        public static string Polls_Badge_Active {
+            get {
+                return ResourceManager.GetString("Polls_Badge_Active", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Closed.
+        /// </summary>
+        public static string Polls_Badge_Closed {
+            get {
+                return ResourceManager.GetString("Polls_Badge_Closed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}d left.
+        /// </summary>
+        public static string Polls_Badge_DaysLeft {
+            get {
+                return ResourceManager.GetString("Polls_Badge_DaysLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}h left.
+        /// </summary>
+        public static string Polls_Badge_HoursLeft {
+            get {
+                return ResourceManager.GetString("Polls_Badge_HoursLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}m left.
+        /// </summary>
+        public static string Polls_Badge_MinutesLeft {
+            get {
+                return ResourceManager.GetString("Polls_Badge_MinutesLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private.
+        /// </summary>
+        public static string Polls_Badge_Private {
+            get {
+                return ResourceManager.GetString("Polls_Badge_Private", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No comments yet. Start the conversation!.
+        /// </summary>
+        public static string Polls_Comments_Empty {
+            get {
+                return ResourceManager.GetString("Polls_Comments_Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Write a comment on this poll....
+        /// </summary>
+        public static string Polls_Comments_Placeholder {
+            get {
+                return ResourceManager.GetString("Polls_Comments_Placeholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Post.
+        /// </summary>
+        public static string Polls_Comments_PostBtn {
+            get {
+                return ResourceManager.GetString("Polls_Comments_PostBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start a discussion and collect opinions by creating the first poll..
+        /// </summary>
+        public static string Polls_Empty_Subtitle {
+            get {
+                return ResourceManager.GetString("Polls_Empty_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No active polls found.
+        /// </summary>
+        public static string Polls_Empty_Title {
+            get {
+                return ResourceManager.GetString("Polls_Empty_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create Poll.
+        /// </summary>
+        public static string Polls_Header_CreateBtn {
+            get {
+                return ResourceManager.GetString("Polls_Header_CreateBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Participate in community decisions, voice your opinion, or launch a targeted poll..
+        /// </summary>
+        public static string Polls_Header_Subtitle {
+            get {
+                return ResourceManager.GetString("Polls_Header_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Live Community Polls.
+        /// </summary>
+        public static string Polls_Header_Title {
+            get {
+                return ResourceManager.GetString("Polls_Header_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Report Poll.
+        /// </summary>
+        public static string Polls_Menu_Report {
+            get {
+                return ResourceManager.GetString("Polls_Menu_Report", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poll options.
+        /// </summary>
+        public static string Polls_Menu_Tooltip {
+            get {
+                return ResourceManager.GetString("Polls_Menu_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to + Add Option.
+        /// </summary>
+        public static string Polls_Modal_AddOption {
+            get {
+                return ResourceManager.GetString("Polls_Modal_AddOption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create Community Poll.
+        /// </summary>
+        public static string Polls_Modal_CreateTitle {
+            get {
+                return ResourceManager.GetString("Polls_Modal_CreateTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Days.
+        /// </summary>
+        public static string Polls_Modal_Days {
+            get {
+                return ResourceManager.GetString("Polls_Modal_Days", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Displayed first above the question.
+        /// </summary>
+        public static string Polls_Modal_DescHint {
+            get {
+                return ResourceManager.GetString("Polls_Modal_DescHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description / Context.
+        /// </summary>
+        public static string Polls_Modal_DescLabel {
+            get {
+                return ResourceManager.GetString("Polls_Modal_DescLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add background details, rules, or context for voters....
+        /// </summary>
+        public static string Polls_Modal_DescPlaceholder {
+            get {
+                return ResourceManager.GetString("Polls_Modal_DescPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 12 Hours.
+        /// </summary>
+        public static string Polls_Modal_Duration12Hours {
+            get {
+                return ResourceManager.GetString("Polls_Modal_Duration12Hours", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1 Day.
+        /// </summary>
+        public static string Polls_Modal_Duration1Day {
+            get {
+                return ResourceManager.GetString("Polls_Modal_Duration1Day", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1 Hour.
+        /// </summary>
+        public static string Polls_Modal_Duration1Hour {
+            get {
+                return ResourceManager.GetString("Polls_Modal_Duration1Hour", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 3 Days.
+        /// </summary>
+        public static string Polls_Modal_Duration3Days {
+            get {
+                return ResourceManager.GetString("Polls_Modal_Duration3Days", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 7 Days.
+        /// </summary>
+        public static string Polls_Modal_Duration7Days {
+            get {
+                return ResourceManager.GetString("Polls_Modal_Duration7Days", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure any combination of Days, Hours, and Minutes freely..
+        /// </summary>
+        public static string Polls_Modal_DurationHint {
+            get {
+                return ResourceManager.GetString("Polls_Modal_DurationHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poll Duration.
+        /// </summary>
+        public static string Polls_Modal_DurationLabel {
+            get {
+                return ResourceManager.GetString("Polls_Modal_DurationLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total: {0}d {1}h {2}m.
+        /// </summary>
+        public static string Polls_Modal_DurationTotal {
+            get {
+                return ResourceManager.GetString("Polls_Modal_DurationTotal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hours.
+        /// </summary>
+        public static string Polls_Modal_Hours {
+            get {
+                return ResourceManager.GetString("Polls_Modal_Hours", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Minutes.
+        /// </summary>
+        public static string Polls_Modal_Minutes {
+            get {
+                return ResourceManager.GetString("Polls_Modal_Minutes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (No sub-communities found).
+        /// </summary>
+        public static string Polls_Modal_NoSubCommunities {
+            get {
+                return ResourceManager.GetString("Polls_Modal_NoSubCommunities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Option {0}.
+        /// </summary>
+        public static string Polls_Modal_OptionPlaceholder {
+            get {
+                return ResourceManager.GetString("Polls_Modal_OptionPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poll Options * (Min 2, Max 10).
+        /// </summary>
+        public static string Polls_Modal_OptionsLabel {
+            get {
+                return ResourceManager.GetString("Polls_Modal_OptionsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Publish Poll.
+        /// </summary>
+        public static string Polls_Modal_PublishBtn {
+            get {
+                return ResourceManager.GetString("Polls_Modal_PublishBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Publishing....
+        /// </summary>
+        public static string Polls_Modal_PublishingBtn {
+            get {
+                return ResourceManager.GetString("Polls_Modal_PublishingBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poll Question.
+        /// </summary>
+        public static string Polls_Modal_QuestionLabel {
+            get {
+                return ResourceManager.GetString("Polls_Modal_QuestionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. Which framework should we choose for our next release?.
+        /// </summary>
+        public static string Polls_Modal_QuestionPlaceholder {
+            get {
+                return ResourceManager.GetString("Polls_Modal_QuestionPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select Community.
+        /// </summary>
+        public static string Polls_Modal_SelectCommunity {
+            get {
+                return ResourceManager.GetString("Polls_Modal_SelectCommunity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to -- Select a Community --.
+        /// </summary>
+        public static string Polls_Modal_SelectCommunityDefault {
+            get {
+                return ResourceManager.GetString("Polls_Modal_SelectCommunityDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select Sub-community.
+        /// </summary>
+        public static string Polls_Modal_SelectSubCommunity {
+            get {
+                return ResourceManager.GetString("Polls_Modal_SelectSubCommunity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to -- (Optional) Use Main Community or Pick Sub-community --.
+        /// </summary>
+        public static string Polls_Modal_SelectSubCommunityDefault {
+            get {
+                return ResourceManager.GetString("Polls_Modal_SelectSubCommunityDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Live Polls &amp; Voting - CommunityLink.
+        /// </summary>
+        public static string Polls_PageTitle {
+            get {
+                return ResourceManager.GetString("Polls_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share this poll with your followers and community feed. You can optionally add a note with your thoughts..
+        /// </summary>
+        public static string Polls_Share_Desc {
+            get {
+                return ResourceManager.GetString("Polls_Share_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share Note.
+        /// </summary>
+        public static string Polls_Share_NoteLabel {
+            get {
+                return ResourceManager.GetString("Polls_Share_NoteLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add thoughts or reasons to participate....
+        /// </summary>
+        public static string Polls_Share_NotePlaceholder {
+            get {
+                return ResourceManager.GetString("Polls_Share_NotePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share Poll.
+        /// </summary>
+        public static string Polls_Share_ShareBtn {
+            get {
+                return ResourceManager.GetString("Polls_Share_ShareBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sharing....
+        /// </summary>
+        public static string Polls_Share_SharingBtn {
+            get {
+                return ResourceManager.GetString("Polls_Share_SharingBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share Poll.
+        /// </summary>
+        public static string Polls_Share_Title {
+            get {
+                return ResourceManager.GetString("Polls_Share_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Click an option to vote.
+        /// </summary>
+        public static string Polls_Summary_ClickToVote {
+            get {
+                return ResourceManager.GetString("Polls_Summary_ClickToVote", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple votes allowed.
+        /// </summary>
+        public static string Polls_Summary_MultipleAllowed {
+            get {
+                return ResourceManager.GetString("Polls_Summary_MultipleAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Single choice.
+        /// </summary>
+        public static string Polls_Summary_SingleChoice {
+            get {
+                return ResourceManager.GetString("Polls_Summary_SingleChoice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} total votes.
+        /// </summary>
+        public static string Polls_Summary_TotalVotes {
+            get {
+                return ResourceManager.GetString("Polls_Summary_TotalVotes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Voting ended.
+        /// </summary>
+        public static string Polls_Summary_VotingEnded {
+            get {
+                return ResourceManager.GetString("Polls_Summary_VotingEnded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You voted in this poll.
+        /// </summary>
+        public static string Polls_Summary_YouVoted {
+            get {
+                return ResourceManager.GetString("Polls_Summary_YouVoted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to post comment..
+        /// </summary>
+        public static string Polls_Toast_CommentFailed {
+            get {
+                return ResourceManager.GetString("Polls_Toast_CommentFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to publish poll..
+        /// </summary>
+        public static string Polls_Toast_CreateFailed {
+            get {
+                return ResourceManager.GetString("Polls_Toast_CreateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poll published successfully!.
+        /// </summary>
+        public static string Polls_Toast_CreateSuccess {
+            get {
+                return ResourceManager.GetString("Polls_Toast_CreateSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update like..
+        /// </summary>
+        public static string Polls_Toast_LikeFailed {
+            get {
+                return ResourceManager.GetString("Polls_Toast_LikeFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to share poll..
+        /// </summary>
+        public static string Polls_Toast_ShareFailed {
+            get {
+                return ResourceManager.GetString("Polls_Toast_ShareFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poll shared!.
+        /// </summary>
+        public static string Polls_Toast_ShareSuccess {
+            get {
+                return ResourceManager.GetString("Polls_Toast_ShareSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vote failed..
+        /// </summary>
+        public static string Polls_Toast_VoteFailed {
+            get {
+                return ResourceManager.GetString("Polls_Toast_VoteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vote counted!.
+        /// </summary>
+        public static string Polls_Toast_VoteSuccess {
+            get {
+                return ResourceManager.GetString("Polls_Toast_VoteSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poll duration must be at least 1 minute..
+        /// </summary>
+        public static string Polls_Val_DurationMin {
+            get {
+                return ResourceManager.GetString("Polls_Val_DurationMin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please provide at least 2 non-empty options (A, B)..
+        /// </summary>
+        public static string Polls_Val_OptionsMin {
+            get {
+                return ResourceManager.GetString("Polls_Val_OptionsMin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poll options must be unique..
+        /// </summary>
+        public static string Polls_Val_OptionsUnique {
+            get {
+                return ResourceManager.GetString("Polls_Val_OptionsUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poll question is required..
+        /// </summary>
+        public static string Polls_Val_QuestionRequired {
+            get {
+                return ResourceManager.GetString("Polls_Val_QuestionRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please select a community for this poll..
+        /// </summary>
+        public static string Polls_Val_SelectCommunity {
+            get {
+                return ResourceManager.GetString("Polls_Val_SelectCommunity", resourceCulture);
             }
         }
         
@@ -15226,6 +21823,2436 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Chat.
+        /// </summary>
+        public static string Profile_Action_Chat {
+            get {
+                return ResourceManager.GetString("Profile_Action_Chat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Drops.
+        /// </summary>
+        public static string Profile_Action_ChatDrops {
+            get {
+                return ResourceManager.GetString("Profile_Action_ChatDrops", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy Profile Link.
+        /// </summary>
+        public static string Profile_Action_CopyLinkTitle {
+            get {
+                return ResourceManager.GetString("Profile_Action_CopyLinkTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Profile.
+        /// </summary>
+        public static string Profile_Action_EditProfile {
+            get {
+                return ResourceManager.GetString("Profile_Action_EditProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Review.
+        /// </summary>
+        public static string Profile_Action_EditReview {
+            get {
+                return ResourceManager.GetString("Profile_Action_EditReview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Follow.
+        /// </summary>
+        public static string Profile_Action_Follow {
+            get {
+                return ResourceManager.GetString("Profile_Action_Follow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Following.
+        /// </summary>
+        public static string Profile_Action_Following {
+            get {
+                return ResourceManager.GetString("Profile_Action_Following", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rate.
+        /// </summary>
+        public static string Profile_Action_Rate {
+            get {
+                return ResourceManager.GetString("Profile_Action_Rate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save.
+        /// </summary>
+        public static string Profile_Action_Save {
+            get {
+                return ResourceManager.GetString("Profile_Action_Save", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saved.
+        /// </summary>
+        public static string Profile_Action_Saved {
+            get {
+                return ResourceManager.GetString("Profile_Action_Saved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Send Message.
+        /// </summary>
+        public static string Profile_Action_SendMessage {
+            get {
+                return ResourceManager.GetString("Profile_Action_SendMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AUTHORITY:.
+        /// </summary>
+        public static string Profile_Audit_AuthorityLabel {
+            get {
+                return ResourceManager.GetString("Profile_Audit_AuthorityLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verified Identity: {0}. Credentials audited by CommunityLink Governance..
+        /// </summary>
+        public static string Profile_Audit_Desc {
+            get {
+                return ResourceManager.GetString("Profile_Audit_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AUDIT ID:.
+        /// </summary>
+        public static string Profile_Audit_IdLabel {
+            get {
+                return ResourceManager.GetString("Profile_Audit_IdLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ACTIVE &amp; RECOGNIZED.
+        /// </summary>
+        public static string Profile_Audit_StatusActive {
+            get {
+                return ResourceManager.GetString("Profile_Audit_StatusActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to STATUS:.
+        /// </summary>
+        public static string Profile_Audit_StatusLabel {
+            get {
+                return ResourceManager.GetString("Profile_Audit_StatusLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IDENTITY VERIFICATION AUDIT.
+        /// </summary>
+        public static string Profile_Audit_Title {
+            get {
+                return ResourceManager.GetString("Profile_Audit_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ACCEPTING DIRECT ENGAGEMENTS.
+        /// </summary>
+        public static string Profile_Availability_Default {
+            get {
+                return ResourceManager.GetString("Profile_Availability_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change.
+        /// </summary>
+        public static string Profile_Avatar_Change {
+            get {
+                return ResourceManager.GetString("Profile_Avatar_Change", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uploading....
+        /// </summary>
+        public static string Profile_Avatar_Uploading {
+            get {
+                return ResourceManager.GetString("Profile_Avatar_Uploading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upload new photo.
+        /// </summary>
+        public static string Profile_Avatar_UploadNewTitle {
+            get {
+                return ResourceManager.GetString("Profile_Avatar_UploadNewTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upload profile photo.
+        /// </summary>
+        public static string Profile_Avatar_UploadPhotoTitle {
+            get {
+                return ResourceManager.GetString("Profile_Avatar_UploadPhotoTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CREDENTIAL AUDITED.
+        /// </summary>
+        public static string Profile_Badge_CredentialAudited {
+            get {
+                return ResourceManager.GetString("Profile_Badge_CredentialAudited", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DOMAIN PROFESSIONAL.
+        /// </summary>
+        public static string Profile_Badge_DomainPro {
+            get {
+                return ResourceManager.GetString("Profile_Badge_DomainPro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GOVERNOR.
+        /// </summary>
+        public static string Profile_Badge_Governor {
+            get {
+                return ResourceManager.GetString("Profile_Badge_Governor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PUBLIC FIGURE VIP.
+        /// </summary>
+        public static string Profile_Badge_PublicFigureVIP {
+            get {
+                return ResourceManager.GetString("Profile_Badge_PublicFigureVIP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If you believe this was in error, please reach out via Governance..
+        /// </summary>
+        public static string Profile_BannedModal_AppealDesc {
+            get {
+                return ResourceManager.GetString("Profile_BannedModal_AppealDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Violation of community safety and conduct guidelines..
+        /// </summary>
+        public static string Profile_BannedModal_DefaultReason {
+            get {
+                return ResourceManager.GetString("Profile_BannedModal_DefaultReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This post was audited and removed by the community moderation protocol. It is only visible to you..
+        /// </summary>
+        public static string Profile_BannedModal_Desc {
+            get {
+                return ResourceManager.GetString("Profile_BannedModal_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This post was removed from public community feeds by platform moderators because it violated community standards..
+        /// </summary>
+        public static string Profile_BannedModal_Notice {
+            get {
+                return ResourceManager.GetString("Profile_BannedModal_Notice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderation Reason.
+        /// </summary>
+        public static string Profile_BannedModal_ReasonLabel {
+            get {
+                return ResourceManager.GetString("Profile_BannedModal_ReasonLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your post got banned.
+        /// </summary>
+        public static string Profile_BannedModal_Title {
+            get {
+                return ResourceManager.GetString("Profile_BannedModal_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only you and site administrators can view this post. Other community members cannot see or interact with it..
+        /// </summary>
+        public static string Profile_BannedModal_VisibilityNote {
+            get {
+                return ResourceManager.GetString("Profile_BannedModal_VisibilityNote", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No affiliated hubs joined yet.
+        /// </summary>
+        public static string Profile_Communities_Empty {
+            get {
+                return ResourceManager.GetString("Profile_Communities_Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Visit.
+        /// </summary>
+        public static string Profile_Communities_VisitBtn {
+            get {
+                return ResourceManager.GetString("Profile_Communities_VisitBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Forever.
+        /// </summary>
+        public static string Profile_DeleteModal_ConfirmBtn {
+            get {
+                return ResourceManager.GetString("Profile_DeleteModal_ConfirmBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you want to permanently delete this post? This action cannot be undone and will immediately remove all comments and attachments..
+        /// </summary>
+        public static string Profile_DeleteModal_Message {
+            get {
+                return ResourceManager.GetString("Profile_DeleteModal_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Permanently?.
+        /// </summary>
+        public static string Profile_DeleteModal_Title {
+            get {
+                return ResourceManager.GetString("Profile_DeleteModal_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to POST CONTENT.
+        /// </summary>
+        public static string Profile_EditPost_ContentLabel {
+            get {
+                return ResourceManager.GetString("Profile_EditPost_ContentLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Note: Post image attachments and polls cannot be modified..
+        /// </summary>
+        public static string Profile_EditPost_Note {
+            get {
+                return ResourceManager.GetString("Profile_EditPost_Note", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update your post description....
+        /// </summary>
+        public static string Profile_EditPost_Placeholder {
+            get {
+                return ResourceManager.GetString("Profile_EditPost_Placeholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save Changes.
+        /// </summary>
+        public static string Profile_EditPost_SaveBtn {
+            get {
+                return ResourceManager.GetString("Profile_EditPost_SaveBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Post Description.
+        /// </summary>
+        public static string Profile_EditPost_Title {
+            get {
+                return ResourceManager.GetString("Profile_EditPost_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load profile..
+        /// </summary>
+        public static string Profile_Error_LoadFailed {
+            get {
+                return ResourceManager.GetString("Profile_Error_LoadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to load profile.
+        /// </summary>
+        public static string Profile_Error_UnableToLoad {
+            get {
+                return ResourceManager.GetString("Profile_Error_UnableToLoad", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Technical guides, memos, and active polls will appear here..
+        /// </summary>
+        public static string Profile_Feed_EmptyPostsDesc {
+            get {
+                return ResourceManager.GetString("Profile_Feed_EmptyPostsDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No publications found.
+        /// </summary>
+        public static string Profile_Feed_EmptyPostsTitle {
+            get {
+                return ResourceManager.GetString("Profile_Feed_EmptyPostsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Posts and polls you bookmark will appear here..
+        /// </summary>
+        public static string Profile_Feed_EmptySavedDesc {
+            get {
+                return ResourceManager.GetString("Profile_Feed_EmptySavedDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No saved publications.
+        /// </summary>
+        public static string Profile_Feed_EmptySavedTitle {
+            get {
+                return ResourceManager.GetString("Profile_Feed_EmptySavedTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SYNCHRONIZING TAB DATA....
+        /// </summary>
+        public static string Profile_Feed_Syncing {
+            get {
+                return ResourceManager.GetString("Profile_Feed_Syncing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No users in this list yet.
+        /// </summary>
+        public static string Profile_Followers_Empty {
+            get {
+                return ResourceManager.GetString("Profile_Followers_Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View.
+        /// </summary>
+        public static string Profile_Followers_ViewBtn {
+            get {
+                return ResourceManager.GetString("Profile_Followers_ViewBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LOADING EXECUTIVE DOSSIER....
+        /// </summary>
+        public static string Profile_Loading_ExecutiveDossier {
+            get {
+                return ResourceManager.GetString("Profile_Loading_ExecutiveDossier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Synchronizing Credentials.
+        /// </summary>
+        public static string Profile_Loading_Synchronizing {
+            get {
+                return ResourceManager.GetString("Profile_Loading_Synchronizing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uploading....
+        /// </summary>
+        public static string Profile_Modal_AvatarUploading {
+            get {
+                return ResourceManager.GetString("Profile_Modal_AvatarUploading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upload New.
+        /// </summary>
+        public static string Profile_Modal_AvatarUploadNew {
+            get {
+                return ResourceManager.GetString("Profile_Modal_AvatarUploadNew", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Availability Status.
+        /// </summary>
+        public static string Profile_Modal_EditAvailabilityLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditAvailabilityLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. ACCEPTING DIRECT ENGAGEMENTS.
+        /// </summary>
+        public static string Profile_Modal_EditAvailabilityPlaceholder {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditAvailabilityPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Biography.
+        /// </summary>
+        public static string Profile_Modal_EditBioLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditBioLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Briefly describe your background, technical interests, and experience....
+        /// </summary>
+        public static string Profile_Modal_EditBioPlaceholder {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditBioPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GitHub URL.
+        /// </summary>
+        public static string Profile_Modal_EditGithubLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditGithubLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Professional Headline.
+        /// </summary>
+        public static string Profile_Modal_EditHeadlineLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditHeadlineLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. Principal AI Architect &amp; Distributed Systems Fellow.
+        /// </summary>
+        public static string Profile_Modal_EditHeadlinePlaceholder {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditHeadlinePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LinkedIn URL.
+        /// </summary>
+        public static string Profile_Modal_EditLinkedinLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditLinkedinLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Social &amp; Professional Web Links.
+        /// </summary>
+        public static string Profile_Modal_EditLinksHeader {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditLinksHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location.
+        /// </summary>
+        public static string Profile_Modal_EditLocationLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditLocationLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. San Francisco, CA &amp; Remote.
+        /// </summary>
+        public static string Profile_Modal_EditLocationPlaceholder {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditLocationPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Display Name *.
+        /// </summary>
+        public static string Profile_Modal_EditNameLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditNameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JPG, PNG or WebP (max 5 MB).
+        /// </summary>
+        public static string Profile_Modal_EditPicHint {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditPicHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PROFILE PICTURE.
+        /// </summary>
+        public static string Profile_Modal_EditPicLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditPicLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upload New.
+        /// </summary>
+        public static string Profile_Modal_EditPicUploadBtn {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditPicUploadBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uploading....
+        /// </summary>
+        public static string Profile_Modal_EditPicUploading {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditPicUploading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pronouns.
+        /// </summary>
+        public static string Profile_Modal_EditPronounsLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditPronounsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. she/her.
+        /// </summary>
+        public static string Profile_Modal_EditPronounsPlaceholder {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditPronounsPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save Changes.
+        /// </summary>
+        public static string Profile_Modal_EditSaveBtn {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditSaveBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specialties &amp; Domain Skills (Comma separated).
+        /// </summary>
+        public static string Profile_Modal_EditSkillsLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditSkillsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. Distributed Systems, Rust, Cryptography, AI Agents.
+        /// </summary>
+        public static string Profile_Modal_EditSkillsPlaceholder {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditSkillsPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Profile Credentials.
+        /// </summary>
+        public static string Profile_Modal_EditTitle {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Twitter / X URL.
+        /// </summary>
+        public static string Profile_Modal_EditTwitterLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditTwitterLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Username *.
+        /// </summary>
+        public static string Profile_Modal_EditUsernameLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditUsernameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Personal Website / Portfolio.
+        /// </summary>
+        public static string Profile_Modal_EditWebsiteLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_EditWebsiteLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Review.
+        /// </summary>
+        public static string Profile_Modal_RateDeleteBtn {
+            get {
+                return ResourceManager.GetString("Profile_Modal_RateDeleteBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting....
+        /// </summary>
+        public static string Profile_Modal_RateDeleting {
+            get {
+                return ResourceManager.GetString("Profile_Modal_RateDeleting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Review for {0}.
+        /// </summary>
+        public static string Profile_Modal_RateEditTitle {
+            get {
+                return ResourceManager.GetString("Profile_Modal_RateEditTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Written Feedback (Optional).
+        /// </summary>
+        public static string Profile_Modal_RateFeedbackLabel {
+            get {
+                return ResourceManager.GetString("Profile_Modal_RateFeedbackLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share your experience collaborating with this peer....
+        /// </summary>
+        public static string Profile_Modal_RatePlaceholder {
+            get {
+                return ResourceManager.GetString("Profile_Modal_RatePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submit Rating.
+        /// </summary>
+        public static string Profile_Modal_RateSubmitBtn {
+            get {
+                return ResourceManager.GetString("Profile_Modal_RateSubmitBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submitting....
+        /// </summary>
+        public static string Profile_Modal_RateSubmitting {
+            get {
+                return ResourceManager.GetString("Profile_Modal_RateSubmitting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select your rating and provide feedback on their contributions to the ecosystem..
+        /// </summary>
+        public static string Profile_Modal_RateSubtitle {
+            get {
+                return ResourceManager.GetString("Profile_Modal_RateSubtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rate {0}.
+        /// </summary>
+        public static string Profile_Modal_RateTitle {
+            get {
+                return ResourceManager.GetString("Profile_Modal_RateTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update Review.
+        /// </summary>
+        public static string Profile_Modal_RateUpdateBtn {
+            get {
+                return ResourceManager.GetString("Profile_Modal_RateUpdateBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save Changes.
+        /// </summary>
+        public static string Profile_Modal_SaveBtn {
+            get {
+                return ResourceManager.GetString("Profile_Modal_SaveBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Profile — CommunityLink.
+        /// </summary>
+        public static string Profile_PageTitle_Default {
+            get {
+                return ResourceManager.GetString("Profile_PageTitle_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} (@{1}) — CommunityLink.
+        /// </summary>
+        public static string Profile_PageTitle_User {
+            get {
+                return ResourceManager.GetString("Profile_PageTitle_User", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comment.
+        /// </summary>
+        public static string Profile_Post_ActionComment {
+            get {
+                return ResourceManager.GetString("Profile_Post_ActionComment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Like.
+        /// </summary>
+        public static string Profile_Post_ActionLike {
+            get {
+                return ResourceManager.GetString("Profile_Post_ActionLike", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share.
+        /// </summary>
+        public static string Profile_Post_ActionShare {
+            get {
+                return ResourceManager.GetString("Profile_Post_ActionShare", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 📎 Attached Text Files ({0}):.
+        /// </summary>
+        public static string Profile_Post_AttachedFiles {
+            get {
+                return ResourceManager.GetString("Profile_Post_AttachedFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} chars • Click to read.
+        /// </summary>
+        public static string Profile_Post_CharsClickToRead {
+            get {
+                return ResourceManager.GetString("Profile_Post_CharsClickToRead", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (Click to expand).
+        /// </summary>
+        public static string Profile_Post_ClickToExpand {
+            get {
+                return ResourceManager.GetString("Profile_Post_ClickToExpand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} comments.
+        /// </summary>
+        public static string Profile_Post_CommentsCount {
+            get {
+                return ResourceManager.GetString("Profile_Post_CommentsCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} likes.
+        /// </summary>
+        public static string Profile_Post_LikesCount {
+            get {
+                return ResourceManager.GetString("Profile_Post_LikesCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No comments yet. Be the first!.
+        /// </summary>
+        public static string Profile_Post_NoComments {
+            get {
+                return ResourceManager.GetString("Profile_Post_NoComments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Options.
+        /// </summary>
+        public static string Profile_Post_OptionsTooltip {
+            get {
+                return ResourceManager.GetString("Profile_Post_OptionsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private.
+        /// </summary>
+        public static string Profile_Post_PrivateBadge {
+            get {
+                return ResourceManager.GetString("Profile_Post_PrivateBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only you can view this post.
+        /// </summary>
+        public static string Profile_Post_PrivateTooltip {
+            get {
+                return ResourceManager.GetString("Profile_Post_PrivateTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save Post.
+        /// </summary>
+        public static string Profile_Post_SaveTooltip {
+            get {
+                return ResourceManager.GetString("Profile_Post_SaveTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shared by {0}.
+        /// </summary>
+        public static string Profile_Post_SharedBy {
+            get {
+                return ResourceManager.GetString("Profile_Post_SharedBy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shared Post.
+        /// </summary>
+        public static string Profile_Post_SharedPostHeader {
+            get {
+                return ResourceManager.GetString("Profile_Post_SharedPostHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} shares.
+        /// </summary>
+        public static string Profile_Post_SharesCount {
+            get {
+                return ResourceManager.GetString("Profile_Post_SharesCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Post.
+        /// </summary>
+        public static string Profile_Post_SubmitCommentBtn {
+            get {
+                return ResourceManager.GetString("Profile_Post_SubmitCommentBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TEXT.
+        /// </summary>
+        public static string Profile_Post_TextBadge {
+            get {
+                return ResourceManager.GetString("Profile_Post_TextBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsave Post.
+        /// </summary>
+        public static string Profile_Post_UnsaveTooltip {
+            get {
+                return ResourceManager.GetString("Profile_Post_UnsaveTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Write a comment....
+        /// </summary>
+        public static string Profile_Post_WriteCommentPlaceholder {
+            get {
+                return ResourceManager.GetString("Profile_Post_WriteCommentPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Forever.
+        /// </summary>
+        public static string Profile_Recycle_DeleteForeverBtn {
+            get {
+                return ResourceManager.GetString("Profile_Recycle_DeleteForeverBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Permanently Delete.
+        /// </summary>
+        public static string Profile_Recycle_DeleteForeverTitle {
+            get {
+                return ResourceManager.GetString("Profile_Recycle_DeleteForeverTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Posts moved to the Recycle Bin will be preserved here for 10 days before permanent deletion..
+        /// </summary>
+        public static string Profile_Recycle_EmptyDesc {
+            get {
+                return ResourceManager.GetString("Profile_Recycle_EmptyDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your Recycle Bin is empty.
+        /// </summary>
+        public static string Profile_Recycle_EmptyTitle {
+            get {
+                return ResourceManager.GetString("Profile_Recycle_EmptyTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} ITEM(S).
+        /// </summary>
+        public static string Profile_Recycle_ItemCount {
+            get {
+                return ResourceManager.GetString("Profile_Recycle_ItemCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recycled {0}.
+        /// </summary>
+        public static string Profile_Recycle_RecycledAt {
+            get {
+                return ResourceManager.GetString("Profile_Recycle_RecycledAt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restore Post.
+        /// </summary>
+        public static string Profile_Recycle_RestoreBtn {
+            get {
+                return ResourceManager.GetString("Profile_Recycle_RestoreBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active Member.
+        /// </summary>
+        public static string Profile_Reputation_ActiveMember {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_ActiveMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active Now.
+        /// </summary>
+        public static string Profile_Reputation_ActiveNow {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_ActiveNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Audited Node.
+        /// </summary>
+        public static string Profile_Reputation_AuditedNode {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_AuditedNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member Response Status.
+        /// </summary>
+        public static string Profile_Reputation_MemberResponseStatus {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_MemberResponseStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No peer ratings yet.
+        /// </summary>
+        public static string Profile_Reputation_NoPeerRatings {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_NoPeerRatings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} peer ratings.
+        /// </summary>
+        public static string Profile_Reputation_PeerRatings {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_PeerRatings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} RATINGS.
+        /// </summary>
+        public static string Profile_Reputation_RatingsCount {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_RatingsCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reputation Tier.
+        /// </summary>
+        public static string Profile_Reputation_ReputationTier {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_ReputationTier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standard Contributor.
+        /// </summary>
+        public static string Profile_Reputation_StandardContributor {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_StandardContributor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standard Dispatch.
+        /// </summary>
+        public static string Profile_Reputation_StandardDispatch {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_StandardDispatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verified Member.
+        /// </summary>
+        public static string Profile_Reputation_VerifiedMember {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_VerifiedMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 0 RATINGS.
+        /// </summary>
+        public static string Profile_Reputation_ZeroRatings {
+            get {
+                return ResourceManager.GetString("Profile_Reputation_ZeroRatings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete.
+        /// </summary>
+        public static string Profile_Review_DeleteBtn {
+            get {
+                return ResourceManager.GetString("Profile_Review_DeleteBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        public static string Profile_Review_EditBtn {
+            get {
+                return ResourceManager.GetString("Profile_Review_EditBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No peer reviews recorded yet.
+        /// </summary>
+        public static string Profile_Reviews_Empty {
+            get {
+                return ResourceManager.GetString("Profile_Reviews_Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Posts you bookmark will appear here for easy reference..
+        /// </summary>
+        public static string Profile_Saved_EmptyDesc {
+            get {
+                return ResourceManager.GetString("Profile_Saved_EmptyDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No saved posts recorded.
+        /// </summary>
+        public static string Profile_Saved_EmptyTitle {
+            get {
+                return ResourceManager.GetString("Profile_Saved_EmptyTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share Now.
+        /// </summary>
+        public static string Profile_Share_ShareNow {
+            get {
+                return ResourceManager.GetString("Profile_Share_ShareNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sharing....
+        /// </summary>
+        public static string Profile_Share_Sharing {
+            get {
+                return ResourceManager.GetString("Profile_Share_Sharing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ADD A NOTE (OPTIONAL).
+        /// </summary>
+        public static string Profile_ShareModal_NoteLabel {
+            get {
+                return ResourceManager.GetString("Profile_ShareModal_NoteLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to What are your thoughts on this post?.
+        /// </summary>
+        public static string Profile_ShareModal_Placeholder {
+            get {
+                return ResourceManager.GetString("Profile_ShareModal_Placeholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share Now.
+        /// </summary>
+        public static string Profile_ShareModal_ShareNowBtn {
+            get {
+                return ResourceManager.GetString("Profile_ShareModal_ShareNowBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sharing....
+        /// </summary>
+        public static string Profile_ShareModal_Sharing {
+            get {
+                return ResourceManager.GetString("Profile_ShareModal_Sharing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share Post.
+        /// </summary>
+        public static string Profile_ShareModal_Title {
+            get {
+                return ResourceManager.GetString("Profile_ShareModal_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SUB-COMMUNITIES LED.
+        /// </summary>
+        public static string Profile_Stats_CommunitiesLed {
+            get {
+                return ResourceManager.GetString("Profile_Stats_CommunitiesLed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FOLLOWERS.
+        /// </summary>
+        public static string Profile_Stats_Followers {
+            get {
+                return ResourceManager.GetString("Profile_Stats_Followers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FOLLOWING.
+        /// </summary>
+        public static string Profile_Stats_Following {
+            get {
+                return ResourceManager.GetString("Profile_Stats_Following", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PUBLISHED GUIDES.
+        /// </summary>
+        public static string Profile_Stats_PublishedGuides {
+            get {
+                return ResourceManager.GetString("Profile_Stats_PublishedGuides", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Online &amp; Active.
+        /// </summary>
+        public static string Profile_Status_OnlineTitle {
+            get {
+                return ResourceManager.GetString("Profile_Status_OnlineTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to COMMUNITIES ({0}).
+        /// </summary>
+        public static string Profile_Tab_Communities {
+            get {
+                return ResourceManager.GetString("Profile_Tab_Communities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FILTER:.
+        /// </summary>
+        public static string Profile_Tab_Filter {
+            get {
+                return ResourceManager.GetString("Profile_Tab_Filter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FOLLOWERS.
+        /// </summary>
+        public static string Profile_Tab_Followers {
+            get {
+                return ResourceManager.GetString("Profile_Tab_Followers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LATEST.
+        /// </summary>
+        public static string Profile_Tab_Latest {
+            get {
+                return ResourceManager.GetString("Profile_Tab_Latest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to POSTS &amp; POLLS.
+        /// </summary>
+        public static string Profile_Tab_PostsPolls {
+            get {
+                return ResourceManager.GetString("Profile_Tab_PostsPolls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RECYCLE BIN ({0}).
+        /// </summary>
+        public static string Profile_Tab_RecycleBin {
+            get {
+                return ResourceManager.GetString("Profile_Tab_RecycleBin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to REVIEWS ({0}).
+        /// </summary>
+        public static string Profile_Tab_Reviews {
+            get {
+                return ResourceManager.GetString("Profile_Tab_Reviews", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SAVED ({0}).
+        /// </summary>
+        public static string Profile_Tab_Saved {
+            get {
+                return ResourceManager.GetString("Profile_Tab_Saved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Press Esc or Close.
+        /// </summary>
+        public static string Profile_TextModal_EscHint {
+            get {
+                return ResourceManager.GetString("Profile_TextModal_EscHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plain Text Document • {0} characters.
+        /// </summary>
+        public static string Profile_TextModal_Subtitle {
+            get {
+                return ResourceManager.GetString("Profile_TextModal_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saved account to bookmarks..
+        /// </summary>
+        public static string Profile_Toast_AccountSaved {
+            get {
+                return ResourceManager.GetString("Profile_Toast_AccountSaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to bookmark account: {0}.
+        /// </summary>
+        public static string Profile_Toast_AccountSaveError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_AccountSaveError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removed account from bookmarks..
+        /// </summary>
+        public static string Profile_Toast_AccountUnsaved {
+            get {
+                return ResourceManager.GetString("Profile_Toast_AccountUnsaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avatar image file cannot exceed 5 MB..
+        /// </summary>
+        public static string Profile_Toast_AvatarSizeError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_AvatarSizeError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile picture updated successfully!.
+        /// </summary>
+        public static string Profile_Toast_AvatarUpdated {
+            get {
+                return ResourceManager.GetString("Profile_Toast_AvatarUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to upload avatar: {0}.
+        /// </summary>
+        public static string Profile_Toast_AvatarUploadError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_AvatarUploadError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comment posted!.
+        /// </summary>
+        public static string Profile_Toast_CommentPosted {
+            get {
+                return ResourceManager.GetString("Profile_Toast_CommentPosted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to delete post permanently: {0}.
+        /// </summary>
+        public static string Profile_Toast_DeletePostError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_DeletePostError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to follow user: {0}.
+        /// </summary>
+        public static string Profile_Toast_FollowError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_FollowError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Following @{0}.
+        /// </summary>
+        public static string Profile_Toast_FollowingUser {
+            get {
+                return ResourceManager.GetString("Profile_Toast_FollowingUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile link copied to clipboard!.
+        /// </summary>
+        public static string Profile_Toast_LinkCopied {
+            get {
+                return ResourceManager.GetString("Profile_Toast_LinkCopied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile link: {0}.
+        /// </summary>
+        public static string Profile_Toast_LinkInfo {
+            get {
+                return ResourceManager.GetString("Profile_Toast_LinkInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to post comment: {0}.
+        /// </summary>
+        public static string Profile_Toast_PostCommentError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PostCommentError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Post permanently deleted..
+        /// </summary>
+        public static string Profile_Toast_PostDeleted {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PostDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Post set to private (only you can see it)..
+        /// </summary>
+        public static string Profile_Toast_PostPrivate {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PostPrivate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Post is now public..
+        /// </summary>
+        public static string Profile_Toast_PostPublic {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PostPublic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Post moved to recycle bin..
+        /// </summary>
+        public static string Profile_Toast_PostRecycled {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PostRecycled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Post restored successfully to your feed!.
+        /// </summary>
+        public static string Profile_Toast_PostRestored {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PostRestored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saved to your bookmarks!.
+        /// </summary>
+        public static string Profile_Toast_PostSaved {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PostSaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update bookmark: {0}.
+        /// </summary>
+        public static string Profile_Toast_PostSaveError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PostSaveError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Post shared successfully!.
+        /// </summary>
+        public static string Profile_Toast_PostShared {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PostShared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removed from saved..
+        /// </summary>
+        public static string Profile_Toast_PostUnsaved {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PostUnsaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Post updated successfully!.
+        /// </summary>
+        public static string Profile_Toast_PostUpdated {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PostUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to unlock private chat: {0}.
+        /// </summary>
+        public static string Profile_Toast_PrivateChatError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PrivateChatError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private chat unlocked successfully!.
+        /// </summary>
+        public static string Profile_Toast_PrivateChatUnlocked {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PrivateChatUnlocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to unlock private chat..
+        /// </summary>
+        public static string Profile_Toast_PrivateChatUnlockFailed {
+            get {
+                return ResourceManager.GetString("Profile_Toast_PrivateChatUnlockFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile credentials updated!.
+        /// </summary>
+        public static string Profile_Toast_ProfileUpdated {
+            get {
+                return ResourceManager.GetString("Profile_Toast_ProfileUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update profile: {0}.
+        /// </summary>
+        public static string Profile_Toast_ProfileUpdateError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_ProfileUpdateError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update review: {0}.
+        /// </summary>
+        public static string Profile_Toast_RatingError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_RatingError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Review and rating removed..
+        /// </summary>
+        public static string Profile_Toast_RatingRemoved {
+            get {
+                return ResourceManager.GetString("Profile_Toast_RatingRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rating and review submitted!.
+        /// </summary>
+        public static string Profile_Toast_RatingSubmitted {
+            get {
+                return ResourceManager.GetString("Profile_Toast_RatingSubmitted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to recycle post: {0}.
+        /// </summary>
+        public static string Profile_Toast_RecyclePostError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_RecyclePostError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to restore post: {0}.
+        /// </summary>
+        public static string Profile_Toast_RestorePostError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_RestorePostError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to share post: {0}.
+        /// </summary>
+        public static string Profile_Toast_SharePostError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_SharePostError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skill endorsed!.
+        /// </summary>
+        public static string Profile_Toast_SkillEndorsed {
+            get {
+                return ResourceManager.GetString("Profile_Toast_SkillEndorsed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Endorsement removed..
+        /// </summary>
+        public static string Profile_Toast_SkillEndorsementRemoved {
+            get {
+                return ResourceManager.GetString("Profile_Toast_SkillEndorsementRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update skill endorsement: {0}.
+        /// </summary>
+        public static string Profile_Toast_SkillError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_SkillError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unfollowed @{0}.
+        /// </summary>
+        public static string Profile_Toast_UnfollowedUser {
+            get {
+                return ResourceManager.GetString("Profile_Toast_UnfollowedUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update post: {0}.
+        /// </summary>
+        public static string Profile_Toast_UpdatePostError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_UpdatePostError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update privacy: {0}.
+        /// </summary>
+        public static string Profile_Toast_UpdatePrivacyError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_UpdatePrivacyError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to record vote: {0}.
+        /// </summary>
+        public static string Profile_Toast_VoteError {
+            get {
+                return ResourceManager.GetString("Profile_Toast_VoteError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vote recorded!.
+        /// </summary>
+        public static string Profile_Toast_VoteRecorded {
+            get {
+                return ResourceManager.GetString("Profile_Toast_VoteRecorded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your Available Balance.
+        /// </summary>
+        public static string Profile_Unlock_AvailableBalanceLabel {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_AvailableBalanceLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UNLOCK DIRECT CHANNEL.
+        /// </summary>
+        public static string Profile_Unlock_Badge {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_Badge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Drops.
+        /// </summary>
+        public static string Profile_Unlock_BalanceAmount {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_BalanceAmount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your Balance:.
+        /// </summary>
+        public static string Profile_Unlock_BalanceLabel {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_BalanceLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creator Unlock Fee.
+        /// </summary>
+        public static string Profile_Unlock_CreatorFeeLabel {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_CreatorFeeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This user has established a direct outreach fee to prevent unsolicited inbound messages..
+        /// </summary>
+        public static string Profile_Unlock_Desc {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} requires a one-time unlock fee for direct 1-on-1 messaging..
+        /// </summary>
+        public static string Profile_Unlock_DirectFeeDesc {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_DirectFeeDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} LinkDrops.
+        /// </summary>
+        public static string Profile_Unlock_FeeAmount {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_FeeAmount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Channel Unlock Fee:.
+        /// </summary>
+        public static string Profile_Unlock_FeeLabel {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_FeeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insufficient Link Drops..
+        /// </summary>
+        public static string Profile_Unlock_InsufficientDropsTitle {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_InsufficientDropsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private Chat Locked.
+        /// </summary>
+        public static string Profile_Unlock_LockedTitle {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_LockedTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You need {0} more LinkDrops to unlock this channel..
+        /// </summary>
+        public static string Profile_Unlock_NeedMoreDrops {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_NeedMoreDrops", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pay &amp; Start Chat.
+        /// </summary>
+        public static string Profile_Unlock_PayBtn {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_PayBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Chat with {0}.
+        /// </summary>
+        public static string Profile_Unlock_Title {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Top Up LinkDrops.
+        /// </summary>
+        public static string Profile_Unlock_TopUpBtn {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_TopUpBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Top Up Link Drops →.
+        /// </summary>
+        public static string Profile_Unlock_TopUpLink {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_TopUpLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlocking....
+        /// </summary>
+        public static string Profile_Unlock_Unlocking {
+            get {
+                return ResourceManager.GetString("Profile_Unlock_Unlocking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No public hubs affiliated yet.
+        /// </summary>
+        public static string Profile_Widget_HubsEmpty {
+            get {
+                return ResourceManager.GetString("Profile_Widget_HubsEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} MEMBERS.
+        /// </summary>
+        public static string Profile_Widget_HubsMembers {
+            get {
+                return ResourceManager.GetString("Profile_Widget_HubsMembers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AFFILIATED HUBS.
+        /// </summary>
+        public static string Profile_Widget_HubsTitle {
+            get {
+                return ResourceManager.GetString("Profile_Widget_HubsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View All.
+        /// </summary>
+        public static string Profile_Widget_HubsViewAll {
+            get {
+                return ResourceManager.GetString("Profile_Widget_HubsViewAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View.
+        /// </summary>
+        public static string Profile_Widget_HubsViewBtn {
+            get {
+                return ResourceManager.GetString("Profile_Widget_HubsViewBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No competencies listed yet.
+        /// </summary>
+        public static string Profile_Widget_SkillsEmpty {
+            get {
+                return ResourceManager.GetString("Profile_Widget_SkillsEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Click to endorse skill.
+        /// </summary>
+        public static string Profile_Widget_SkillsEndorseTooltip {
+            get {
+                return ResourceManager.GetString("Profile_Widget_SkillsEndorseTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PEER-VERIFIED.
+        /// </summary>
+        public static string Profile_Widget_SkillsPeerVerified {
+            get {
+                return ResourceManager.GetString("Profile_Widget_SkillsPeerVerified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DOMAIN COMPETENCIES &amp; SKILLS.
+        /// </summary>
+        public static string Profile_Widget_SkillsTitle {
+            get {
+                return ResourceManager.GetString("Profile_Widget_SkillsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Groups.
+        /// </summary>
+        public static string Report_Comm_BadgeGroups {
+            get {
+                return ResourceManager.GetString("Report_Comm_BadgeGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sub-Communities.
+        /// </summary>
+        public static string Report_Comm_BadgeSubComm {
+            get {
+                return ResourceManager.GetString("Report_Comm_BadgeSubComm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Refresh Data.
+        /// </summary>
+        public static string Report_Comm_BtnRefresh {
+            get {
+                return ResourceManager.GetString("Report_Comm_BtnRefresh", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There are no parent communities registered in the system yet..
+        /// </summary>
+        public static string Report_Comm_EmptyDesc {
+            get {
+                return ResourceManager.GetString("Report_Comm_EmptyDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No communities found.
+        /// </summary>
+        public static string Report_Comm_EmptyTitle {
+            get {
+                return ResourceManager.GetString("Report_Comm_EmptyTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} groups.
+        /// </summary>
+        public static string Report_Comm_GroupsCount {
+            get {
+                return ResourceManager.GetString("Report_Comm_GroupsCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Community &amp; Group Hierarchy Report.
+        /// </summary>
+        public static string Report_Comm_Heading {
+            get {
+                return ResourceManager.GetString("Report_Comm_Heading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Aggregating community hierarchy report....
+        /// </summary>
+        public static string Report_Comm_Loading {
+            get {
+                return ResourceManager.GetString("Report_Comm_Loading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} members.
+        /// </summary>
+        public static string Report_Comm_MembersCount {
+            get {
+                return ResourceManager.GetString("Report_Comm_MembersCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} mem..
+        /// </summary>
+        public static string Report_Comm_MemCountShort {
+            get {
+                return ResourceManager.GetString("Report_Comm_MemCountShort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No sub-communities registered under this community..
+        /// </summary>
+        public static string Report_Comm_NoSubComm {
+            get {
+                return ResourceManager.GetString("Report_Comm_NoSubComm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Community Hierarchy &amp; Groups Report — CommunityLink.
+        /// </summary>
+        public static string Report_Comm_PageTitle {
+            get {
+                return ResourceManager.GetString("Report_Comm_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total Communities.
+        /// </summary>
+        public static string Report_Comm_StatTotalComm {
+            get {
+                return ResourceManager.GetString("Report_Comm_StatTotalComm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total Groups Across Ecosystem.
+        /// </summary>
+        public static string Report_Comm_StatTotalGroups {
+            get {
+                return ResourceManager.GetString("Report_Comm_StatTotalGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total Sub-Communities.
+        /// </summary>
+        public static string Report_Comm_StatTotalSubComm {
+            get {
+                return ResourceManager.GetString("Report_Comm_StatTotalSubComm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sub-Communities &amp; Attached Groups.
+        /// </summary>
+        public static string Report_Comm_SubCommHeading {
+            get {
+                return ResourceManager.GetString("Report_Comm_SubCommHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Overview of communities sorted by highest sub-community count first, detailing active sub-communities, groups, and members..
+        /// </summary>
+        public static string Report_Comm_Subtitle {
+            get {
+                return ResourceManager.GetString("Report_Comm_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public Post.
+        /// </summary>
+        public static string Report_User_BadgePublicPost {
+            get {
+                return ResourceManager.GetString("Report_User_BadgePublicPost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Refresh Data.
+        /// </summary>
+        public static string Report_User_BtnRefresh {
+            get {
+                return ResourceManager.GetString("Report_User_BtnRefresh", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No users found.
+        /// </summary>
+        public static string Report_User_EmptyUsers {
+            get {
+                return ResourceManager.GetString("Report_User_EmptyUsers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to followers.
+        /// </summary>
+        public static string Report_User_FollowersLabel {
+            get {
+                return ResourceManager.GetString("Report_User_FollowersLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Popularity &amp; Top Content Report.
+        /// </summary>
+        public static string Report_User_Heading {
+            get {
+                return ResourceManager.GetString("Report_User_Heading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} items.
+        /// </summary>
+        public static string Report_User_ItemsCount {
+            get {
+                return ResourceManager.GetString("Report_User_ItemsCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Joined {0}.
+        /// </summary>
+        public static string Report_User_JoinedDate {
+            get {
+                return ResourceManager.GetString("Report_User_JoinedDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading top content....
+        /// </summary>
+        public static string Report_User_LoadingContent {
+            get {
+                return ResourceManager.GetString("Report_User_LoadingContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Aggregating user popularity report....
+        /// </summary>
+        public static string Report_User_LoadingUsers {
+            get {
+                return ResourceManager.GetString("Report_User_LoadingUsers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This user hasn&apos;t created any polls yet..
+        /// </summary>
+        public static string Report_User_NoPollsYet {
+            get {
+                return ResourceManager.GetString("Report_User_NoPollsYet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This user hasn&apos;t published any posts yet..
+        /// </summary>
+        public static string Report_User_NoPostsYet {
+            get {
+                return ResourceManager.GetString("Report_User_NoPostsYet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Popularity &amp; Top Content Report — CommunityLink.
+        /// </summary>
+        public static string Report_User_PageTitle {
+            get {
+                return ResourceManager.GetString("Report_User_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} polls.
+        /// </summary>
+        public static string Report_User_PollsCount {
+            get {
+                return ResourceManager.GetString("Report_User_PollsCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Community: {0}.
+        /// </summary>
+        public static string Report_User_PrefixCommunity {
+            get {
+                return ResourceManager.GetString("Report_User_PrefixCommunity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Group: {0}.
+        /// </summary>
+        public static string Report_User_PrefixGroup {
+            get {
+                return ResourceManager.GetString("Report_User_PrefixGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ranked Users (By Followers).
+        /// </summary>
+        public static string Report_User_RankedHeading {
+            get {
+                return ResourceManager.GetString("Report_User_RankedHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Click any user on the left list to see their most liked posts and live polls..
+        /// </summary>
+        public static string Report_User_SelectPromptDesc {
+            get {
+                return ResourceManager.GetString("Report_User_SelectPromptDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select a user.
+        /// </summary>
+        public static string Report_User_SelectPromptTitle {
+            get {
+                return ResourceManager.GetString("Report_User_SelectPromptTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Followers.
+        /// </summary>
+        public static string Report_User_StatFollowers {
+            get {
+                return ResourceManager.GetString("Report_User_StatFollowers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Posts.
+        /// </summary>
+        public static string Report_User_StatPosts {
+            get {
+                return ResourceManager.GetString("Report_User_StatPosts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Users sorted by highest followers count. Select any user to inspect their most engaged posts and top-performing polls..
+        /// </summary>
+        public static string Report_User_Subtitle {
+            get {
+                return ResourceManager.GetString("Report_User_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Top Polls (By Votes &amp; Engagement).
+        /// </summary>
+        public static string Report_User_TopPollsHeading {
+            get {
+                return ResourceManager.GetString("Report_User_TopPollsHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Most Liked Posts (Public &amp; In-Group).
+        /// </summary>
+        public static string Report_User_TopPostsHeading {
+            get {
+                return ResourceManager.GetString("Report_User_TopPostsHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} votes.
+        /// </summary>
+        public static string Report_User_TotalVotes {
+            get {
+                return ResourceManager.GetString("Report_User_TotalVotes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} users.
+        /// </summary>
+        public static string Report_User_UsersCount {
+            get {
+                return ResourceManager.GetString("Report_User_UsersCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Additional details (Optional).
         /// </summary>
         public static string ReportContent_DetailsLabel {
@@ -15361,6 +24388,69 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Administrator.
+        /// </summary>
+        public static string Role_Administrator {
+            get {
+                return ResourceManager.GetString("Role_Administrator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Community Member.
+        /// </summary>
+        public static string Role_CommunityMember {
+            get {
+                return ResourceManager.GetString("Role_CommunityMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Community Moderator.
+        /// </summary>
+        public static string Role_CommunityModerator {
+            get {
+                return ResourceManager.GetString("Role_CommunityModerator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default User.
+        /// </summary>
+        public static string Role_DefaultUser {
+            get {
+                return ResourceManager.GetString("Role_DefaultUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Domain Professional.
+        /// </summary>
+        public static string Role_DomainProfessional {
+            get {
+                return ResourceManager.GetString("Role_DomainProfessional", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Guest.
+        /// </summary>
+        public static string Role_Guest {
+            get {
+                return ResourceManager.GetString("Role_Guest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public Figure.
+        /// </summary>
+        public static string Role_PublicFigure {
+            get {
+                return ResourceManager.GetString("Role_PublicFigure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Account menu.
         /// </summary>
         public static string Shell_AccountMenu {
@@ -15384,6 +24474,51 @@ namespace CommunityLink.App.Resources {
         public static string Shell_AdminNode {
             get {
                 return ResourceManager.GetString("Shell_AdminNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Yes, Delete My Account.
+        /// </summary>
+        public static string Shell_DeleteAccount_ConfirmBtn {
+            get {
+                return ResourceManager.GetString("Shell_DeleteAccount_ConfirmBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you want to delete your account ({0})?.
+        /// </summary>
+        public static string Shell_DeleteAccount_Prompt {
+            get {
+                return ResourceManager.GetString("Shell_DeleteAccount_Prompt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Account.
+        /// </summary>
+        public static string Shell_DeleteAccount_Title {
+            get {
+                return ResourceManager.GetString("Shell_DeleteAccount_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting your account will log you out immediately. Your account and personal information will be deleted permanently..
+        /// </summary>
+        public static string Shell_DeleteAccount_WarningDesc {
+            get {
+                return ResourceManager.GetString("Shell_DeleteAccount_WarningDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning:.
+        /// </summary>
+        public static string Shell_DeleteAccount_WarningTitle {
+            get {
+                return ResourceManager.GetString("Shell_DeleteAccount_WarningTitle", resourceCulture);
             }
         }
         
@@ -15420,6 +24555,15 @@ namespace CommunityLink.App.Resources {
         public static string Shell_ThemeToggle_Light {
             get {
                 return ResourceManager.GetString("Shell_ThemeToggle_Light", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggle navigation sidebar.
+        /// </summary>
+        public static string Shell_ToggleSidebar {
+            get {
+                return ResourceManager.GetString("Shell_ToggleSidebar", resourceCulture);
             }
         }
         
@@ -16239,6 +25383,897 @@ namespace CommunityLink.App.Resources {
         public static string TelemetryChart_Top3Concentration {
             get {
                 return ResourceManager.GetString("TelemetryChart_Top3Concentration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Annual.
+        /// </summary>
+        public static string Upgrade_Billing_Annual {
+            get {
+                return ResourceManager.GetString("Upgrade_Billing_Annual", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to month.
+        /// </summary>
+        public static string Upgrade_Billing_Month {
+            get {
+                return ResourceManager.GetString("Upgrade_Billing_Month", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monthly.
+        /// </summary>
+        public static string Upgrade_Billing_Monthly {
+            get {
+                return ResourceManager.GetString("Upgrade_Billing_Monthly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to year.
+        /// </summary>
+        public static string Upgrade_Billing_Year {
+            get {
+                return ResourceManager.GetString("Upgrade_Billing_Year", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Back of Identity Card file size cannot exceed 10MB..
+        /// </summary>
+        public static string Upgrade_Error_BackIdSize {
+            get {
+                return ResourceManager.GetString("Upgrade_Error_BackIdSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to submit verification application: {0}.
+        /// </summary>
+        public static string Upgrade_Error_Failed {
+            get {
+                return ResourceManager.GetString("Upgrade_Error_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please upload the front image of your Identity Card..
+        /// </summary>
+        public static string Upgrade_Error_FrontIdRequired {
+            get {
+                return ResourceManager.GetString("Upgrade_Error_FrontIdRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Identity Card file size cannot exceed 10MB..
+        /// </summary>
+        public static string Upgrade_Error_FrontIdSize {
+            get {
+                return ResourceManager.GetString("Upgrade_Error_FrontIdSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insufficient LinkDrop balance. You need {0} more Drops to apply..
+        /// </summary>
+        public static string Upgrade_Error_InsufficientDrops {
+            get {
+                return ResourceManager.GetString("Upgrade_Error_InsufficientDrops", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Full Legal Name is required..
+        /// </summary>
+        public static string Upgrade_Error_LegalNameRequired {
+            get {
+                return ResourceManager.GetString("Upgrade_Error_LegalNameRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Drops.
+        /// </summary>
+        public static string Upgrade_Hero_DropsCount {
+            get {
+                return ResourceManager.GetString("Upgrade_Hero_DropsCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upgrade to Domain Professional or Public Figure VIP using LinkDrops. Verified credentials unlock paid 1-on-1 advisory bookings, sovereign sub-community ownership, and official verification badges..
+        /// </summary>
+        public static string Upgrade_Hero_Subtitle {
+            get {
+                return ResourceManager.GetString("Upgrade_Hero_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Premium Membership Tiers.
+        /// </summary>
+        public static string Upgrade_Hero_Title {
+            get {
+                return ResourceManager.GetString("Upgrade_Hero_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Top Up →.
+        /// </summary>
+        public static string Upgrade_Hero_TopUp {
+            get {
+                return ResourceManager.GetString("Upgrade_Hero_TopUp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verified Tiers.
+        /// </summary>
+        public static string Upgrade_Hero_VerifiedTiers {
+            get {
+                return ResourceManager.GetString("Upgrade_Hero_VerifiedTiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your Balance:.
+        /// </summary>
+        public static string Upgrade_Hero_YourBalance {
+            get {
+                return ResourceManager.GetString("Upgrade_Hero_YourBalance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Identity Verification Audit.
+        /// </summary>
+        public static string Upgrade_Modal_Badge {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_Badge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Drops.
+        /// </summary>
+        public static string Upgrade_Modal_DropsCost {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_DropsCost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duration: {0} Days • {1}.
+        /// </summary>
+        public static string Upgrade_Modal_Duration {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_Duration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deducted on submission &amp; held in escrow.
+        /// </summary>
+        public static string Upgrade_Modal_EscrowDeducted {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_EscrowDeducted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Escrow Deposit.
+        /// </summary>
+        public static string Upgrade_Modal_EscrowDeposit {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_EscrowDeposit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LinkDrop Escrow Payment.
+        /// </summary>
+        public static string Upgrade_Modal_EscrowPayment {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_EscrowPayment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drops are held during SecOps audit. If rejected, your {0} Drops are automatically refunded to your wallet..
+        /// </summary>
+        public static string Upgrade_Modal_EscrowProtectionDesc {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_EscrowProtectionDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Escrow Protection:.
+        /// </summary>
+        public static string Upgrade_Modal_EscrowProtectionLabel {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_EscrowProtectionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ✓ Selected: {0}.
+        /// </summary>
+        public static string Upgrade_Modal_FileSelected {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_FileSelected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Identity Card (Back - Optional).
+        /// </summary>
+        public static string Upgrade_Modal_IdBackLabel {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_IdBackLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to National Registration Card, Passport, or Driver&apos;s License (JPG, PNG, max 10MB).
+        /// </summary>
+        public static string Upgrade_Modal_IdFrontHint {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_IdFrontHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Identity Card / Government ID (Front) *.
+        /// </summary>
+        public static string Upgrade_Modal_IdFrontLabel {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_IdFrontLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insufficient Drops.
+        /// </summary>
+        public static string Upgrade_Modal_InsufficientDrops {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_InsufficientDrops", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Full Legal Name (matching Identity Card) *.
+        /// </summary>
+        public static string Upgrade_Modal_LegalNameLabel {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_LegalNameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. Elena Rostova.
+        /// </summary>
+        public static string Upgrade_Modal_LegalNamePlaceholder {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_LegalNamePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Need {0} more LinkDrops to apply..
+        /// </summary>
+        public static string Upgrade_Modal_NeedMoreDrops {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_NeedMoreDrops", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LinkedIn / GitHub / Portfolio URL.
+        /// </summary>
+        public static string Upgrade_Modal_PortfolioUrlLabel {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_PortfolioUrlLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://linkedin.com/in/elena.
+        /// </summary>
+        public static string Upgrade_Modal_PortfolioUrlPlaceholder {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_PortfolioUrlPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remaining.
+        /// </summary>
+        public static string Upgrade_Modal_Remaining {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_Remaining", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Required.
+        /// </summary>
+        public static string Upgrade_Modal_Required {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_Required", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submit for Verification Audit ({0} Drops).
+        /// </summary>
+        public static string Upgrade_Modal_SubmitBtn {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_SubmitBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submitting Application....
+        /// </summary>
+        public static string Upgrade_Modal_Submitting {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_Submitting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sufficient Balance.
+        /// </summary>
+        public static string Upgrade_Modal_SufficientBalance {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_SufficientBalance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upgrade to {0}.
+        /// </summary>
+        public static string Upgrade_Modal_Title {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Top Up →.
+        /// </summary>
+        public static string Upgrade_Modal_TopUpBtn {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_TopUpBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work Email (Optional).
+        /// </summary>
+        public static string Upgrade_Modal_WorkEmailLabel {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_WorkEmailLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to elena@company.com.
+        /// </summary>
+        public static string Upgrade_Modal_WorkEmailPlaceholder {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_WorkEmailPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your Balance.
+        /// </summary>
+        public static string Upgrade_Modal_YourBalance {
+            get {
+                return ResourceManager.GetString("Upgrade_Modal_YourBalance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Platform.
+        /// </summary>
+        public static string Upgrade_Nav_Platform {
+            get {
+                return ResourceManager.GetString("Upgrade_Nav_Platform", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Premium Membership.
+        /// </summary>
+        public static string Upgrade_Nav_PremiumMembership {
+            get {
+                return ResourceManager.GetString("Upgrade_Nav_PremiumMembership", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tier Membership.
+        /// </summary>
+        public static string Upgrade_Nav_TierMembership {
+            get {
+                return ResourceManager.GetString("Upgrade_Nav_TierMembership", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Premium Membership — CommunityLink.
+        /// </summary>
+        public static string Upgrade_PageTitle {
+            get {
+                return ResourceManager.GetString("Upgrade_PageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Billed in LinkDrop virtual currency.
+        /// </summary>
+        public static string Upgrade_Plan_BilledInDrops {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_BilledInDrops", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply for Public Figure VIP.
+        /// </summary>
+        public static string Upgrade_Plan_Btn_ApplyForVIP {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Btn_ApplyForVIP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Audit Pending Review.
+        /// </summary>
+        public static string Upgrade_Plan_Btn_AuditPendingReview {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Btn_AuditPendingReview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current Active Tier.
+        /// </summary>
+        public static string Upgrade_Plan_Btn_CurrentActiveTier {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Btn_CurrentActiveTier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current Plan.
+        /// </summary>
+        public static string Upgrade_Plan_Btn_CurrentPlan {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Btn_CurrentPlan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan Unavailable.
+        /// </summary>
+        public static string Upgrade_Plan_Btn_PlanUnavailable {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Btn_PlanUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standard Default Tier.
+        /// </summary>
+        public static string Upgrade_Plan_Btn_StandardDefaultTier {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Btn_StandardDefaultTier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upgrade to Domain Pro.
+        /// </summary>
+        public static string Upgrade_Plan_Btn_UpgradeToDomainPro {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Btn_UpgradeToDomainPro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default Tier.
+        /// </summary>
+        public static string Upgrade_Plan_DefaultTierBadge {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_DefaultTierBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Domain Pro.
+        /// </summary>
+        public static string Upgrade_Plan_DomainProBadge {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_DomainProBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Official verified badge on feeds, comments, and profile hero..
+        /// </summary>
+        public static string Upgrade_Plan_DomainProDesc {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_DomainProDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verified Domain Professional badge and tools..
+        /// </summary>
+        public static string Upgrade_Plan_DomainProPerkFallback {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_DomainProPerkFallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Domain Professional.
+        /// </summary>
+        public static string Upgrade_Plan_DomainProTitle {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_DomainProTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drops / forever.
+        /// </summary>
+        public static string Upgrade_Plan_DropsForever {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_DropsForever", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drops / {0}.
+        /// </summary>
+        public static string Upgrade_Plan_DropsPerInterval {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_DropsPerInterval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Luminary Tier.
+        /// </summary>
+        public static string Upgrade_Plan_LuminaryTier {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_LuminaryTier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standard community participation.
+        /// </summary>
+        public static string Upgrade_Plan_NormalParticipation {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_NormalParticipation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Foundational access for browsing feeds, joining discussions, and networking..
+        /// </summary>
+        public static string Upgrade_Plan_NormalUserDesc {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_NormalUserDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Normal User.
+        /// </summary>
+        public static string Upgrade_Plan_NormalUserTitle {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_NormalUserTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan not currently active.
+        /// </summary>
+        public static string Upgrade_Plan_NotActive {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_NotActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create articles, links, and poll votes.
+        /// </summary>
+        public static string Upgrade_Plan_Perk_CreateArticles {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Perk_CreateArticles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direct messaging (1-on-1 networking).
+        /// </summary>
+        public static string Upgrade_Plan_Perk_DirectMessaging {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Perk_DirectMessaging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Discover feeds, posts, and public discussions.
+        /// </summary>
+        public static string Upgrade_Plan_Perk_DiscoverFeeds {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Perk_DiscoverFeeds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Join instant &amp; approval-required communities.
+        /// </summary>
+        public static string Upgrade_Plan_Perk_JoinCommunities {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Perk_JoinCommunities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No paid 1-on-1 advisory bookings.
+        /// </summary>
+        public static string Upgrade_Plan_Perk_NoAdvisory {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Perk_NoAdvisory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No verified identity badge.
+        /// </summary>
+        public static string Upgrade_Plan_Perk_NoVerifiedBadge {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_Perk_NoVerifiedBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Practitioner Tier.
+        /// </summary>
+        public static string Upgrade_Plan_PractitionerTier {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_PractitionerTier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public Figure VIP.
+        /// </summary>
+        public static string Upgrade_Plan_PublicFigureBadge {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_PublicFigureBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sovereign VIP badge, home shelf discovery, and priority concierges..
+        /// </summary>
+        public static string Upgrade_Plan_PublicFigureDesc {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_PublicFigureDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verified Public Figure VIP crest and tools..
+        /// </summary>
+        public static string Upgrade_Plan_PublicFigurePerkFallback {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_PublicFigurePerkFallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public Figure VIP.
+        /// </summary>
+        public static string Upgrade_Plan_PublicFigureTitle {
+            get {
+                return ResourceManager.GetString("Upgrade_Plan_PublicFigureTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standard Operating Procedure.
+        /// </summary>
+        public static string Upgrade_Sop_Badge {
+            get {
+                return ResourceManager.GetString("Upgrade_Sop_Badge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pick your tier. LinkDrop points are held in platform escrow during audit. Fully refunded if verification cannot be concluded..
+        /// </summary>
+        public static string Upgrade_Sop_Step1_Desc {
+            get {
+                return ResourceManager.GetString("Upgrade_Sop_Step1_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select &amp; Escrow.
+        /// </summary>
+        public static string Upgrade_Sop_Step1_Title {
+            get {
+                return ResourceManager.GetString("Upgrade_Sop_Step1_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upload your government Identity Card front/back, professional links (GitHub, LinkedIn), or domain portfolio proof for audit examination..
+        /// </summary>
+        public static string Upgrade_Sop_Step2_Desc {
+            get {
+                return ResourceManager.GetString("Upgrade_Sop_Step2_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submit Credentials.
+        /// </summary>
+        public static string Upgrade_Sop_Step2_Title {
+            get {
+                return ResourceManager.GetString("Upgrade_Sop_Step2_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The administration team cross-examines submissions against public registries. The review action is permanently logged in the audit trail..
+        /// </summary>
+        public static string Upgrade_Sop_Step3_Desc {
+            get {
+                return ResourceManager.GetString("Upgrade_Sop_Step3_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SecOps Review.
+        /// </summary>
+        public static string Upgrade_Sop_Step3_Title {
+            get {
+                return ResourceManager.GetString("Upgrade_Sop_Step3_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile gains the verified Pro or VIP badge. Your 1-on-1 advisory booking scheduler opens, and peer rating collection activates..
+        /// </summary>
+        public static string Upgrade_Sop_Step4_Desc {
+            get {
+                return ResourceManager.GetString("Upgrade_Sop_Step4_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Badge &amp; Tools Live.
+        /// </summary>
+        public static string Upgrade_Sop_Step4_Title {
+            get {
+                return ResourceManager.GetString("Upgrade_Sop_Step4_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CommunityLink is an audited trust network. Every tier upgrade undergoes credential screening and LinkDrop escrow protection before badge deployment..
+        /// </summary>
+        public static string Upgrade_Sop_Subtitle {
+            get {
+                return ResourceManager.GetString("Upgrade_Sop_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How the Verification Audit Works.
+        /// </summary>
+        public static string Upgrade_Sop_Title {
+            get {
+                return ResourceManager.GetString("Upgrade_Sop_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Valid until {0} ({1} days remaining)..
+        /// </summary>
+        public static string Upgrade_Status_ActiveDesc {
+            get {
+                return ResourceManager.GetString("Upgrade_Status_ActiveDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active Membership: {0}.
+        /// </summary>
+        public static string Upgrade_Status_ActiveTitle {
+            get {
+                return ResourceManager.GetString("Upgrade_Status_ActiveTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending Audit.
+        /// </summary>
+        public static string Upgrade_Status_PendingBadge {
+            get {
+                return ResourceManager.GetString("Upgrade_Status_PendingBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your application for {0} is currently being audited by SecOps. Identity documents are under review..
+        /// </summary>
+        public static string Upgrade_Status_PendingDesc {
+            get {
+                return ResourceManager.GetString("Upgrade_Status_PendingDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verification Audit In Progress.
+        /// </summary>
+        public static string Upgrade_Status_PendingTitle {
+            get {
+                return ResourceManager.GetString("Upgrade_Status_PendingTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verified Identity Active.
+        /// </summary>
+        public static string Upgrade_Status_VerifiedActive {
+            get {
+                return ResourceManager.GetString("Upgrade_Status_VerifiedActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LinkDrop Escrow Active.
+        /// </summary>
+        public static string Upgrade_Strip_EscrowActive {
+            get {
+                return ResourceManager.GetString("Upgrade_Strip_EscrowActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Escrow Protocol.
+        /// </summary>
+        public static string Upgrade_Strip_EscrowProtocol {
+            get {
+                return ResourceManager.GetString("Upgrade_Strip_EscrowProtocol", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Application submitted! Your Identity Verification Audit is now in progress..
+        /// </summary>
+        public static string Upgrade_Success_Submitted {
+            get {
+                return ResourceManager.GetString("Upgrade_Success_Submitted", resourceCulture);
             }
         }
     }

@@ -250,20 +250,33 @@
                     <p class="text-xs text-[#475569] dark:text-[#94A3B8]">@Loc["CreatorEarnings_HistorySubtitle"]</p>
                 </div>
 
-                <!-- Filters -->
-                <div class="flex items-center gap-2">
-                    <button type="button" @onclick='() => SetFilterType("ALL")'
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border cursor-pointer @(activeFilterType == "ALL" ? "bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#112A46] dark:hover:bg-[#1B3B5A] dark:text-[#E1E8F0] border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] shadow-xs" : "bg-white dark:bg-[#191B23] text-[#475569] dark:text-[#C4D2E1] border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] hover:bg-[#F8FAFC] dark:hover:bg-[#1E2638]")">
-                        @Loc["CreatorEarnings_FilterAll"]
-                    </button>
-                    <button type="button" @onclick='() => SetFilterType("GROUP")'
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border cursor-pointer @(activeFilterType == "GROUP" ? "bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#112A46] dark:hover:bg-[#1B3B5A] dark:text-[#E1E8F0] border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] shadow-xs" : "bg-white dark:bg-[#191B23] text-[#475569] dark:text-[#C4D2E1] border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] hover:bg-[#F8FAFC] dark:hover:bg-[#1E2638]")">
-                        @Loc["CreatorEarnings_FilterGroupJoins"]
-                    </button>
-                    <button type="button" @onclick='() => SetFilterType("PRIVATE_CHAT")'
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border cursor-pointer @(activeFilterType == "PRIVATE_CHAT" ? "bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#112A46] dark:hover:bg-[#1B3B5A] dark:text-[#E1E8F0] border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] shadow-xs" : "bg-white dark:bg-[#191B23] text-[#475569] dark:text-[#C4D2E1] border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] hover:bg-[#F8FAFC] dark:hover:bg-[#1E2638]")">
-                        @Loc["CreatorEarnings_FilterPrivateChat"]
-                    </button>
+                <!-- Filters & Rows Per Page -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <button type="button" @onclick='() => SetFilterType("ALL")'
+                                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border cursor-pointer @(activeFilterType == "ALL" ? "bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#112A46] dark:hover:bg-[#1B3B5A] dark:text-[#E1E8F0] border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] shadow-xs" : "bg-white dark:bg-[#191B23] text-[#475569] dark:text-[#C4D2E1] border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] hover:bg-[#F8FAFC] dark:hover:bg-[#1E2638]")">
+                            @Loc["CreatorEarnings_FilterAll"]
+                        </button>
+                        <button type="button" @onclick='() => SetFilterType("GROUP")'
+                                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border cursor-pointer @(activeFilterType == "GROUP" ? "bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#112A46] dark:hover:bg-[#1B3B5A] dark:text-[#E1E8F0] border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] shadow-xs" : "bg-white dark:bg-[#191B23] text-[#475569] dark:text-[#C4D2E1] border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] hover:bg-[#F8FAFC] dark:hover:bg-[#1E2638]")">
+                            @Loc["CreatorEarnings_FilterGroupJoins"]
+                        </button>
+                        <button type="button" @onclick='() => SetFilterType("PRIVATE_CHAT")'
+                                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border cursor-pointer @(activeFilterType == "PRIVATE_CHAT" ? "bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#112A46] dark:hover:bg-[#1B3B5A] dark:text-[#E1E8F0] border-[#0A1B2E] dark:border-[rgba(196,210,225,0.20)] shadow-xs" : "bg-white dark:bg-[#191B23] text-[#475569] dark:text-[#C4D2E1] border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] hover:bg-[#F8FAFC] dark:hover:bg-[#1E2638]")">
+                            @Loc["CreatorEarnings_FilterPrivateChat"]
+                        </button>
+                    </div>
+
+                    <!-- Rows per page selector like AdminUsers -->
+                    <div class="flex items-center gap-2 shrink-0 text-xs text-[#557392] dark:text-[#C4D2E1] sm:ml-auto">
+                        <span class="font-medium">@Loc["Admin_Users_RowsPerPageLabel"]</span>
+                        <select value="@pageSize" @onchange="OnPageSizeChanged" class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#191B23] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 cursor-pointer">
+                            <option value="10">@string.Format(Loc["Admin_Finance_RowsPerPage"], 10)</option>
+                            <option value="25">@string.Format(Loc["Admin_Finance_RowsPerPage"], 25)</option>
+                            <option value="50">@string.Format(Loc["Admin_Finance_RowsPerPage"], 50)</option>
+                            <option value="100">@string.Format(Loc["Admin_Finance_RowsPerPage"], 100)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -292,6 +305,7 @@
                     <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300 border-collapse">
                         <thead>
                             <tr class="bg-[#F8FAFC] dark:bg-[#191B23] border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[10px] uppercase font-bold text-[#64748B] tracking-[0.06em]">
+                                <th class="py-3 px-4">@Loc["Admin_Users_ColNo"]</th>
                                 <th class="py-3 px-4">@Loc["CreatorEarnings_ColDate"]</th>
                                 <th class="py-3 px-4">@Loc["CreatorEarnings_ColChatGroup"]</th>
                                 <th class="py-3 px-4">@Loc["CreatorEarnings_ColBuyer"]</th>
@@ -302,33 +316,41 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(255,255,255,0.08)]">
-                            @foreach (var tx in dashboard.Transactions)
-                            {
-                                <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1D263B]/60 transition-colors duration-150">
-                                    <td class="py-3.5 px-4 font-mono text-xs text-[#64748B]">
-                                        @tx.Date.ToString("MMM dd, yyyy HH:mm")
-                                    </td>
-                                    <td class="py-3.5 px-4 font-semibold text-[#0F172A] dark:text-[#E1E8F0]">
-                                        @tx.ChatGroupName
-                                    </td>
-                                    <td class="py-3.5 px-4 text-[#475569] dark:text-[#C4D2E1]">
-                                        @tx.BuyerName
-                                    </td>
-                                    <td class="py-3.5 px-4 text-right font-mono font-medium text-[#0F172A] dark:text-[#E1E8F0]">
-                                        @tx.GrossAmount LD
-                                    </td>
-                                    <td class="py-3.5 px-4 text-right font-mono font-medium text-rose-600 dark:text-rose-400">
-                                        -@tx.CommissionAmount LD
-                                    </td>
-                                    <td class="py-3.5 px-4 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                                        +@tx.NetAmount LD
-                                    </td>
-                                    <td class="py-3.5 px-4 text-center">
-                                        <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400">
-                                            @tx.Status
-                                        </span>
-                                    </td>
-                                </tr>
+                            @{
+                                var txList = pagedTransactions.ToList();
+                                for (var index = 0; index < txList.Count; index++)
+                                {
+                                    var tx = txList[index];
+                                    var rowNo = (pageNumber - 1) * pageSize + index + 1;
+                                    <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1D263B]/60 transition-colors duration-150">
+                                        <td class="py-3.5 px-4 font-mono text-xs text-[#7A8CA6] whitespace-nowrap">
+                                            @(rowNo).
+                                        </td>
+                                        <td class="py-3.5 px-4 font-mono text-xs text-[#64748B]">
+                                            @tx.Date.ToString("MMM dd, yyyy HH:mm")
+                                        </td>
+                                        <td class="py-3.5 px-4 font-semibold text-[#0F172A] dark:text-[#E1E8F0]">
+                                            @tx.ChatGroupName
+                                        </td>
+                                        <td class="py-3.5 px-4 text-[#475569] dark:text-[#C4D2E1]">
+                                            @tx.BuyerName
+                                        </td>
+                                        <td class="py-3.5 px-4 text-right font-mono font-medium text-[#0F172A] dark:text-[#E1E8F0]">
+                                            @tx.GrossAmount LD
+                                        </td>
+                                        <td class="py-3.5 px-4 text-right font-mono font-medium text-rose-600 dark:text-rose-400">
+                                            -@tx.CommissionAmount LD
+                                        </td>
+                                        <td class="py-3.5 px-4 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                                            +@tx.NetAmount LD
+                                        </td>
+                                        <td class="py-3.5 px-4 text-center">
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400">
+                                                @tx.Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>
@@ -336,35 +358,81 @@
 
                 <!-- Mobile Responsive List View -->
                 <div class="block md:hidden space-y-3">
-                    @foreach (var tx in dashboard.Transactions)
-                    {
-                        <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-4 space-y-2 shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-xs">
-                            <div class="flex items-center justify-between text-xs border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-2">
-                                <span class="font-mono text-[#64748B]">@tx.Date.ToString("MMM dd, yyyy HH:mm")</span>
-                                <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400">
-                                    @tx.Status
-                                </span>
-                            </div>
-                            <div>
-                                <div class="font-bold text-sm text-[#0F172A] dark:text-[#E1E8F0]">@tx.ChatGroupName</div>
-                                <div class="text-xs text-[#64748B] mt-0.5">@string.Format(Loc["CreatorEarnings_CardBuyer"], tx.BuyerName)</div>
-                            </div>
-                            <div class="pt-2 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] grid grid-cols-3 gap-2 text-center text-xs">
-                                <div>
-                                    <span class="text-[#64748B] block text-[10px] uppercase font-mono">@Loc["CreatorEarnings_ColGross"]</span>
-                                    <span class="font-semibold font-mono text-[#475569] dark:text-[#C4D2E1]">@tx.GrossAmount LD</span>
+                    @{
+                        var mobileList = pagedTransactions.ToList();
+                        for (var index = 0; index < mobileList.Count; index++)
+                        {
+                            var tx = mobileList[index];
+                            var rowNo = (pageNumber - 1) * pageSize + index + 1;
+                            <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-4 space-y-2 shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-xs">
+                                <div class="flex items-center justify-between text-xs border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-mono text-xs font-bold text-[#7A8CA6]">#@(rowNo)</span>
+                                        <span class="font-mono text-[#64748B]">@tx.Date.ToString("MMM dd, yyyy HH:mm")</span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400">
+                                        @tx.Status
+                                    </span>
                                 </div>
                                 <div>
-                                    <span class="text-[#64748B] block text-[10px] uppercase font-mono">@Loc["CreatorEarnings_ColCommission"]</span>
-                                    <span class="font-semibold font-mono text-rose-600 dark:text-rose-400">-@tx.CommissionAmount LD</span>
+                                    <div class="font-bold text-sm text-[#0F172A] dark:text-[#E1E8F0]">@tx.ChatGroupName</div>
+                                    <div class="text-xs text-[#64748B] mt-0.5">@string.Format(Loc["CreatorEarnings_CardBuyer"], tx.BuyerName)</div>
                                 </div>
-                                <div>
-                                    <span class="text-[#64748B] block text-[10px] uppercase font-mono">@Loc["CreatorEarnings_ColNet"]</span>
-                                    <span class="font-bold font-mono text-emerald-600 dark:text-emerald-400">+@tx.NetAmount LD</span>
+                                <div class="pt-2 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] grid grid-cols-3 gap-2 text-center text-xs">
+                                    <div>
+                                        <span class="text-[#64748B] block text-[10px] uppercase font-mono">@Loc["CreatorEarnings_ColGross"]</span>
+                                        <span class="font-semibold font-mono text-[#475569] dark:text-[#C4D2E1]">@tx.GrossAmount LD</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[#64748B] block text-[10px] uppercase font-mono">@Loc["CreatorEarnings_ColCommission"]</span>
+                                        <span class="font-semibold font-mono text-rose-600 dark:text-rose-400">-@tx.CommissionAmount LD</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[#64748B] block text-[10px] uppercase font-mono">@Loc["CreatorEarnings_ColNet"]</span>
+                                        <span class="font-bold font-mono text-emerald-600 dark:text-emerald-400">+@tx.NetAmount LD</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                     }
+                </div>
+
+                <!-- Modern Pagination Bar -->
+                <div class="px-6 py-3.5 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-[#F8FAFC] dark:bg-[#191B23] -mx-6 -mb-6 rounded-b-xl">
+                    <!-- Item Range Stats -->
+                    <div class="text-[#557392] dark:text-[#C4D2E1] font-medium">
+                        @if (totalCount > 0)
+                        {
+                            var startItem = (pageNumber - 1) * pageSize + 1;
+                            var endItem = Math.Min(pageNumber * pageSize, totalCount);
+                            <span>@string.Format(Loc["Admin_Users_ShowingRange"], startItem, endItem, totalCount)</span>
+                        }
+                        else
+                        {
+                            <span>@Loc["Admin_Users_NoRecords"]</span>
+                        }
+                    </div>
+
+                    <!-- Pagination Navigation Controls -->
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" @onclick="GoToFirstPage" disabled="@(pageNumber <= 1)" title="@Loc["Admin_Users_PaginationFirst"]" class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1E2638] disabled:opacity-40 transition cursor-pointer">
+                            @Loc["Admin_Users_PaginationFirst"]
+                        </button>
+                        <button type="button" @onclick="PreviousPage" disabled="@(pageNumber <= 1)" title="@Loc["Admin_Users_PaginationPrev"]" class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1E2638] disabled:opacity-40 transition cursor-pointer">
+                            @Loc["Admin_Users_PaginationPrev"]
+                        </button>
+                        
+                        <span class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#1E2638] text-[#0A1B2E] dark:text-[#E1E8F0] font-mono font-bold">
+                            @string.Format(Loc["Admin_Users_PaginationPageOf"], pageNumber, totalPages)
+                        </span>
+
+                        <button type="button" @onclick="NextPage" disabled="@(pageNumber >= totalPages)" title="@Loc["Admin_Users_PaginationNext"]" class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1E2638] disabled:opacity-40 transition cursor-pointer">
+                            @Loc["Admin_Users_PaginationNext"]
+                        </button>
+                        <button type="button" @onclick="GoToLastPage" disabled="@(pageNumber >= totalPages)" title="@Loc["Admin_Users_PaginationLast"]" class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1E2638] disabled:opacity-40 transition cursor-pointer">
+                            @Loc["Admin_Users_PaginationLast"]
+                        </button>
+                    </div>
                 </div>
             }
         </div>
@@ -377,6 +445,43 @@
     private CreatorEarningsDashboardModel? dashboard;
     private string activeFilterType = "ALL";
     private int? selectedChatGroupId;
+
+    private int pageNumber = 1;
+    private int pageSize = 10;
+    private int totalCount => dashboard?.Transactions.Count ?? 0;
+    private int totalPages => Math.Max(1, (int)Math.Ceiling((double)totalCount / pageSize));
+
+    private IEnumerable<CreatorEarningsTransactionModel> pagedTransactions =>
+        dashboard?.Transactions.Skip((pageNumber - 1) * pageSize).Take(pageSize) ?? Enumerable.Empty<CreatorEarningsTransactionModel>();
+
+    private void OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var newSize) && newSize > 0)
+        {
+            pageSize = newSize;
+            pageNumber = 1;
+        }
+    }
+
+    private void GoToFirstPage()
+    {
+        if (pageNumber > 1) pageNumber = 1;
+    }
+
+    private void GoToLastPage()
+    {
+        if (pageNumber < totalPages) pageNumber = totalPages;
+    }
+
+    private void PreviousPage()
+    {
+        if (pageNumber > 1) pageNumber--;
+    }
+
+    private void NextPage()
+    {
+        if (pageNumber < totalPages) pageNumber++;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -412,6 +517,7 @@
     {
         activeFilterType = filterType;
         selectedChatGroupId = null;
+        pageNumber = 1;
         await LoadEarningsData();
     }
 
@@ -465,12 +571,14 @@
         {
             selectedChatGroupId = chatGroupId;
         }
+        pageNumber = 1;
         await LoadEarningsData();
     }
 
     private async Task ClearGroupFilter()
     {
         selectedChatGroupId = null;
+        pageNumber = 1;
         await LoadEarningsData();
     }
 }

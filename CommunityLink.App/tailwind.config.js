@@ -8,8 +8,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+        sans: ['Inter', 'Pyidaungsu', 'Noto Sans Myanmar', 'Myanmar Text', 'system-ui', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'Pyidaungsu', 'Noto Sans Myanmar', 'Inter', 'sans-serif'],
+        myanmar: ['Pyidaungsu', 'Noto Sans Myanmar', 'Myanmar Text', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
