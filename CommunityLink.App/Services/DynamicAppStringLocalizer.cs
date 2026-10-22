@@ -44,6 +44,7 @@ public class DynamicAppStringLocalizer : IStringLocalizer<CommunityLink.App.AppR
 
             var culture = _cultureService.CurrentCulture;
             var format = _resourceManager.GetString(name, culture);
+
             if (format == null)
             {
                 return new LocalizedString(name, name, resourceNotFound: true);

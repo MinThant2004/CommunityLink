@@ -1,6 +1,9 @@
 @inherits LayoutComponentBase
 @using System.Security.Claims
 @using Microsoft.Extensions.Localization
+@using CommunityLink.App.Services
+@implements IDisposable
+@inject CultureService Culture
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -301,9 +304,11 @@
     private string userDisplayName = "Member";
     private string userInitials = "U";
     private string userRoleLabel = string.Empty;
+    private string currentRoleCode = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
+        Culture.OnCultureChanged += HandleCultureChanged;
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
@@ -313,7 +318,8 @@
             userInitials = string.IsNullOrWhiteSpace(userDisplayName) ? "U" : userDisplayName.Trim()[..1].ToUpperInvariant();
         }
 
-        var roleCode = (user.FindFirst(ClaimTypes.Role)?.Value ?? user.FindFirst("role")?.Value ?? string.Empty).Trim();
+        currentRoleCode = (user.FindFirst(ClaimTypes.Role)?.Value ?? user.FindFirst("role")?.Value ?? string.Empty).Trim();
+        var roleCode = currentRoleCode;
         bool isPremiumRole = roleCode.Equals("DOMAIN_PRO", StringComparison.OrdinalIgnoreCase) ||
                              roleCode.Equals("DOMAIN_PROFESSIONAL", StringComparison.OrdinalIgnoreCase) ||
                              roleCode.Equals("PUBLIC_FIGURE", StringComparison.OrdinalIgnoreCase) ||
@@ -345,7 +351,7 @@
 
         if (string.IsNullOrEmpty(userRoleLabel))
         {
-            userRoleLabel = roleCode.ToUpperInvariant() switch
+            userRoleLabel = currentRoleCode.ToUpperInvariant() switch
             {
                 "ADMIN" => Loc["Role_Administrator"].Value,
                 "USER" => Loc["Role_DefaultUser"].Value,
@@ -353,7 +359,7 @@
                 "MODERATOR" => Loc["Role_CommunityModerator"].Value,
                 "DOMAIN_PRO" or "DOMAIN_PROFESSIONAL" => Loc["Role_DomainProfessional"].Value,
                 "PUBLIC_FIGURE" => Loc["Role_PublicFigure"].Value,
-                _ => string.IsNullOrEmpty(roleCode) ? Loc["Role_Guest"].Value : roleCode
+                _ => string.IsNullOrEmpty(currentRoleCode) ? Loc["Role_Guest"].Value : currentRoleCode
             };
         }
     }
@@ -442,5 +448,24 @@
         {
             Navigation.NavigateTo($"communities?search={Uri.EscapeDataString(searchQuery.Trim())}");
         }
+    }
+    private void HandleCultureChanged()
+    {
+        userRoleLabel = currentRoleCode.ToUpperInvariant() switch
+        {
+            "ADMIN" => Loc["Role_Administrator"].Value,
+            "USER" => Loc["Role_DefaultUser"].Value,
+            "MEMBER" => Loc["Role_CommunityMember"].Value,
+            "MODERATOR" => Loc["Role_CommunityModerator"].Value,
+            "DOMAIN_PRO" or "DOMAIN_PROFESSIONAL" => Loc["Role_DomainProfessional"].Value,
+            "PUBLIC_FIGURE" => Loc["Role_PublicFigure"].Value,
+            _ => string.IsNullOrEmpty(currentRoleCode) ? Loc["Role_Guest"].Value : currentRoleCode
+        };
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Culture.OnCultureChanged -= HandleCultureChanged;
     }
 }

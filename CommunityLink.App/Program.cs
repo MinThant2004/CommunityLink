@@ -1,4 +1,6 @@
-﻿using CommunityLink.App.Components;
+﻿using Microsoft.Extensions.Localization;
+using CommunityLink.App;
+using CommunityLink.App.Components;
 using CommunityLink.App.Apis;
 using CommunityLink.App.Services;
 using CommunityLink.Shared.Security;

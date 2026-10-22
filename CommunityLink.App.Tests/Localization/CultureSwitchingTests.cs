@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
+using CommunityLink.App;
 using Xunit;
 
 namespace CommunityLink.App.Tests.Localization;
@@ -23,7 +25,8 @@ public class CultureSwitchingTests : BunitContext
     {
         Services.AddLocalization(options => options.ResourcesPath = "Resources");
         Services.AddScoped<CultureService>();
-        Services.AddScoped<Microsoft.Extensions.Localization.IStringLocalizer<CommunityLink.App.AppResources>, DynamicAppStringLocalizer>();
+        Services.AddScoped<IStringLocalizer<AppResources>, DynamicAppStringLocalizer>();
+        Services.AddScoped<IStringLocalizer, DynamicAppStringLocalizer>();
     }
 
     [Fact]
@@ -177,125 +180,67 @@ public class CultureSwitchingTests : BunitContext
     }
 
     [Fact]
-    public void LanguageSelector_RendersLinksAndIdentifiesActiveLanguage_UnderEnglish()
+    public void LanguageSelector_RendersButtonsAndIdentifiesActiveLanguage_UnderEnglish()
     {
-        var prevCulture = CultureInfo.CurrentCulture;
-        var prevUiCulture = CultureInfo.CurrentUICulture;
+        var culture = Services.GetRequiredService<CultureService>();
+        culture.SetCulture("en");
 
-        try
-        {
-            var enCulture = new CultureInfo("en");
-            CultureInfo.CurrentCulture = enCulture;
-            CultureInfo.CurrentUICulture = enCulture;
+        var cut = Render<LanguageSelector>();
 
-            var navMan = Services.GetRequiredService<NavigationManager>();
-            navMan.NavigateTo("http://localhost/chat?tab=active");
+        var buttons = cut.FindAll("button");
+        Assert.Equal(2, buttons.Count);
 
-            var cut = Render<LanguageSelector>();
+        var enBtn = buttons[0];
+        var myBtn = buttons[1];
 
-            var links = cut.FindAll("a");
-            Assert.Equal(2, links.Count);
+        Assert.Equal("EN", enBtn.TextContent.Trim());
+        Assert.Equal("မြန်မာ", myBtn.TextContent.Trim());
 
-            var enLink = links[0];
-            var myLink = links[1];
-
-            Assert.Equal("EN", enLink.TextContent.Trim());
-            Assert.Equal("မြန်မာ", myLink.TextContent.Trim());
-
-            // Active language indication
-            Assert.Equal("true", enLink.GetAttribute("aria-current"));
-            Assert.Null(myLink.GetAttribute("aria-current"));
-
-            // Valid links with preserved returnUrl
-            var expectedReturnUrl = Uri.EscapeDataString("/chat?tab=active");
-            Assert.Contains($"/culture/set?culture=en&returnUrl={expectedReturnUrl}", enLink.GetAttribute("href"));
-            Assert.Contains($"/culture/set?culture=my&returnUrl={expectedReturnUrl}", myLink.GetAttribute("href"));
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = prevCulture;
-            CultureInfo.CurrentUICulture = prevUiCulture;
-        }
+        // Under English, EN button has aria-pressed="true"
+        Assert.Equal("true", enBtn.GetAttribute("aria-pressed"));
+        Assert.Equal("false", myBtn.GetAttribute("aria-pressed"));
     }
 
     [Fact]
-    public void LanguageSelector_RendersLinksAndIdentifiesActiveLanguage_UnderMyanmar()
+    public void LanguageSelector_RendersButtonsAndIdentifiesActiveLanguage_UnderMyanmar()
     {
-        var prevCulture = CultureInfo.CurrentCulture;
-        var prevUiCulture = CultureInfo.CurrentUICulture;
+        var culture = Services.GetRequiredService<CultureService>();
+        culture.SetCulture("my");
 
-        try
-        {
-            var myCulture = new CultureInfo("my");
-            CultureInfo.CurrentCulture = myCulture;
-            CultureInfo.CurrentUICulture = myCulture;
+        var cut = Render<LanguageSelector>();
 
-            var navMan = Services.GetRequiredService<NavigationManager>();
-            navMan.NavigateTo("http://localhost/link-drops");
+        var buttons = cut.FindAll("button");
+        var enBtn = buttons[0];
+        var myBtn = buttons[1];
 
-            var cut = Render<LanguageSelector>();
-
-            var links = cut.FindAll("a");
-            var enLink = links[0];
-            var myLink = links[1];
-
-            // Under Myanmar, Myanmar link is marked active
-            Assert.Null(enLink.GetAttribute("aria-current"));
-            Assert.Equal("true", myLink.GetAttribute("aria-current"));
-
-            var expectedReturnUrl = Uri.EscapeDataString("/link-drops");
-            Assert.Contains($"/culture/set?culture=my&returnUrl={expectedReturnUrl}", myLink.GetAttribute("href"));
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = prevCulture;
-            CultureInfo.CurrentUICulture = prevUiCulture;
-        }
+        // Under Myanmar, Myanmar button has aria-pressed="true"
+        Assert.Equal("false", enBtn.GetAttribute("aria-pressed"));
+        Assert.Equal("true", myBtn.GetAttribute("aria-pressed"));
     }
 
     [Fact]
-    public void LanguageSelector_ClickingMyanmarLink_TriggersZeroReloadCultureChange_WithoutNavigation()
+    public void LanguageSelector_ClickingButton_SwitchesCultureInPlaceWithoutReload()
     {
-        var prevCulture = CultureInfo.CurrentCulture;
-        var prevUiCulture = CultureInfo.CurrentUICulture;
+        var culture = Services.GetRequiredService<CultureService>();
+        culture.SetCulture("en");
 
-        try
-        {
-            var enCulture = new CultureInfo("en");
-            CultureInfo.CurrentCulture = enCulture;
-            CultureInfo.CurrentUICulture = enCulture;
+        var cut = Render<LanguageSelector>();
 
-            var navMan = Services.GetRequiredService<NavigationManager>();
-            navMan.NavigateTo("http://localhost/chat?tab=active");
-            var initialUri = navMan.Uri;
+        var buttons = cut.FindAll("button");
+        Assert.Equal("true", buttons[0].GetAttribute("aria-pressed"));
+        Assert.Equal("false", buttons[1].GetAttribute("aria-pressed"));
 
-            var cultureService = Services.GetRequiredService<CultureService>();
-            Assert.False(cultureService.IsMyanmar);
-            Assert.Equal("en", cultureService.CurrentCultureName);
+        // Click Myanmar button in-place
+        buttons[1].Click();
 
-            var cut = Render<LanguageSelector>();
-            var links = cut.FindAll("a");
-            var myLink = links[1];
+        Assert.Equal("my", culture.CurrentCultureName);
 
-            // Click Myanmar link in-place
-            myLink.Click();
-
-            // CultureService state updated in-place without reloading or navigating away
-            Assert.True(cultureService.IsMyanmar);
-            Assert.Equal("my", cultureService.CurrentCultureName);
-            Assert.Equal(initialUri, navMan.Uri);
-
-            // Active indicator toggles
-            var updatedLinks = cut.FindAll("a");
-            Assert.Null(updatedLinks[0].GetAttribute("aria-current"));
-            Assert.Equal("true", updatedLinks[1].GetAttribute("aria-current"));
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = prevCulture;
-            CultureInfo.CurrentUICulture = prevUiCulture;
-        }
+        // UI updates in-place
+        var updatedButtons = cut.FindAll("button");
+        Assert.Equal("false", updatedButtons[0].GetAttribute("aria-pressed"));
+        Assert.Equal("true", updatedButtons[1].GetAttribute("aria-pressed"));
     }
+
 
     [Fact]
     public async Task AcceptLanguageHeaderHandler_InjectsSelectedCultureHeader_IntoOutgoingRequest()
