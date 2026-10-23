@@ -127,7 +127,7 @@ public class AdministrationController : ControllerBase
     }
 
     [HttpPut("settings/commission")]
-    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserManage)]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
     public async Task<IActionResult> UpdatePlatformCommission([FromBody] UpdateCommissionSettingRequestDto request, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
