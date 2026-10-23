@@ -1,4 +1,4 @@
-@page "/"
+﻿@page "/"
 @page "/home"
 @rendermode InteractiveServer
 @implements IDisposable
@@ -17,6 +17,8 @@
 @using System.IO
 @using System.Text.Json
 @using System.Globalization
+@using CommunityLink.Shared.Features.Post
+@using CommunityLink.Shared.Features.Poll
 
 <PageTitle>@Loc["Home_PageTitle"]</PageTitle>
 
@@ -732,7 +734,7 @@
 </style>
 
 <div class="w-full max-w-[1240px] mx-auto exec-home text-on-surface font-body-md antialiased pb-12">
-@if (isCheckingAuth || (isLoading && dashboard == null))
+@if (isCheckingAuth)
 {
     <div class="bg-surface-container-low p-12 text-center my-6 max-w-lg mx-auto rounded-xl shadow-md border border-white/5">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-3 border-secondary border-t-transparent"></div>
@@ -851,13 +853,23 @@ else if (dashboard != null)
                     <div class="flex flex-col gap-3.5" id="feed-stream">
                         @if (!unifiedFeedItems.Any())
                         {
-                            <div class="bg-surface-container-low p-6 sm:p-8 rounded-xl text-center flex flex-col items-center gap-2 shadow-xs border border-white/5">
-                                <span class="w-10 h-10 rounded-lg bg-surface-container text-secondary flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-[20px]">terminal</span>
-                                </span>
-                                <h3 class="text-sm font-bold text-on-surface">@Loc["Home_Feed_EmptyTitle"]</h3>
-                                <p class="text-xs text-outline max-w-sm">@Loc["Home_Feed_EmptyDesc"]</p>
-                            </div>
+                            @if (isLoadingFeed)
+                            {
+                                <div class="bg-surface-container-low p-8 rounded-xl text-center flex flex-col items-center gap-3 shadow-xs border border-white/5">
+                                    <div class="inline-block animate-spin rounded-full h-7 w-7 border-2 border-secondary border-t-transparent"></div>
+                                    <span class="text-xs text-outline font-mono">@Loc["Home_Feed_LoadingMore"]</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="bg-surface-container-low p-6 sm:p-8 rounded-xl text-center flex flex-col items-center gap-2 shadow-xs border border-white/5">
+                                    <span class="w-10 h-10 rounded-lg bg-surface-container text-secondary flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-[20px]">terminal</span>
+                                    </span>
+                                    <h3 class="text-sm font-bold text-on-surface">@Loc["Home_Feed_EmptyTitle"]</h3>
+                                    <p class="text-xs text-outline max-w-sm">@Loc["Home_Feed_EmptyDesc"]</p>
+                                </div>
+                            }
                         }
                         else
                         {
@@ -1326,7 +1338,10 @@ else if (dashboard != null)
                             }
 
                             <!-- Invisible Sentinel Element Observed for Infinite Scroll -->
-                            <div id="feed-infinite-sentinel" class="h-2 w-full"></div>
+                            @if (hasMoreFeedPosts)
+                            {
+                                <div id="feed-infinite-sentinel" class="h-2 w-full"></div>
+                            }
                         }
                     </div>
                 </div>
@@ -1875,6 +1890,7 @@ else if (dashboard != null)
 
     private bool isCheckingAuth = true;
     private bool isLoading = true;
+    private bool isLoadingFeed = true;
     private string? errorMessage;
     private UserDashboardModel? dashboard;
     private List<PostModel> feedPosts = new();
@@ -1882,6 +1898,8 @@ else if (dashboard != null)
     private const int FeedPageSize = 15;
     private bool hasMoreFeedPosts = true;
     private bool isLoadingMoreFeed = false;
+    private DateTime feedSessionTime = DateTime.UtcNow;
+    private HashSet<int> seenPostIds = new();
     private DotNetObjectReference<Home>? dotNetRef;
 
     // Report modal state
@@ -1947,76 +1965,7 @@ else if (dashboard != null)
     private bool IsPollSaved(PollModel poll) =>
         savedPostIds.Contains(poll.PostId);
 
-    private sealed class HomeFeedItem
-    {
-        public string UniqueKey { get; init; } = string.Empty;
-        public PostModel? Post { get; init; }
-        public PollModel? Poll { get; init; }
-        public int Tier { get; init; }
-        public DateTime CreatedAt { get; init; }
-    }
-
-    private List<HomeFeedItem> unifiedFeedItems = new();
-
-    private int GetFeedItemTier(int authorId, int? groupId, int? communityId)
-    {
-        // 4. Self posts and polls always placed last (Tier 4)
-        if (currentUserId.HasValue && authorId == currentUserId.Value) return 4;
-
-        // 1. Follow to user post and polls first (Tier 1)
-        var followed = dashboard?.People?.Where(p => p.IsFollowedByCurrentUser).Select(p => p.UserId).ToHashSet() ?? new HashSet<int>();
-        if (followed.Contains(authorId)) return 1;
-
-        // 2. Group, show the Post and Polls from the joined group (Tier 2)
-        var joinedGroups = dashboard?.Groups?.Where(g => g.IsJoined).Select(g => g.GroupId).ToHashSet() ?? new HashSet<int>();
-        if (groupId.HasValue && joinedGroups.Contains(groupId.Value)) return 2;
-
-        // 3. Community/SubCommunity (Public post/polls of Joined Community) (Tier 3)
-        var joinedCommunities = dashboard?.JoinedCommunities?.Select(c => c.CommunityId).ToHashSet() ?? new HashSet<int>();
-        if (communityId.HasValue && joinedCommunities.Contains(communityId.Value)) return 3;
-
-        return 5;
-    }
-
-    private void BuildUnifiedFeed()
-    {
-        var items = new List<HomeFeedItem>();
-
-        if (feedPosts != null && feedPosts.Count > 0)
-        {
-            foreach (var post in feedPosts)
-            {
-                var tier = GetFeedItemTier(post.AuthorId, post.GroupId, post.CommunityId);
-                items.Add(new HomeFeedItem
-                {
-                    UniqueKey = $"post-{post.PostId}",
-                    Post = post,
-                    Tier = tier,
-                    CreatedAt = post.CreatedAt
-                });
-            }
-        }
-
-        if (dashboard?.ActivePolls != null && dashboard.ActivePolls.Count > 0)
-        {
-            foreach (var poll in dashboard.ActivePolls)
-            {
-                var tier = GetFeedItemTier(poll.AuthorId, poll.GroupId, poll.CommunityId);
-                items.Add(new HomeFeedItem
-                {
-                    UniqueKey = $"poll-{poll.PollId}",
-                    Poll = poll,
-                    Tier = tier,
-                    CreatedAt = poll.CreatedAt
-                });
-            }
-        }
-
-        unifiedFeedItems = items
-            .OrderBy(x => x.Tier)
-            .ThenByDescending(x => x.CreatedAt)
-            .ToList();
-    }
+    private List<HomeFeedItemModel> unifiedFeedItems = new();
 
     private Task ToggleSavePoll(PollModel poll) =>
         ToggleSavePost(poll.PostId);
@@ -2065,7 +2014,7 @@ else if (dashboard != null)
     // Top Feed Tabs: "posts" | "people"
     private string activeFeedTab = "posts";
 
-    private int FeedPostCount => feedPosts.Count;
+    private int FeedPostCount => unifiedFeedItems.Count;
     private int FeedPeopleCount => dashboard?.People?.Count ?? 0;
 
     private void SetFeedTab(string tab)
@@ -2283,7 +2232,61 @@ else if (dashboard != null)
         }
         catch { }
 
+        // Start progressive feed load (page 1) immediately
+        _ = LoadHomeFeedAsync(page: 1);
+
+        // Load dashboard stats in background
         await LoadDashboardAsync();
+    }
+
+    private async Task LoadHomeFeedAsync(int page = 1)
+    {
+        if (page == 1)
+        {
+            isLoadingFeed = true;
+            feedSessionTime = DateTime.UtcNow;
+            seenPostIds.Clear();
+            unifiedFeedItems.Clear();
+            currentFeedPage = 1;
+            hasMoreFeedPosts = true;
+            StateHasChanged();
+        }
+
+        try
+        {
+            var res = await PostApi.GetHomeFeedAsync(page, FeedPageSize, feedSessionTime, _cts.Token);
+            if (res.IsSuccess && res.Data != null)
+            {
+                var newItems = res.Data;
+                var toAdd = new List<HomeFeedItemModel>();
+                foreach (var item in newItems)
+                {
+                    var id = item.Post?.PostId ?? item.Poll?.PostId ?? 0;
+                    if (id > 0 && seenPostIds.Add(id))
+                    {
+                        toAdd.Add(item);
+                    }
+                }
+
+                unifiedFeedItems.AddRange(toAdd);
+                currentFeedPage = page;
+                hasMoreFeedPosts = (newItems.Count >= FeedPageSize);
+            }
+            else
+            {
+                hasMoreFeedPosts = false;
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception)
+        {
+            hasMoreFeedPosts = false;
+        }
+        finally
+        {
+            isLoadingFeed = false;
+            StateHasChanged();
+        }
     }
 
     private async Task LoadDashboardAsync()
@@ -2296,9 +2299,6 @@ else if (dashboard != null)
             if (res.IsSuccess && res.Data != null)
             {
                 dashboard = res.Data;
-                feedPosts = dashboard.RecentPosts?.ToList() ?? new List<PostModel>();
-                currentFeedPage = 1;
-                hasMoreFeedPosts = (dashboard.RecentPosts?.Count ?? 0) >= FeedPageSize;
             }
             else
             {
@@ -2324,8 +2324,6 @@ else if (dashboard != null)
                 }
             }
             catch { }
-
-            BuildUnifiedFeed();
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
@@ -2335,6 +2333,7 @@ else if (dashboard != null)
         finally
         {
             isLoading = false;
+            StateHasChanged();
         }
     }
 
@@ -2514,7 +2513,7 @@ else if (dashboard != null)
                 uploadedImageUrls.Clear();
                 composerTextFiles.Clear();
                 showCreatePostModal = false;
-                await LoadDashboardAsync();
+                await LoadHomeFeedAsync(1);
             }
             else
             {
@@ -2567,7 +2566,7 @@ else if (dashboard != null)
                 newPollQuestion = string.Empty;
                 newPollDescription = string.Empty;
                 pollOptionsList = new() { string.Empty, string.Empty };
-                await LoadDashboardAsync();
+                await LoadHomeFeedAsync(1);
             }
             else
             {
@@ -2591,7 +2590,19 @@ else if (dashboard != null)
             var res = await PostApi.LikePostAsync(postId, _cts.Token);
             if (res.IsSuccess)
             {
-                await LoadDashboardAsync();
+                var idx = unifiedFeedItems.FindIndex(x => x.Post?.PostId == postId);
+                if (idx >= 0)
+                {
+                    var old = unifiedFeedItems[idx];
+                    if (old.Post != null)
+                    {
+                        var newLiked = !old.Post.IsLikedByCurrentUser;
+                        var newCount = newLiked ? old.Post.LikeCount + 1 : Math.Max(0, old.Post.LikeCount - 1);
+                        var updatedPost = old.Post with { IsLikedByCurrentUser = newLiked, LikeCount = newCount };
+                        unifiedFeedItems[idx] = old with { Post = updatedPost };
+                        StateHasChanged();
+                    }
+                }
             }
         }
         catch (Exception ex)
@@ -2618,8 +2629,18 @@ else if (dashboard != null)
                 {
                     savedPostIds.Remove(postId);
                 }
+                var idx = unifiedFeedItems.FindIndex(x => x.Post?.PostId == postId);
+                if (idx >= 0)
+                {
+                    var old = unifiedFeedItems[idx];
+                    if (old.Post != null)
+                    {
+                        var updatedPost = old.Post with { IsSavedByCurrentUser = isSaved };
+                        unifiedFeedItems[idx] = old with { Post = updatedPost };
+                    }
+                }
                 Toast.Success(isSaved ? Loc["GroupDetail_Toast_PostSaved"] : Loc["GroupDetail_Toast_PostUnsaved"]);
-                await LoadDashboardAsync();
+                StateHasChanged();
             }
             else
             {
@@ -2701,9 +2722,12 @@ else if (dashboard != null)
             var res = await PostApi.DeletePostAsync(pendingRecyclePostId.Value, _cts.Token);
             if (res.IsSuccess)
             {
+                var id = pendingRecyclePostId.Value;
+                unifiedFeedItems.RemoveAll(x => x.Post?.PostId == id);
+                seenPostIds.Remove(id);
                 Toast.Success(Loc["PostUpload_Toast_PostRecycled"]);
                 CloseRecycleModal();
-                await LoadDashboardAsync();
+                StateHasChanged();
             }
             else
             {
@@ -2788,8 +2812,18 @@ else if (dashboard != null)
                 {
                     homeCommentsByPost[postId] = commentsRes.Data;
                 }
+                var idx = unifiedFeedItems.FindIndex(x => x.Post?.PostId == postId);
+                if (idx >= 0)
+                {
+                    var old = unifiedFeedItems[idx];
+                    if (old.Post != null)
+                    {
+                        var updatedPost = old.Post with { CommentCount = old.Post.CommentCount + 1 };
+                        unifiedFeedItems[idx] = old with { Post = updatedPost };
+                    }
+                }
                 Toast.Success(Loc["Home_Comments_Toast_Success"]);
-                await LoadDashboardAsync();
+                StateHasChanged();
             }
             else
             {
@@ -2859,7 +2893,16 @@ else if (dashboard != null)
             if (res.IsSuccess)
             {
                 Toast.Success(Loc["Home_Feed_Toast_VoteSuccess"]);
-                await LoadDashboardAsync();
+                if (res.Data != null)
+                {
+                    var idx = unifiedFeedItems.FindIndex(x => x.Poll?.PollId == pollId);
+                    if (idx >= 0)
+                    {
+                        var old = unifiedFeedItems[idx];
+                        unifiedFeedItems[idx] = old with { Poll = res.Data };
+                        StateHasChanged();
+                    }
+                }
             }
             else
             {
@@ -2970,7 +3013,7 @@ else if (dashboard != null)
     [JSInvokable]
     public async Task TriggerLoadMoreFeedPosts()
     {
-        if (isLoadingMoreFeed || !hasMoreFeedPosts || isLoading) return;
+        if (isLoadingMoreFeed || !hasMoreFeedPosts || isLoadingFeed) return;
 
         isLoadingMoreFeed = true;
         StateHasChanged();
@@ -2978,19 +3021,25 @@ else if (dashboard != null)
         try
         {
             var nextPage = currentFeedPage + 1;
-            var res = await PostApi.GetFeedAsync(page: nextPage, pageSize: FeedPageSize, cancellationToken: _cts.Token);
+            var res = await PostApi.GetHomeFeedAsync(page: nextPage, pageSize: FeedPageSize, sessionTime: feedSessionTime, cancellationToken: _cts.Token);
             if (res.IsSuccess && res.Data != null)
             {
                 var newItems = res.Data;
                 if (newItems.Count > 0)
                 {
-                    // Deduplicate against existing feed
-                    var existingIds = new HashSet<int>(feedPosts.Select(p => p.PostId));
-                    var toAdd = newItems.Where(p => !existingIds.Contains(p.PostId)).ToList();
-                    feedPosts.AddRange(toAdd);
-                    BuildUnifiedFeed();
+                    var toAdd = new List<HomeFeedItemModel>();
+                    foreach (var item in newItems)
+                    {
+                        var id = item.Post?.PostId ?? item.Poll?.PostId ?? 0;
+                        if (id > 0 && seenPostIds.Add(id))
+                        {
+                            toAdd.Add(item);
+                        }
+                    }
+
+                    unifiedFeedItems.AddRange(toAdd);
                     currentFeedPage = nextPage;
-                    hasMoreFeedPosts = newItems.Count >= FeedPageSize;
+                    hasMoreFeedPosts = (newItems.Count >= FeedPageSize);
                 }
                 else
                 {
