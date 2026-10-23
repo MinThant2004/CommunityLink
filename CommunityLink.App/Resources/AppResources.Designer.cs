@@ -5578,6 +5578,15 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This role will automatically receive default permissions for {0} upon creation..
+        /// </summary>
+        public static string Admin_Rbac_RoleNoticeDynamic {
+            get {
+                return ResourceManager.GetString("Admin_Rbac_RoleNoticeDynamic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} Roles.
         /// </summary>
         public static string Admin_Rbac_RolesCount {
@@ -5614,7 +5623,7 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ADMIN permissions are permanent and cannot be modified..
+        ///   Looks up a localized string similar to SYSTEM_ADMIN permissions are permanently locked and cannot be modified..
         /// </summary>
         public static string Admin_Rbac_Toast_AdminPermPermanent {
             get {
@@ -5677,7 +5686,7 @@ namespace CommunityLink.App.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to System roles (ADMIN and USER) cannot be deleted..
+        ///   Looks up a localized string similar to Protected system roles (SYSTEM_ADMIN, ADMIN, and DEFAULT_USER) cannot be deleted..
         /// </summary>
         public static string Admin_Rbac_Toast_SystemRoleCantDelete {
             get {

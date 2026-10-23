@@ -3,6 +3,7 @@ using CommunityLink.Database.AppDbContextModels;
 using CommunityLink.Domain.Security;
 using CommunityLink.Shared;
 using CommunityLink.Shared.Features.Post;
+using CommunityLink.Shared.Features.Poll;
 using CommunityLink.Domain.Features.Notification;
 using CommunityLink.Domain.Features.RoleAndPermission;
 using CommunityLink.Domain.Features.Activity;
@@ -12,6 +13,7 @@ namespace CommunityLink.Domain.Features.Post;
 
 public interface IPostService
 {
+    Task<Result<IReadOnlyList<HomeFeedItemModel>>> GetHomeFeedAsync(int page = 1, int pageSize = 15, DateTime? sessionTime = null, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, int page = 1, int pageSize = 15, CancellationToken cancellationToken = default);
     Task<Result<PostModel>> CreatePostAsync(CreatePostRequestModel request, CancellationToken cancellationToken = default);
     Task<Result> LikePostAsync(int postId, CancellationToken cancellationToken = default);
@@ -31,6 +33,393 @@ public sealed class PostService(
     IPermissionEvaluator permissionEvaluator,
     IUserActivityService userActivityService) : IPostService
 {
+    public async Task<Result<IReadOnlyList<HomeFeedItemModel>>> GetHomeFeedAsync(int page = 1, int pageSize = 15, DateTime? sessionTime = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var currentUserId = currentUser.UserId;
+            var effectiveSessionTime = sessionTime ?? DateTime.UtcNow;
+            var safePageSize = Math.Clamp(pageSize, 1, 50);
+            var safePage = Math.Max(1, page);
+
+            List<int> followedAuthorIds = [];
+            List<int> joinedGroupIds = [];
+            List<int> joinedCommunityIds = [];
+            if (currentUserId.HasValue)
+            {
+                followedAuthorIds = await dbContext.TblUserFollows
+                    .Where(f => f.FollowerId == currentUserId.Value && !f.IsDeleted)
+                    .Select(f => f.FolloweeId)
+                    .ToListAsync(cancellationToken);
+
+                joinedGroupIds = await dbContext.TblGroupMembers
+                    .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
+                    .Select(m => m.GroupId)
+                    .ToListAsync(cancellationToken);
+
+                joinedCommunityIds = await dbContext.TblCommunityMembers
+                    .Where(m => m.UserId == currentUserId.Value && !m.IsDeleted)
+                    .Select(m => m.CommunityId)
+                    .ToListAsync(cancellationToken);
+            }
+
+            var query = dbContext.TblPosts
+                .Where(p => !p.IsDeleted && p.CreatedAt <= effectiveSessionTime)
+                .AsNoTracking();
+
+            // Privacy & Ban Filter
+            if (currentUser.IsAdmin)
+            {
+                query = query.Where(p => !p.IsPrivate || (currentUserId.HasValue && p.AuthorId == currentUserId.Value));
+            }
+            else
+            {
+                if (currentUserId.HasValue)
+                {
+                    query = query.Where(p =>
+                        (!p.IsPrivate || p.AuthorId == currentUserId.Value) &&
+                        (p.IsActive || p.AuthorId == currentUserId.Value));
+                }
+                else
+                {
+                    query = query.Where(p => !p.IsPrivate && p.IsActive);
+                }
+            }
+
+            // General Feed Visibility Rule
+            if (currentUserId.HasValue)
+            {
+                query = query.Where(p =>
+                    p.AuthorId == currentUserId.Value ||
+                    (p.GroupId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)) ||
+                    (p.CommunityId.HasValue && !p.GroupId.HasValue && joinedCommunityIds.Contains(p.CommunityId.Value)) ||
+                    (!p.GroupId.HasValue && !p.CommunityId.HasValue && (followedAuthorIds.Contains(p.AuthorId) || p.AuthorId == currentUserId.Value)));
+            }
+            else
+            {
+                query = query.Where(p => p.GroupId == null && p.CommunityId == null);
+            }
+
+            bool hasFollowed = followedAuthorIds.Count > 0;
+            bool hasGroups = joinedGroupIds.Count > 0;
+            bool hasCommunities = joinedCommunityIds.Count > 0;
+            bool hasUser = currentUserId.HasValue;
+            int uid = currentUserId ?? 0;
+
+            query = query
+                .OrderBy(p =>
+                    (hasFollowed && followedAuthorIds.Contains(p.AuthorId)) ? 1 :
+                    (hasGroups && p.GroupId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)) ? 2 :
+                    (hasCommunities && p.CommunityId.HasValue && joinedCommunityIds.Contains(p.CommunityId.Value)) ? 3 :
+                    (hasUser && p.AuthorId == uid) ? 4 : 5)
+                .ThenByDescending(p => p.CreatedAt)
+                .ThenByDescending(p => p.PostId);
+
+            var rawPosts = await query
+                .Skip((safePage - 1) * safePageSize)
+                .Take(safePageSize)
+                .Select(p => new
+                {
+                    p.PostId,
+                    p.CommunityId,
+                    CommunityName = p.Community != null ? p.Community.Name : null,
+                    p.GroupId,
+                    GroupName = p.Group != null ? p.Group.Name : null,
+                    p.AuthorId,
+                    AuthorDisplayName = p.Author != null ? p.Author.DisplayName : null,
+                    AuthorUserName = p.Author != null ? p.Author.UserName : null,
+                    AuthorAvatar = p.Author != null ? p.Author.AvatarUrl : null,
+                    AuthorIsVerified = p.Author != null && p.Author.IsVerified,
+                    AuthorRoleCode = p.Author != null
+                        ? p.Author.TblUserRoles.Where(ur => !ur.IsDeleted).Select(ur => ur.Role.RoleCode).FirstOrDefault()
+                        : null,
+                    p.Content,
+                    p.HasPoll,
+                    Images = p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
+                    LikeCount = p.TblPostLikes.Count(l => !l.IsDeleted),
+                    CommentCount = p.TblComments.Count(c => !c.IsDeleted),
+                    ShareCount = p.TblPostShares.Count(s => !s.IsDeleted),
+                    IsLiked = currentUserId.HasValue && p.TblPostLikes.Any(l => l.UserId == currentUserId.Value && !l.IsDeleted),
+                    IsSaved = currentUserId.HasValue && p.TblSavedPosts.Any(s => s.UserId == currentUserId.Value && !s.IsDeleted),
+                    p.CreatedAt,
+                    p.CodeSnippet,
+                    p.CodeFileName,
+                    p.CodeLanguage,
+                    p.PostType,
+                    p.Subtitle,
+                    p.IsActive,
+                    p.IsPrivate,
+                    p.ModerationReason
+                })
+                .ToListAsync(cancellationToken);
+
+            var rootPostIdsToFetch = new HashSet<int>();
+            foreach (var rp in rawPosts)
+            {
+                if (rp.PostType == "SHARED" && !string.IsNullOrWhiteSpace(rp.Subtitle) && rp.Subtitle.StartsWith("ROOT:", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (int.TryParse(rp.Subtitle["ROOT:".Length..], out int rId))
+                    {
+                        rootPostIdsToFetch.Add(rId);
+                    }
+                }
+            }
+
+            var rootPostsDict = new Dictionary<int, OriginalPostSummaryModel>();
+            if (rootPostIdsToFetch.Count > 0)
+            {
+                var fetchedRoots = await dbContext.TblPosts
+                    .Where(p => rootPostIdsToFetch.Contains(p.PostId) && !p.IsDeleted)
+                    .Select(p => new
+                    {
+                        p.PostId,
+                        p.AuthorId,
+                        AuthorDisplayName = p.Author != null ? p.Author.DisplayName : null,
+                        AuthorUserName = p.Author != null ? p.Author.UserName : null,
+                        AuthorAvatar = p.Author != null ? p.Author.AvatarUrl : null,
+                        p.Content,
+                        p.CreatedAt,
+                        CommunityName = p.Community != null ? p.Community.Name : null,
+                        GroupName = p.Group != null ? p.Group.Name : null,
+                        Images = p.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
+                        p.CodeSnippet,
+                        p.CodeFileName,
+                        p.CodeLanguage,
+                        p.IsActive,
+                        p.IsPrivate
+                    })
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                foreach (var r in fetchedRoots)
+                {
+                    bool isHidden = (!r.IsActive || r.IsPrivate) && !currentUser.IsAdmin && (!currentUserId.HasValue || currentUserId.Value != r.AuthorId);
+                    if (isHidden)
+                    {
+                        rootPostsDict[r.PostId] = new OriginalPostSummaryModel(
+                            r.PostId,
+                            r.AuthorId,
+                            "CommunityLink",
+                            null,
+                            null,
+                            "This content is no longer available. When this happens, it's usually because the owner only shared it with a small group of people, changed who can see it or it's been taken down by moderators.",
+                            r.CreatedAt);
+                    }
+                    else
+                    {
+                        var aName = !string.IsNullOrWhiteSpace(r.AuthorDisplayName)
+                            ? r.AuthorDisplayName
+                            : (!string.IsNullOrWhiteSpace(r.AuthorUserName) ? r.AuthorUserName : "Unknown");
+
+                        rootPostsDict[r.PostId] = new OriginalPostSummaryModel(
+                            r.PostId,
+                            r.AuthorId,
+                            aName,
+                            r.AuthorUserName,
+                            r.AuthorAvatar,
+                            r.Content,
+                            r.CreatedAt,
+                            r.CommunityName,
+                            r.GroupName,
+                            r.Images,
+                            r.CodeSnippet,
+                            r.CodeFileName,
+                            r.CodeLanguage);
+                    }
+                }
+            }
+
+            var pollPostIds = rawPosts.Where(p => p.HasPoll).Select(p => p.PostId).ToList();
+            var pollsByPostId = new Dictionary<int, PollModel>();
+            if (pollPostIds.Count > 0)
+            {
+                var rawPolls = await dbContext.TblPolls
+                    .Where(pl => pollPostIds.Contains(pl.PostId) && !pl.IsDeleted)
+                    .Select(pl => new
+                    {
+                        pl.PollId,
+                        pl.PostId,
+                        pl.Question,
+                        pl.IsMultipleChoice,
+                        pl.ExpiresAt,
+                        pl.IsActive,
+                        pl.IsPrivate,
+                        pl.ModerationReason
+                    })
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                var pollIds = rawPolls.Select(pl => pl.PollId).ToList();
+                var rawOptions = await dbContext.TblPollOptions
+                    .Where(o => pollIds.Contains(o.PollId) && !o.IsDeleted)
+                    .OrderBy(o => o.DisplayOrder)
+                    .Select(o => new
+                    {
+                        o.PollId,
+                        o.PollOptionId,
+                        o.OptionText,
+                        VoteCount = o.TblPollVotes.Count(),
+                        IsVotedByCurrentUser = currentUserId.HasValue && o.TblPollVotes.Any(v => v.UserId == currentUserId.Value)
+                    })
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                var optionsByPoll = rawOptions.ToLookup(o => o.PollId);
+                var rawPollsByPostId = rawPolls.ToDictionary(pl => pl.PostId);
+
+                foreach (var p in rawPosts.Where(p => p.HasPoll))
+                {
+                    if (rawPollsByPostId.TryGetValue(p.PostId, out var pl))
+                    {
+                        var pollOptions = optionsByPoll[pl.PollId].ToList();
+                        var totalVotes = pollOptions.Sum(o => o.VoteCount);
+                        var hasVoted = currentUserId.HasValue && pollOptions.Any(o => o.IsVotedByCurrentUser);
+                        var isExpired = pl.ExpiresAt.HasValue && pl.ExpiresAt.Value <= DateTime.UtcNow;
+
+                        var options = pollOptions.Select(o => new PollOptionModel(
+                            o.PollOptionId,
+                            o.OptionText,
+                            o.VoteCount,
+                            totalVotes > 0 ? Math.Round((double)o.VoteCount / totalVotes * 100, 1) : 0,
+                            o.IsVotedByCurrentUser
+                        )).ToList();
+
+                        var authorName = !string.IsNullOrWhiteSpace(p.AuthorDisplayName)
+                            ? p.AuthorDisplayName
+                            : (!string.IsNullOrWhiteSpace(p.AuthorUserName) ? p.AuthorUserName : "Unknown");
+
+                        pollsByPostId[p.PostId] = new PollModel(
+                            pl.PollId,
+                            pl.PostId,
+                            p.CommunityId,
+                            p.CommunityName,
+                            p.GroupId,
+                            p.GroupName,
+                            p.AuthorId,
+                            authorName,
+                            p.AuthorAvatar,
+                            pl.Question,
+                            p.Content,
+                            pl.IsMultipleChoice,
+                            pl.ExpiresAt,
+                            isExpired,
+                            totalVotes,
+                            hasVoted,
+                            options,
+                            p.LikeCount,
+                            p.CommentCount,
+                            p.ShareCount,
+                            p.IsLiked,
+                            p.CreatedAt,
+                            p.AuthorUserName,
+                            pl.IsActive,
+                            pl.IsPrivate,
+                            pl.ModerationReason);
+                    }
+                }
+            }
+
+            int CalculateTier(int authorId, int? gId, int? cId)
+            {
+                if (hasFollowed && followedAuthorIds.Contains(authorId)) return 1;
+                if (hasGroups && gId.HasValue && joinedGroupIds.Contains(gId.Value)) return 2;
+                if (hasCommunities && cId.HasValue && joinedCommunityIds.Contains(cId.Value)) return 3;
+                if (hasUser && authorId == uid) return 4;
+                return 5;
+            }
+
+            var items = new List<HomeFeedItemModel>(rawPosts.Count);
+            foreach (var p in rawPosts)
+            {
+                var tier = CalculateTier(p.AuthorId, p.GroupId, p.CommunityId);
+                if (p.HasPoll && pollsByPostId.TryGetValue(p.PostId, out var pollModel))
+                {
+                    items.Add(new HomeFeedItemModel(
+                        UniqueKey: $"poll-{pollModel.PollId}",
+                        Post: null,
+                        Poll: pollModel,
+                        Tier: tier,
+                        CreatedAt: p.CreatedAt
+                    ));
+                }
+                else
+                {
+                    var roleCode = p.AuthorRoleCode;
+                    var isVerified = p.AuthorIsVerified || (roleCode == "DOMAIN_PRO" || roleCode == "PUBLIC_FIGURE");
+                    var authorName = !string.IsNullOrWhiteSpace(p.AuthorDisplayName)
+                        ? p.AuthorDisplayName
+                        : (!string.IsNullOrWhiteSpace(p.AuthorUserName) ? p.AuthorUserName : "Unknown");
+
+                    OriginalPostSummaryModel? origSummary = null;
+                    string? sharedByUser = null;
+                    string? sharedByDisplay = null;
+                    DateTime? sharedTime = null;
+
+                    if (p.PostType == "SHARED" && !string.IsNullOrWhiteSpace(p.Subtitle) && p.Subtitle.StartsWith("ROOT:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (int.TryParse(p.Subtitle["ROOT:".Length..], out int rId) && rootPostsDict.TryGetValue(rId, out var rootPost))
+                        {
+                            origSummary = rootPost;
+                            sharedByUser = p.AuthorUserName;
+                            sharedByDisplay = p.AuthorDisplayName;
+                            sharedTime = p.CreatedAt;
+                        }
+                    }
+
+                    var postModel = new PostModel(
+                        p.PostId,
+                        p.CommunityId,
+                        p.CommunityName,
+                        p.GroupId,
+                        p.GroupName,
+                        p.AuthorId,
+                        authorName,
+                        p.AuthorAvatar,
+                        p.Content,
+                        p.HasPoll,
+                        p.Images,
+                        p.LikeCount,
+                        p.CommentCount,
+                        p.ShareCount,
+                        p.IsLiked,
+                        p.IsSaved,
+                        p.CreatedAt,
+                        p.CodeSnippet,
+                        p.CodeFileName,
+                        p.CodeLanguage,
+                        roleCode,
+                        isVerified,
+                        sharedByUser,
+                        sharedByDisplay,
+                        sharedTime,
+                        origSummary,
+                        p.IsActive,
+                        p.IsPrivate,
+                        p.ModerationReason);
+
+                    items.Add(new HomeFeedItemModel(
+                        UniqueKey: $"post-{p.PostId}",
+                        Post: postModel,
+                        Poll: null,
+                        Tier: tier,
+                        CreatedAt: p.CreatedAt
+                    ));
+                }
+            }
+
+            return Result<IReadOnlyList<HomeFeedItemModel>>.Success(items);
+        }
+        catch (Exception ex) when (ex is OperationCanceledException ||
+                                   (ex is Microsoft.Data.SqlClient.SqlException sqlEx && (cancellationToken.IsCancellationRequested || sqlEx.Message.Contains("Operation cancelled by user", StringComparison.OrdinalIgnoreCase))))
+        {
+            return Result<IReadOnlyList<HomeFeedItemModel>>.Success([]);
+        }
+        catch (Exception ex)
+        {
+            return Result<IReadOnlyList<HomeFeedItemModel>>.Failure(ex.Message, ResultStatus.SystemError);
+        }
+    }
+
     public async Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, int page = 1, int pageSize = 15, CancellationToken cancellationToken = default)
     {
         try
