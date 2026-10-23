@@ -63,6 +63,20 @@ public sealed class AdminFinanceController(
         return ToActionResult(await financeService.GetFinanceGroupBreakdownAsync(fromDate, toDate, cancellationToken));
     }
 
+    [HttpGet("private-chats")]
+    public async Task<IActionResult> GetFinancePrivateChatBreakdown(
+        [FromQuery] DateTime? fromDate,
+        [FromQuery] DateTime? toDate,
+        CancellationToken cancellationToken)
+    {
+        if (!currentUser.IsAdmin)
+        {
+            return ToActionResult(Result<IReadOnlyList<AdminFinancePrivateChatBreakdownModel>>.Failure("Administrator privileges required.", ResultStatus.Forbidden));
+        }
+
+        return ToActionResult(await financeService.GetFinancePrivateChatBreakdownAsync(fromDate, toDate, cancellationToken));
+    }
+
     [HttpGet("export")]
     public async Task<IActionResult> ExportFinanceReport(
         [FromQuery] DateTime? fromDate,

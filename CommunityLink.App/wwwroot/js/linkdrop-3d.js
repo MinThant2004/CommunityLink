@@ -1,4 +1,4 @@
-// LinkDrop 3D Rhombic Diamond Prism & Neon Orbital Rings
+﻿// LinkDrop 3D Rhombic Diamond Prism & Neon Orbital Rings
 // High-performance shared WebGL engine for CommunityLink
 // Supports single or multi-instance display (navbar, tables, badges, modals) with 0 context limit issues
 
@@ -16,6 +16,17 @@
     let _clock = null;
     let _animId = null;
 
+    let _prismMat = null;
+    let _wireMat = null;
+    let _haloMat = null;
+    let _nodeMat = null;
+    let _neonBloomMat = null;
+    let _neonAuraMat = null;
+    let _secRingMat = null;
+    let _dirLight1 = null;
+    let _dirLight2 = null;
+    let _pointLight = null;
+
     let _isDragging = false;
     let _hasMoved = false;
     let _prevMousePos = { x: 0, y: 0 };
@@ -24,6 +35,47 @@
     const _instances = new Map();
 
     const MASTER_SIZE = 384;
+
+    const PALETTES = {
+        light: {
+            prism: 0x1d4ed8,          // Dark Blue (Tailwind Blue-700)
+            prismEmissive: 0x1e3a8a,  // Deep Midnight Blue (Tailwind Blue-900)
+            prismOpacity: 0.94,       // Solid gem crystal density
+            wire: 0x3b82f6,           // Crisp Royal Blue wireframe edges (Blue-500)
+            halo: 0x2563eb,           // Saturated Blue halo nucleus (Blue-600)
+            node: 0x1d4ed8,           // Vertex pips Dark Blue
+            ringBloom: 0x2563eb,      // Vibrant Blue bloom
+            ringAura: 0x1e40af,       // Deep Blue diffuse aura
+            secRing: 0x3b82f6,        // Secondary ring Royal Blue
+            dir1: 0x60a5fa,           // Light Blue key illumination
+            dir2: 0x1e3a8a,           // Midnight Blue deep shadow
+            point: 0x3b82f6           // Core refraction point light
+        },
+        dark: {
+            prism: 0x0284c7, prismEmissive: 0x0369a1, prismOpacity: 0.72,
+            wire: 0xa5f3fc, halo: 0x38bdf8, node: 0x67e8f9,
+            ringBloom: 0x00f0ff, ringAura: 0x0284c7, secRing: 0x38bdf8,
+            dir1: 0x38bdf8, dir2: 0x0284c7, point: 0x00f0ff
+        }
+    };
+
+    function applyPalette(theme) {
+        const p = PALETTES[theme === 'dark' ? 'dark' : 'light'];
+        if (_dirLight1) _dirLight1.color.setHex(p.dir1);
+        if (_dirLight2) _dirLight2.color.setHex(p.dir2);
+        if (_pointLight) _pointLight.color.setHex(p.point);
+        if (_prismMat) {
+            _prismMat.color.setHex(p.prism);
+            _prismMat.emissive.setHex(p.prismEmissive);
+            _prismMat.opacity = p.prismOpacity;
+        }
+        if (_wireMat) _wireMat.color.setHex(p.wire);
+        if (_haloMat) _haloMat.color.setHex(p.halo);
+        if (_nodeMat) _nodeMat.color.setHex(p.node);
+        if (_neonBloomMat) _neonBloomMat.color.setHex(p.ringBloom);
+        if (_neonAuraMat) _neonAuraMat.color.setHex(p.ringAura);
+        if (_secRingMat) _secRingMat.color.setHex(p.secRing);
+    }
 
     function ensureMasterScene() {
         if (_masterRenderer) return true;
@@ -53,15 +105,15 @@
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
             _scene.add(ambientLight);
 
-            const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 2.8);
+            const dirLight1 = _dirLight1 = new THREE.DirectionalLight(0x38bdf8, 2.8);
             dirLight1.position.set(5, 8, 6);
             _scene.add(dirLight1);
 
-            const dirLight2 = new THREE.DirectionalLight(0x0284c7, 2.2);
+            const dirLight2 = _dirLight2 = new THREE.DirectionalLight(0x0284c7, 2.2);
             dirLight2.position.set(-6, -4, -4);
             _scene.add(dirLight2);
 
-            const pointLight = new THREE.PointLight(0x00f0ff, 4.0, 15);
+            const pointLight = _pointLight = new THREE.PointLight(0x00f0ff, 4.0, 15);
             pointLight.position.set(0, 0, 2);
             _scene.add(pointLight);
 
@@ -99,7 +151,7 @@
             prismGeo.computeVertexNormals();
 
             // Translucent Crystalline Material
-            const prismMat = new THREE.MeshPhongMaterial({
+            const prismMat = _prismMat = new THREE.MeshPhongMaterial({
                 color: 0x0284c7,
                 emissive: 0x0369a1,
                 specular: 0xffffff,
@@ -114,7 +166,7 @@
             _prismGroup.add(prismMesh);
 
             // Glowing Edge Highlights
-            const wireMat = new THREE.LineBasicMaterial({
+            const wireMat = _wireMat = new THREE.LineBasicMaterial({
                 color: 0xa5f3fc,
                 linewidth: 2,
                 transparent: true,
@@ -131,7 +183,7 @@
             _prismGroup.add(coreMesh);
 
             const haloGeo = new THREE.SphereGeometry(0.58, 32, 32);
-            const haloMat = new THREE.MeshBasicMaterial({
+            const haloMat = _haloMat = new THREE.MeshBasicMaterial({
                 color: 0x38bdf8,
                 transparent: true,
                 opacity: 0.55
@@ -141,7 +193,7 @@
 
             // 6 Outer Quantum Node Pips at Diamond Vertices
             const nodeGeo = new THREE.SphereGeometry(0.12, 16, 16);
-            const nodeMat = new THREE.MeshBasicMaterial({ color: 0x67e8f9 });
+            const nodeMat = _nodeMat = new THREE.MeshBasicMaterial({ color: 0x67e8f9 });
             const nodePositions = [
                 [1.8, 0, 0],
                 [-1.8, 0, 0],
@@ -172,7 +224,7 @@
 
             // 2. Electric cyan bloom tube
             const neonBloomGeo = new THREE.TorusGeometry(2.8, 0.065, 24, 128);
-            const neonBloomMat = new THREE.MeshBasicMaterial({
+            const neonBloomMat = _neonBloomMat = new THREE.MeshBasicMaterial({
                 color: 0x00f0ff,
                 transparent: true,
                 opacity: 0.65
@@ -182,7 +234,7 @@
 
             // 3. Wide diffuse aura halo
             const neonAuraGeo = new THREE.TorusGeometry(2.8, 0.14, 16, 128);
-            const neonAuraMat = new THREE.MeshBasicMaterial({
+            const neonAuraMat = _neonAuraMat = new THREE.MeshBasicMaterial({
                 color: 0x0284c7,
                 transparent: true,
                 opacity: 0.28
@@ -192,7 +244,7 @@
 
             // 4. Secondary orbital neon ring tilted
             const secRingGeo = new THREE.TorusGeometry(3.05, 0.016, 20, 128);
-            const secRingMat = new THREE.MeshBasicMaterial({
+            const secRingMat = _secRingMat = new THREE.MeshBasicMaterial({
                 color: 0x38bdf8,
                 transparent: true,
                 opacity: 0.55
@@ -218,6 +270,17 @@
             };
 
             applyThemePalette();
+
+            window.addEventListener('themeChanged', function () {
+                applyThemePalette();
+            });
+
+            if (typeof MutationObserver !== 'undefined') {
+                const observer = new MutationObserver(function () {
+                    applyThemePalette();
+                });
+                observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            }
             attachGlobalInteractionListeners();
             return true;
         } catch (e) {

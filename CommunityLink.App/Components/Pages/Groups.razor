@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @using System.Security.Claims
 @using System.IO
+@using System.Globalization
 @inject GroupApiService GroupApi
 @inject CommunityApiService CommunityApi
 @inject ToastService Toast
@@ -10,22 +11,23 @@
 @inject IWebHostEnvironment Environment
 @inject RoleAndPermissionApiService RoleApi
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppResources> Loc
 
-<PageTitle>Groups — CommunityLink</PageTitle>
+<PageTitle>@(selectedSubCommunity != null ? string.Format(CultureInfo.CurrentUICulture, Loc["Groups_PageTitleWithSubCommunity"], selectedSubCommunity.Name) : Loc["Groups_PageTitle"])</PageTitle>
 
 <div class="min-h-screen bg-background font-body-md text-body-md text-on-surface antialiased transition-colors duration-200">
     <!-- Top Directory Strip -->
     <section class="bg-surface-container-lowest/80 backdrop-blur-md border-b border-surface-container-high/30">
         <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-space-sm flex items-center justify-between gap-3">
             <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
-                <a href="/" class="hover:text-on-surface transition-colors flex items-center gap-1">Platform</a>
+                <a href="/" class="hover:text-on-surface transition-colors flex items-center gap-1">@Loc["Common_Platform"]</a>
                 <span class="material-symbols-outlined text-xs">chevron_right</span>
-                <span class="text-on-surface font-semibold">Working Room Directory</span>
+                <span class="text-on-surface font-semibold">@Loc["Groups_WorkingRoomDirectory"]</span>
             </div>
             <div class="flex items-center gap-space-sm">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider hidden sm:inline">Room Sync</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider hidden sm:inline">@Loc["Groups_RoomSync"]</span>
                 <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm border border-primary/20">
-                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>Live Index
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>@Loc["Communities_LiveIndex"]
                 </span>
             </div>
         </div>
@@ -36,12 +38,12 @@
         <div class="absolute top-40 right-10 w-80 h-80 bg-secondary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
         <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pt-space-md pb-space-lg w-full">
-            <nav aria-label="Breadcrumbs" class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant mb-space-md">
-                <a class="hover:text-primary transition-colors" href="/">Platform</a>
+            <nav aria-label="@Loc["Common_Breadcrumbs"]" class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant mb-space-md">
+                <a class="hover:text-primary transition-colors" href="/">@Loc["Common_Platform"]</a>
                 <span class="material-symbols-outlined text-xs">chevron_right</span>
-                <a class="hover:text-primary transition-colors" href="/communities">Communities</a>
+                <a class="hover:text-primary transition-colors" href="/communities">@Loc["Communities_Breadcrumb"]</a>
                 <span class="material-symbols-outlined text-xs">chevron_right</span>
-                <span class="text-on-surface font-semibold truncate">@(selectedSubCommunity?.Name ?? "Groups")</span>
+                <span class="text-on-surface font-semibold truncate">@(selectedSubCommunity?.Name ?? Loc["Groups_BreadcrumbDefault"])</span>
             </nav>
 
             <!-- Hero Panel (Visible to Admins only) -->
@@ -62,16 +64,18 @@
                             <div class="flex flex-wrap items-center gap-space-sm">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider text-sky-700 dark:text-sky-300 bg-sky-500/10 dark:bg-sky-500/10 border border-sky-300/60 dark:border-sky-500/20 shadow-2xs">
                                     <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
-                                    ROOM INDEX
+                                    @Loc["Groups_RoomIndex"]
                                 </span>
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/10 dark:bg-secondary/15 text-indigo-700 dark:text-secondary font-mono text-[10px] font-semibold border border-indigo-300/60 dark:border-secondary/20 shadow-2xs">
                                     <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                                    @totalGroupCount Rooms Indexed
+                                    @string.Format(CultureInfo.CurrentUICulture, Loc["Groups_RoomsIndexed"], totalGroupCount)
                                 </span>
                                 @if (SubCommunityId.HasValue)
                                 {
                                     <button type="button" @onclick="ClearSubCommunityFilter"
-                                            class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-error/10 text-error font-label-sm text-label-sm border border-error/30 hover:bg-error/20 transition-colors cursor-pointer">
+                                            class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-error/10 text-error font-label-sm text-label-sm border border-error/30 hover:bg-error/20 transition-colors cursor-pointer"
+                                            aria-label="@Loc["Groups_ClearSubCommunityFilter"]"
+                                            title="@Loc["Groups_ClearSubCommunityFilter"]">
                                         <span class="material-symbols-outlined text-xs">close</span>
                                         <span class="truncate max-w-[10rem]">@selectedSubCommunityName</span>
                                     </button>
@@ -84,7 +88,7 @@
                                         <select class="bg-white/90 dark:bg-surface-container-highest text-slate-800 dark:text-on-surface font-label-sm text-label-sm py-0.5 px-2.5 rounded-full border border-slate-300/80 dark:border-surface-container-high focus:outline-none focus:border-sky-400 cursor-pointer max-w-[12rem] shadow-2xs"
                                                 value="@(SubCommunityId?.ToString() ?? "")"
                                                 @onchange="OnSubCommunityFilterChanged">
-                                            <option value="">All Sub-Communities</option>
+                                            <option value="">@Loc["Groups_Filter_AllSubCommunities"]</option>
                                             @foreach (var sc in subCommunities)
                                             {
                                                 <option value="@sc.CommunityId">@sc.Name</option>
@@ -95,11 +99,11 @@
                             </div>
 
                             <h1 class="font-headline-lg text-headline-lg md:text-display-md text-slate-900 dark:text-on-surface tracking-tight mt-space-xs font-bold">
-                                @(selectedSubCommunity != null ? selectedSubCommunity.Name : "Working Groups")
+                                @(selectedSubCommunity != null ? selectedSubCommunity.Name : Loc["Groups_HeroTitle"])
                             </h1>
 
                             <p class="font-body-md text-body-md text-slate-600 dark:text-on-surface-variant max-w-2xl leading-relaxed">
-                                Enter the focused working rooms nested inside your sub-communities — structured discussion, live polls, and resource syndication for chartered operators.
+                                @Loc["Groups_HeroSubtitle"]
                             </p>
 
                             <div class="flex flex-wrap items-center gap-2.5 pt-space-sm mt-space-xs text-body-sm">
@@ -107,28 +111,28 @@
                                     <span class="flex items-center justify-center w-6 h-6 rounded-md bg-sky-500/10 text-sky-600 dark:text-primary group-hover/stat:scale-110 transition-transform">
                                         <span class="material-symbols-outlined text-sm">forum</span>
                                     </span>
-                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">Rooms</span>
+                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">@Loc["Groups_Metric_Rooms"]</span>
                                     <span class="font-mono font-bold text-slate-900 dark:text-on-surface text-sm">@totalGroupCount</span>
                                 </div>
                                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/80 dark:bg-surface-container/60 border border-slate-200/90 dark:border-surface-container-high/40 shadow-2xs hover:border-indigo-400/60 hover:bg-white dark:hover:bg-surface-container hover:shadow-xs transition-all duration-200 group/stat">
                                     <span class="flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-secondary group-hover/stat:scale-110 transition-transform">
                                         <span class="material-symbols-outlined text-sm">groups</span>
                                     </span>
-                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">Members</span>
+                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">@Loc["Groups_Metric_Members"]</span>
                                     <span class="font-mono font-bold text-slate-900 dark:text-on-surface text-sm">@FormatCompact(totalMemberCount)</span>
                                 </div>
                                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/80 dark:bg-surface-container/60 border border-slate-200/90 dark:border-surface-container-high/40 shadow-2xs hover:border-emerald-400/60 hover:bg-white dark:hover:bg-surface-container hover:shadow-xs transition-all duration-200 group/stat">
                                     <span class="flex items-center justify-center w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-tertiary group-hover/stat:scale-110 transition-transform">
                                         <span class="material-symbols-outlined text-sm">article</span>
                                     </span>
-                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">Posts</span>
+                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">@Loc["Groups_Metric_Posts"]</span>
                                     <span class="font-mono font-bold text-slate-900 dark:text-on-surface text-sm">@FormatCompact(totalPostCount)</span>
                                 </div>
                                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/80 dark:bg-surface-container/60 border border-slate-200/90 dark:border-surface-container-high/40 shadow-2xs hover:border-amber-400/60 hover:bg-white dark:hover:bg-surface-container hover:shadow-xs transition-all duration-200 group/stat">
                                     <span class="flex items-center justify-center w-6 h-6 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover/stat:scale-110 transition-transform">
                                         <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
                                     </span>
-                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">Avg Rating</span>
+                                    <span class="text-slate-600 dark:text-on-surface-variant font-medium text-xs">@Loc["Groups_Metric_AvgRating"]</span>
                                     <span class="font-mono font-bold text-slate-900 dark:text-on-surface text-sm">@averageRating</span>
                                 </div>
                             </div>
@@ -141,7 +145,7 @@
                             <div class="absolute -bottom-10 -left-10 w-28 h-28 bg-gradient-to-tr from-indigo-400/15 to-transparent rounded-full blur-xl pointer-events-none group-hover/graph:scale-125 transition-transform duration-500"></div>
 
                             <div class="relative z-10">
-                                <TelemetryChart Title="Room Liquidity &amp; Velocity" PrimaryLabel="Members" SecondaryLabel="Posts" Values="liquiditySeries" SecondaryValues="velocitySeries" Labels="chartLabels" Highlight="@roomHighlight" />
+                                <TelemetryChart Title="@Loc["TelemetryChart_RoomTitle"]" PrimaryLabel="@Loc["TelemetryChart_Members"]" SecondaryLabel="@Loc["TelemetryChart_Posts"]" Values="liquiditySeries" SecondaryValues="velocitySeries" Labels="chartLabels" Highlight="@roomHighlight" />
                             </div>
                         </div>
                     </div>
@@ -173,9 +177,9 @@
         <!-- Filter Strip -->
         <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-md w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
             <div class="flex items-center gap-space-sm">
-                <span class="font-title-lg text-title-lg text-on-surface font-bold">Working Groups</span>
+                <span class="font-title-lg text-title-lg text-on-surface font-bold">@Loc["Groups_SectionTitle"]</span>
                 <span class="px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary font-label-md text-label-md border border-primary/20">
-                    @ActiveGroups.Count Shown
+                    @string.Format(CultureInfo.CurrentUICulture, Loc["Groups_ShownCount"], ActiveGroups.Count)
                 </span>
             </div>
 
@@ -184,12 +188,12 @@
                 <div class="flex items-center gap-1 p-0.5 bg-surface-container-low rounded-lg border border-surface-container-high/30">
                     <button type="button" id="tab-joined" @onclick='() => SetTab("joined")'
                             class="px-3 py-1 rounded-md text-xs font-semibold @(activeTab == "joined" ? "bg-surface-container-high text-[#B38F24] dark:text-[#F2CA50] shadow-xs" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container") transition-all flex items-center gap-1.5 cursor-pointer">
-                        <span>Joined</span>
+                        <span>@Loc["Groups_Tab_Joined"]</span>
                         <span class="px-1.5 py-0.5 rounded font-mono text-[10px] @(activeTab == "joined" ? "bg-amber-500/15 dark:bg-[#F2CA50]/15 text-[#B38F24] dark:text-[#F2CA50] font-bold" : "bg-surface-container text-on-surface-variant")">@joinedCount</span>
                     </button>
                     <button type="button" id="tab-browse" @onclick='() => SetTab("browse")'
                             class="px-3 py-1 rounded-md text-xs font-semibold @(activeTab == "browse" ? "bg-surface-container-high text-[#B38F24] dark:text-[#F2CA50] shadow-xs" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container") transition-all flex items-center gap-1.5 cursor-pointer">
-                        <span>Browse</span>
+                        <span>@Loc["Groups_Tab_Browse"]</span>
                         <span class="px-1.5 py-0.5 rounded font-mono text-[10px] @(activeTab == "browse" ? "bg-amber-500/15 dark:bg-[#F2CA50]/15 text-[#B38F24] dark:text-[#F2CA50] font-bold" : "bg-surface-container text-on-surface-variant")">@browseCount</span>
                     </button>
                 </div>
@@ -199,7 +203,7 @@
                     <span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-sm pointer-events-none">search</span>
                     <input type="text"
                            class="w-full bg-surface-container-low text-on-surface placeholder-on-surface-variant text-body-sm pl-9 pr-8 py-1.5 rounded-lg border border-surface-container-high/30 focus:outline-none focus:bg-surface-container-high focus:border-primary transition-colors"
-                           placeholder="Search groups..."
+                           placeholder="@Loc["Groups_SearchPlaceholder"]"
                            @bind="searchTerm"
                            @bind:event="oninput"
                            @bind:after="LoadGroupsAsync" />
@@ -216,7 +220,7 @@
                 <button type="button" @onclick="ToggleSort"
                         class="px-3 py-1.5 bg-surface-container text-on-surface hover:text-primary rounded-lg font-label-md text-label-md flex items-center gap-1 shrink-0 transition-colors border border-surface-container-high/40 cursor-pointer">
                     <span class="material-symbols-outlined text-sm">tune</span>
-                    <span>Sort: @sortMode</span>
+                    <span>@string.Format(CultureInfo.CurrentUICulture, Loc["Groups_SortLabel"], GetLocalizedSortMode(sortMode))</span>
                 </button>
 
                 <!-- Create Group Button -->
@@ -225,7 +229,7 @@
                     <button type="button" @onclick="OpenCreateGroupModal"
                             class="px-3.5 py-1.5 bg-surface-container-high hover:bg-surface-container-highest dark:bg-[#1E3A8A] dark:hover:bg-[#1D4ED8] text-on-surface dark:text-white rounded-lg font-label-md text-label-md font-bold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer border border-surface-container-high/40 dark:border-blue-400/30 shadow-xs">
                         <span class="material-symbols-outlined text-sm text-primary dark:text-blue-300">add_circle</span>
-                        <span>Create Group</span>
+                        <span>@Loc["Groups_CreateGroupBtn"]</span>
                     </button>
                 }
             </div>
@@ -237,7 +241,7 @@
             {
                 <div class="rounded-xl bg-surface-container-low border border-surface-container-high/30 flex flex-col items-center justify-center py-16">
                     <div class="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent"></div>
-                    <p class="font-label-md text-label-md text-on-surface-variant mt-3">Loading working room directory...</p>
+                    <p class="font-label-md text-label-md text-on-surface-variant mt-3">@Loc["Groups_LoadingText"]</p>
                 </div>
             }
             else if (ActiveGroups.Count == 0)
@@ -248,21 +252,21 @@
                     </div>
                     @if (activeTab == "joined")
                     {
-                        <h3 class="font-headline-md text-headline-md text-on-surface font-semibold">You have not joined any rooms yet</h3>
-                        <p class="font-body-md text-body-md text-on-surface-variant mt-1.5 max-w-md mx-auto">Browse the current room listings below and join one to get started.</p>
+                        <h3 class="font-headline-md text-headline-md text-on-surface font-semibold">@Loc["Groups_EmptyJoinedTitle"]</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-1.5 max-w-md mx-auto">@Loc["Groups_EmptyJoinedSubtitle"]</p>
                         <button type="button" @onclick='() => SetTab("browse")'
                                 class="mt-4 px-space-md py-2 rounded-lg bg-primary text-on-primary font-label-lg text-label-lg font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors hover:bg-primary-fixed-dim">
                             <span class="material-symbols-outlined text-sm">travel_explore</span>
-                            <span>Browse Groups</span>
+                            <span>@Loc["Groups_EmptyBrowseBtn"]</span>
                         </button>
                     }
                     else
                     {
-                        <h3 class="font-headline-md text-headline-md text-on-surface font-semibold">No rooms match your criteria</h3>
+                        <h3 class="font-headline-md text-headline-md text-on-surface font-semibold">@Loc["Groups_EmptySearchTitle"]</h3>
                         <p class="font-body-md text-body-md text-on-surface-variant mt-1.5 max-w-md mx-auto">
                             @(string.IsNullOrEmpty(searchTerm)
-                                ? "All available rooms are already in your Joined directory."
-                                : $"Nothing matches '{searchTerm}'.")
+                                ? Loc["Groups_EmptyAllJoinedSubtitle"]
+                                : string.Format(CultureInfo.CurrentUICulture, Loc["Groups_EmptySearchMatchSubtitle"], searchTerm))
                         </p>
                     }
                 </div>
@@ -289,22 +293,22 @@
                                         <div class="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
                                             <span class="px-2 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-[#0A1B2E] dark:text-primary font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1 border border-slate-300/80 dark:border-primary/20 truncate max-w-[70%] font-semibold shadow-xs">
                                                 <span class="material-symbols-outlined text-xs shrink-0 text-primary">@GetCategoryIcon(cardIndex)</span>
-                                                <span class="truncate">@(string.IsNullOrWhiteSpace(grp.SubCommunityName) ? "Working Group" : grp.SubCommunityName)</span>
+                                                <span class="truncate">@(string.IsNullOrWhiteSpace(grp.SubCommunityName) ? Loc["Groups_DefaultSubCommunityBadge"] : grp.SubCommunityName)</span>
                                             </span>
-
                                             @if (grp.Visibility == "PRIVATE")
                                             {
                                                 <span class="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-slate-800 dark:text-on-surface font-label-sm text-label-sm uppercase tracking-wider border border-slate-300 dark:border-outline-variant/40 font-semibold shadow-xs">
-                                                    <span class="material-symbols-outlined text-xs">lock</span>Private
+                                                    <span class="material-symbols-outlined text-xs">lock</span>@Loc["Groups_Badge_Private"]
                                                 </span>
                                             }
                                             else
                                             {
                                                 <span class="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/90 dark:bg-surface-container-lowest/90 backdrop-blur-md text-secondary font-label-sm text-label-sm uppercase tracking-wider border border-secondary/30 font-semibold shadow-xs">
-                                                    <span class="material-symbols-outlined text-xs">visibility</span>Public
+                                                    <span class="material-symbols-outlined text-xs">visibility</span>@Loc["Groups_Badge_Public"]
                                                 </span>
                                             }
                                         </div>
+
 
                                     </div>
 
@@ -349,7 +353,7 @@
                                 <div class="p-space-md pt-0 flex items-stretch gap-space-sm">
                                     <a class="flex-1 py-2 px-space-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-slate-200 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 transition-all no-underline cursor-pointer border border-slate-300/80 dark:border-white/10 shadow-xs"
                                        href="/group/@grp.GroupId">
-                                        <span class="truncate">Enter Room</span>
+                                        <span class="truncate">@Loc["Groups_Action_EnterRoom"]</span>
                                         <span class="material-symbols-outlined text-sm">arrow_forward</span>
                                     </a>
 
@@ -358,12 +362,12 @@
                                         <button type="button" disabled
                                                 class="flex-1 py-2 px-space-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-slate-200 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 cursor-default border border-slate-300/80 dark:border-white/10 shadow-xs">
                                             <span class="material-symbols-outlined text-sm">check</span>
-                                            <span class="truncate">Joined</span>
+                                            <span class="truncate">@Loc["Groups_Action_Joined"]</span>
                                         </button>
                                         @if (isCreator)
                                         {
                                             <button type="button" @onclick="() => OpenRequestsDrawer(grp.GroupId)"
-                                                    title="Manage join requests"
+                                                    title="@Loc["Groups_Tooltip_ManageRequests"]"
                                                     class="shrink-0 w-10 py-2 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface border border-surface-container-high/40 transition-colors flex items-center justify-center cursor-pointer">
                                                 <span class="material-symbols-outlined text-sm">outgoing_mail</span>
                                             </button>
@@ -373,7 +377,7 @@
                                     {
                                         <span class="flex-1 py-2 px-space-sm rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 border border-amber-300 dark:border-amber-600 shadow-xs">
                                             <span class="material-symbols-outlined text-sm text-amber-600 dark:text-amber-400">schedule</span>
-                                            <span class="truncate font-bold">Pending</span>
+                                            <span class="truncate font-bold">@Loc["Groups_Action_Pending"]</span>
                                         </span>
                                     }
                                     else
@@ -381,7 +385,7 @@
                                         <button type="button" @onclick="() => JoinGroup(grp)"
                                                 class="flex-1 py-2 px-space-sm rounded-lg bg-sky-50 hover:bg-sky-100/90 active:bg-sky-200/80 dark:bg-sky-500/15 dark:hover:bg-sky-500/25 dark:active:bg-sky-500/30 text-sky-700 dark:text-sky-300 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-sky-300/80 dark:border-sky-500/30 shadow-xs">
                                             <span class="material-symbols-outlined text-sm text-sky-600 dark:text-sky-400">lock_open</span>
-                                            <span class="truncate font-bold text-sky-700 dark:text-sky-300">@(grp.JoinPolicy == "APPROVAL_REQUIRED" || grp.Visibility == "PRIVATE" ? "Request" : "Join")</span>
+                                            <span class="truncate font-bold text-sky-700 dark:text-sky-300">@(grp.JoinPolicy == "APPROVAL_REQUIRED" || grp.Visibility == "PRIVATE" ? Loc["Groups_Action_Request"] : Loc["Groups_Action_Join"])</span>
                                         </button>
                                     }
                                 </div>
@@ -414,7 +418,7 @@
             <div class="flex items-center justify-between px-space-md py-space-sm border-b border-surface-container-high/30">
                 <h3 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">forum</span>
-                    <span>Create New Group</span>
+                    <span>@Loc["Groups_Modal_Title"]</span>
                 </h3>
                 <button type="button" @onclick="CloseModals"
                         class="w-6 h-6 rounded-md flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer">
@@ -434,11 +438,11 @@
 
                 <!-- Parent Sub-Community Selector -->
                 <div>
-                    <label class="block font-label-md text-label-md text-on-surface mb-1.5">Select Sub-Community <span class="text-error">*</span></label>
+                    <label class="block font-label-md text-label-md text-on-surface mb-1.5">@Loc["Groups_Modal_SelectSubCommunityLabel"] <span class="text-error">*</span></label>
                     <select class="w-full bg-surface-container-lowest text-on-surface text-body-sm rounded-lg border border-surface-container-high/30 focus:outline-none focus:border-primary px-3 py-2 cursor-pointer"
                             value="@createSubCommunityId"
                             @onchange="OnCreateSubCommunityChanged">
-                        <option value="0">-- Select Sub-Community --</option>
+                        <option value="0">@Loc["Groups_Modal_SelectSubCommunityPlaceholder"]</option>
                         @foreach (var sc in subCommunities)
                         {
                             <option value="@sc.CommunityId">@sc.Name</option>
@@ -449,61 +453,61 @@
                     {
                         <div class="mt-2 p-space-sm rounded-lg bg-error/10 text-error text-body-sm flex items-start gap-2 border border-error/30">
                             <span class="material-symbols-outlined text-sm shrink-0 mt-px">warning</span>
-                            <span>You must join <strong>@selectedSubCommunityName</strong> first before creating a group inside it.</span>
+                            <span>@((MarkupString)string.Format(CultureInfo.CurrentUICulture, Loc["Groups_Modal_MustJoinParentFirst"], $"<strong>{System.Net.WebUtility.HtmlEncode(selectedSubCommunityName)}</strong>"))</span>
                         </div>
                     }
                 </div>
 
                 <!-- Group Name -->
                 <div>
-                    <label class="block font-label-md text-label-md text-on-surface mb-1.5">Group Name <span class="text-error">*</span></label>
-                    <input type="text" @bind="createGroupName" placeholder="e.g. EF Core Developers Room"
+                    <label class="block font-label-md text-label-md text-on-surface mb-1.5">@Loc["Groups_Modal_GroupNameLabel"] <span class="text-error">*</span></label>
+                    <input type="text" @bind="createGroupName" placeholder="@Loc["Groups_Modal_GroupNamePlaceholder"]"
                            class="w-full bg-surface-container-lowest text-on-surface placeholder-on-surface-variant text-body-sm rounded-lg border border-surface-container-high/30 focus:outline-none focus:border-primary px-3 py-2 font-semibold" />
                 </div>
 
                 <!-- Group Description -->
                 <div>
-                    <label class="block font-label-md text-label-md text-on-surface mb-1.5">Description <span class="text-on-surface-variant font-normal">(Optional)</span></label>
-                    <textarea @bind="createGroupDescription" rows="3" placeholder="Briefly describe the purpose of this group room..."
+                    <label class="block font-label-md text-label-md text-on-surface mb-1.5">@Loc["Groups_Modal_DescriptionLabel"] <span class="text-on-surface-variant font-normal">@Loc["Groups_Modal_Optional"]</span></label>
+                    <textarea @bind="createGroupDescription" rows="3" placeholder="@Loc["Groups_Modal_DescriptionPlaceholder"]"
                               class="w-full bg-surface-container-lowest text-on-surface placeholder-on-surface-variant text-body-sm rounded-lg border border-surface-container-high/30 focus:outline-none focus:border-primary px-3 py-2 leading-relaxed"></textarea>
                 </div>
 
                 <!-- Privacy & Access Type -->
                 <div>
-                    <label class="block font-label-md text-label-md text-on-surface mb-2">Privacy &amp; Access Control <span class="text-error">*</span></label>
+                    <label class="block font-label-md text-label-md text-on-surface mb-2">@Loc["Groups_Modal_PrivacyLabel"] <span class="text-error">*</span></label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
                         <button type="button" @onclick='() => createVisibility = "PUBLIC"'
                                 class="px-3 py-2.5 rounded-lg border text-left transition cursor-pointer @(createVisibility == "PUBLIC" ? "border-primary bg-slate-100 dark:bg-surface-container-highest font-bold text-slate-900 dark:text-white ring-1 ring-primary/40 shadow-xs" : "border-slate-200 dark:border-surface-container-high/30 bg-white dark:bg-surface-container-low text-slate-600 dark:text-on-surface-variant hover:border-slate-300 dark:hover:border-surface-container-high")">
                             <span class="inline-flex items-center gap-1.5 font-label-md text-label-md text-slate-900 dark:text-white">
-                                <span class="material-symbols-outlined text-primary">visibility</span>Public Group
+                                <span class="material-symbols-outlined text-primary">visibility</span>@Loc["Groups_Modal_PublicGroupTitle"]
                             </span>
-                            <span class="block font-body-sm text-body-sm text-slate-500 dark:text-on-surface-variant font-normal mt-0.5">Anyone can join directly without approval.</span>
+                            <span class="block font-body-sm text-body-sm text-slate-500 dark:text-on-surface-variant font-normal mt-0.5">@Loc["Groups_Modal_PublicGroupDesc"]</span>
                         </button>
 
                         <button type="button" @onclick='() => createVisibility = "PRIVATE"'
                                 class="px-3 py-2.5 rounded-lg border text-left transition cursor-pointer @(createVisibility == "PRIVATE" ? "border-primary bg-slate-100 dark:bg-surface-container-highest font-bold text-slate-900 dark:text-white ring-1 ring-primary/40 shadow-xs" : "border-slate-200 dark:border-surface-container-high/30 bg-white dark:bg-surface-container-low text-slate-600 dark:text-on-surface-variant hover:border-slate-300 dark:hover:border-surface-container-high")">
                             <span class="inline-flex items-center gap-1.5 font-label-md text-label-md text-slate-900 dark:text-white">
-                                <span class="material-symbols-outlined text-primary">lock</span>Private Group
+                                <span class="material-symbols-outlined text-primary">lock</span>@Loc["Groups_Modal_PrivateGroupTitle"]
                             </span>
-                            <span class="block font-body-sm text-body-sm text-slate-500 dark:text-on-surface-variant font-normal mt-0.5">Requires owner approval to join.</span>
+                            <span class="block font-body-sm text-body-sm text-slate-500 dark:text-on-surface-variant font-normal mt-0.5">@Loc["Groups_Modal_PrivateGroupDesc"]</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Group Photo / Cover Image -->
                 <div>
-                    <label class="block font-label-md text-label-md text-on-surface mb-1.5">Group Photo / Cover Image</label>
+                    <label class="block font-label-md text-label-md text-on-surface mb-1.5">@Loc["Groups_Modal_PhotoLabel"]</label>
 
                     @if (!string.IsNullOrEmpty(createAvatarUrl) || !string.IsNullOrEmpty(createBannerUrl))
                     {
                         var previewImg = createBannerUrl ?? createAvatarUrl;
                         <div class="relative h-32 rounded-lg overflow-hidden border border-surface-container-high/30 group">
-                            <img src="@previewImg" class="w-full h-full object-cover" alt="Group Preview" />
+                            <img src="@previewImg" class="w-full h-full object-cover" alt="@Loc["Groups_Modal_PreviewAlt"]" />
                             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                                 <button type="button" @onclick="RemoveGroupAvatar"
                                         class="px-2.5 py-1 rounded bg-error text-on-error text-body-sm font-semibold shadow hover:opacity-90 transition inline-flex items-center gap-1 cursor-pointer">
                                     <span class="material-symbols-outlined text-sm">delete</span>
-                                    <span>Remove Photo</span>
+                                    <span>@Loc["Groups_Modal_RemovePhotoBtn"]</span>
                                 </button>
                             </div>
                         </div>
@@ -514,8 +518,8 @@
                             <InputFile OnChange="HandleGroupAvatarSelected" accept=".jpg,.jpeg,.png,.webp" class="hidden" id="groupBannerFileInput" />
                             <label for="groupBannerFileInput" class="cursor-pointer flex flex-col items-center">
                                 <span class="material-symbols-outlined text-2xl text-on-surface-variant mb-1">image</span>
-                                <span class="font-label-md text-label-md text-on-surface">Upload custom group photo</span>
-                                <span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">JPEG, PNG, WebP (Max 10MB)</span>
+                                <span class="font-label-md text-label-md text-on-surface">@Loc["Groups_Modal_UploadPrompt"]</span>
+                                <span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">@Loc["Groups_Modal_UploadFormats"]</span>
                             </label>
                         </div>
                     }
@@ -524,13 +528,13 @@
                     {
                         <div class="mt-2 flex items-center gap-2 text-body-sm text-primary">
                             <div class="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                            <span>Uploading and optimizing group photo...</span>
+                            <span>@Loc["Groups_Modal_UploadingPhoto"]</span>
                         </div>
                     }
 
                     <!-- Quick Preset Selectors -->
                     <div class="mt-2">
-                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block mb-1">Or choose an executive room preset:</span>
+                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block mb-1">@Loc["Groups_Modal_PresetPrompt"]</span>
                         <div class="grid grid-cols-4 gap-1.5">
                             @for (var i = 0; i < fallbackGroupBanners.Length; i++)
                             {
@@ -538,7 +542,7 @@
                                 var isSelected = (createBannerUrl ?? createAvatarUrl) == presetUrl;
                                 <button type="button" @onclick="() => SelectPresetGroupBanner(presetUrl)"
                                         class="relative h-12 rounded overflow-hidden border-2 transition cursor-pointer @(isSelected ? "border-primary ring-2 ring-primary/30" : "border-transparent opacity-70 hover:opacity-100")">
-                                    <img src="@presetUrl" class="w-full h-full object-cover" alt="Preset" />
+                                    <img src="@presetUrl" class="w-full h-full object-cover" alt="@Loc["Groups_Modal_PresetAlt"]" />
                                 </button>
                             }
                         </div>
@@ -550,18 +554,18 @@
             <div class="px-space-md py-space-sm bg-surface-container-lowest/60 border-t border-surface-container-high/30 flex items-center justify-end gap-space-sm">
                 <button type="button" @onclick="CloseModals" disabled="@isSubmitting"
                         class="px-3.5 py-1.5 bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg font-label-md text-label-md transition-colors border border-surface-container-high/40 cursor-pointer">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="SubmitCreateGroup" disabled="@(isSubmitting || (!isAdmin && createSubCommunityId > 0 && !isUserSubCommunityMember))"
                         class="px-4 py-1.5 bg-primary text-on-primary hover:bg-primary-fixed-dim rounded-lg font-label-md text-label-md font-bold transition-colors disabled:opacity-50 flex items-center gap-2 cursor-pointer">
                     @if (isSubmitting)
                     {
                         <div class="w-3 h-3 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></div>
-                        <span>Creating...</span>
+                        <span>@Loc["Groups_Modal_CreatingBtn"]</span>
                     }
                     else
                     {
-                        <span>Publish Group</span>
+                        <span>@Loc["Groups_Modal_PublishBtn"]</span>
                     }
                 </button>
             </div>
@@ -577,7 +581,7 @@
             <div class="flex items-center justify-between px-space-md py-space-sm border-b border-surface-container-high/30">
                 <h3 class="font-title-lg text-title-lg text-on-surface flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">outgoing_mail</span>
-                    <span>Pending Join Requests</span>
+                    <span>@Loc["Groups_Drawer_Title"]</span>
                 </h3>
                 <button type="button" @onclick="CloseModals"
                         class="w-6 h-6 rounded-md flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer">
@@ -592,7 +596,7 @@
                         <div class="w-9 h-9 rounded-lg bg-surface-container text-on-surface-variant flex items-center justify-center mx-auto mb-2">
                             <span class="material-symbols-outlined text-lg">inbox</span>
                         </div>
-                        <p class="font-body-sm text-body-sm text-on-surface-variant">No pending join requests for this group.</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">@Loc["Groups_Drawer_EmptyText"]</p>
                     </div>
                 }
                 else
@@ -612,11 +616,11 @@
                             <div class="flex items-center justify-end gap-space-sm pt-1">
                                 <button type="button" @onclick="() => ReviewRequest(req.GroupJoinRequestId, false)"
                                         class="px-3 py-1.5 bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg font-label-md text-label-md border border-surface-container-high/40 transition-colors cursor-pointer">
-                                    Reject
+                                    @Loc["Groups_Drawer_RejectBtn"]
                                 </button>
                                 <button type="button" @onclick="() => ReviewRequest(req.GroupJoinRequestId, true)"
                                         class="px-3 py-1.5 bg-primary text-on-primary hover:bg-primary-fixed-dim rounded-lg font-label-md text-label-md font-bold transition-colors cursor-pointer">
-                                    Approve
+                                    @Loc["Groups_Drawer_ApproveBtn"]
                                 </button>
                             </div>
                         </div>
@@ -627,7 +631,7 @@
             <div class="px-space-md py-space-sm bg-surface-container-lowest/60 border-t border-surface-container-high/30 flex items-center justify-end">
                 <button type="button" @onclick="CloseModals"
                         class="px-4 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg font-label-md text-label-md font-bold transition-colors cursor-pointer">
-                    Close
+                    @Loc["Common_Close"]
                 </button>
             </div>
         </div>
@@ -719,8 +723,8 @@
         get
         {
             var rated = groups?.Where(g => g.RatingCount > 0).ToList() ?? [];
-            if (rated.Count == 0) return "N/A";
-            return (rated.Sum(g => g.AverageRating ?? 0d) / rated.Count).ToString("0.0");
+            if (rated.Count == 0) return Loc["Groups_Rating_NA"];
+            return (rated.Sum(g => g.AverageRating ?? 0d) / rated.Count).ToString("0.0", CultureInfo.InvariantCulture);
         }
     }
 
@@ -743,11 +747,12 @@
         get
         {
             var ranked = chartSource;
-            if (ranked.Count == 0) return "NO SIGNAL";
+            if (ranked.Count == 0) return Loc["TelemetryChart_NoSignal"];
             var total = ranked.Sum(g => g.MemberCount);
-            if (total <= 0) return "NO SIGNAL";
+            if (total <= 0) return Loc["TelemetryChart_NoSignal"];
             var top = ranked.Take(3).Sum(g => g.MemberCount);
-            return (top / (double)total * 100d).ToString("0") + "% CONCENTRATION";
+            var pct = (top / (double)total * 100d).ToString("0", CultureInfo.InvariantCulture);
+            return string.Format(CultureInfo.CurrentUICulture, Loc["TelemetryChart_Concentration"], pct);
         }
     }
 
@@ -859,7 +864,7 @@
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to load groups.");
+            Toast.Error(res.Message ?? Loc["Groups_Toast_LoadFailed"]);
         }
         isLoading = false;
     }
@@ -876,12 +881,12 @@
         var res = await GroupApi.JoinGroupAsync(grp.GroupId);
         if (res.IsSuccess)
         {
-            Toast.Success(res.Message ?? "Joined group!");
+            Toast.Success(res.Message ?? Loc["Groups_Toast_JoinedSuccess"]);
             await LoadGroupsAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to join group.");
+            Toast.Error(res.Message ?? Loc["Groups_Toast_JoinFailed"]);
         }
     }
 
@@ -952,19 +957,19 @@
 
         if (createSubCommunityId == 0)
         {
-            modalError = "Please select a parent sub-community.";
+            modalError = Loc["Groups_Val_SelectSubCommunity"];
             return;
         }
 
         if (string.IsNullOrWhiteSpace(createGroupName))
         {
-            modalError = "Group name is required.";
+            modalError = Loc["Groups_Val_NameRequired"];
             return;
         }
 
         if (!isAdmin && !isUserSubCommunityMember)
         {
-            modalError = $"You must join sub-community '{selectedSubCommunityName}' before creating a group in it.";
+            modalError = string.Format(CultureInfo.CurrentUICulture, Loc["Groups_Val_MustJoinSubCommunity"], selectedSubCommunityName);
             return;
         }
 
@@ -985,14 +990,14 @@
 
         if (res.IsSuccess)
         {
-            Toast.Success("Group created successfully!");
+            Toast.Success(Loc["Groups_Toast_CreateSuccess"]);
             CloseModals();
             await LoadGroupsAsync();
             SetTab("joined");
         }
         else
         {
-            modalError = res.Message ?? "Failed to create group.";
+            modalError = res.Message ?? Loc["Groups_Toast_CreateFailed"];
         }
     }
 
@@ -1007,7 +1012,7 @@
         }
         else
         {
-            Toast.Error("Failed to load join requests.");
+            Toast.Error(Loc["Groups_Toast_LoadRequestsFailed"]);
         }
     }
 
@@ -1016,13 +1021,13 @@
         var res = approve ? await GroupApi.ApproveJoinRequestAsync(requestId) : await GroupApi.RejectJoinRequestAsync(requestId);
         if (res.IsSuccess)
         {
-            Toast.Success(res.Message ?? "Updated!");
+            Toast.Success(res.Message ?? Loc["Groups_Toast_RequestUpdated"]);
             await OpenRequestsDrawer(managingGroupId);
             await LoadGroupsAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to review request.");
+            Toast.Error(res.Message ?? Loc["Groups_Toast_ReviewRequestFailed"]);
         }
     }
 
@@ -1052,11 +1057,11 @@
 
             createAvatarUrl = $"/uploads/{uniqueFileName}";
             createBannerUrl = $"/uploads/{uniqueFileName}";
-            Toast.Success("Group photo uploaded successfully!");
+            Toast.Success(Loc["Groups_Toast_PhotoUploaded"]);
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to upload photo: {ex.Message}");
+            Toast.Error(string.Format(CultureInfo.CurrentUICulture, Loc["Groups_Toast_PhotoUploadError"], ex.Message));
         }
         finally
         {
@@ -1077,6 +1082,13 @@
         modalError = null;
     }
 
+    private string GetLocalizedSortMode(string mode) => mode switch
+    {
+        "Members" => Loc["Groups_Sort_Members"],
+        "Name" => Loc["Groups_Sort_Name"],
+        _ => Loc["Groups_Sort_Activity"]
+    };
+
     private static string ShortenLabel(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "Room";
@@ -1091,17 +1103,17 @@
 
     private static string FormatCompact(int value)
     {
-        if (value >= 1_000_000) return (value / 1_000_000D).ToString("0.#") + "M";
-        if (value >= 1_000) return (value / 1_000D).ToString("0.#") + "k";
-        return value.ToString("N0");
+        if (value >= 1_000_000) return (value / 1_000_000D).ToString("0.#", CultureInfo.InvariantCulture) + "M";
+        if (value >= 1_000) return (value / 1_000D).ToString("0.#", CultureInfo.InvariantCulture) + "k";
+        return value.ToString("N0", CultureInfo.InvariantCulture);
     }
 
-    private static string GetTierLabel(int index) => index switch
+    private string GetTierLabel(int index) => index switch
     {
-        0 => "Largest Room",
-        1 => "Second-Largest Room",
-        2 => "Third-Largest Room",
-        _ => "Rank " + (index + 1).ToString()
+        0 => Loc["Groups_Tier_Largest"],
+        1 => Loc["Groups_Tier_SecondLargest"],
+        2 => Loc["Groups_Tier_ThirdLargest"],
+        _ => string.Format(CultureInfo.CurrentUICulture, Loc["Groups_Tier_Rank"], (index + 1).ToString(CultureInfo.InvariantCulture))
     };
 
     private static string GetCategoryIcon(int index) => (index % 4) switch
@@ -1120,9 +1132,9 @@
         _ => "bg-gradient-to-r from-tertiary via-secondary to-transparent"
     };
 
-    private static string RatingLabel(GroupModel grp)
+    private string RatingLabel(GroupModel grp)
     {
-        if (grp.RatingCount <= 0 || !grp.AverageRating.HasValue) return "Unrated";
-        return grp.AverageRating.Value.ToString("0.0");
+        if (grp.RatingCount <= 0 || !grp.AverageRating.HasValue) return Loc["Groups_Rating_Unrated"];
+        return grp.AverageRating.Value.ToString("0.0", CultureInfo.InvariantCulture);
     }
 }

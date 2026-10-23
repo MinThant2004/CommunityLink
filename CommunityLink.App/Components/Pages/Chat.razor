@@ -1,5 +1,6 @@
 @page "/chat"
 @using CommunityLink.App.Components.Shared.Chat
+@using Microsoft.Extensions.Localization
 @inject ChatApiService ChatApi
 @inject ChatGroupApiService ChatGroupApi
 @inject LinkDropApiService LinkDropApi
@@ -9,6 +10,7 @@
 @inject NavigationManager NavManager
 @inject ToastService Toast
 @inject IJSRuntime JS
+@inject IStringLocalizer<AppResources> Loc
 @implements IAsyncDisposable
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ChatAccess)]
 
@@ -18,7 +20,7 @@
     and routes reads, writes, payments and realtime events by ThreadType.
 *@
 
-<div class="app-shell -m-6 flex overflow-hidden border-t border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#0A1B2E]">
+<div class="app-shell -m-6 flex overflow-hidden border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#10131A]">
     <!-- Pane 1: thread list -->
     <div class="@(mobileShowThread ? "hidden md:flex" : "flex") w-full md:w-auto">
         <ChatThreadList VisibleThreads="VisibleThreads"
@@ -44,17 +46,17 @@
     </div>
 
     <!-- Pane 2: active thread -->
-    <div class="@(mobileShowThread ? "flex" : "hidden md:flex") min-w-0 flex-1 flex-col bg-slate-50 dark:bg-[#0A1B2E]">
+    <div class="@(mobileShowThread ? "flex" : "hidden md:flex") min-w-0 flex-1 flex-col bg-[#F8FAFC] dark:bg-[#10131A]">
         @if (activeThread is null)
         {
             <div class="flex h-full flex-col items-center justify-center px-6 text-center">
-                <span class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1B3B5A]">
-                    <svg class="h-7 w-7 text-slate-400 dark:text-[#C4D2E1]" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <span class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 dark:bg-[#191B23]">
+                    <svg class="h-7 w-7 text-slate-400 dark:text-[#94A3B8]" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.189A8.721 8.721 0 0 1 3 12a8.721 8.721 0 0 1 3.04-6.06 8.721 8.721 0 0 1 6.96 0A8.721 8.721 0 0 1 21 12Z" />
                     </svg>
                 </span>
-                <p class="mt-4 text-sm font-semibold text-slate-800 dark:text-[#E1E8F0]">Select a conversation to start chatting</p>
-                <p class="mt-1 max-w-xs text-xs text-slate-500 dark:text-[#C4D2E1]">Direct messages and chat groups are all here. Use Discover to find new groups.</p>
+                <p class="mt-4 text-sm font-semibold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Chat_SelectConversationToStart"]</p>
+                <p class="mt-1 max-w-xs text-xs text-[#64748B] dark:text-[#94A3B8]">@Loc["Chat_DirectAndGroupsHere"]</p>
             </div>
         }
         else
@@ -72,28 +74,28 @@
             @if (activeThread.IsGroup && activeThread.IsBanned)
             {
                 <div class="min-h-0 flex-1 overflow-y-auto px-4 py-6">
-                    <div class="mx-auto max-w-md rounded-xl border border-rose-200 dark:border-rose-900/50 bg-white dark:bg-[#112A46] p-6 text-center select-none">
+                    <div class="mx-auto max-w-md rounded-xl border border-rose-200 dark:border-rose-900/50 bg-white dark:bg-[#111622] p-6 text-center select-none shadow-xs">
                         @if (!string.IsNullOrWhiteSpace(activeThread.AvatarUrl))
                         {
                             <img src="@activeThread.AvatarUrl" alt="" class="mx-auto h-16 w-16 rounded-full object-cover" />
                         }
                         else
                         {
-                            <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1B3B5A] text-xl font-semibold text-slate-600 dark:text-[#E1E8F0]">@activeThread.Initials</span>
+                            <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-[#191B23] text-xl font-semibold text-[#475569] dark:text-[#E1E2EC]">@activeThread.Initials</span>
                         }
 
-                        <h2 class="mt-4 text-base font-semibold text-slate-900 dark:text-[#E1E8F0]">@activeThread.Title</h2>
+                        <h2 class="mt-4 text-base font-semibold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@activeThread.Title</h2>
 
                         <div class="mt-5 rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 p-4 text-left">
-                            <p class="flex items-center gap-2 text-sm font-semibold text-rose-800 dark:text-rose-300">
-                                <span class="text-base">🚫</span>
-                                You are banned from this group.
+                            <p class="flex items-center gap-2 text-sm font-semibold text-rose-800 dark:text-[#FFB4AB]">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 14.14 14.14"/></svg>
+                                <span>@Loc["Chat_BannedFromGroupTitle"]</span>
                             </p>
-                            <p class="mt-1.5 text-xs leading-relaxed text-rose-700 dark:text-rose-400">
-                                You cannot access or send messages in this group.
+                            <p class="mt-1.5 text-xs leading-relaxed text-rose-700 dark:text-rose-300">
+                                @Loc["Chat_BannedFromGroupDesc"]
                             </p>
-                            <p class="mt-3 text-xs leading-relaxed text-slate-600 dark:text-[#C4D2E1]">
-                                Please contact a group administrator if you believe this was a mistake.
+                            <p class="mt-3 text-xs leading-relaxed text-[#64748B] dark:text-[#94A3B8]">
+                                @Loc["Chat_BannedContactAdmin"]
                             </p>
                         </div>
                     </div>
@@ -103,74 +105,74 @@
             {
                 @* Non-member view: describe the group and gate entry behind the join payment. *@
                 <div class="min-h-0 flex-1 overflow-y-auto px-4 py-6">
-                    <div class="mx-auto max-w-md rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46] p-6 text-center">
+                    <div class="mx-auto max-w-md rounded-xl border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#111622] p-6 text-center shadow-xs">
                         @if (!string.IsNullOrWhiteSpace(activeThread.AvatarUrl))
                         {
                             <img src="@activeThread.AvatarUrl" alt="" class="mx-auto h-16 w-16 rounded-full object-cover" />
                         }
                         else
                         {
-                            <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1B3B5A] text-xl font-semibold text-slate-600 dark:text-[#E1E8F0]">@activeThread.Initials</span>
+                            <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-[#191B23] text-xl font-semibold text-[#475569] dark:text-[#E1E2EC]">@activeThread.Initials</span>
                         }
 
-                        <h2 class="mt-4 text-base font-semibold text-slate-900 dark:text-[#E1E8F0]">@activeThread.Title</h2>
-                        <p class="mt-0.5 text-xs text-slate-500 dark:text-[#C4D2E1]">@activeThread.Subtitle · by @activeThread.CreatorName</p>
+                        <h2 class="mt-4 text-base font-semibold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@activeThread.Title</h2>
+                        <p class="mt-0.5 text-xs text-[#475569] dark:text-[#94A3B8]">@activeThread.Subtitle · @string.Format(Loc["Chat_ByCreator"], activeThread.CreatorName)</p>
 
                         @if (!string.IsNullOrWhiteSpace(activeThread.Description))
                         {
-                            <p class="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600 dark:text-[#C4D2E1]">@activeThread.Description</p>
+                            <p class="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#475569] dark:text-[#94A3B8]">@activeThread.Description</p>
                         }
 
                         @if (activeThread.IsInvited)
                         {
                             @* The owner invited this user, but the invite is an offer rather than
                                 access: the paywall below still applies until they pay. *@
-                            <div class="mt-4 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50 p-3 text-left">
-                                <p class="flex items-center gap-1.5 text-sm font-semibold text-indigo-900 dark:text-indigo-300">
+                            <div class="mt-4 rounded-lg border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E]/5 dark:bg-[#112A46]/50 p-3 text-left">
+                                <p class="flex items-center gap-1.5 text-sm font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
                                     </svg>
-                                    You have been invited
+                                    @Loc["Chat_InvitedToGroup"]
                                 </p>
-                                <p class="mt-1 text-xs leading-relaxed text-indigo-800 dark:text-indigo-400">
-                                    @InviterDisplayName invited you to this group. Accept the invitation and pay the one-time fee below to take part.
+                                <p class="mt-1 text-xs leading-relaxed text-[#475569] dark:text-[#C4D2E1]">
+                                    @string.Format(Loc["Chat_InvitedToGroupDesc"], InviterDisplayName)
                                 </p>
                             </div>
                         }
 
                         @if (activeThread.RequiresPayment)
                         {
-                            <div class="mt-4 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/40 p-3 text-left">
-                                <p class="flex items-center gap-1.5 text-sm font-semibold text-amber-900 dark:text-amber-300">
+                            <div class="mt-4 rounded-lg border border-amber-200 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-950/40 p-3 text-left">
+                                <p class="flex items-center gap-1.5 text-sm font-semibold text-amber-900 dark:text-amber-400">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                                     </svg>
-                                    Paid group · @activeThread.FeeLinkDrops drops
+                                    @string.Format(Loc["Chat_PaidGroupFee"], activeThread.FeeLinkDrops)
                                 </p>
-                                <p class="mt-1 text-xs leading-relaxed text-amber-800 dark:text-amber-400">
-                                    One-time payment to join this group.
+                                <p class="mt-1 text-xs leading-relaxed text-amber-800 dark:text-amber-300">
+                                    @Loc["Chat_OneTimePaymentJoin"]
                                 </p>
                             </div>
                         }
                         else
                         {
-                            <div class="mt-4 rounded-lg border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-left">
-                                <p class="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Free to join</p>
-                                <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-400">Anyone can join this group at no cost.</p>
+                            <div class="mt-4 rounded-lg border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-left">
+                                <p class="text-sm font-semibold text-emerald-800 dark:text-[#34D399]">@Loc["Chat_FreeToJoin"]</p>
+                                <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-300">@Loc["Chat_FreeToJoinDesc"]</p>
                             </div>
                         }
 
                         <button type="button"
                                 @onclick="JoinGroupAsync"
                                 disabled="@isActionSubmitting"
-                                class="mt-5 w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="mt-5 w-full rounded-lg bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:hover:bg-white text-white dark:text-[#0A1B2E] px-4 py-2.5 text-xs font-bold transition disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:ring-offset-2 cursor-pointer active:scale-[0.98]">
                             @(isActionSubmitting
-                                ? "Working…"
+                                ? Loc["Chat_Working"]
                                 : activeThread.IsInvited
-                                    ? $"Accept invitation · {activeThread.FeeLinkDrops} drops"
+                                    ? string.Format(Loc["Chat_AcceptInvitationDrops"], activeThread.FeeLinkDrops)
                                     : activeThread.RequiresPayment
-                                        ? $"Join for {activeThread.FeeLinkDrops} drops"
-                                        : "Join group")
+                                        ? string.Format(Loc["Chat_JoinForDrops"], activeThread.FeeLinkDrops)
+                                        : Loc["Chat_JoinGroup"])
                         </button>
 
                         @if (activeThread.IsInvited)
@@ -178,8 +180,8 @@
                             <button type="button"
                                     @onclick="DeclineGroupInviteAsync"
                                     disabled="@isActionSubmitting"
-                                    class="mt-2.5 w-full rounded-lg border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#1B3B5A] px-4 py-2 text-xs font-semibold text-slate-700 dark:text-[#E1E8F0] transition hover:bg-slate-50 dark:hover:bg-[#1B3B5A]/80 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-slate-300">
-                                Decline invitation
+                                    class="mt-2.5 w-full rounded-lg border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-4 py-2 text-xs font-semibold text-[#475569] dark:text-[#E1E2EC] transition hover:bg-slate-50 dark:hover:bg-[#1D263B] disabled:opacity-50 focus:outline-none cursor-pointer">
+                                @Loc["Chat_DeclineInvitation"]
                             </button>
                         }
                     </div>
@@ -189,23 +191,23 @@
             {
                 @* Locked 1:1: the payment prompt appears before the first send, not after a 403. *@
                 <div class="flex min-h-0 flex-1 flex-col items-center justify-center px-6 text-center">
-                    <div class="max-w-md rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46] p-6">
+                    <div class="max-w-md rounded-xl border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#111622] p-6 shadow-xs">
                         <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-950/50">
                             <svg class="h-7 w-7 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                             </svg>
                         </span>
-                        <h2 class="mt-4 text-base font-semibold text-slate-900 dark:text-[#E1E8F0]">This is a paid conversation</h2>
-                        <p class="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-[#C4D2E1]">
-                            @activeThread.Title requires a one-time payment of <span class="font-semibold text-slate-900 dark:text-[#E1E8F0]">@activeThread.FeeLinkDrops LinkDrops</span> before you can send messages.
+                        <h2 class="mt-4 text-base font-semibold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Chat_PaidConversation"]</h2>
+                        <p class="mt-1.5 text-xs leading-relaxed text-[#475569] dark:text-[#94A3B8]">
+                            @((MarkupString)string.Format(Loc["Chat_PaidConversationPrompt"], activeThread.Title, $"<span class=\"font-bold text-[#0F172A] dark:text-[#E1E2EC] font-mono\">{activeThread.FeeLinkDrops} LinkDrops</span>"))
                         </p>
                         <button type="button"
                                 @onclick="OpenUnlockModal"
                                 disabled="@isActionSubmitting"
-                                class="mt-5 w-full rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
-                            @(isActionSubmitting ? "Working…" : $"Unlock for {activeThread.FeeLinkDrops} drops")
+                                class="mt-5 w-full rounded-lg bg-[#0F172A] hover:bg-[#1E293B] dark:bg-[#E1E8F0] dark:hover:bg-white text-white dark:text-[#0A1B2E] px-4 py-2.5 text-xs font-bold transition disabled:opacity-50 focus:outline-none cursor-pointer active:scale-[0.98]">
+                            @(isActionSubmitting ? Loc["Chat_Working"] : string.Format(Loc["Chat_UnlockForDrops"], activeThread.FeeLinkDrops))
                         </button>
-                        <a href="/link-drops" class="mt-3 inline-block text-xs font-medium text-indigo-600 hover:text-indigo-700">Need more drops? Buy them here</a>
+                        <a href="/link-drops" class="mt-3 inline-block text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:underline">@Loc["Chat_NeedMoreDrops"]</a>
                     </div>
                 </div>
             }
@@ -224,9 +226,10 @@
 
                 @if (activeThread.IsDirect && activeThread.IsBlockedByMe)
                 {
-                    <div class="border-t border-rose-200 bg-rose-50 px-4 py-4 text-center select-none">
-                        <p class="text-xs font-semibold text-rose-700">
-                            🚫 You have blocked this user. Unblock them to send messages.
+                    <div class="border-t border-rose-200 dark:border-rose-950/50 bg-rose-50 dark:bg-rose-950/30 px-4 py-3 text-center select-none">
+                        <p class="text-xs font-semibold text-rose-700 dark:text-[#FFB4AB] flex items-center justify-center gap-1.5">
+                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 14.14 14.14"/></svg>
+                            <span>@Loc["Chat_BlockedUserWarning"]</span>
                         </p>
                     </div>
                 }
@@ -288,7 +291,7 @@
 <UnlockChatModal IsOpen="showUnlockModal"
                  IsGroupUnlock="@(activeThread?.IsGroup ?? false)"
                  SubjectName="@(activeThread?.Title ?? string.Empty)"
-                 SubjectSubtitle="@(activeThread?.IsGroup == true ? $"{activeThread?.Subtitle} · by {activeThread?.CreatorName}" : activeThread?.Subtitle)"
+                 SubjectSubtitle="@(activeThread?.IsGroup == true ? $"{activeThread?.Subtitle} · {string.Format(Loc["Chat_ByCreator"], activeThread?.CreatorName)}" : activeThread?.Subtitle)"
                  AvatarUrl="activeThread?.AvatarUrl"
                  FeeLinkDrops="@(activeThread?.FeeLinkDrops ?? 0)"
                  Balance="walletBalance"
@@ -362,11 +365,11 @@
     private bool _eventsWired;
     private int? _deletingGroupId;
 
-    private string? TypingSenderName => typingSenderName ?? (typingSenderId.HasValue ? "Someone" : null);
+    private string? TypingSenderName => typingSenderName ?? (typingSenderId.HasValue ? Loc["Chat_Someone"].Value : null);
 
     private string ComposerPlaceholder => activeThread?.IsGroup == true
-        ? $"Message {activeThread.Title}"
-        : "Write a message...";
+        ? string.Format(Loc["Chat_ComposerPlaceholderGroup"], activeThread.Title)
+        : Loc["Chat_ComposerPlaceholderDirect"];
 
     private long CommissionAmount => (long)Math.Round(
         (activeThread?.FeeLinkDrops ?? 0) * ((activeThread?.CommissionPercentage ?? 0m) / 100m),
@@ -378,21 +381,21 @@
     // the InvitedByName field being populated.
     private string InviterDisplayName =>
         string.IsNullOrWhiteSpace(activeThread?.InvitedByName)
-            ? activeThread?.CreatorName ?? "The group owner"
+            ? activeThread?.CreatorName ?? Loc["Chat_TheGroupOwner"]
             : activeThread!.InvitedByName!;
 
     private string EmptyTitle => activeSegment switch
     {
-        "direct" => "No direct messages yet",
-        "group" => "You haven't joined any groups",
-        _ => allThreads.Count == 0 ? "No conversations yet" : "Nothing matches your filter"
+        "direct" => Loc["Chat_EmptyTitleDirect"],
+        "group" => Loc["Chat_EmptyTitleGroup"],
+        _ => allThreads.Count == 0 ? Loc["Chat_EmptyTitleNoConversations"] : Loc["Chat_EmptyTitleFilterEmpty"]
     };
 
     private string EmptyDescription => activeSegment switch
     {
-        "direct" => "Start a chat from any member's profile.",
-        "group" => "Browse Discover to find groups you can join.",
-        _ => "Start a chat from a member's profile, or discover a group."
+        "direct" => Loc["Chat_EmptyDescDirect"],
+        "group" => Loc["Chat_EmptyDescGroup"],
+        _ => Loc["Chat_EmptyDescDefault"]
     };
 
     // Rebuilt on render, but off a small list, so a HashSet beats a per-row scan.
@@ -458,6 +461,8 @@
         {
             currentUserId = parsedId;
         }
+
+        placeholderThread.Title = Loc["Chat_Conversation"];
 
         isPremiumCreator = HasPremiumRole(user);
 
@@ -688,7 +693,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
                 {
                     Type = ChatThreadType.Group,
                     Id = ThreadQuery.Value,
-                    Title = "Chat Group",
+                    Title = Loc["Chat_ChatGroup"],
                     IsBanned = true,
                     IsJoined = false
                 };
@@ -696,11 +701,11 @@ Realtime.GroupDeleted -= OnGroupDeleted;
                 return;
             }
 
-            Toast.Error("That chat group could not be found.");
+            Toast.Error(Loc["Chat_Toast_GroupNotFound"]);
         }
         else
         {
-            Toast.Error("That conversation could not be found.");
+            Toast.Error(Loc["Chat_Toast_ConversationNotFound"]);
         }
 
         activeThread = null;
@@ -936,7 +941,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
                 }
                 else
                 {
-                    Toast.Error(res.Message ?? "Message could not be sent.");
+                    Toast.Error(res.Message ?? Loc["Chat_Toast_MessageSendFailed"]);
                 }
             }
             else
@@ -962,7 +967,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
                 }
                 else
                 {
-                    Toast.Error(res.Message ?? "Message could not be sent.");
+                    Toast.Error(res.Message ?? Loc["Chat_Toast_MessageSendFailed"]);
                 }
             }
 
@@ -989,12 +994,12 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         if (res.IsSuccess)
         {
             messages = messages.Where(m => m.Id != msg.Id).ToList();
-            Toast.Success("Message deleted for you.");
+            Toast.Success(Loc["Chat_Toast_MessageDeletedForYou"]);
             StateHasChanged();
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not delete message for you.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotDeleteForYou"]);
         }
     }
 
@@ -1021,12 +1026,12 @@ Realtime.GroupDeleted -= OnGroupDeleted;
                 messages = messages.Select(m => m.WithPinnedState(false)).ToList();
             }
 
-            Toast.Success("Message deleted for everyone.");
+            Toast.Success(Loc["Chat_Toast_MessageDeletedEveryone"]);
             StateHasChanged();
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not delete message for everyone.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotDeleteEveryone"]);
         }
     }
 
@@ -1043,11 +1048,11 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             // Applied locally as well as broadcast: the acting client must not wait on the hub
             // round trip to see its own change.
             ApplyPinnedMessage(res.Data);
-            Toast.Success("Message pinned.");
+            Toast.Success(Loc["Chat_Toast_MessagePinned"]);
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not pin message.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotPin"]);
         }
 
         StateHasChanged();
@@ -1064,11 +1069,11 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         if (res.IsSuccess)
         {
             ApplyPinnedMessage(null);
-            Toast.Success("Message unpinned.");
+            Toast.Success(Loc["Chat_Toast_MessageUnpinned"]);
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not unpin message.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotUnpin"]);
         }
 
         StateHasChanged();
@@ -1105,7 +1110,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not update reaction.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotUpdateReaction"]);
         }
     }
 
@@ -1228,12 +1233,12 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         if (res.IsSuccess)
         {
             isCurrentGroupMuted = !isCurrentGroupMuted;
-            Toast.Success(isCurrentGroupMuted ? "Group notifications muted." : "Group notifications enabled.");
+            Toast.Success(isCurrentGroupMuted ? Loc["Chat_Toast_GroupMuted"] : Loc["Chat_Toast_GroupUnmuted"]);
             await LoadGroupMembersAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not toggle mute state.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotToggleMute"]);
         }
         StateHasChanged();
     }
@@ -1250,12 +1255,12 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (res.IsSuccess)
         {
-            Toast.Success($"Promoted {member.DisplayName ?? member.UserName} to Admin.");
+            Toast.Success(string.Format(Loc["Chat_Toast_PromotedToAdmin"], member.DisplayName ?? member.UserName));
             await LoadGroupMembersAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not promote member.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotPromote"]);
         }
         StateHasChanged();
     }
@@ -1272,12 +1277,12 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (res.IsSuccess)
         {
-            Toast.Success($"Updated permissions for {arg.Member.DisplayName ?? arg.Member.UserName}.");
+            Toast.Success(string.Format(Loc["Chat_Toast_UpdatedPermissions"], arg.Member.DisplayName ?? arg.Member.UserName));
             await LoadGroupMembersAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not update permissions.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotUpdatePermissions"]);
         }
         StateHasChanged();
     }
@@ -1294,12 +1299,12 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (res.IsSuccess)
         {
-            Toast.Success($"Demoted {member.DisplayName ?? member.UserName} to Member.");
+            Toast.Success(string.Format(Loc["Chat_Toast_DemotedToMember"], member.DisplayName ?? member.UserName));
             await LoadGroupMembersAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not demote admin.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotDemote"]);
         }
         StateHasChanged();
     }
@@ -1316,12 +1321,12 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (res.IsSuccess)
         {
-            Toast.Success($"Removed {member.DisplayName ?? member.UserName} from group.");
+            Toast.Success(string.Format(Loc["Chat_Toast_RemovedFromGroup"], member.DisplayName ?? member.UserName));
             await LoadGroupMembersAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not remove member.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotRemove"]);
         }
         StateHasChanged();
     }
@@ -1338,12 +1343,12 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (res.IsSuccess)
         {
-            Toast.Success($"Banned {member.DisplayName ?? member.UserName}.");
+            Toast.Success(string.Format(Loc["Chat_Toast_BannedMember"], member.DisplayName ?? member.UserName));
             await LoadGroupMembersAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not ban member.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotBan"]);
         }
         StateHasChanged();
     }
@@ -1372,8 +1377,8 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         if (res.IsSuccess)
         {
             Toast.Success(isPaidInvite
-                ? $"Invitation sent. They must unlock the group for {activeThread.FeeLinkDrops} drops to join."
-                : "Member added.");
+                ? string.Format(Loc["Chat_Toast_InviteSentPaid"], activeThread.FeeLinkDrops)
+                : Loc["Chat_Toast_MemberAdded"]);
 
             if (isPaidInvite)
             {
@@ -1388,7 +1393,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             return true;
         }
 
-        Toast.Error(res.Message ?? "Could not add member.");
+        Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotAddMember"]);
         StateHasChanged();
         return false;
     }
@@ -1410,7 +1415,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (res.IsSuccess)
         {
-            Toast.Success("Invitation declined.");
+            Toast.Success(Loc["Chat_Toast_InviteDeclined"]);
             showUnlockModal = false;
             showInfo = false;
             // The group is gone from this viewer's list, so the open thread is closed out and the
@@ -1425,7 +1430,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not decline the invitation.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotDeclineInvite"]);
         }
 
         StateHasChanged();
@@ -1443,12 +1448,12 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (res.IsSuccess)
         {
-            Toast.Success("Invitation revoked.");
+            Toast.Success(Loc["Chat_Toast_InviteRevoked"]);
             await LoadGroupInvitationsAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not revoke the invitation.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotRevokeInvite"]);
         }
 
         StateHasChanged();
@@ -1513,7 +1518,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (res.IsSuccess)
         {
-            Toast.Success("The group was deleted.");
+            Toast.Success(Loc["Chat_Toast_GroupDeleted"]);
             showInfo = false;
             await Realtime.LeaveGroupRoomAsync(chatGroupId);
             activeThread = null;
@@ -1523,7 +1528,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not delete the group.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotDeleteGroup"]);
         }
         StateHasChanged();
     }
@@ -1552,7 +1557,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (res.IsSuccess)
         {
-            Toast.Success($"You joined {activeThread.Title}.");
+            Toast.Success(string.Format(Loc["Chat_Toast_JoinedGroup"], activeThread.Title));
             await LoadThreadsAsync();
             var refreshed = allThreads.FirstOrDefault(t => t.IsGroup && t.Id == activeThread.Id);
             if (refreshed is not null)
@@ -1568,7 +1573,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not join this group.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotJoinGroup"]);
         }
 
         StateHasChanged();
@@ -1589,7 +1594,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (res.IsSuccess)
         {
-            Toast.Success("You left the group.");
+            Toast.Success(Loc["Chat_Toast_LeftGroup"]);
             showInfo = false;
             await LoadThreadsAsync();
             activeThread = null;
@@ -1598,7 +1603,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         }
         else
         {
-            Toast.Error(res.Message ?? "Could not leave this group.");
+            Toast.Error(res.Message ?? Loc["Chat_Toast_CouldNotLeaveGroup"]);
         }
 
         StateHasChanged();
@@ -1644,7 +1649,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             if (res.IsSuccess)
             {
                 showUnlockModal = false;
-                Toast.Success($"You joined {thread.Title}.");
+                Toast.Success(string.Format(Loc["Chat_Toast_JoinedGroup"], thread.Title));
                 await LoadWalletAsync();
                 await LoadThreadsAsync();
 
@@ -1662,7 +1667,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             }
             else
             {
-                unlockError = res.Message ?? "The payment could not be completed.";
+                unlockError = res.Message ?? Loc["Chat_PaymentCouldNotBeCompleted"];
             }
         }
         else
@@ -1671,7 +1676,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             if (creatorUserId == 0)
             {
                 isActionSubmitting = false;
-                unlockError = "This conversation has no payment target.";
+                unlockError = Loc["Chat_NoPaymentTarget"];
                 return;
             }
 
@@ -1681,7 +1686,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             if (res.IsSuccess)
             {
                 showUnlockModal = false;
-                Toast.Success("Conversation unlocked. You can now send messages.");
+                Toast.Success(Loc["Chat_Toast_UnlockedSuccess"]);
                 await LoadWalletAsync();
                 await LoadThreadsAsync();
 
@@ -1704,7 +1709,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             }
             else
             {
-                unlockError = res.Message ?? "The payment could not be completed.";
+                unlockError = res.Message ?? Loc["Chat_PaymentCouldNotBeCompleted"];
             }
         }
 
@@ -1739,7 +1744,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
     {
         showCreateGroup = false;
         _handledRoute = null;
-        Toast.Success($"“{group.Name}” is live. Share it to start the conversation.");
+        Toast.Success(string.Format(Loc["Chat_Toast_GroupLive"], group.Name));
         await LoadThreadsAsync();
         await ActivateThreadAsync(group.ToThread());
     }
@@ -1921,11 +1926,11 @@ Realtime.GroupDeleted -= OnGroupDeleted;
                 if (res.IsSuccess)
                 {
                     activeThread.IsBlockedByMe = false;
-                    Toast.Success("User unblocked successfully.");
+                    Toast.Success(Loc["Chat_Toast_UserUnblocked"]);
                 }
                 else
                 {
-                    Toast.Error(res.Message ?? "Failed to unblock user.");
+                    Toast.Error(res.Message ?? Loc["Chat_Toast_FailedUnblock"]);
                 }
             }
             else
@@ -1934,17 +1939,17 @@ Realtime.GroupDeleted -= OnGroupDeleted;
                 if (res.IsSuccess)
                 {
                     activeThread.IsBlockedByMe = true;
-                    Toast.Success("User blocked successfully.");
+                    Toast.Success(Loc["Chat_Toast_UserBlocked"]);
                 }
                 else
                 {
-                    Toast.Error(res.Message ?? "Failed to block user.");
+                    Toast.Error(res.Message ?? Loc["Chat_Toast_FailedBlock"]);
                 }
             }
         }
         catch (Exception ex)
         {
-            Toast.Error($"An error occurred: {ex.Message}");
+            Toast.Error(string.Format(Loc["Chat_Toast_AnErrorOccurred"], ex.Message));
         }
         finally
         {
@@ -1966,7 +1971,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
                 var res = await ChatApi.DeleteConversationForSelfAsync(activeThread.Id);
                 if (!res.IsSuccess)
                 {
-                    Toast.Error(res.Message ?? "Failed to delete chat.");
+                    Toast.Error(res.Message ?? Loc["Chat_Toast_FailedDeleteChat"]);
                     return;
                 }
             }
@@ -1975,11 +1980,11 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             activeThread = null;
             messages = Array.Empty<ChatMessageViewModel>();
             showInfo = false;
-            Toast.Success("Chat deleted.");
+            Toast.Success(Loc["Chat_Toast_ChatDeleted"]);
         }
         catch (Exception ex)
         {
-            Toast.Error($"An error occurred: {ex.Message}");
+            Toast.Error(string.Format(Loc["Chat_Toast_AnErrorOccurred"], ex.Message));
         }
         finally
         {
@@ -1999,9 +2004,9 @@ Realtime.GroupDeleted -= OnGroupDeleted;
                     const el = document.getElementById('msg-{messageId}');
                     if (el) {{
                         el.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
-                        el.classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50', 'rounded-lg');
+                        el.classList.add('ring-2', 'ring-[#0A1B2E]', 'bg-[#0A1B2E]/10', 'rounded-lg');
                         setTimeout(() => {{
-                            el.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50', 'rounded-lg');
+                            el.classList.remove('ring-2', 'ring-[#0A1B2E]', 'bg-[#0A1B2E]/10', 'rounded-lg');
                         }}, 2500);
                     }}
                 }})();
@@ -2062,7 +2067,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             {
                 typingSenderId = senderId;
                 typingSenderName = activeThread.Title;
-                typingStatusText = "typing...";
+                typingStatusText = Loc["Chat_TypingDirect"];
                 typingResetTimer = new System.Threading.Timer(_ =>
                 {
                     typingStatusText = null;
@@ -2090,12 +2095,12 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             if (isTyping)
             {
                 var member = groupMembers.FirstOrDefault(m => m.UserId == senderId);
-                var fullName = member?.DisplayName ?? member?.UserName ?? "Someone";
+                var fullName = member?.DisplayName ?? member?.UserName ?? Loc["Chat_Someone"];
                 var frontName = fullName.Split(' ', System.StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? fullName;
 
                 typingSenderId = senderId;
                 typingSenderName = fullName;
-                typingStatusText = $"{frontName} is typing...";
+                typingStatusText = string.Format(Loc["Chat_TypingGroup"], frontName);
                 typingResetTimer = new System.Threading.Timer(_ =>
                 {
                     typingStatusText = null;
@@ -2154,7 +2159,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             activeThread.Description = group.Description;
             // Subtitle is the "N members" line shown next to the creator name, not the
             // description, so it has to be recomputed from the new count.
-            activeThread.Subtitle = group.MemberCount + (group.MemberCount == 1 ? " member" : " members");
+            activeThread.Subtitle = $"{group.MemberCount} {(group.MemberCount == 1 ? Loc["Chat_MemberSingle"] : Loc["Chat_MembersPlural"])}";
             activeThread.MemberCount = group.MemberCount;
             activeThread.FeeLinkDrops = group.JoinFeeLinkDrops;
             // ChatType drives the paid badge, matching the mapper: a PAID group can carry a
@@ -2194,7 +2199,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         }
 
         await LoadThreadsAsync();
-        Toast.Info("This Chat Group was deleted by its owner.");
+        Toast.Info(Loc["Chat_Toast_GroupDeletedByOwner"]);
     }
 
     private async Task OnGroupMemberRemoved(int chatGroupId, int userId)
@@ -2211,7 +2216,7 @@ Realtime.GroupDeleted -= OnGroupDeleted;
                 messages = Array.Empty<ChatMessageViewModel>();
                 pinnedMessage = null;
                 await Realtime.LeaveGroupRoomAsync(chatGroupId);
-                Toast.Info("You were removed from this Chat Group.");
+                Toast.Info(Loc["Chat_Toast_RemovedFromChatGroup"]);
             }
             else
             {

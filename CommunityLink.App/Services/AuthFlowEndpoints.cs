@@ -32,7 +32,16 @@ public static class AuthFlowEndpoints
                 fullName, userName, email, password, Bio: null, ConfirmPassword: confirmPassword));
 
             if (!result.IsSuccess || result.Data is null)
-                return RedirectWithError("/register", result.Message);
+            {
+                var qs = new Dictionary<string, string?>
+                {
+                    ["error"] = result.Message,
+                    ["fullName"] = fullName,
+                    ["userName"] = userName,
+                    ["email"] = email
+                };
+                return RedirectWithQuery("/register", qs);
+            }
 
             return Results.Redirect("/login");
         }).DisableAntiforgery();
@@ -48,7 +57,14 @@ public static class AuthFlowEndpoints
         {
             var result = await authApi.LoginAdminAsync(new LoginRequestModel(email, password, rememberMe == true, IsAdmin: true));
             if (!result.IsSuccess || result.Data is null)
-                return RedirectWithError("/admin/portal-entry/login", result.Message);
+            {
+                var qs = new Dictionary<string, string?>
+                {
+                    ["error"] = result.Message,
+                    ["email"] = email
+                };
+                return RedirectWithQuery("/admin/portal-entry/login", qs);
+            }
 
             await sessions.SignInAsync(result.Data, rememberMe == true);
             return Results.Redirect("/admin/dashboard");
@@ -81,7 +97,18 @@ public static class AuthFlowEndpoints
         var result = await authApi.LoginAsync(new LoginRequestModel(email, password, rememberMe));
 
         if (!result.IsSuccess || result.Data is null)
-            return RedirectWithError(loginPath, result.Message);
+        {
+            var qs = new Dictionary<string, string?>
+            {
+                ["error"] = result.Message,
+                ["email"] = email
+            };
+            if (!string.IsNullOrWhiteSpace(returnUrl))
+            {
+                qs["returnUrl"] = returnUrl;
+            }
+            return RedirectWithQuery(loginPath, qs);
+        }
 
         await sessions.SignInAsync(result.Data, rememberMe);
         
@@ -96,6 +123,12 @@ public static class AuthFlowEndpoints
     private static bool IsLocalUrl(string? url) =>
         url != null && url.StartsWith("/") && !url.StartsWith("//") && !url.StartsWith("/\\");
 
-    private static IResult RedirectWithError(string path, string message) =>
-        Results.Redirect($"{path}?error={Uri.EscapeDataString(message)}");
+    private static IResult RedirectWithQuery(string path, IDictionary<string, string?> queryParams)
+    {
+        var items = queryParams
+            .Where(kv => !string.IsNullOrEmpty(kv.Value))
+            .Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value!)}");
+        var queryString = string.Join("&", items);
+        return Results.Redirect(string.IsNullOrEmpty(queryString) ? path : $"{path}?{queryString}");
+    }
 }

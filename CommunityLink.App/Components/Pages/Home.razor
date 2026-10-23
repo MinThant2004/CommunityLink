@@ -13,10 +13,12 @@
 @inject IWebHostEnvironment Environment
 @inject UserProfileApiService ProfileApi
 @inject LinkDropApiService LinkDropApi
+@inject IStringLocalizer<AppResources> Loc
 @using System.IO
 @using System.Text.Json
+@using System.Globalization
 
-<PageTitle>Ecosystem Home — CommunityLink</PageTitle>
+<PageTitle>@Loc["Home_PageTitle"]</PageTitle>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
@@ -734,8 +736,8 @@
 {
     <div class="bg-surface-container-low p-12 text-center my-6 max-w-lg mx-auto rounded-xl shadow-md border border-white/5">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-3 border-secondary border-t-transparent"></div>
-        <h3 class="font-title-lg text-title-lg text-on-surface font-bold mt-4">Synchronizing Workspace</h3>
-        <p class="font-body-sm text-body-sm text-outline mt-1">Loading ecosystem feeds, community channels, and updates...</p>
+        <h3 class="font-title-lg text-title-lg text-on-surface font-bold mt-4">@Loc["Home_Workspace_SyncTitle"]</h3>
+        <p class="font-body-sm text-body-sm text-outline mt-1">@Loc["Home_Workspace_SyncDesc"]</p>
     </div>
 }
 else if (!string.IsNullOrEmpty(errorMessage))
@@ -746,12 +748,12 @@ else if (!string.IsNullOrEmpty(errorMessage))
                 <span class="material-symbols-outlined text-[18px]">warning</span>
             </span>
             <div>
-                <h3 class="font-title-md text-title-md font-bold text-error">Unable to synchronize workspace</h3>
+                <h3 class="font-title-md text-title-md font-bold text-error">@Loc["Home_Feed_SyncErrorTitle"]</h3>
                 <p class="font-body-sm text-body-sm text-error/80 mt-0.5">@errorMessage</p>
             </div>
         </div>
         <button @onclick="LoadDashboardAsync" class="px-space-md py-1 rounded-lg bg-surface-container-highest text-on-surface font-label-md text-label-md font-bold hover:opacity-95 shadow-xs">
-            Retry Sync
+            @Loc["Home_Feed_RetrySync"]
         </button>
     </div>
 }
@@ -772,18 +774,19 @@ else if (dashboard != null)
                 <div class="flex items-center gap-1 p-0.5 bg-surface-container-low rounded-lg">
                     <button type="button" id="tab-posts" @onclick='() => SetFeedTab("posts")'
                             class="px-3 py-1 rounded-md text-xs font-semibold @(activeFeedTab == "posts" ? "bg-surface-container-high text-primary shadow-xs" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container") transition-all flex items-center gap-1.5 cursor-pointer">
-                        <span>Posts</span>
+                        <span>@Loc["Home_Feed_TabPosts"]</span>
                     </button>
                     <button type="button" id="tab-people" @onclick='() => SetFeedTab("people")'
                             class="px-3 py-1 rounded-md text-xs font-semibold @(activeFeedTab == "people" ? "bg-surface-container-high text-primary shadow-xs" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container") transition-all flex items-center gap-1.5 cursor-pointer">
-                        <span>People</span>
+                        <span>@Loc["Home_Feed_TabPeople"]</span>
                     </button>
+                    
                 </div>
                 <!-- Community Status Indicator -->
                 <div class="flex items-center gap-3.5 flex-wrap text-xs text-on-surface-variant">
                     <div class="flex items-center gap-1 font-mono text-[10.5px]">
                         <span class="material-symbols-outlined text-[14px] text-primary">verified_user</span>
-                        <span>Audited Network</span>
+                        <span>@Loc["Home_Feed_AuditedNetwork"]</span>
                     </div>
                 </div>
             </div>
@@ -805,7 +808,7 @@ else if (dashboard != null)
                                 <div class="relative flex-shrink-0">
                                     @if (!string.IsNullOrWhiteSpace(dashboard.Profile?.AvatarUrl))
                                     {
-                                        <img src="@dashboard.Profile.AvatarUrl" alt="Your profile" class="w-9 h-9 rounded-full object-cover ring-1 ring-white/10" />
+                                        <img src="@dashboard.Profile.AvatarUrl" alt="@Loc["Home_Composer_AvatarAlt"]" class="w-9 h-9 rounded-full object-cover ring-1 ring-white/10" />
                                     }
                                     else
                                     {
@@ -818,7 +821,7 @@ else if (dashboard != null)
                                 </div>
                                 <div class="flex-1 bg-surface-container-lowest hover:bg-surface-container px-3.5 py-2 rounded-lg cursor-pointer transition-colors shadow-2xs flex items-center justify-between border border-white/5"
                                      @onclick="OpenCreatePostModal">
-                                    <span class="text-xs text-outline select-none">Share an update, technical insight, or question...</span>
+                                    <span class="text-xs text-outline select-none">@Loc["Home_Composer_Prompt"]</span>
                                     <span class="material-symbols-outlined text-outline text-[16px]">edit_note</span>
                                 </div>
                             </div>
@@ -828,17 +831,17 @@ else if (dashboard != null)
                                     <button type="button" @onclick="OpenCreatePostModal"
                                             class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-xs font-medium transition-all shadow-2xs cursor-pointer">
                                         <span class="material-symbols-outlined text-secondary text-[15px]">draw</span>
-                                        <span>Post</span>
+                                        <span>@Loc["Home_Composer_ActionPost"]</span>
                                     </button>
                                     <button type="button" @onclick="OpenCreatePollModal"
                                             class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-xs font-medium transition-all shadow-2xs cursor-pointer">
                                         <span class="material-symbols-outlined text-secondary text-[15px]">poll</span>
-                                        <span>Poll</span>
+                                        <span>@Loc["Home_Composer_ActionPoll"]</span>
                                     </button>
                                 </div>
                                 <button type="button" @onclick="OpenCreatePostModal"
                                         class="px-3 py-1 rounded-md bg-surface-container-highest hover:bg-surface-container-high text-on-surface text-xs font-semibold tracking-wide shadow-xs flex items-center gap-1 transition-transform active:scale-95 cursor-pointer">
-                                    <span>Create</span>
+                                    <span>@Loc["Home_Composer_ActionCreate"]</span>
                                     <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
                                 </button>
                             </div>
@@ -852,8 +855,8 @@ else if (dashboard != null)
                                 <span class="w-10 h-10 rounded-lg bg-surface-container text-secondary flex items-center justify-center">
                                     <span class="material-symbols-outlined text-[20px]">terminal</span>
                                 </span>
-                                <h3 class="text-sm font-bold text-on-surface">No broadcasts published yet</h3>
-                                <p class="text-xs text-outline max-w-sm">Publish your first dispatch or poll above to start the discussion.</p>
+                                <h3 class="text-sm font-bold text-on-surface">@Loc["Home_Feed_EmptyTitle"]</h3>
+                                <p class="text-xs text-outline max-w-sm">@Loc["Home_Feed_EmptyDesc"]</p>
                             </div>
                         }
                         else
@@ -871,10 +874,10 @@ else if (dashboard != null)
                                              class="cursor-pointer bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded-lg p-2.5 flex items-center justify-between text-xs font-bold transition">
                                             <div class="flex items-center gap-2">
                                                 <svg class="w-4 h-4 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                                                <span>Your post got banned</span>
+                                                <span>@Loc["PostUpload_Banned_Title"]</span>
                                             </div>
                                             <span class="text-[11px] underline font-semibold flex items-center gap-1">
-                                                <span>View reason</span>
+                                                <span>@Loc["PostUpload_Post_ViewReason"]</span>
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                             </span>
                                         </div>
@@ -907,11 +910,11 @@ else if (dashboard != null)
                                                     </a>
                                                     @if (post.AuthorRoleCode == "PUBLIC_FIGURE")
                                                     {
-                                                        <span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-on-surface-variant font-mono text-[9px] uppercase font-bold">Lead</span>
+                                                        <span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-on-surface-variant font-mono text-[9px] uppercase font-bold">@Loc["Home_Feed_RoleLead"]</span>
                                                     }
                                                     else if (post.AuthorRoleCode == "DOMAIN_PROFESSIONAL")
                                                     {
-                                                        <span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-on-surface-variant font-mono text-[9px] uppercase font-bold">Pro</span>
+                                                        <span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-on-surface-variant font-mono text-[9px] uppercase font-bold">@Loc["Home_Feed_RolePro"]</span>
                                                     }
                                                 </div>
                                             </div>
@@ -920,15 +923,15 @@ else if (dashboard != null)
                                         <div class="flex items-center gap-1 relative">
                                             @if (post.IsPrivate)
                                             {
-                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1" title="Only you can view this post">
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1" title="@Loc["Home_Feed_PrivateTooltip"]">
                                                     <span class="material-symbols-outlined text-[12px]">lock</span>
-                                                    <span>Private</span>
+                                                    <span>@Loc["PostUpload_Post_BadgePrivate"]</span>
                                                 </span>
                                             }
 
                                             <button type="button" @onclick="() => ToggleSavePost(post.PostId)"
                                                     class="p-1 text-outline hover:text-on-surface rounded-md transition-colors cursor-pointer"
-                                                    title="@(IsPostSaved(post) ? "Unsave" : "Save")">
+                                                    title="@(IsPostSaved(post) ? Loc["Home_Feed_UnsaveTooltip"] : Loc["Home_Feed_SaveTooltip"])">
                                                 <span class="material-symbols-outlined text-[18px] @(IsPostSaved(post) ? "text-blue-600 dark:text-blue-400" : "")">
                                                     @(IsPostSaved(post) ? "bookmark" : "bookmark_border")
                                                 </span>
@@ -938,7 +941,7 @@ else if (dashboard != null)
                                             <div class="relative">
                                                 <button type="button" @onclick="() => TogglePostMenu(post.PostId)"
                                                         class="p-1 text-outline hover:text-on-surface rounded-md transition-colors cursor-pointer"
-                                                        title="More options">
+                                                        title="@Loc["Home_Feed_MoreOptions"]">
                                                     <span class="material-symbols-outlined text-[18px]">more_vert</span>
                                                 </button>
 
@@ -948,7 +951,7 @@ else if (dashboard != null)
                                                         <button type="button" @onclick='() => OpenReportModal(post.PostId, "POST")'
                                                                 class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-2 cursor-pointer">
                                                             <span class="material-symbols-outlined text-[16px] text-rose-500">flag</span>
-                                                            <span>Report Post</span>
+                                                            <span>@Loc["PostUpload_Post_Report"]</span>
                                                         </button>
 
                                                         @if (currentUserId.HasValue && post.AuthorId == currentUserId.Value)
@@ -956,17 +959,17 @@ else if (dashboard != null)
                                                             <button type="button" @onclick="() => TogglePostPrivacyAsync(post)"
                                                                     class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-on-surface hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center gap-2 cursor-pointer">
                                                                 <span class="material-symbols-outlined text-[16px] text-amber-500">@(post.IsPrivate ? "public" : "lock")</span>
-                                                                <span>@(post.IsPrivate ? "Make Public" : "Make Private")</span>
+                                                                <span>@(post.IsPrivate ? Loc["PostUpload_Post_MakePublic"] : Loc["PostUpload_Post_MakePrivate"])</span>
                                                             </button>
                                                             <button type="button" @onclick="() => OpenEditPost(post)"
                                                                     class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-on-surface hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center gap-2 cursor-pointer">
                                                                 <span class="material-symbols-outlined text-[16px]">edit</span>
-                                                                <span>Edit Post</span>
+                                                                <span>@Loc["PostUpload_Post_Edit"]</span>
                                                             </button>
                                                             <button type="button" @onclick="() => PromptRecyclePost(post.PostId)"
                                                                     class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition flex items-center gap-2 cursor-pointer">
                                                                 <span class="material-symbols-outlined text-[16px]">delete</span>
-                                                                <span>Recycle Post</span>
+                                                                <span>@Loc["PostUpload_Post_Recycle"]</span>
                                                             </button>
                                                         }
                                                     </div>
@@ -989,7 +992,7 @@ else if (dashboard != null)
                                                 <div class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-100 dark:bg-slate-900/60 text-slate-600 dark:text-slate-300">
                                                     <span class="material-symbols-outlined text-amber-500 text-[20px] shrink-0 mt-0.5">lock_clock</span>
                                                     <div class="text-xs">
-                                                        <div class="font-bold text-[#0A1B2E] dark:text-white">This content isn't available right now</div>
+                                                        <div class="font-bold text-[#0A1B2E] dark:text-white">@Loc["Home_Feed_ContentUnavailableTitle"]</div>
                                                         <div class="text-[11px] text-[#7A8CA6] mt-0.5 leading-relaxed">
                                                             @post.OriginalPost.Content
                                                         </div>
@@ -1013,7 +1016,7 @@ else if (dashboard != null)
                                                 @if (post.OriginalPost.ImageUrls != null && post.OriginalPost.ImageUrls.Any())
                                                 {
                                                     <div class="rounded-lg overflow-hidden border border-white/5 bg-black/20 mt-2">
-                                                        <img src="@post.OriginalPost.ImageUrls[0]" alt="Shared attachment" class="w-full max-h-64 object-cover" />
+                                                        <img src="@post.OriginalPost.ImageUrls[0]" alt="@Loc["Home_Feed_SharedAttachmentAlt"]" class="w-full max-h-64 object-cover" />
                                                     </div>
                                                 }
                                             }
@@ -1047,6 +1050,11 @@ else if (dashboard != null)
                                                         </button>
                                                     }
                                                 </div>
+                                                <button type="button" class="flex items-center gap-1 text-[11px] text-outline hover:text-on-surface transition-colors cursor-pointer"
+                                                        @onclick="() => CopyCodeSnippetAsync(post.CodeSnippet)">
+                                                    <span class="material-symbols-outlined text-[13px]">content_copy</span>
+                                                    <span>@Loc["Home_Feed_CopyCode"]</span>
+                                                </button>
                                             </div>
                                         }
                                         else
@@ -1082,9 +1090,9 @@ else if (dashboard != null)
                                             <!-- Carousel Images Track -->
                                             <div class="w-full h-48 sm:h-60 flex transition-transform duration-500 ease-out">
                                                 <div class="w-full h-full flex-shrink-0 relative">
-                                                    <img class="w-full h-full object-cover" src="@currentImage" alt="Media attachment @(activeIdx + 1)" />
+                                                    <img class="w-full h-full object-cover" src="@currentImage" alt="@string.Format(CultureInfo.CurrentCulture, Loc["Home_Feed_MediaAttachmentAlt"], activeIdx + 1)" />
                                                     <div class="absolute bottom-2.5 left-3 bg-surface-dim/80 backdrop-blur-md px-2 py-0.5 rounded text-[11px] text-on-surface">
-                                                        @(activeIdx + 1) of @imgCount
+                                                        @string.Format(CultureInfo.CurrentCulture, Loc["Home_Feed_CarouselCounter"], activeIdx + 1, imgCount)
                                                     </div>
                                                 </div>
                                             </div>
@@ -1154,17 +1162,17 @@ else if (dashboard != null)
                                             <div class="flex items-center gap-2 bg-surface-container-lowest p-2 rounded-lg border border-white/5">
                                                 <input type="text" @bind="homeCommentInputs[post.PostId]"
                                                        @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitHomeCommentAsync(post.PostId); })"
-                                                       placeholder="Add a comment or technical inquiry..."
+                                                       placeholder="@Loc["Home_Comments_Placeholder"]"
                                                        class="bg-transparent text-on-surface text-xs w-full focus:outline-none placeholder:text-outline" />
                                                 <button type="button" @onclick="() => SubmitHomeCommentAsync(post.PostId)"
-                                                        class="px-2.5 py-1 bg-surface-container-highest hover:bg-surface-container-high text-on-surface text-xs rounded-md font-semibold cursor-pointer">Post</button>
+                                                        class="px-2.5 py-1 bg-surface-container-highest hover:bg-surface-container-high text-on-surface text-xs rounded-md font-semibold cursor-pointer">@Loc["Home_Comments_PostBtn"]</button>
                                             </div>
 
                                             @if (homeCommentsByPost.TryGetValue(post.PostId, out var commentList) && commentList != null)
                                             {
                                                 @if (commentList.Count == 0)
                                                 {
-                                                    <p class="text-xs text-outline text-center py-1">No comments recorded yet.</p>
+                                                    <p class="text-xs text-outline text-center py-1">@Loc["Home_Comments_Empty"]</p>
                                                 }
                                                 else
                                                 {
@@ -1307,13 +1315,13 @@ else if (dashboard != null)
                             {
                                 <div class="py-4 flex items-center justify-center gap-2 text-on-surface-variant text-xs font-medium">
                                     <div class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                                    <span>Loading more broadcasts...</span>
+                                    <span>@Loc["Home_Feed_LoadingMore"]</span>
                                 </div>
                             }
                             else if (!hasMoreFeedPosts && unifiedFeedItems.Count > 0)
                             {
                                 <div class="py-4 text-center">
-                                    <span class="font-mono text-[11px] text-outline">You've reached the end of the feed</span>
+                                    <span class="font-mono text-[11px] text-outline">@Loc["Home_Feed_EndOfFeed"]</span>
                                 </div>
                             }
 
@@ -1330,10 +1338,10 @@ else if (dashboard != null)
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-1.5">
                                 <span class="material-symbols-outlined text-outline text-[17px]">groups</span>
-                                <h3 class="text-xs sm:text-sm font-bold text-on-surface">People</h3>
+                                <h3 class="text-xs sm:text-sm font-bold text-on-surface">@Loc["Home_Sidebar_PeopleTitle"]</h3>
                             </div>
                             <button type="button" @onclick='() => SetFeedTab("people")' class="text-xs text-secondary hover:underline font-semibold cursor-pointer">
-                                See all (@(dashboard.People?.Count ?? 0))
+                                @string.Format(CultureInfo.CurrentCulture, Loc["Home_Sidebar_SeeAll"], dashboard.People?.Count ?? 0)
                             </button>
                         </div>
 
@@ -1375,7 +1383,7 @@ else if (dashboard != null)
                                             </div>
 
                                             <div class="flex items-center text-on-surface-variant text-[10px] font-bold bg-surface-container-highest px-1.5 py-0.2 rounded shrink-0">
-                                                ★ @(person.AverageRating.HasValue && person.AverageRating.Value > 0 ? person.AverageRating.Value.ToString("F1") : "New")
+                                                ★ @(person.AverageRating.HasValue && person.AverageRating.Value > 0 ? person.AverageRating.Value.ToString("F1") : Loc["Home_Sidebar_RatingNew"])
                                             </div>
                                         </div>
 
@@ -1396,10 +1404,10 @@ else if (dashboard != null)
                                                 {
                                                     <VerifiedBadge CssClass="w-3 h-3 shrink-0" />
                                                 }
-                                                <span>@(person.IsVerified ? "Verified Member" : "Active Member")</span>
+                                                <span>@(person.IsVerified ? Loc["Home_Sidebar_VerifiedMember"] : Loc["Home_Sidebar_ActiveMember"])</span>
                                             </span>
                                             <a href="u/@person.UserName" class="px-2.5 py-0.5 rounded-md bg-surface-container-highest hover:bg-secondary hover:text-white text-on-surface text-xs font-semibold transition-colors">
-                                                Connect
+                                                @Loc["Home_Sidebar_Connect"]
                                             </a>
                                         </div>
                                     </div>
@@ -1408,251 +1416,21 @@ else if (dashboard != null)
                         </div>
                     </div>
 
-                </aside>
-            </div>
-        }
-        else if (activeFeedTab == "people")
-        {
-            <!-- Search & Filter Controls Matrix -->
-            <section class="w-full bg-white dark:bg-surface-container-low rounded-xl p-3 sm:p-3.5 mb-3.5 shadow-sm dark:shadow-none border border-slate-200/80 dark:border-white/5">
-                <div class="flex flex-col md:flex-row items-center gap-2.5">
-                    <!-- Search Input -->
-                    <div class="relative flex-1 w-full">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">manage_search</span>
-                        <input class="w-full bg-slate-50 dark:bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs pl-9 pr-3 py-2 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-surface-container transition-all border border-slate-200/80 dark:border-white/5"
-                               id="member-search"
-                               placeholder="Search members..."
-                               type="text"
-                               @bind="peopleSearchQuery"
-                               @bind:event="oninput" />
-                        <span class="hidden sm:inline-block absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-outline px-1.5 py-0.5 bg-surface-container-high rounded border border-white/5">⌘K</span>
-                    </div>
-                    <!-- Sort Control -->
-                    <div class="relative w-full md:w-56 flex-shrink-0">
-                        <select @bind="peopleSortOption"
-                                class="w-full appearance-none bg-slate-50 dark:bg-surface-container-lowest text-on-surface text-xs pl-3 pr-8 py-2 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-surface-container cursor-pointer transition-all border border-slate-200/80 dark:border-white/5">
-                            <option value="all">All</option>
-                            <option value="followed">People you followed</option>
-                            <option value="active">Active Now</option>
-                        </select>
-                        <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[16px]">unfold_more</span>
-                    </div>
-                </div>
-                <!-- Filter Pills Row -->
-                <div class="flex items-center gap-1.5 mt-2.5 overflow-x-auto pb-0.5 scrollbar-none">
-                    <button type="button" @onclick='() => SetPeopleRoleFilter("ALL")'
-                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "ALL" ? "bg-surface-container-highest text-on-surface font-bold shadow-xs" : "bg-slate-100 dark:bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-slate-200 dark:hover:bg-surface-container border border-slate-200/70 dark:border-white/5 font-medium") transition-all flex-shrink-0 cursor-pointer">
-                        ALL (@PeopleCountAll)
-                    </button>
-                    <button type="button" @onclick='() => SetPeopleRoleFilter("DOMAIN_PROFESSIONAL")'
-                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "DOMAIN_PROFESSIONAL" ? "bg-surface-container-highest text-on-surface font-bold shadow-xs" : "bg-slate-100 dark:bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-slate-200 dark:hover:bg-surface-container border border-slate-200/70 dark:border-white/5 font-medium") transition-all flex-shrink-0 cursor-pointer">
-                        DOMAIN PROFESSIONALS (@PeopleCountDomainPro)
-                    </button>
-                    <button type="button" @onclick='() => SetPeopleRoleFilter("PUBLIC_FIGURE")'
-                            class="px-3 py-1 rounded-full text-xs uppercase tracking-wider @(selectedPeopleRoleFilter == "PUBLIC_FIGURE" ? "bg-surface-container-highest text-on-surface font-bold shadow-xs" : "bg-slate-100 dark:bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-slate-200 dark:hover:bg-surface-container border border-slate-200/70 dark:border-white/5 font-medium") transition-all flex-shrink-0 cursor-pointer">
-                        PUBLIC FIGURES (@PeopleCountPublicFigure)
-                    </button>
-                </div>
-            </section>
-
-            <!-- Main Directory Grid Architecture -->
-            <div class="w-full flex flex-col gap-3.5">
-                @if (!FilteredPeople.Any())
-                {
-                    <div class="bg-surface-container-low rounded-xl p-8 text-center border border-white/5 space-y-2">
-                        <span class="material-symbols-outlined text-3xl text-outline">search_off</span>
-                        <p class="text-sm font-semibold text-on-surface">No members found matching your filters.</p>
-                        <p class="text-xs text-on-surface-variant">Try clearing the search query or selecting "All".</p>
-                        <button type="button" @onclick='() => { peopleSearchQuery = string.Empty; selectedPeopleRoleFilter = "ALL"; peopleSortOption = "all"; }' class="px-3 py-1 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-md text-xs font-semibold transition-colors cursor-pointer border border-white/5">
-                            Clear Filters
-                        </button>
-                    </div>
-                }
-                else
-                {
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="directory-grid-container">
-                        @foreach (var person in VisiblePeople)
-                        {
-                            <div class="relative overflow-hidden bg-white hover:bg-slate-50/70 dark:bg-[#131722] dark:hover:bg-[#171C28] rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between border border-slate-200/80 hover:border-slate-300 dark:border-white/[0.08] dark:hover:border-white/15 shadow-[0_2px_8px_-2px_rgba(10,27,46,0.06),0_1px_3px_rgba(10,27,46,0.04)] hover:shadow-[0_8px_20px_-4px_rgba(10,27,46,0.1),0_2px_6px_rgba(10,27,46,0.05)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5),0_1px_3px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_8px_28px_-2px_rgba(0,0,0,0.7)] transition-all group">
-                                
-                                <!-- Decorative Soft Color Shades (Smooth Corner Wash - Clearly Visible & Soft) -->
-                                @if (person.RoleCode == "PUBLIC_FIGURE")
-                                {
-                                    <div class="absolute top-0 right-0 w-60 sm:w-72 h-36 sm:h-44 bg-gradient-to-bl from-blue-600/20 via-cyan-500/10 to-transparent dark:from-blue-400/25 dark:via-cyan-400/15 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                    <div class="absolute -bottom-8 -left-8 w-36 h-36 bg-blue-500/10 dark:bg-cyan-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                                }
-                                else if (person.RoleCode == "DOMAIN_PROFESSIONAL")
-                                {
-                                    <div class="absolute top-0 right-0 w-60 sm:w-72 h-36 sm:h-44 bg-gradient-to-bl from-indigo-500/15 via-sky-400/10 to-transparent dark:from-indigo-400/20 dark:via-sky-400/10 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                    <div class="absolute -bottom-8 -left-8 w-36 h-36 bg-sky-400/10 dark:bg-indigo-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                                }
-                                else
-                                {
-                                    <div class="absolute top-0 right-0 w-60 sm:w-72 h-36 sm:h-44 bg-gradient-to-bl from-sky-500/20 via-blue-500/10 to-transparent dark:from-sky-400/20 dark:via-blue-500/10 dark:to-transparent rounded-bl-full pointer-events-none"></div>
-                                    <div class="absolute -bottom-8 -left-8 w-36 h-36 bg-sky-500/10 dark:bg-sky-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                                }
-
-                                <div class="relative z-10 flex flex-col justify-between h-full">
-                                    <div>
-                                        <!-- Top Badge & Availability Ribbon -->
-                                        <div class="flex items-center justify-between gap-2 mb-3.5">
-                                            @if (person.RoleCode == "PUBLIC_FIGURE" || person.RoleCode == "DOMAIN_PROFESSIONAL")
-                                            {
-                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] dark:text-[#D4AF37] border border-[#D4AF37]/30 font-mono text-[10px] uppercase tracking-wider font-bold">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#D4AF37]"></span>
-                                                    @(person.RoleCode == "PUBLIC_FIGURE" ? "PUBLIC FIGURE" : "DOMAIN PRO")
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full @(person.IsVerified ? "bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200/60 dark:border-sky-800/40" : "bg-slate-100 dark:bg-surface-container-high text-on-surface-variant border-slate-200/60 dark:border-white/5") font-mono text-[10px] uppercase tracking-wider font-semibold border">
-                                                    @if (person.IsVerified)
-                                                    {
-                                                        <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
-                                                    }
-                                                    VERIFIED MEMBER
-                                                </span>
-                                            }
-                                            <div class="flex items-center gap-1.5 font-mono text-[10px] text-outline">
-                                                <span class="w-2 h-2 rounded-full @(person.AvailabilityStatus?.ToLower().Contains("busy") == true ? "bg-amber-500" : "bg-emerald-500")"></span>
-                                                <span class="truncate text-on-surface-variant">@(string.IsNullOrWhiteSpace(person.AvailabilityStatus) ? "Online / Available" : person.AvailabilityStatus)</span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Member Profile -->
-                                        <div class="flex items-center gap-3.5 mb-3.5">
-                                            <div class="relative shrink-0">
-                                                <a href="u/@person.UserName" class="block">
-                                                    @if (!string.IsNullOrWhiteSpace(person.AvatarUrl))
-                                                    {
-                                                        <img class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover ring-1 ring-slate-200/80 dark:ring-white/10 shadow-xs group-hover:ring-slate-300 dark:group-hover:ring-white/20 transition-all"
-                                                             src="@person.AvatarUrl"
-                                                             alt="@person.DisplayName" />
-                                                    }
-                                                    else
-                                                    {
-                                                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-100 dark:bg-surface-container-highest text-on-surface font-bold text-lg sm:text-xl flex items-center justify-center ring-1 ring-slate-200/80 dark:ring-white/10 shadow-xs">
-                                                            @GetPersonInitials(person)
-                                                        </div>
-                                                    }
-                                                </a>
-                                            </div>
-                                            <div class="min-w-0 flex-1">
-                                                <div class="flex items-center gap-1.5 truncate">
-                                                    <a href="u/@person.UserName" class="text-sm sm:text-base font-bold text-on-surface group-hover:text-secondary dark:group-hover:text-[#D4AF37] transition-colors truncate">
-                                                        @(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)
-                                                    </a>
-                                                    @if (person.IsVerified)
-                                                    {
-                                                        <VerifiedBadge CssClass="w-4 h-4 shrink-0" />
-                                                    }
-                                                </div>
-                                                <p class="text-xs text-on-surface-variant font-medium truncate mt-0.5">
-                                                    @(string.IsNullOrWhiteSpace(person.Headline) ? $"@{person.UserName}" : person.Headline)
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Metrics Strip -->
-                                        <div class="bg-slate-50 dark:bg-surface-container-lowest/80 rounded-xl p-2.5 mb-3 border border-slate-200/70 dark:border-white/5 grid grid-cols-2 gap-2 text-xs">
-                                            <div class="flex flex-col">
-                                                <span class="font-mono text-[9px] uppercase tracking-wider text-outline font-semibold">Community Rating</span>
-                                                <div class="flex items-center gap-1 mt-0.5">
-                                                    <span class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-0.5">
-                                                        <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-                                                        <span>@((person.AverageRating.HasValue && person.AverageRating.Value > 0 ? person.AverageRating.Value.ToString("F1") : "5.0"))</span>
-                                                    </span>
-                                                    <span class="text-outline text-[10px]">
-                                                        (@(person.RatingCount > 0 ? $"{person.RatingCount} ratings" : "Verified"))
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="flex flex-col border-l border-slate-200/70 dark:border-white/5 pl-2.5">
-                                                <span class="font-mono text-[9px] uppercase tracking-wider text-outline font-semibold">Contributions</span>
-                                                <span class="text-on-surface font-semibold mt-0.5 truncate">
-                                                    @person.PostsCount Posts Published
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Specialties & Skills -->
-                                        <div class="mb-3">
-                                            <span class="font-mono text-[9px] uppercase tracking-wider text-outline block mb-1.5 font-semibold">Specialties &amp; Skills</span>
-                                            <div class="flex flex-wrap gap-1.5">
-                                                @if (person.Skills != null && person.Skills.Any())
-                                                {
-                                                    @foreach (var skill in person.Skills.Take(4))
-                                                    {
-                                                        <span class="px-2 py-0.5 bg-slate-100 text-on-surface dark:bg-surface-container text-[10px] rounded-md border border-slate-200/70 dark:border-white/5 truncate max-w-[150px]">
-                                                            @skill
-                                                        </span>
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-[11px] text-outline italic">
-                                                        No specialties listed
-                                                    </span>
-                                                }
-                                            </div>
-                                        </div>
-
-                                        <!-- Direct Communication -->
-                                        <div class="mb-3.5">
-                                            <span class="font-mono text-[9px] uppercase tracking-wider text-outline block mb-1.5 font-semibold">Direct Communication</span>
-                                            <div class="bg-slate-50 dark:bg-surface-container-lowest/80 rounded-xl p-2.5 border border-slate-200/70 dark:border-white/5 flex items-center justify-between">
-                                                <div class="flex items-center gap-1.5 text-xs text-on-surface font-medium">
-                                                    <span class="material-symbols-outlined text-[16px] text-outline">chat</span>
-                                                    <span>Direct 1:1 Message</span>
-                                                </div>
-                                                <span class="text-on-surface font-semibold text-xs">
-                                                    @(person.RoleCode == "PUBLIC_FIGURE" ? "250 Drops" : "150 Drops")
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Action Buttons -->
-                                    <div class="flex items-center gap-2 pt-2 border-t border-slate-200/70 dark:border-white/5 mt-auto">
-                                        <button type="button" @onclick="() => ToggleFollowPersonAsync(person.UserId)"
-                                                class="px-3.5 py-1.5 rounded-lg @(person.IsFollowedByCurrentUser ? "bg-slate-200 dark:bg-surface-container-highest text-on-surface border border-slate-300 dark:border-white/10" : "bg-slate-100 hover:bg-slate-200/80 text-on-surface-variant hover:text-on-surface dark:bg-surface-container dark:hover:bg-surface-container-high border border-slate-200/70 dark:border-white/5") text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer shrink-0">
-                                            @if (person.IsFollowedByCurrentUser)
-                                            {
-                                                <span class="material-symbols-outlined text-[15px] text-emerald-500">check</span>
-                                                <span>Following</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="material-symbols-outlined text-[15px] text-outline">person_add</span>
-                                                <span>Follow</span>
-                                            }
-                                        </button>
-                                        <a href="u/@person.UserName" class="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-surface-container dark:hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-xs font-semibold rounded-lg flex items-center justify-center gap-1 border border-slate-200/70 dark:border-white/5 transition-colors">
-                                            <span>View Full Profile</span>
-                                            <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-
-                    <!-- See More Button with Arrow Icon -->
-                    @if (peopleVisibleCount < FilteredPeople.Count)
-                    {
-                        <div class="flex justify-center pt-3 pb-2">
-                            <button type="button" @onclick="LoadMorePeople"
-                                    class="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-surface-container-low dark:hover:bg-surface-container text-on-surface text-xs font-semibold flex items-center gap-2 border border-slate-200/80 dark:border-white/5 transition-all cursor-pointer shadow-sm dark:shadow-xs hover:shadow-md group">
-                                <span>See More</span>
-                                <span class="material-symbols-outlined text-[18px] group-hover:translate-y-0.5 transition-transform text-outline">expand_more</span>
-                            </button>
+                    <!-- Guild Governance Charter Notice -->
+                    <div class="p-3 rounded-lg bg-surface-container-lowest text-on-surface-variant flex flex-col gap-1.5 border border-white/5">
+                        <div class="flex items-center gap-1.5 font-mono text-[10px] text-primary font-bold uppercase tracking-wider">
+                            <span class="material-symbols-outlined text-[14px]">verified</span>
+                            <span>@Loc["Home_Charter_Title"]</span>
                         </div>
-                    }
-                }
+                        <p class="text-[11px] leading-relaxed text-outline">
+                            @Loc["Home_Charter_Desc"]
+                        </p>
+                        <a class="text-[11px] text-primary hover:underline flex items-center gap-1 font-semibold" href="groups">
+                            <span>@Loc["Home_Charter_ReadGuidelines"]</span>
+                            <span class="material-symbols-outlined text-[12px]">open_in_new</span>
+                        </a>
+                    </div>
+                </aside>
             </div>
         }
 
@@ -1664,7 +1442,7 @@ else if (dashboard != null)
 <button type="button" @onclick="ScrollToTopAsync"
         id="btn-scroll-to-top"
         class="fixed bottom-6 right-6 z-40 p-3 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.25)] opacity-0 pointer-events-none"
-        title="Scroll to top">
+        title="@Loc["Home_ScrollToTop"]">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
     </svg>
@@ -1678,29 +1456,29 @@ else if (dashboard != null)
             <div class="flex items-center justify-between pb-3 border-b border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <h3 class="exec-display font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-base flex items-center gap-2">
                     <svg class="w-4 h-4 text-[#1B3B5A] dark:text-[#C4D2E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                    <span>Share Post</span>
+                    <span>@Loc["PostUpload_Share_Title"]</span>
                 </h3>
-                <button type="button" @onclick="CloseHomeShareModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-lg font-bold">&times;</button>
+                <button type="button" @onclick="CloseHomeShareModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-lg font-bold" aria-label="@Loc["Home_Reader_CloseAria"]">&times;</button>
             </div>
 
             <div class="space-y-1.5">
-                <label class="exec-mono text-xs text-[#557392] dark:text-[#C4D2E1]">ADD A NOTE (OPTIONAL)</label>
-                <textarea @bind="homeShareNoteText" rows="3" class="exec-input w-full resize-none leading-relaxed text-xs" placeholder="What are your thoughts on this post?"></textarea>
+                <label class="exec-mono text-xs text-[#557392] dark:text-[#C4D2E1]">@Loc["Home_Share_NoteLabel"]</label>
+                <textarea @bind="homeShareNoteText" rows="3" class="exec-input w-full resize-none leading-relaxed text-xs" placeholder="@Loc["Home_Share_Placeholder"]"></textarea>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <button type="button" @onclick="CloseHomeShareModal" class="exec-btn-secondary text-xs">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="SubmitHomeSharePostAsync" disabled="@isSharingPost" class="exec-btn-primary text-xs">
                     @if (isSharingPost)
                     {
                         <span class="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        <span>Sharing...</span>
+                        <span>@Loc["PostUpload_Share_SubmittingBtn"]</span>
                     }
                     else
                     {
-                        <span>Share Now</span>
+                        <span>@Loc["PostUpload_Share_ShareBtn"]</span>
                     }
                 </button>
             </div>
@@ -1716,30 +1494,30 @@ else if (dashboard != null)
             <div class="flex items-center justify-between pb-3 border-b border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <h3 class="exec-display font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-base flex items-center gap-2">
                     <svg class="w-4 h-4 text-[#1B3B5A] dark:text-[#C4D2E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    <span>Edit Post Description</span>
+                    <span>@Loc["GroupDetail_Modal_EditPostTitle"]</span>
                 </h3>
-                <button type="button" @onclick="CloseEditModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-lg font-bold">&times;</button>
+                <button type="button" @onclick="CloseEditModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-lg font-bold" aria-label="@Loc["Home_Reader_CloseAria"]">&times;</button>
             </div>
 
             <div class="space-y-1.5">
-                <label class="exec-mono text-xs text-[#557392] dark:text-[#C4D2E1]">POST CONTENT</label>
-                <textarea @bind="editingPostContent" rows="5" class="exec-input w-full resize-none leading-relaxed" placeholder="Update your post description..."></textarea>
-                <p class="text-[11px] text-[#7A8CA6]">Note: Post image attachments cannot be modified.</p>
+                <label class="exec-mono text-xs text-[#557392] dark:text-[#C4D2E1]">@Loc["Home_Edit_PostContentLabel"]</label>
+                <textarea @bind="editingPostContent" rows="5" class="exec-input w-full resize-none leading-relaxed" placeholder="@Loc["GroupDetail_Modal_EditPostPlaceholder"]"></textarea>
+                <p class="text-[11px] text-[#7A8CA6]">@Loc["Home_Edit_ImageNotice"]</p>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <button type="button" @onclick="CloseEditModal" class="exec-btn-secondary text-xs">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="SaveEditPostAsync" disabled="@(isSavingEdit || string.IsNullOrWhiteSpace(editingPostContent))" class="exec-btn-primary text-xs">
                     @if (isSavingEdit)
                     {
                         <span class="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        <span>Saving...</span>
+                        <span>@Loc["PostUpload_Edit_SavingBtn"]</span>
                     }
                     else
                     {
-                        <span>Save Changes</span>
+                        <span>@Loc["PostUpload_Edit_SaveChangesBtn"]</span>
                     }
                 </button>
             </div>
@@ -1759,28 +1537,28 @@ else if (dashboard != null)
                     </svg>
                 </div>
                 <div>
-                    <h3 class="exec-display font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-base">Move Post to Recycle Bin?</h3>
-                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-0.5">You can restore this post anytime within 10 days from your profile.</p>
+                    <h3 class="exec-display font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-base">@Loc["PostUpload_Recycle_Title"]</h3>
+                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-0.5">@Loc["PostUpload_Recycle_Subtitle"]</p>
                 </div>
             </div>
 
             <p class="text-xs text-[#557392] dark:text-[#C4D2E1] bg-[#F2F6FB] dark:bg-[#0A1B2E] p-3 rounded-lg border border-[#E1E8F0] dark:border-[rgba(196,210,225,0.15)] leading-relaxed">
-                This post will be hidden from the feed and community stream immediately. Posts kept in the Recycle Bin for more than 10 days will be permanently erased.
+                @Loc["Home_Recycle_Desc"]
             </p>
 
             <div class="flex items-center justify-end gap-3 pt-2">
                 <button type="button" @onclick="CloseRecycleModal" class="exec-btn-secondary text-xs" disabled="@isRecyclingPost">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="ConfirmRecyclePostAsync" class="exec-btn-primary !bg-amber-600 hover:!bg-amber-700 !border-amber-600 text-xs" disabled="@isRecyclingPost">
                     @if (isRecyclingPost)
                     {
                         <span class="inline-block w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        <span>Moving...</span>
+                        <span>@Loc["PostUpload_Recycle_SubmittingBtn"]</span>
                     }
                     else
                     {
-                        <span>Move to Recycle Bin</span>
+                        <span>@Loc["PostUpload_Recycle_ConfirmBtn"]</span>
                     }
                 </button>
             </div>
@@ -1796,30 +1574,30 @@ else if (dashboard != null)
             <div class="px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="text-lg">✍️</span>
-                    <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">Create Public Broadcast</h3>
+                    <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">@Loc["Home_Broadcast_Title"]</h3>
                 </div>
                 <button type="button" @onclick="CloseCreatePostModal" class="text-[#557392] dark:text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white font-bold text-sm cursor-pointer">&times;</button>
             </div>
             <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
                 <div>
-                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">What's on your mind? *</label>
-                    <textarea @bind="newPostContent" rows="4" placeholder="Share thoughts, discussions, updates, or code with everyone..."
+                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">@Loc["Home_Broadcast_ContentLabel"]</label>
+                    <textarea @bind="newPostContent" rows="4" placeholder="@Loc["Home_Broadcast_ContentPlaceholder"]"
                               class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded-xl p-3 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]"></textarea>
                 </div>
 
                 <!-- Text Files Attachment Section -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Attach Text Files (.txt) (Multiple allowed)</label>
+                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">@Loc["Home_Broadcast_AttachTextFilesLabel"]</label>
                         @if (composerTextFiles.Count > 0)
                         {
-                            <button type="button" @onclick="ClearComposerTextFiles" class="text-xs text-rose-500 hover:underline">Clear all files</button>
+                            <button type="button" @onclick="ClearComposerTextFiles" class="text-xs text-rose-500 hover:underline">@Loc["Home_Broadcast_ClearAllFiles"]</button>
                         }
                     </div>
 
                     <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
                         <span class="text-base">📄</span>
-                        <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isReadingTextFile ? "Scanning text file(s)..." : "Attach .txt files (Choose multiple)")</span>
+                        <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isReadingTextFile ? Loc["Home_Broadcast_ScanningFiles"] : Loc["Home_Broadcast_AttachFilesPrompt"])</span>
                         <InputFile OnChange="HandleComposerMultipleTextFilesSelected" accept=".txt" multiple class="hidden" disabled="@isReadingTextFile" />
                     </label>
 
@@ -1835,11 +1613,11 @@ else if (dashboard != null)
                                         <span class="text-emerald-400 font-bold font-mono text-sm">📄</span>
                                         <div class="truncate">
                                             <p class="font-mono text-xs font-bold text-emerald-400 truncate">@tf.FileName</p>
-                                            <p class="font-mono text-[10px] text-gray-500">@(tf.Content.Length) chars</p>
+                                            <p class="font-mono text-[10px] text-gray-500">@Loc["Home_Broadcast_CharsCount", tf.Content.Length]</p>
                                         </div>
                                     </div>
                                     <button type="button" @onclick="() => RemoveComposerTextFile(fileIdx)" class="text-rose-400 hover:text-rose-300 text-xs font-bold px-2 py-1 cursor-pointer">
-                                        &times; Remove
+                                        &times; @Loc["Common_Remove"]
                                     </button>
                                 </div>
                             }
@@ -1850,13 +1628,13 @@ else if (dashboard != null)
                 <!-- Multiple Images Attachment Section -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Attach Images (Multiple allowed)</label>
-                        <span class="text-[10px] text-[#7A8CA6]">PNG, JPG, WebP</span>
+                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">@Loc["Home_Broadcast_AttachImagesLabel"]</label>
+                        <span class="text-[10px] text-[#7A8CA6]">@Loc["Home_Broadcast_SupportedFormats"]</span>
                     </div>
 
                     <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
                         <span class="text-base">🖼️</span>
-                        <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isUploadingImage ? "Uploading image(s)..." : "Upload images (Choose multiple)")</span>
+                        <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isUploadingImage ? Loc["Home_Broadcast_UploadingImages"] : Loc["Home_Broadcast_UploadImagesPrompt"])</span>
                         <InputFile OnChange="HandleMultipleImagesSelected" accept="image/*" multiple class="hidden" disabled="@isUploadingImage" />
                     </label>
 
@@ -1868,7 +1646,7 @@ else if (dashboard != null)
                                 var imgIndex = i;
                                 var imgUrl = uploadedImageUrls[imgIndex];
                                 <div class="relative rounded-lg overflow-hidden border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] bg-slate-900 group aspect-video">
-                                    <img src="@imgUrl" alt="Thumbnail" class="w-full h-full object-cover" />
+                                    <img src="@imgUrl" alt="@Loc["Home_Broadcast_ImageThumbnailAlt"]" class="w-full h-full object-cover" />
                                     <button type="button" @onclick="() => RemoveUploadedImage(imgIndex)"
                                             class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow cursor-pointer transition">
                                         &times;
@@ -1880,17 +1658,17 @@ else if (dashboard != null)
                 </div>
             </div>
             <div class="px-5 py-3.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex justify-end gap-2.5">
-                <button type="button" @onclick="CloseCreatePostModal" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg transition cursor-pointer">Cancel</button>
+                <button type="button" @onclick="CloseCreatePostModal" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg transition cursor-pointer">@Loc["Common_Cancel"]</button>
                 <button type="button" @onclick="PublishPostAsync" disabled="@(isPublishingPost || isUploadingImage || isReadingTextFile || (string.IsNullOrWhiteSpace(newPostContent) && composerTextFiles.Count == 0 && uploadedImageUrls.Count == 0))"
                         class="px-5 py-2 text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded-lg shadow-sm transition disabled:opacity-50 flex items-center gap-2 cursor-pointer">
                     @if (isPublishingPost)
                     {
                         <span class="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        <span>Publishing...</span>
+                        <span>@Loc["GroupDetail_Modal_PublishingPost"]</span>
                     }
                     else
                     {
-                        <span>Publish Post</span>
+                        <span>@Loc["GroupDetail_Modal_PublishPostBtn"]</span>
                     }
                 </button>
             </div>
@@ -1906,39 +1684,39 @@ else if (dashboard != null)
             <div class="px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="text-lg">📊</span>
-                    <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">Create Public Poll</h3>
+                    <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">@Loc["Home_Poll_ModalTitle"]</h3>
                 </div>
                 <button type="button" @onclick="CloseCreatePollModal" class="text-[#557392] dark:text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white font-bold text-sm cursor-pointer">&times;</button>
             </div>
             <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
                 <div>
-                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">Question *</label>
-                    <input type="text" @bind="newPollQuestion" placeholder="e.g. Which ecosystem initiative should we fund first?"
+                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">@Loc["GroupDetail_Modal_PollQuestionLabel"]</label>
+                    <input type="text" @bind="newPollQuestion" placeholder="@Loc["Home_Poll_QuestionPlaceholder"]"
                            class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded-lg px-3 py-2.5 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]" />
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">Details / Context (Optional)</label>
-                    <textarea @bind="newPollDescription" rows="2" placeholder="Add extra context or instructions for participants..."
+                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">@Loc["GroupDetail_Modal_PollContextLabel"]</label>
+                    <textarea @bind="newPollDescription" rows="2" placeholder="@Loc["Home_Poll_ContextPlaceholder"]"
                               class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded-lg p-2.5 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]"></textarea>
                 </div>
 
                 <!-- Duration Picker -->
                 <div class="p-3.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] space-y-2">
-                    <span class="block text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">Poll Duration</span>
+                    <span class="block text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["GroupDetail_Modal_PollDurationTitle"]</span>
                     <div class="grid grid-cols-3 gap-2 text-xs">
                         <div>
-                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">Days</label>
+                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">@Loc["GroupDetail_Modal_PollDays"]</label>
                             <input type="number" min="0" max="365" @bind="pollDurationDays"
                                    class="w-full bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-lg px-2 py-1.5 text-center text-xs font-semibold" />
                         </div>
                         <div>
-                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">Hours</label>
+                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">@Loc["GroupDetail_Modal_PollHours"]</label>
                             <input type="number" min="0" max="23" @bind="pollDurationHours"
                                    class="w-full bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-lg px-2 py-1.5 text-center text-xs font-semibold" />
                         </div>
                         <div>
-                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">Minutes</label>
+                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">@Loc["GroupDetail_Modal_PollMinutes"]</label>
                             <input type="number" min="0" max="59" @bind="pollDurationMinutes"
                                    class="w-full bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-lg px-2 py-1.5 text-center text-xs font-semibold" />
                         </div>
@@ -1948,11 +1726,11 @@ else if (dashboard != null)
                 <!-- Dynamic Poll Options -->
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
-                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Poll Options * (Min 2, Max 10)</label>
+                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">@Loc["GroupDetail_Modal_PollOptionsLabel"]</label>
                         @if (pollOptionsList.Count < 10)
                         {
                             <button type="button" @onclick="AddHomePollOption" class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:underline cursor-pointer">
-                                + Add Option
+                                @Loc["GroupDetail_Modal_AddOptionBtn"]
                             </button>
                         }
                     </div>
@@ -1969,12 +1747,12 @@ else if (dashboard != null)
                                 <input type="text"
                                        value="@pollOptionsList[index]"
                                        @onchange="(e) => pollOptionsList[index] = e.Value?.ToString() ?? string.Empty"
-                                       placeholder="@($"Option {labelChar}")"
+                                       placeholder="@Loc["GroupDetail_Modal_OptionPlaceholder", labelChar]"
                                        class="flex-1 text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]" />
                                 @if (pollOptionsList.Count > 2)
                                 {
                                     <button type="button" @onclick="() => RemoveHomePollOption(index)"
-                                            class="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-center text-xs font-bold transition cursor-pointer" title="Remove Option">
+                                            class="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-center text-xs font-bold transition cursor-pointer" title="@Loc["GroupDetail_Modal_RemoveOptionTooltip"]">
                                         &times;
                                     </button>
                                 }
@@ -1986,21 +1764,21 @@ else if (dashboard != null)
                 <!-- Multi-Choice Toggle -->
                 <div class="flex items-center gap-2 pt-1">
                     <input type="checkbox" id="pollMultiChoice" @bind="pollIsMultipleChoice" class="rounded border-[#CBD5E1] text-[#0A1B2E] focus:ring-0 cursor-pointer" />
-                    <label for="pollMultiChoice" class="text-xs text-[#557392] dark:text-[#C4D2E1] cursor-pointer">Allow voters to select multiple options</label>
+                    <label for="pollMultiChoice" class="text-xs text-[#557392] dark:text-[#C4D2E1] cursor-pointer">@Loc["Home_Poll_MultipleOptions"]</label>
                 </div>
             </div>
             <div class="px-5 py-3.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex justify-end gap-2.5">
-                <button type="button" @onclick="CloseCreatePollModal" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg transition cursor-pointer">Cancel</button>
+                <button type="button" @onclick="CloseCreatePollModal" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg transition cursor-pointer">@Loc["Common_Cancel"]</button>
                 <button type="button" @onclick="SubmitStandalonePollAsync" disabled="@(isSubmittingPoll || string.IsNullOrWhiteSpace(newPollQuestion))"
                         class="px-5 py-2 text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded-lg shadow-sm transition disabled:opacity-50 flex items-center gap-2 cursor-pointer">
                     @if (isSubmittingPoll)
                     {
                         <span class="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        <span>Creating...</span>
+                        <span>@Loc["Home_Poll_CreatingBtn"]</span>
                     }
                     else
                     {
-                        <span>Create Poll</span>
+                        <span>@Loc["Home_Poll_CreateBtn"]</span>
                     }
                 </button>
             </div>
@@ -2019,10 +1797,10 @@ else if (dashboard != null)
                     <span class="text-xl">📄</span>
                     <div class="min-w-0">
                         <h3 class="font-mono text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] truncate">@textFileModalTitle</h3>
-                        <p class="font-mono text-[11px] text-[#7A8CA6]">Plain Text Document • @(textFileModalContent?.Length ?? 0) characters</p>
+                        <p class="font-mono text-[11px] text-[#7A8CA6]">@string.Format(Loc["Home_TextFileModal_HeaderMeta"], (textFileModalContent?.Length ?? 0))</p>
                     </div>
                 </div>
-                <button type="button" @onclick="CloseTextFileModal" class="p-2 text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-[#F2F6FB] dark:hover:bg-[#1B3B5A] text-sm font-bold cursor-pointer transition">
+                <button type="button" @onclick="CloseTextFileModal" class="p-2 text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-[#F2F6FB] dark:hover:bg-[#1B3B5A] text-sm font-bold cursor-pointer transition" aria-label="@Loc["Home_Reader_CloseAria"]">
                     ✕
                 </button>
             </div>
@@ -2034,9 +1812,9 @@ else if (dashboard != null)
 
             <!-- Modal Footer -->
             <div class="px-6 py-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)] flex justify-between items-center text-xs">
-                <span class="text-[#7A8CA6] font-mono">Press Esc or Close</span>
+                <span class="text-[#7A8CA6] font-mono">@Loc["Home_Reader_KeyboardHint"]</span>
                 <button type="button" @onclick="CloseTextFileModal" class="px-4 py-1.5 rounded-lg bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-semibold hover:opacity-90 transition cursor-pointer">
-                    Close Document
+                    @Loc["Home_Reader_CloseBtn"]
                 </button>
             </div>
         </div>
@@ -2058,34 +1836,34 @@ else if (dashboard != null)
                     <span class="p-1.5 rounded-lg bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                     </span>
-                    <h3 class="text-base font-bold text-red-600 dark:text-red-400">Your post got banned</h3>
+                    <h3 class="text-base font-bold text-red-600 dark:text-red-400">@Loc["PostUpload_Banned_Title"]</h3>
                 </div>
-                <button type="button" @onclick="CloseBannedReasonModal" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+                <button type="button" @onclick="CloseBannedReasonModal" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer" aria-label="@Loc["PostUpload_Banned_DismissBtn"]">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
             <div class="space-y-3">
                 <p class="text-xs text-[#557392] dark:text-[#C4D2E1] leading-relaxed">
-                    This post was removed from public community feeds by platform moderators because it violated community standards.
+                    @Loc["PostUpload_Banned_Desc"]
                 </p>
 
                 <div class="bg-red-50 dark:bg-red-950/30 p-3.5 rounded-xl border border-red-200 dark:border-red-900/40 space-y-1">
-                    <span class="text-[10px] uppercase font-bold tracking-wider text-red-700 dark:text-red-300 font-mono">Moderation Reason</span>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-red-700 dark:text-red-300 font-mono">@Loc["PostUpload_Banned_ReasonLabel"]</span>
                     <p class="text-xs text-red-900 dark:text-red-200 font-medium">
-                        @(string.IsNullOrWhiteSpace(bannedPostTarget.ModerationReason) ? "Violation of community safety and conduct guidelines." : bannedPostTarget.ModerationReason)
+                        @(string.IsNullOrWhiteSpace(bannedPostTarget.ModerationReason) ? Loc["PostUpload_Banned_DefaultReason"].Value : bannedPostTarget.ModerationReason)
                     </p>
                 </div>
 
                 <p class="text-[11px] text-[#7A8CA6]">
-                    Only you and site administrators can view this post. Other community members cannot see or interact with it.
+                    @Loc["PostUpload_Banned_Notice"]
                 </p>
             </div>
 
             <div class="flex justify-end pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <button type="button" @onclick="CloseBannedReasonModal"
                         class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:opacity-90 transition cursor-pointer">
-                    Dismiss
+                    @Loc["PostUpload_Banned_DismissBtn"]
                 </button>
             </div>
         </div>
@@ -2135,12 +1913,12 @@ else if (dashboard != null)
         if (res.IsSuccess)
         {
             post.IsPrivate = !post.IsPrivate;
-            Toast.Success(post.IsPrivate ? "Post set to Private mode." : "Post set to Public mode.");
+            Toast.Success(post.IsPrivate ? Loc["PostUpload_Toast_PrivateMode"] : Loc["PostUpload_Toast_PublicMode"]);
             StateHasChanged();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to toggle post privacy.");
+            Toast.Error(res.Message ?? Loc["PostUpload_Toast_PrivacyToggleFailed"]);
         }
     }
 
@@ -2524,7 +2302,7 @@ else if (dashboard != null)
             }
             else
             {
-                errorMessage = res.Message ?? "Failed to load dashboard data.";
+                errorMessage = res.Message ?? Loc["Home_Feed_Toast_DashboardLoadFailed"];
             }
 
             try
@@ -2627,11 +2405,11 @@ else if (dashboard != null)
                 uploadedImageUrls.Add($"/uploads/posts/{subfolder}/{uniqueFileName}");
             }
 
-            Toast.Success($"{files.Count} image(s) attached!");
+            Toast.Success(string.Format(CultureInfo.CurrentCulture, Loc["Home_Broadcast_Toast_ImagesAttached"], files.Count));
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to process images: {ex.Message}");
+            Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Broadcast_Toast_ImagesFailed"], ex.Message));
         }
         finally
         {
@@ -2659,7 +2437,7 @@ else if (dashboard != null)
             {
                 if (!file.Name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
                 {
-                    Toast.Error($"'{file.Name}' skipped: Only plain text (.txt) files are allowed.");
+                    Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Broadcast_Toast_TxtOnly"], file.Name));
                     continue;
                 }
 
@@ -2668,11 +2446,11 @@ else if (dashboard != null)
                 var content = await reader.ReadToEndAsync();
                 composerTextFiles.Add(new AttachedTextFileItem(file.Name, content));
             }
-            Toast.Success($"{composerTextFiles.Count} text file(s) attached.");
+            Toast.Success(string.Format(CultureInfo.CurrentCulture, Loc["Home_Broadcast_Toast_FilesAttached"], composerTextFiles.Count));
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to read text file(s): {ex.Message}");
+            Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Broadcast_Toast_FilesFailed"], ex.Message));
         }
         finally
         {
@@ -2731,7 +2509,7 @@ else if (dashboard != null)
             var res = await PostApi.CreatePostAsync(req, _cts.Token);
             if (res.IsSuccess)
             {
-                Toast.Success("Broadcast published successfully!");
+                Toast.Success(Loc["Home_Broadcast_Toast_Published"]);
                 newPostContent = string.Empty;
                 uploadedImageUrls.Clear();
                 composerTextFiles.Clear();
@@ -2745,7 +2523,7 @@ else if (dashboard != null)
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to publish: {ex.Message}");
+            Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Broadcast_Toast_PublishFailed"], ex.Message));
         }
         finally
         {
@@ -2757,14 +2535,14 @@ else if (dashboard != null)
     {
         if (string.IsNullOrWhiteSpace(newPollQuestion))
         {
-            Toast.Warning("Please specify a poll question.");
+            Toast.Warning(Loc["GroupDetail_Val_PollQuestionRequired"]);
             return;
         }
 
         var validOptions = pollOptionsList.Where(o => !string.IsNullOrWhiteSpace(o)).Select(o => o.Trim()).ToList();
         if (validOptions.Count < 2)
         {
-            Toast.Warning("A poll must contain at least 2 non-empty options.");
+            Toast.Warning(Loc["GroupDetail_Val_PollOptionsMin"]);
             return;
         }
 
@@ -2784,7 +2562,7 @@ else if (dashboard != null)
             var res = await PollApi.CreatePollAsync(req);
             if (res.IsSuccess)
             {
-                Toast.Success("Public poll created successfully!");
+                Toast.Success(Loc["Home_Poll_Toast_Created"]);
                 showCreatePollModal = false;
                 newPollQuestion = string.Empty;
                 newPollDescription = string.Empty;
@@ -2793,12 +2571,12 @@ else if (dashboard != null)
             }
             else
             {
-                Toast.Error(res.Message ?? "Failed to create poll.");
+                Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PollCreateFailed"]);
             }
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to create poll: {ex.Message}");
+            Toast.Error(Loc["Home_Poll_Toast_CreateFailedWithReason", ex.Message]);
         }
         finally
         {
@@ -2840,7 +2618,7 @@ else if (dashboard != null)
                 {
                     savedPostIds.Remove(postId);
                 }
-                Toast.Success(isSaved ? "Saved to your profile!" : "Removed from saved.");
+                Toast.Success(isSaved ? Loc["GroupDetail_Toast_PostSaved"] : Loc["GroupDetail_Toast_PostUnsaved"]);
                 await LoadDashboardAsync();
             }
             else
@@ -2880,7 +2658,7 @@ else if (dashboard != null)
             var res = await PostApi.UpdatePostAsync(editingPostId.Value, req, _cts.Token);
             if (res.IsSuccess)
             {
-                Toast.Success("Post updated successfully!");
+                Toast.Success(Loc["PostUpload_Toast_PostUpdated"]);
                 CloseEditModal();
                 await LoadDashboardAsync();
             }
@@ -2891,7 +2669,7 @@ else if (dashboard != null)
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to update post: {ex.Message}");
+            Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Edit_Toast_UpdateFailed"], ex.Message));
         }
         finally
         {
@@ -2923,7 +2701,7 @@ else if (dashboard != null)
             var res = await PostApi.DeletePostAsync(pendingRecyclePostId.Value, _cts.Token);
             if (res.IsSuccess)
             {
-                Toast.Success("Post moved to Recycle Bin.");
+                Toast.Success(Loc["PostUpload_Toast_PostRecycled"]);
                 CloseRecycleModal();
                 await LoadDashboardAsync();
             }
@@ -2934,7 +2712,7 @@ else if (dashboard != null)
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to recycle post: {ex.Message}");
+            Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Recycle_Toast_Failed"], ex.Message));
         }
         finally
         {
@@ -2949,7 +2727,7 @@ else if (dashboard != null)
             var res = await ProfileApi.ToggleFollowUserAsync(targetUserId, _cts.Token);
             if (res.IsSuccess)
             {
-                Toast.Success(res.Data ? "Following member!" : "Unfollowed member.");
+                Toast.Success(res.Data ? Loc["Home_Sidebar_Toast_Following"] : Loc["Home_Sidebar_Toast_Unfollowed"]);
                 await LoadDashboardAsync();
             }
             else
@@ -2959,11 +2737,9 @@ else if (dashboard != null)
         }
         catch (Exception ex)
         {
-            Toast.Error($"Follow action failed: {ex.Message}");
+            Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Sidebar_Toast_FollowFailed"], ex.Message));
         }
     }
-
-
 
     private async Task ToggleHomeCommentBox(int postId)
     {
@@ -3012,7 +2788,7 @@ else if (dashboard != null)
                 {
                     homeCommentsByPost[postId] = commentsRes.Data;
                 }
-                Toast.Success("Comment posted!");
+                Toast.Success(Loc["Home_Comments_Toast_Success"]);
                 await LoadDashboardAsync();
             }
             else
@@ -3022,7 +2798,7 @@ else if (dashboard != null)
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to post comment: {ex.Message}");
+            Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Comments_Toast_Failed"], ex.Message));
         }
     }
 
@@ -3055,7 +2831,7 @@ else if (dashboard != null)
             var res = await PostApi.SharePostAsync(homeSharingPostId.Value, req, _cts.Token);
             if (res.IsSuccess)
             {
-                Toast.Success("Post shared successfully!");
+                Toast.Success(Loc["Home_Share_Toast_Success"]);
                 CloseHomeShareModal();
                 await LoadDashboardAsync();
             }
@@ -3066,7 +2842,7 @@ else if (dashboard != null)
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to share post: {ex.Message}");
+            Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Share_Toast_Failed"], ex.Message));
         }
         finally
         {
@@ -3082,7 +2858,7 @@ else if (dashboard != null)
             var res = await PollApi.VoteAsync(req, _cts.Token);
             if (res.IsSuccess)
             {
-                Toast.Success("Vote cast successfully!");
+                Toast.Success(Loc["Home_Feed_Toast_VoteSuccess"]);
                 await LoadDashboardAsync();
             }
             else
@@ -3092,17 +2868,17 @@ else if (dashboard != null)
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to vote: {ex.Message}");
+            Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Feed_Toast_VoteFailed"], ex.Message));
         }
     }
 
-    private static string GetRelativeTime(DateTime dt)
+    private string GetRelativeTime(DateTime dt)
     {
         var span = DateTime.UtcNow - dt.ToUniversalTime();
-        if (span.TotalSeconds < 60) return "just now";
-        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
-        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
-        if (span.TotalDays < 7) return $"{(int)span.TotalDays}d ago";
+        if (span.TotalSeconds < 60) return Loc["GroupDetail_Time_JustNow"];
+        if (span.TotalMinutes < 60) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_MinutesAgo"], (int)span.TotalMinutes);
+        if (span.TotalHours < 24) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_HoursAgo"], (int)span.TotalHours);
+        if (span.TotalDays < 7) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_DaysAgo"], (int)span.TotalDays);
         return dt.ToString("MMM dd, yyyy");
     }
 
@@ -3112,11 +2888,11 @@ else if (dashboard != null)
         try
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", code);
-            Toast.Success("Code snippet copied to clipboard!");
+            Toast.Success(Loc["Home_Feed_Toast_CopySuccess"]);
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to copy snippet: {ex.Message}");
+            Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Feed_Toast_CopyFailed"], ex.Message));
         }
     }
 
@@ -3135,19 +2911,19 @@ else if (dashboard != null)
         return string.IsNullOrWhiteSpace(name) ? "U" : name.Trim()[..1].ToUpperInvariant();
     }
 
-    private static string GetRoleBadgeText(DirectoryPersonModel person)
+    private string GetRoleBadgeText(DirectoryPersonModel person)
     {
         if (!string.IsNullOrWhiteSpace(person.PercentileBadgeText))
             return person.PercentileBadgeText;
 
         return person.RoleCode switch
         {
-            "PUBLIC_FIGURE" => "Public Figure",
-            "DOMAIN_PROFESSIONAL" => "Domain Pro",
-            "CREATOR" => "Creator",
-            "ADMIN" => "Community Lead",
-            "MODERATOR" => "Moderator",
-            _ => person.IsVerified ? "Verified Member" : "Active Member"
+            "PUBLIC_FIGURE" => Loc["Home_Sidebar_RolePublicFigure"],
+            "DOMAIN_PROFESSIONAL" => Loc["Home_Sidebar_RoleDomainPro"],
+            "CREATOR" => Loc["Home_Sidebar_RoleCreator"],
+            "ADMIN" => Loc["Home_Sidebar_RoleLead"],
+            "MODERATOR" => Loc["Home_Sidebar_RoleModerator"],
+            _ => person.IsVerified ? Loc["Home_Sidebar_VerifiedMember"] : Loc["Home_Sidebar_ActiveMember"]
         };
     }
 

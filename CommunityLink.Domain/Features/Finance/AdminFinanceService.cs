@@ -87,7 +87,12 @@ public sealed class AdminFinanceService(
             PendingCreatorPayoutsLinkDrops: pendingPayoutsAmount,
             GrossTransactionCount: grossCount,
             CompletedPayoutCount: completedPayoutsCount,
-            PendingPayoutCount: pendingPayoutsCount
+            PendingPayoutCount: pendingPayoutsCount,
+            GroupRevenueLinkDrops: groupGross,
+            GroupTxCount: groupCount,
+            PrivateChatRevenueLinkDrops: privateGross,
+            PrivateChatTxCount: privateCount,
+            TotalGrossRevenueLinkDrops: grossRevenue
         );
 
         return Result<AdminFinanceSummaryModel>.Success(summary);
@@ -293,6 +298,49 @@ public sealed class AdminFinanceService(
             .ToList();
 
         return Result<IReadOnlyList<AdminFinanceGroupBreakdownModel>>.Success(breakdownList);
+    }
+
+    public async Task<Result<IReadOnlyList<AdminFinancePrivateChatBreakdownModel>>> GetFinancePrivateChatBreakdownAsync(
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+        {
+            return Result<IReadOnlyList<AdminFinancePrivateChatBreakdownModel>>.Failure("User is not authenticated.", ResultStatus.Unauthorized);
+        }
+
+        if (!currentUser.IsAdmin)
+        {
+            return Result<IReadOnlyList<AdminFinancePrivateChatBreakdownModel>>.Failure("Administrator privileges required.", ResultStatus.Forbidden);
+        }
+
+        var (effectiveFrom, effectiveTo) = NormalizeDateRange(fromDate, toDate);
+
+        var privateTxQuery = dbContext.TblPrivateChatPaymentTransactions
+            .AsNoTracking()
+            .Include(t => t.CreatorUser)
+            .Where(t => t.Status.ToUpper() == "COMPLETED");
+
+        if (effectiveFrom.HasValue) privateTxQuery = privateTxQuery.Where(t => t.CreatedAt >= effectiveFrom.Value);
+        if (effectiveTo.HasValue) privateTxQuery = privateTxQuery.Where(t => t.CreatedAt <= effectiveTo.Value);
+
+        var privateList = await privateTxQuery.ToListAsync(cancellationToken);
+
+        var breakdownList = privateList
+            .GroupBy(t => t.CreatorUserId)
+            .Select(g => new AdminFinancePrivateChatBreakdownModel(
+                CreatorUserId: g.Key,
+                CreatorName: g.First().CreatorUser?.DisplayName ?? g.First().CreatorUser?.UserName ?? $"Creator #{g.Key}",
+                GrossRevenueLinkDrops: g.Sum(t => t.GrossAmountLinkDrops),
+                PlatformCommissionLinkDrops: g.Sum(t => t.CommissionAmount),
+                CreatorNetEarningsLinkDrops: g.Sum(t => t.CreatorAmount),
+                CompletedTransactionCount: g.Count()
+            ))
+            .OrderByDescending(g => g.GrossRevenueLinkDrops)
+            .ToList();
+
+        return Result<IReadOnlyList<AdminFinancePrivateChatBreakdownModel>>.Success(breakdownList);
     }
 
     public async Task<Result<byte[]>> ExportFinanceReportCsvAsync(

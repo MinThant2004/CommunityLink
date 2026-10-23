@@ -1,12 +1,14 @@
 @rendermode InteractiveServer
+@using Microsoft.Extensions.Localization
 @inject LinkDropApiService LinkDropApi
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppResources> Loc
 @implements IDisposable
 
 <div class="relative inline-flex items-center" data-testid="linkdrop-navbar-balance">
     <a href="linkdrops"
        class="inline-flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-lg text-xs font-bold @(isError ? "bg-slate-100 dark:bg-[#182030] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-[rgba(255,255,255,0.08)]" : "bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-200 border border-sky-200 dark:border-sky-800/60 hover:bg-sky-100 dark:hover:bg-sky-900/50 hover:border-sky-300 dark:hover:border-sky-700") transition shadow-2xs group cursor-pointer"
-       title="@(isLoading ? "Loading Link Drop Balance..." : isError || wallet == null ? "Link Drop Wallet Unavailable" : $"Total Link Drops: {wallet.Balance:N0} (Purchased: {wallet.PurchasedBalance:N0} | Earned: {wallet.EarnedBalance:N0})")">
+       title="@GetBalanceTooltip()">
         <LinkDrop3dIcon Class="w-6 h-6 shrink-0 group-hover:scale-110 transition-transform" />
         @if (isLoading)
         {
@@ -28,6 +30,26 @@
     private bool isLoading = true;
     private bool isError;
     private System.Threading.Timer? pollTimer;
+
+    private string GetBalanceTooltip()
+    {
+        if (isLoading)
+        {
+            return Loc["LinkDrop_LoadingBalance"];
+        }
+
+        if (isError || wallet == null)
+        {
+            return Loc["LinkDrop_WalletUnavailable"];
+        }
+
+        return string.Format(
+            System.Globalization.CultureInfo.CurrentUICulture,
+            Loc["LinkDrop_BalanceTooltip"],
+            wallet.Balance.ToString("N0", System.Globalization.CultureInfo.InvariantCulture),
+            wallet.PurchasedBalance.ToString("N0", System.Globalization.CultureInfo.InvariantCulture),
+            wallet.EarnedBalance.ToString("N0", System.Globalization.CultureInfo.InvariantCulture));
+    }
 
     protected override async Task OnInitializedAsync()
     {

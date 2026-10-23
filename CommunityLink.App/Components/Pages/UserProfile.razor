@@ -12,10 +12,11 @@
 @inject LinkDropApiService LinkDropApi
 @inject IWebHostEnvironment Environment
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IStringLocalizer<AppResources> Loc
 @using System.Text.Json
 @using CommunityLink.Shared.Features.Post
 
-<PageTitle>@(profile != null ? $"{profile.DisplayName} (@{profile.UserName}) — CommunityLink" : "User Profile — CommunityLink")</PageTitle>
+<PageTitle>@(profile != null ? Loc["Profile_PageTitle_User", profile.DisplayName ?? profile.UserName ?? "", profile.UserName ?? ""] : Loc["Profile_PageTitle_Default"])</PageTitle>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
 
 <style>
@@ -212,8 +213,8 @@
     {
         <div class="pt-24 pb-16 text-center max-w-sm mx-auto">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-2 border-[#0A1B2E] dark:border-white border-t-transparent"></div>
-            <h3 class="font-display mt-3 text-sm font-bold text-[#0A1B2E] dark:text-white">Synchronizing Credentials</h3>
-            <p class="font-mono mt-1 text-[11px] text-[#64748B] dark:text-[#7A8CA6]">LOADING EXECUTIVE DOSSIER...</p>
+            <h3 class="font-display mt-3 text-sm font-bold text-[#0A1B2E] dark:text-white">@Loc["Profile_Loading_Synchronizing"]</h3>
+            <p class="font-mono mt-1 text-[11px] text-[#64748B] dark:text-[#7A8CA6]">@Loc["Profile_Loading_ExecutiveDossier"]</p>
         </div>
     }
     else if (!string.IsNullOrEmpty(errorMessage))
@@ -221,7 +222,7 @@
         <div class="pt-12 max-w-xl mx-auto px-4">
             <div class="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-[0.5rem] text-rose-800 dark:text-rose-300 flex items-center justify-between gap-3 shadow-sm">
                 <div>
-                    <h3 class="font-display font-bold text-xs">Unable to load profile</h3>
+                    <h3 class="font-display font-bold text-xs">@Loc["Profile_Error_UnableToLoad"]</h3>
                     <p class="text-[11px] text-rose-600 dark:text-rose-400 mt-0.5">@errorMessage</p>
                 </div>
                 <button @onclick="LoadProfileAsync" class="btn-exec-primary text-xs py-1 px-3">
@@ -294,21 +295,21 @@
                                     {
                                         <div class="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white">
                                             <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                            <span class="text-[9px] font-mono mt-1">Uploading...</span>
+                                            <span class="text-[9px] font-mono mt-1">@Loc["Profile_Avatar_Uploading"]</span>
                                         </div>
                                     }
                                     else if (isOwner)
                                     {
-                                        <label for="directAvatarUpload" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer" title="Upload new photo">
+                                        <label for="directAvatarUpload" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer" title="@Loc["Profile_Avatar_UploadNewTitle"]">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                            <span class="text-[9px] font-semibold mt-0.5">Change</span>
+                                            <span class="text-[9px] font-semibold mt-0.5">@Loc["Profile_Avatar_Change"]</span>
                                         </label>
                                     }
                                 </div>
 
                                 @if (isOwner)
                                 {
-                                    <label for="directAvatarUpload" class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-blue-600 hover:bg-blue-700 text-white ring-2 ring-white dark:ring-[#112A46] flex items-center justify-center shadow-md cursor-pointer transition z-10" title="Upload profile photo">
+                                    <label for="directAvatarUpload" class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-blue-600 hover:bg-blue-700 text-white ring-2 ring-white dark:ring-[#112A46] flex items-center justify-center shadow-md cursor-pointer transition z-10" title="@Loc["Profile_Avatar_UploadPhotoTitle"]">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                     </label>
                                     <InputFile id="directAvatarUpload" OnChange="HandleAvatarUploadAsync" accept=".jpg,.jpeg,.png,.webp" class="hidden" disabled="@isUploadingAvatar" />
@@ -316,7 +317,7 @@
                                 else
                                 {
                                     <!-- Online Status Pip -->
-                                    <span class="absolute bottom-0.5 right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#112A46] flex items-center justify-center" title="Online & Active">
+                                    <span class="absolute bottom-0.5 right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#112A46] flex items-center justify-center" title="@Loc["Profile_Status_OnlineTitle"]">
                                         <span class="w-1.5 h-1.5 rounded-full bg-white dark:bg-[#0A1B2E]"></span>
                                     </span>
                                 }
@@ -338,21 +339,21 @@
                                     {
                                         <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded-[0.25rem] bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-700 inline-flex items-center gap-1 uppercase tracking-wider shadow-sm">
                                             <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
-                                            <span>PUBLIC FIGURE VIP</span>
+                                            <span>@Loc["Profile_Badge_PublicFigureVIP"]</span>
                                         </span>
                                     }
                                     else if (profile.Role?.RoleCode == "DOMAIN_PRO" || profile.IsVerified)
                                     {
                                         <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded-[0.25rem] bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 inline-flex items-center gap-1 uppercase tracking-wider shadow-sm">
                                             <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                            <span>DOMAIN PROFESSIONAL</span>
+                                            <span>@Loc["Profile_Badge_DomainPro"]</span>
                                         </span>
                                     }
                                     else if (profile.Role?.RoleCode == "ADMIN" || profile.Role?.RoleCode == "SUPER_ADMIN")
                                     {
                                         <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded-[0.25rem] bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 inline-flex items-center gap-1 uppercase tracking-wider">
                                             <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                            <span>GOVERNOR</span>
+                                            <span>@Loc["Profile_Badge_Governor"]</span>
                                         </span>
                                     }
 
@@ -389,7 +390,7 @@
                                         <span>•</span>
                                         <span class="font-mono text-[11px] font-semibold text-sky-600 dark:text-sky-400 inline-flex items-center gap-1">
                                             <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
-                                            <span>CREDENTIAL AUDITED</span>
+                                            <span>@Loc["Profile_Badge_CredentialAudited"]</span>
                                         </span>
                                     }
                                 </div>
@@ -412,7 +413,7 @@
                                 {
                                     <button type="button" @onclick="ToggleFollowUserAsync" disabled="@isTogglingFollow" class="btn-exec-secondary @(profile.Relationship.IsFollowedByMe ? "border-primary text-primary dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40" : "")">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="@(profile.Relationship.IsFollowedByMe ? "M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" : "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z")"></path></svg>
-                                        <span>@(profile.Relationship.IsFollowedByMe ? "Following" : "Follow")</span>
+                                        <span>@(profile.Relationship.IsFollowedByMe ? Loc["Profile_Action_Following"] : Loc["Profile_Action_Follow"])</span>
                                     </button>
 
                                     <button type="button" @onclick="HandleProfileMessageClick" class="btn-exec-primary">
@@ -420,36 +421,36 @@
                                         @if (isPaidChatEnabled && privateChatFeeLinkDrops > 0)
                                         {
                                             <span class="inline-flex items-center gap-1.5">
-                                                <span>Chat</span>
+                                                <span>@Loc["Profile_Action_Chat"]</span>
                                                 <LinkDropIcon Class="w-3.5 h-3.5 shrink-0 inline" />
-                                                <span>@privateChatFeeLinkDrops.ToString("N0") Drops</span>
+                                                <span>@Loc["Profile_Action_ChatDrops", privateChatFeeLinkDrops.ToString("N0")]</span>
                                             </span>
                                         }
                                         else
                                         {
-                                            <span>Send Message</span>
+                                            <span>@Loc["Profile_Action_SendMessage"]</span>
                                         }
                                     </button>
 
                                     <button @onclick="ToggleSaveAccountAsync" disabled="@isSavingAccount" class="btn-exec-secondary @(profile.Relationship.IsSavedByMe ? "border-amber-400 text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40" : "")">
                                         <svg class="w-3.5 h-3.5" fill="@(profile.Relationship.IsSavedByMe ? "currentColor" : "none")" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                                        <span>@(profile.Relationship.IsSavedByMe ? "Saved" : "Save")</span>
+                                        <span>@(profile.Relationship.IsSavedByMe ? Loc["Profile_Action_Saved"] : Loc["Profile_Action_Save"])</span>
                                     </button>
 
                                     <button @onclick="OpenRatingModal" class="btn-exec-secondary text-amber-600 dark:text-amber-400">
                                         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                        <span>@(profile.Relationship.HasRated ? "Edit Review" : "Rate")</span>
+                                        <span>@(profile.Relationship.HasRated ? Loc["Profile_Action_EditReview"] : Loc["Profile_Action_Rate"])</span>
                                     </button>
                                 }
                                 else
                                 {
                                     <button @onclick="OpenEditModal" class="btn-exec-primary">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                        <span>Edit Profile</span>
+                                        <span>@Loc["Profile_Action_EditProfile"]</span>
                                     </button>
                                 }
 
-                                <button @onclick="ShareProfile" class="btn-exec-secondary px-2.5" title="Copy Profile Link">
+                                <button @onclick="ShareProfile" class="btn-exec-secondary px-2.5" title="@Loc["Profile_Action_CopyLinkTitle"]">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                                 </button>
                             </div>
@@ -457,7 +458,7 @@
                             <!-- Availability Status -->
                             <div class="flex items-center gap-1.5 font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider pt-0.5">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                <span>@(string.IsNullOrWhiteSpace(profile.AvailabilityStatus) ? "ACCEPTING DIRECT ENGAGEMENTS" : profile.AvailabilityStatus)</span>
+                                <span>@(string.IsNullOrWhiteSpace(profile.AvailabilityStatus) ? Loc["Profile_Availability_Default"] : profile.AvailabilityStatus)</span>
                             </div>
                         </div>
 
@@ -469,28 +470,28 @@
                             <div class="font-display text-lg sm:text-xl font-bold text-[#0A1B2E] dark:text-white group-hover:text-blue-600 transition">
                                 @(profile.Metrics.FollowersCount >= 1000 ? (profile.Metrics.FollowersCount / 1000.0).ToString("0.0k") : profile.Metrics.FollowersCount.ToString("N0"))
                             </div>
-                            <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">FOLLOWERS</div>
+                            <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Stats_Followers"]</div>
                         </button>
 
                         <button type="button" @onclick='() => SetTab("following")' class="text-left px-2 sm:px-3 py-1 group">
                             <div class="font-display text-lg sm:text-xl font-bold text-[#0A1B2E] dark:text-white group-hover:text-blue-600 transition">
                                 @profile.Metrics.FollowingCount.ToString("N0")
                             </div>
-                            <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">FOLLOWING</div>
+                            <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Stats_Following"]</div>
                         </button>
 
                         <button type="button" @onclick='() => SetTab("posts")' class="text-left px-2 sm:px-3 py-1 group">
                             <div class="font-display text-lg sm:text-xl font-bold text-[#0A1B2E] dark:text-white group-hover:text-blue-600 transition">
                                 @profile.Metrics.PostsCount.ToString("N0")
                             </div>
-                            <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">PUBLISHED GUIDES</div>
+                            <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Stats_PublishedGuides"]</div>
                         </button>
 
                         <button type="button" @onclick='() => SetTab("communities")' class="text-left px-2 sm:px-3 py-1 group">
                             <div class="font-display text-lg sm:text-xl font-bold text-[#0A1B2E] dark:text-white group-hover:text-blue-600 transition">
                                 @profile.Metrics.JoinedCommunitiesCount.ToString("N0")
                             </div>
-                            <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">SUB-COMMUNITIES LED</div>
+                            <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Stats_CommunitiesLed"]</div>
                         </button>
                     </div>
 
@@ -517,7 +518,7 @@
                                     }
                                 </div>
                                 <span class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mt-0.5">
-                                    @(profile.Metrics.RatingCount > 0 ? $"{profile.Metrics.RatingCount} RATINGS" : "0 RATINGS")
+                                    @(profile.Metrics.RatingCount > 0 ? Loc["Profile_Reputation_RatingsCount", profile.Metrics.RatingCount] : Loc["Profile_Reputation_ZeroRatings"])
                                 </span>
                             </div>
 
@@ -571,13 +572,13 @@
                                 }
                                 <div>
                                     <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white flex items-center gap-1.5">
-                                        <span>@(profile.IsVerified ? "Verified Member" : "Active Member")</span>
+                                        <span>@(profile.IsVerified ? Loc["Profile_Reputation_VerifiedMember"] : Loc["Profile_Reputation_ActiveMember"])</span>
                                         @if (profile.IsVerified)
                                         {
                                             <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
                                         }
                                     </div>
-                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">@(profile.Metrics.RatingCount > 0 ? $"{profile.Metrics.RatingCount} peer ratings" : "No peer ratings yet")</div>
+                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">@(profile.Metrics.RatingCount > 0 ? Loc["Profile_Reputation_PeerRatings", profile.Metrics.RatingCount] : Loc["Profile_Reputation_NoPeerRatings"])</div>
                                 </div>
                             </div>
 
@@ -586,8 +587,8 @@
                                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                 </span>
                                 <div>
-                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(!string.IsNullOrWhiteSpace(profile.ResponseSlaText) ? profile.ResponseSlaText : (profile.IsOnline ? "Active Now" : "Standard Dispatch"))</div>
-                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">Member Response Status</div>
+                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(!string.IsNullOrWhiteSpace(profile.ResponseSlaText) ? profile.ResponseSlaText : (profile.IsOnline ? Loc["Profile_Reputation_ActiveNow"] : Loc["Profile_Reputation_StandardDispatch"]))</div>
+                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">@Loc["Profile_Reputation_MemberResponseStatus"]</div>
                                 </div>
                             </div>
 
@@ -596,8 +597,8 @@
                                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
                                 </span>
                                 <div>
-                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(string.IsNullOrWhiteSpace(profile.PercentileBadgeText) ? (profile.IsVerified ? "Audited Node" : "Standard Contributor") : profile.PercentileBadgeText)</div>
-                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">Reputation Tier</div>
+                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(string.IsNullOrWhiteSpace(profile.PercentileBadgeText) ? (profile.IsVerified ? Loc["Profile_Reputation_AuditedNode"] : Loc["Profile_Reputation_StandardContributor"]) : profile.PercentileBadgeText)</div>
+                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">@Loc["Profile_Reputation_ReputationTier"]</div>
                                 </div>
                             </div>
                         </div>
@@ -610,44 +611,44 @@
                     <div class="flex items-center gap-1.5 shrink-0">
                         <button @onclick='() => SetTab("posts")' class="@(activeTab == "posts" ? "chip-active" : "chip-standard")">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-                            <span>POSTS &amp; POLLS</span>
+                            <span>@Loc["Profile_Tab_PostsPolls"]</span>
                         </button>
 
                         <button @onclick='() => SetTab("reviews")' class="@(activeTab == "reviews" ? "chip-active" : "chip-standard")">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            <span>REVIEWS (@(profile.Metrics.RatingCount))</span>
+                            <span>@Loc["Profile_Tab_Reviews", profile.Metrics.RatingCount]</span>
                         </button>
 
                         <button @onclick='() => SetTab("communities")' class="@(activeTab == "communities" ? "chip-active" : "chip-standard")">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
-                            <span>COMMUNITIES (@(profile.Metrics.JoinedCommunitiesCount))</span>
+                            <span>@Loc["Profile_Tab_Communities", profile.Metrics.JoinedCommunitiesCount]</span>
                         </button>
 
                         @if (isOwner)
                         {
                             <button @onclick='() => SetTab("saved-posts")' class="@(activeTab == "saved-posts" ? "chip-active" : "chip-standard")">
                                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-                                <span>SAVED (@savedPostsList.Count)</span>
+                                <span>@Loc["Profile_Tab_Saved", savedPostsList.Count]</span>
                             </button>
                         }
 
                         <button @onclick='() => SetTab("followers")' class="@(activeTab == "followers" ? "chip-active" : "chip-standard")">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                            <span>FOLLOWERS</span>
+                            <span>@Loc["Profile_Tab_Followers"]</span>
                         </button>
 
                         @if (isOwner)
                         {
                             <button @onclick='() => SetTab("recycle-bin")' class="@(activeTab == "recycle-bin" ? "chip-active" : "chip-standard")">
                                 <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                <span>RECYCLE BIN (@recycledPostsList.Count)</span>
+                                <span>@Loc["Profile_Tab_RecycleBin", recycledPostsList.Count]</span>
                             </button>
                         }
                     </div>
 
                     <div class="hidden sm:flex items-center gap-1 shrink-0 ml-4 font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
-                        <span>FILTER:</span>
-                        <span class="px-2 py-0.5 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-white font-semibold">LATEST</span>
+                        <span>@Loc["Profile_Tab_Filter"]</span>
+                        <span class="px-2 py-0.5 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-white font-semibold">@Loc["Profile_Tab_Latest"]</span>
                     </div>
                 </div>
 
@@ -661,7 +662,7 @@
                         {
                             <div class="card-executive py-12 text-center text-xs text-[#64748B] dark:text-[#7A8CA6]">
                                 <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#0A1B2E] dark:border-white border-t-transparent mb-2"></div>
-                                <p class="font-mono text-[10px] tracking-wider uppercase">SYNCHRONIZING TAB DATA...</p>
+                                <p class="font-mono text-[10px] tracking-wider uppercase">@Loc["Profile_Feed_Syncing"]</p>
                             </div>
                         }
                         else if (activeTab == "posts" || (activeTab == "saved-posts" && isOwner))
@@ -671,8 +672,8 @@
                             {
                                 <div class="card-executive py-12 text-center">
                                     <svg class="w-8 h-8 text-slate-400 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-                                    <p class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white mt-2">@(activeTab == "saved-posts" ? "No saved publications" : "No publications found")</p>
-                                    <p class="text-[11px] text-[#64748B] dark:text-[#7A8CA6] mt-0.5">@(activeTab == "saved-posts" ? "Posts and polls you bookmark will appear here." : "Technical guides, memos, and active polls will appear here.")</p>
+                                    <p class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white mt-2">@(activeTab == "saved-posts" ? Loc["Profile_Feed_EmptySavedTitle"] : Loc["Profile_Feed_EmptyPostsTitle"])</p>
+                                    <p class="text-[11px] text-[#64748B] dark:text-[#7A8CA6] mt-0.5">@(activeTab == "saved-posts" ? Loc["Profile_Feed_EmptySavedDesc"] : Loc["Profile_Feed_EmptyPostsDesc"])</p>
                                 </div>
                             }
                             else
@@ -684,7 +685,7 @@
                                         {
                                             <div class="flex items-center gap-1.5 text-xs text-[#64748B] dark:text-[#7A8CA6] font-medium pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
                                                 <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                                                <span>Shared by <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@(post.SharedByDisplayName ?? post.SharedByUserName)</span></span>
+                                                @((MarkupString)string.Format(Loc["Profile_Post_SharedBy"], $"<span class=\"font-bold text-[#0A1B2E] dark:text-[#E1E8F0]\">{(post.SharedByDisplayName ?? post.SharedByUserName)}</span>"))
                                                 @if (post.SharedAt.HasValue)
                                                 {
                                                     <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.SharedAt.Value.ToString("g")</span>
@@ -698,10 +699,10 @@
                                                  class="cursor-pointer bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded-lg p-2.5 flex items-center justify-between text-xs font-bold transition">
                                                 <div class="flex items-center gap-2">
                                                     <svg class="w-4 h-4 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                                                    <span>Your post got banned</span>
+                                                    <span>@Loc["PostUpload_Post_BannedTitle"]</span>
                                                 </div>
                                                 <span class="text-[11px] underline font-semibold flex items-center gap-1">
-                                                    <span>View reason</span>
+                                                    <span>@Loc["PostUpload_Post_ViewReason"]</span>
                                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                                 </span>
                                             </div>
@@ -738,9 +739,9 @@
                                             <div class="flex items-center gap-2">
                                                 @if (post.IsPrivate)
                                                 {
-                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1" title="Only you can view this post">
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1" title="@Loc["Profile_Post_PrivateTooltip"]">
                                                         <span class="material-symbols-outlined text-[12px]">lock</span>
-                                                        <span>Private</span>
+                                                        <span>@Loc["Profile_Post_PrivateBadge"]</span>
                                                     </span>
                                                 }
 
@@ -754,7 +755,7 @@
                                                 <!-- Bookmark / Save Post Button -->
                                                 <button type="button" @onclick="() => ToggleSaveProfilePostAsync(post)"
                                                         class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-md transition-colors cursor-pointer"
-                                                        title="@(post.IsSaved ? "Unsave Post" : "Save Post")">
+                                                        title="@(post.IsSaved ? Loc["Profile_Post_UnsaveTooltip"] : Loc["Profile_Post_SaveTooltip"])">
                                                     <span class="material-symbols-outlined text-[18px] @(post.IsSaved ? "text-blue-600 dark:text-blue-400" : "")">
                                                         @(post.IsSaved ? "bookmark" : "bookmark_border")
                                                     </span>
@@ -764,7 +765,7 @@
                                                 <div class="relative">
                                                     <button type="button" @onclick="() => ToggleProfilePostMenu(post.PostId)"
                                                             class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-md transition-colors cursor-pointer"
-                                                            title="Options">
+                                                            title="@Loc["Profile_Post_OptionsTooltip"]">
                                                         <span class="material-symbols-outlined text-[18px]">more_vert</span>
                                                     </button>
 
@@ -774,7 +775,7 @@
                                                             <button type="button" @onclick='() => OpenProfileReportModal(post.PostId, "POST")'
                                                                     class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-2 cursor-pointer">
                                                                 <span class="material-symbols-outlined text-[16px] text-rose-500">flag</span>
-                                                                <span>Report Post</span>
+                                                                <span>@Loc["PostUpload_Post_Report"]</span>
                                                             </button>
 
                                                             @if (currentUserId.HasValue && post.AuthorUserId == currentUserId.Value)
@@ -782,17 +783,17 @@
                                                                 <button type="button" @onclick="() => OpenEditProfilePost(post)"
                                                                         class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center gap-2 cursor-pointer">
                                                                     <span class="material-symbols-outlined text-[16px]">edit</span>
-                                                                    <span>Edit Post</span>
+                                                                    <span>@Loc["PostUpload_Post_Edit"]</span>
                                                                 </button>
                                                                 <button type="button" @onclick="() => ToggleProfilePostPrivacyAsync(post)"
                                                                         class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center gap-2 cursor-pointer">
                                                                     <span class="material-symbols-outlined text-[16px] text-amber-500">@(post.IsPrivate ? "public" : "lock")</span>
-                                                                    <span>@(post.IsPrivate ? "Make Public" : "Make Private")</span>
+                                                                    <span>@(post.IsPrivate ? Loc["PostUpload_Post_MakePublic"] : Loc["PostUpload_Post_MakePrivate"])</span>
                                                                 </button>
                                                                 <button type="button" @onclick="() => RecycleProfilePostAsync(post.PostId)"
                                                                         class="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition flex items-center gap-2 cursor-pointer">
                                                                     <span class="material-symbols-outlined text-[16px]">delete</span>
-                                                                    <span>Recycle Post</span>
+                                                                    <span>@Loc["PostUpload_Post_Recycle"]</span>
                                                                 </button>
                                                             }
                                                         </div>
@@ -850,7 +851,7 @@
                                             {
                                                 <div class="mt-2 space-y-1.5">
                                                     <div class="text-[11px] font-semibold text-[#64748B] dark:text-[#7A8CA6] flex items-center gap-1">
-                                                        <span>📎 Attached Text Files (@textFiles.Count):</span>
+                                                        <span>@Loc["Profile_Post_AttachedFiles", textFiles.Count]</span>
                                                     </div>
                                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                         @foreach (var tf in textFiles)
@@ -863,7 +864,7 @@
                                                                     </div>
                                                                     <div class="min-w-0">
                                                                         <p class="font-mono text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0] truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400">@tf.FileName</p>
-                                                                        <p class="font-mono text-[10px] text-[#7A8CA6]">@(tf.Content.Length) chars • Click to read</p>
+                                                                        <p class="font-mono text-[10px] text-[#7A8CA6]">@Loc["Profile_Post_CharsClickToRead", tf.Content.Length]</p>
                                                                     </div>
                                                                 </div>
                                                                 <span class="text-xs text-[#7A8CA6] group-hover:translate-x-0.5 transition font-bold ml-2">↗</span>
@@ -880,9 +881,9 @@
                                                         <button type="button" @onclick="() => OpenProfileTextFileModal(single.FileName, single.Content)"
                                                                 class="font-bold text-emerald-400 font-mono hover:underline flex items-center gap-1 cursor-pointer">
                                                             <span>📄 @single.FileName</span>
-                                                            <span class="text-gray-400 font-normal text-[9px]">(Click to expand)</span>
+                                                            <span class="text-gray-400 font-normal text-[9px]">@Loc["Profile_Post_ClickToExpand"]</span>
                                                         </button>
-                                                        <span class="font-mono">TEXT</span>
+                                                        <span class="font-mono">@Loc["Profile_Post_TextBadge"]</span>
                                                     </div>
                                                     <div class="overflow-x-auto overflow-y-auto max-h-72 text-[11px] leading-relaxed">
                                                         <pre class="whitespace-pre font-mono"><code>@single.Content</code></pre>
@@ -947,7 +948,7 @@
                                                     <div class="prof-code-block p-2.5 space-y-1 text-xs">
                                                         <div class="flex items-center justify-between pb-1 border-b border-gray-800 text-[10px] text-gray-400">
                                                             <span class="font-bold text-emerald-400 font-mono">📄 @singleOrig.FileName</span>
-                                                            <span class="font-mono">TEXT</span>
+                                                            <span class="font-mono">@Loc["Profile_Post_TextBadge"]</span>
                                                         </div>
                                                         <div class="overflow-x-auto overflow-y-auto max-h-48 text-[11px] leading-relaxed">
                                                             <pre class="whitespace-pre font-mono"><code>@singleOrig.Content</code></pre>
@@ -993,19 +994,19 @@
                                                     <svg class="w-4 h-4 @(post.IsLikedByCurrentUser ? "fill-rose-500 stroke-rose-500" : "fill-none stroke-currentColor")" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                                     </svg>
-                                                    <span>Like</span>
+                                                    <span>@Loc["Profile_Post_ActionLike"]</span>
                                                 </button>
 
                                                 <!-- Comment Toggle -->
                                                 <button type="button" @onclick="() => ToggleProfileCommentBox(post.PostId)" class="flex items-center gap-1.5 font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer @(openProfileCommentPostIds.Contains(post.PostId) ? "!text-[#0A1B2E] dark:!text-white font-bold" : "")">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                                    <span>Comment</span>
+                                                    <span>@Loc["Profile_Post_ActionComment"]</span>
                                                 </button>
 
                                                 <!-- Share -->
                                                 <button type="button" @onclick="() => OpenProfileShareModal(post.PostId)" class="flex items-center gap-1.5 font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                                                    <span>Share</span>
+                                                    <span>@Loc["Profile_Post_ActionShare"]</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -1017,7 +1018,7 @@
                                                 <div class="flex items-center gap-2">
                                                     <input type="text" @bind="profileCommentInputs[post.PostId]"
                                                            @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitProfileCommentAsync(post.PostId); })"
-                                                           placeholder="Write a comment..."
+                                                           placeholder="@Loc["Profile_Post_WriteCommentPlaceholder"]"
                                                            class="flex-1 text-xs bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20" />
                                                     <button type="button" @onclick="() => SubmitProfileCommentAsync(post.PostId)"
                                                             class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] rounded-xl text-xs font-semibold hover:opacity-90 transition cursor-pointer">
@@ -1029,7 +1030,7 @@
                                                 {
                                                     @if (commentList.Count == 0)
                                                     {
-                                                        <p class="text-xs text-[#7A8CA6] text-center py-2 font-mono">No comments yet. Be the first!</p>
+                                                        <p class="text-xs text-[#7A8CA6] text-center py-2 font-mono">@Loc["Profile_Post_NoComments"]</p>
                                                     }
                                                     else
                                                     {
@@ -1064,7 +1065,7 @@
                             {
                                 <div class="card-executive py-12 text-center text-xs text-[#64748B] dark:text-[#7A8CA6]">
                                     <svg class="w-8 h-8 text-slate-400 mx-auto" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <p class="font-display font-bold mt-2 text-[#0A1B2E] dark:text-white">No peer reviews recorded yet</p>
+                                    <p class="font-display font-bold mt-2 text-[#0A1B2E] dark:text-white">@Loc["Profile_Reviews_Empty"]</p>
                                 </div>
                             }
                             else
@@ -1107,11 +1108,11 @@
                                                     <div class="flex items-center gap-3">
                                                         <button type="button" @onclick="OpenRatingModal" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
                                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                            <span>Edit</span>
+                                                            <span>@Loc["Profile_Review_EditBtn"]</span>
                                                         </button>
                                                         <button type="button" @onclick="DeleteRatingAsync" disabled="@isDeletingRating" class="text-rose-600 dark:text-rose-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
                                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                            <span>Delete</span>
+                                                            <span>@Loc["Profile_Review_DeleteBtn"]</span>
                                                         </button>
                                                     </div>
                                                 }
@@ -1128,7 +1129,7 @@
                             {
                                 <div class="card-executive py-12 text-center text-xs text-[#64748B] dark:text-[#7A8CA6]">
                                     <svg class="w-8 h-8 text-slate-400 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
-                                    <p class="font-display font-bold mt-2 text-[#0A1B2E] dark:text-white">No affiliated hubs joined yet</p>
+                                    <p class="font-display font-bold mt-2 text-[#0A1B2E] dark:text-white">@Loc["Profile_Communities_Empty"]</p>
                                 </div>
                             }
                             else
@@ -1165,7 +1166,7 @@
                             @if (!list.Any())
                             {
                                 <div class="card-executive py-12 text-center text-xs text-[#64748B] dark:text-[#7A8CA6]">
-                                    <p class="font-display font-bold">No users in this list yet</p>
+                                    <p class="font-display font-bold">@Loc["Profile_Followers_Empty"]</p>
                                 </div>
                             }
                             else
@@ -1190,7 +1191,7 @@
                                                     <p class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] truncate">@@@u.UserName</p>
                                                 </div>
                                             </div>
-                                            <a href="u/@u.UserName" class="btn-exec-secondary text-[11px] py-1 px-2 shrink-0">View</a>
+                                            <a href="u/@u.UserName" class="btn-exec-secondary text-[11px] py-1 px-2 shrink-0">@Loc["Profile_Followers_ViewBtn"]</a>
                                         </div>
                                     }
                                 </div>
@@ -1202,8 +1203,8 @@
                             {
                                 <div class="card-executive py-12 text-center text-xs text-[#64748B] dark:text-[#7A8CA6]">
                                     <svg class="w-8 h-8 text-slate-400 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-                                    <p class="font-display font-bold mt-2 text-[#0A1B2E] dark:text-white">No saved posts recorded</p>
-                                    <p class="text-[11px] text-[#64748B] dark:text-[#7A8CA6] mt-0.5">Posts you bookmark will appear here for easy reference.</p>
+                                    <p class="font-display font-bold mt-2 text-[#0A1B2E] dark:text-white">@Loc["Profile_Saved_EmptyTitle"]</p>
+                                    <p class="text-[11px] text-[#64748B] dark:text-[#7A8CA6] mt-0.5">@Loc["Profile_Saved_EmptyDesc"]</p>
                                 </div>
                             }
                             else
@@ -1215,7 +1216,7 @@
                                         {
                                             <div class="flex items-center gap-1.5 text-xs text-[#64748B] dark:text-[#7A8CA6] font-medium pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
                                                 <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                                                <span>Shared by <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@(post.SharedByDisplayName ?? post.SharedByUserName)</span></span>
+                                                @((MarkupString)string.Format(Loc["Profile_Post_SharedBy"], $"<span class=\"font-bold text-[#0A1B2E] dark:text-[#E1E8F0]\">{(post.SharedByDisplayName ?? post.SharedByUserName)}</span>"))
                                                 @if (post.SharedAt.HasValue)
                                                 {
                                                     <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.SharedAt.Value.ToString("g")</span>
@@ -1309,7 +1310,7 @@
                                             {
                                                 <div class="mt-2 space-y-1.5">
                                                     <div class="text-[11px] font-semibold text-[#64748B] dark:text-[#7A8CA6] flex items-center gap-1">
-                                                        <span>📎 Attached Text Files (@textFiles.Count):</span>
+                                                        <span>@Loc["Profile_Post_AttachedFiles", textFiles.Count]</span>
                                                     </div>
                                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                         @foreach (var tf in textFiles)
@@ -1322,7 +1323,7 @@
                                                                     </div>
                                                                     <div class="min-w-0">
                                                                         <p class="font-mono text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0] truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400">@tf.FileName</p>
-                                                                        <p class="font-mono text-[10px] text-[#7A8CA6]">@(tf.Content.Length) chars • Click to read</p>
+                                                                        <p class="font-mono text-[10px] text-[#7A8CA6]">@Loc["Profile_Post_CharsClickToRead", tf.Content.Length]</p>
                                                                     </div>
                                                                 </div>
                                                                 <span class="text-xs text-[#7A8CA6] group-hover:translate-x-0.5 transition font-bold ml-2">↗</span>
@@ -1339,9 +1340,9 @@
                                                         <button type="button" @onclick="() => OpenProfileTextFileModal(single.FileName, single.Content)"
                                                                 class="font-bold text-emerald-400 font-mono hover:underline flex items-center gap-1 cursor-pointer">
                                                             <span>📄 @single.FileName</span>
-                                                            <span class="text-gray-400 font-normal text-[9px]">(Click to expand)</span>
+                                                            <span class="text-gray-400 font-normal text-[9px]">@Loc["Profile_Post_ClickToExpand"]</span>
                                                         </button>
-                                                        <span class="font-mono">TEXT</span>
+                                                        <span class="font-mono">@Loc["Profile_Post_TextBadge"]</span>
                                                     </div>
                                                     <div class="overflow-x-auto overflow-y-auto max-h-72 text-[11px] leading-relaxed">
                                                         <pre class="whitespace-pre font-mono"><code>@single.Content</code></pre>
@@ -1391,19 +1392,19 @@
                                                     <svg class="w-4 h-4 @(post.IsLikedByCurrentUser ? "fill-rose-500 stroke-rose-500" : "fill-none stroke-currentColor")" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                                     </svg>
-                                                    <span>Like</span>
+                                                    <span>@Loc["Profile_Post_ActionLike"]</span>
                                                 </button>
 
                                                 <!-- Comment Toggle -->
                                                 <button type="button" @onclick="() => ToggleProfileCommentBox(post.PostId)" class="flex items-center gap-1.5 font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer @(openProfileCommentPostIds.Contains(post.PostId) ? "!text-[#0A1B2E] dark:!text-white font-bold" : "")">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                                    <span>Comment</span>
+                                                    <span>@Loc["Profile_Post_ActionComment"]</span>
                                                 </button>
 
                                                 <!-- Share -->
                                                 <button type="button" @onclick="() => OpenProfileShareModal(post.PostId)" class="flex items-center gap-1.5 font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                                                    <span>Share</span>
+                                                    <span>@Loc["Profile_Post_ActionShare"]</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -1415,7 +1416,7 @@
                                                 <div class="flex items-center gap-2">
                                                     <input type="text" @bind="profileCommentInputs[post.PostId]"
                                                            @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitProfileCommentAsync(post.PostId); })"
-                                                           placeholder="Write a comment..."
+                                                           placeholder="@Loc["Profile_Post_WriteCommentPlaceholder"]"
                                                            class="flex-1 text-xs bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20" />
                                                     <button type="button" @onclick="() => SubmitProfileCommentAsync(post.PostId)"
                                                             class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] rounded-xl text-xs font-semibold hover:opacity-90 transition cursor-pointer">
@@ -1427,7 +1428,7 @@
                                                 {
                                                     @if (commentList.Count == 0)
                                                     {
-                                                        <p class="text-xs text-[#7A8CA6] text-center py-2 font-mono">No comments yet. Be the first!</p>
+                                                        <p class="text-xs text-[#7A8CA6] text-center py-2 font-mono">@Loc["Profile_Post_NoComments"]</p>
                                                     }
                                                     else
                                                     {
@@ -1464,8 +1465,8 @@
                                     <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                     </div>
-                                    <p class="font-display font-bold">Your Recycle Bin is empty</p>
-                                    <p class="text-[11px] max-w-sm mx-auto text-[#64748B] dark:text-[#7A8CA6]">Posts moved to the Recycle Bin will be preserved here for 10 days before permanent deletion.</p>
+                                    <p class="font-display font-bold">@Loc["Profile_Recycle_EmptyTitle"]</p>
+                                    <p class="text-[11px] max-w-sm mx-auto text-[#64748B] dark:text-[#7A8CA6]">@Loc["Profile_Recycle_EmptyDesc"]</p>
                                 </div>
                             }
                             else
@@ -1476,7 +1477,7 @@
                                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             Posts in your Recycle Bin are automatically permanently purged after 10 days.
                                         </span>
-                                        <span class="font-mono text-[10px] font-semibold">@recycledPostsList.Count ITEM(S)</span>
+                                        <span class="font-mono text-[10px] font-semibold">@Loc["Profile_Recycle_ItemCount", recycledPostsList.Count]</span>
                                     </div>
 
                                     @foreach (var rp in recycledPostsList)
@@ -1486,7 +1487,7 @@
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-semibold text-blue-600 dark:text-blue-400">@rp.CommunityName</span>
                                                     <span>•</span>
-                                                    <span>Recycled @(rp.DeletedAt?.ToString("g") ?? rp.CreatedAt.ToString("g"))</span>
+                                                    <span>@Loc["Profile_Recycle_RecycledAt", (rp.DeletedAt?.ToString("g") ?? rp.CreatedAt.ToString("g"))]</span>
                                                 </div>
                                                 <span class="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 font-semibold text-[10px]">
                                                     @(rp.DaysRemaining.HasValue ? $"Expires in {rp.DaysRemaining.Value} days" : "Expires in 10 days")
@@ -1508,11 +1509,11 @@
                                             <div class="pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-end gap-2">
                                                 <button type="button" @onclick="() => RestoreRecycledPostAsync(rp.PostId)" class="btn-exec-secondary text-xs !py-1 !px-3 text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                                                     <span>↺</span>
-                                                    <span>Restore Post</span>
+                                                    <span>@Loc["Profile_Recycle_RestoreBtn"]</span>
                                                 </button>
-                                                <button type="button" @onclick="() => ConfirmPermanentDeletePost(rp.PostId)" class="btn-exec-secondary text-xs !py-1 !px-3 !border-rose-300 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-1.5" title="Permanently Delete">
+                                                <button type="button" @onclick="() => ConfirmPermanentDeletePost(rp.PostId)" class="btn-exec-secondary text-xs !py-1 !px-3 !border-rose-300 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-1.5" title="@Loc["Profile_Recycle_DeleteForeverTitle"]">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                                    <span>Delete Forever</span>
+                                                    <span>@Loc["Profile_Recycle_DeleteForeverBtn"]</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -1570,7 +1571,7 @@
                                 <h3 class="font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">
                                     DOMAIN COMPETENCIES
                                 </h3>
-                                <span class="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">PEER-VERIFIED</span>
+                                <span class="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">@Loc["Profile_Widget_SkillsPeerVerified"]</span>
                             </div>
 
                             <div class="flex flex-wrap gap-1.5">
@@ -1578,7 +1579,7 @@
                                 {
                                     @foreach (var skill in profile.Skills)
                                     {
-                                        <button type="button" @onclick="() => EndorseSkillAsync(skill.SkillId)" class="chip-standard @(skill.IsEndorsedByMe ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300" : "")" title="Click to endorse skill">
+                                        <button type="button" @onclick="() => EndorseSkillAsync(skill.SkillId)" class="chip-standard @(skill.IsEndorsedByMe ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300" : "")" title="@Loc["Profile_Widget_SkillsEndorseTooltip"]">
                                             <span>@skill.SkillName</span>
                                             <span class="text-amber-500 font-bold inline-flex items-center gap-1">
                                                 <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -1602,23 +1603,23 @@
                             <div class="card-executive p-4 space-y-2.5">
                                 <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                                     <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                    <span class="font-mono text-[10px] font-bold uppercase tracking-wider">IDENTITY VERIFICATION AUDIT</span>
+                                    <span class="font-mono text-[10px] font-bold uppercase tracking-wider">@Loc["Profile_Audit_Title"]</span>
                                 </div>
                                 <p class="font-body text-xs text-[#475569] dark:text-[#C4D2E1] leading-relaxed">
-                                    Verified Identity: <strong class="text-[#0A1B2E] dark:text-white">@(profile.Role?.RoleName ?? "Community Member")</strong>. Credentials audited by CommunityLink Governance.
+                                    @((MarkupString)string.Format(Loc["Profile_Audit_Desc"], $"<strong class=\"text-[#0A1B2E] dark:text-white\">{(profile.Role?.RoleName ?? "Community Member")}</strong>"))
                                 </p>
                                 <div class="p-2.5 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] space-y-1 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                     <div class="flex justify-between">
-                                        <span>AUDIT ID:</span>
+                                        <span>@Loc["Profile_Audit_IdLabel"]</span>
                                         <span class="font-semibold text-[#0A1B2E] dark:text-white">@(profile.VerificationAudit?.AuditCode ?? $"#CL-{profile.UserId:D4}-VERIFIED")</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span>AUTHORITY:</span>
+                                        <span>@Loc["Profile_Audit_AuthorityLabel"]</span>
                                         <span class="font-semibold text-[#0A1B2E] dark:text-white">@(profile.VerificationAudit?.Authority ?? "CommunityLink SecOps")</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span>STATUS:</span>
-                                        <span class="text-emerald-600 dark:text-emerald-400 font-bold">ACTIVE &amp; RECOGNIZED</span>
+                                        <span>@Loc["Profile_Audit_StatusLabel"]</span>
+                                        <span class="text-emerald-600 dark:text-emerald-400 font-bold">@Loc["Profile_Audit_StatusActive"]</span>
                                     </div>
                                 </div>
                             </div>
@@ -1640,8 +1641,8 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 backdrop-blur-sm">
         <div class="w-full max-w-md bg-white dark:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] rounded-[0.75rem] p-5 shadow-2xl space-y-4 text-[#0A1B2E] dark:text-white">
             <div class="flex items-center justify-between pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                <h3 class="font-display text-sm font-bold">@(profile?.Relationship?.HasRated == true ? "Edit Review for " : "Rate ")@(profile?.DisplayName ?? profile?.UserName)</h3>
-                <button @onclick="CloseRatingModal" class="text-lg leading-none text-[#64748B] hover:text-[#0A1B2E] dark:hover:text-white font-bold">&times;</button>
+                <h3 class="font-display text-sm font-bold">@(profile?.Relationship?.HasRated == true ? Loc["Profile_Modal_RateEditTitle", (profile?.DisplayName ?? profile?.UserName ?? "")] : Loc["Profile_Modal_RateTitle", (profile?.DisplayName ?? profile?.UserName ?? "")])</h3>
+                <button @onclick="CloseRatingModal" aria-label="@Loc["Common_Close"]" class="text-lg leading-none text-[#64748B] hover:text-[#0A1B2E] dark:hover:text-white font-bold">&times;</button>
             </div>
             <p class="font-body text-xs text-[#64748B] dark:text-[#7A8CA6]">
                 Reviews are weighted by verified platform credentials and platform trust score.
@@ -1659,8 +1660,8 @@
             </div>
 
             <div class="space-y-1">
-                <label class="font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider" for="review-notes">Written Feedback (Optional)</label>
-                <textarea @bind="ratingModel.ReviewText" id="review-notes" rows="3" class="w-full bg-white dark:bg-[#0A1B2E] rounded-[0.25rem] p-2.5 text-xs text-[#0A1B2E] dark:text-white placeholder-[#94A3B8] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] outline-none focus:ring-1 focus:ring-blue-500 resize-none" placeholder="Share your experience collaborating with this peer..."></textarea>
+                <label class="font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider" for="review-notes">@Loc["Profile_Modal_RateFeedbackLabel"]</label>
+                <textarea @bind="ratingModel.ReviewText" id="review-notes" rows="3" class="w-full bg-white dark:bg-[#0A1B2E] rounded-[0.25rem] p-2.5 text-xs text-[#0A1B2E] dark:text-white placeholder-[#94A3B8] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] outline-none focus:ring-1 focus:ring-blue-500 resize-none" placeholder="@Loc["Profile_Modal_RatePlaceholder"]"></textarea>
             </div>
 
             @if (!string.IsNullOrEmpty(ratingErrorMessage))
@@ -1676,7 +1677,7 @@
                     {
                         <button type="button" @onclick="DeleteRatingAsync" disabled="@(isSubmittingRating || isDeletingRating)" class="text-xs text-rose-600 dark:text-rose-400 hover:underline font-semibold flex items-center gap-1">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                            <span>@(isDeletingRating ? "Deleting..." : "Delete Review")</span>
+                            <span>@(isDeletingRating ? Loc["Profile_Modal_RateDeleting"] : Loc["Profile_Modal_RateDeleteBtn"])</span>
                         </button>
                     }
                 </div>
@@ -1699,8 +1700,8 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1B2E]/60 backdrop-blur-sm">
         <div class="w-full max-w-lg bg-white dark:bg-[#112A46] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] rounded-[0.75rem] p-5 shadow-2xl space-y-4 text-[#0A1B2E] dark:text-white">
             <div class="flex items-center justify-between pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                <h3 class="font-display text-sm font-bold">Edit Profile Credentials</h3>
-                <button @onclick="CloseEditModal" class="text-lg leading-none text-[#64748B] hover:text-[#0A1B2E] dark:hover:text-white font-bold">&times;</button>
+                <h3 class="font-display text-sm font-bold">@Loc["Profile_Modal_EditTitle"]</h3>
+                <button @onclick="CloseEditModal" aria-label="@Loc["Common_Close"]" class="text-lg leading-none text-[#64748B] hover:text-[#0A1B2E] dark:hover:text-white font-bold">&times;</button>
             </div>
 
             <div class="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
@@ -1720,19 +1721,19 @@
                             }
                         </div>
                         <div>
-                            <span class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">PROFILE PICTURE</span>
-                            <span class="text-xs text-[#475569] dark:text-[#C4D2E1]">JPG, PNG or WebP (max 5 MB)</span>
+                            <span class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Modal_EditPicLabel"]</span>
+                            <span class="text-xs text-[#475569] dark:text-[#C4D2E1]">@Loc["Profile_Modal_EditPicHint"]</span>
                         </div>
                     </div>
                     <div>
                         <label for="modalAvatarUpload" class="btn-exec-secondary text-xs py-1.5 px-3 cursor-pointer @(isUploadingAvatar ? "opacity-50 pointer-events-none" : "")">
                             @if (isUploadingAvatar)
                             {
-                                <span>Uploading...</span>
+                                <span>@Loc["Profile_Modal_AvatarUploading"]</span>
                             }
                             else
                             {
-                                <span>Upload New</span>
+                                <span>@Loc["Profile_Modal_AvatarUploadNew"]</span>
                             }
                         </label>
                         <InputFile id="modalAvatarUpload" OnChange="HandleAvatarUploadAsync" accept=".jpg,.jpeg,.png,.webp" class="hidden" disabled="@isUploadingAvatar" />
@@ -1740,39 +1741,39 @@
                 </div>
 
                 <div>
-                    <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">Display Name *</label>
+                    <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">@Loc["Profile_Modal_EditNameLabel"]</label>
                     <input type="text" @bind="editModel.DisplayName" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
                 </div>
 
                 <div>
-                    <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">Username *</label>
+                    <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">@Loc["Profile_Modal_EditUsernameLabel"]</label>
                     <input type="text" @bind="editModel.UserName" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white font-mono outline-none focus:border-blue-500" />
                 </div>
 
                 <div>
-                    <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">Professional Headline</label>
-                    <input type="text" @bind="editModel.Headline" placeholder="e.g. Principal AI Architect & Distributed Systems Fellow" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
+                    <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">@Loc["Profile_Modal_EditHeadlineLabel"]</label>
+                    <input type="text" @bind="editModel.Headline" placeholder="@Loc["Profile_Modal_EditHeadlinePlaceholder"]" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">Pronouns</label>
-                        <input type="text" @bind="editModel.Pronouns" placeholder="e.g. she/her" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
+                        <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">@Loc["Profile_Modal_EditPronounsLabel"]</label>
+                        <input type="text" @bind="editModel.Pronouns" placeholder="@Loc["Profile_Modal_EditPronounsPlaceholder"]" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
                     </div>
                     <div>
-                        <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">Location</label>
-                        <input type="text" @bind="editModel.Location" placeholder="e.g. San Francisco, CA & Remote" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
+                        <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">@Loc["Profile_Modal_EditLocationLabel"]</label>
+                        <input type="text" @bind="editModel.Location" placeholder="@Loc["Profile_Modal_EditLocationPlaceholder"]" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
                     </div>
                 </div>
 
                 <div>
-                    <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">Availability Status</label>
-                    <input type="text" @bind="editModel.AvailabilityStatus" placeholder="e.g. Available for Advisory & Keynote Panels" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
+                    <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">@Loc["Profile_Modal_EditAvailabilityLabel"]</label>
+                    <input type="text" @bind="editModel.AvailabilityStatus" placeholder="@Loc["Profile_Modal_EditAvailabilityPlaceholder"]" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
                 </div>
 
                 <div>
-                    <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">Bio / Overview</label>
-                    <textarea @bind="editModel.Bio" rows="3" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500 resize-none" placeholder="Share your experience, publications, or engineering background..."></textarea>
+                    <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">@Loc["Profile_Modal_EditBioLabel"]</label>
+                    <textarea @bind="editModel.Bio" rows="3" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500 resize-none" placeholder="@Loc["Profile_Modal_EditBioPlaceholder"]"></textarea>
                 </div>
             </div>
 
@@ -1785,10 +1786,10 @@
 
             <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <button @onclick="CloseEditModal" class="btn-exec-secondary text-xs">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button @onclick="SaveProfileAsync" disabled="@isSavingProfile" class="btn-exec-primary text-xs">
-                    @(isSavingProfile ? "Saving..." : "Save Changes")
+                    @(isSavingProfile ? Loc["Common_Saving"] : Loc["Profile_Modal_SaveBtn"])
                 </button>
             </div>
         </div>
@@ -1804,16 +1805,16 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
             </div>
-            <h3 class="text-base font-semibold text-[#0F172A] dark:text-[#E2E8F0] mb-2">Delete Permanently?</h3>
+            <h3 class="text-base font-semibold text-[#0F172A] dark:text-[#E2E8F0] mb-2">@Loc["Profile_DeleteModal_Title"]</h3>
             <p class="text-xs text-[#64748B] dark:text-[#94A3B8] mb-6 leading-relaxed">
-                Are you sure you want to permanently delete this post? This action cannot be undone and will immediately remove all comments and attachments.
+                @Loc["Profile_DeleteModal_Message"]
             </p>
             <div class="flex items-center justify-center gap-3">
                 <button type="button" @onclick="ClosePermanentDeleteModal" class="px-4 py-2 text-xs font-semibold text-[#475569] dark:text-[#CBD5E1] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded transition-colors">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="ExecutePermanentDeleteAsync" class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded transition-colors shadow-sm">
-                    Delete Forever
+                    @Loc["Profile_DeleteModal_ConfirmBtn"]
                 </button>
             </div>
         </div>
@@ -1830,25 +1831,25 @@
             </div>
 
             <div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-[#E1E8F0]">Private Chat Locked</h3>
+                <h3 class="text-base font-bold text-slate-900 dark:text-[#E1E8F0]">@Loc["Profile_Unlock_LockedTitle"]</h3>
                 <p class="text-xs text-slate-600 dark:text-[#C4D2E1] mt-1 leading-normal">
-                    @profile.DisplayName requires a one-time unlock fee for direct 1-on-1 messaging.
+                    @string.Format(Loc["Profile_Unlock_DirectFeeDesc"], profile.DisplayName)
                 </p>
             </div>
 
             <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
                 <div class="flex items-center justify-between">
-                    <span class="text-slate-500 dark:text-slate-400 font-medium">Creator Unlock Fee</span>
+                    <span class="text-slate-500 dark:text-slate-400 font-medium">@Loc["Profile_Unlock_CreatorFeeLabel"]</span>
                     <span class="font-bold text-sky-700 dark:text-sky-400 flex items-center gap-1.5">
                         <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                        <span>@privateChatFeeLinkDrops.ToString("N0") Link Drops</span>
+                        <span>@string.Format(Loc["Profile_Unlock_FeeAmount"], privateChatFeeLinkDrops.ToString("N0"))</span>
                     </span>
                 </div>
                 <div class="flex items-center justify-between border-t border-slate-200/60 dark:border-slate-800 pt-2">
-                    <span class="text-slate-500 dark:text-slate-400 font-medium">Your Available Balance</span>
+                    <span class="text-slate-500 dark:text-slate-400 font-medium">@Loc["Profile_Unlock_AvailableBalanceLabel"]</span>
                     <span class="font-mono font-bold flex items-center gap-1.5 @(visitorWalletBalance >= privateChatFeeLinkDrops ? "text-slate-900 dark:text-white" : "text-rose-600 dark:text-rose-400")">
                         <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
-                        <span>@visitorWalletBalance.ToString("N0") Link Drops</span>
+                        <span>@string.Format(Loc["Profile_Unlock_BalanceAmount"], visitorWalletBalance.ToString("N0"))</span>
                     </span>
                 </div>
             </div>
@@ -1858,15 +1859,15 @@
                 <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 rounded-xl text-[11px] text-amber-800 dark:text-amber-300 text-left flex items-start gap-2">
                     <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
                     <div>
-                        <span class="font-bold">Insufficient Link Drops.</span> You need @((privateChatFeeLinkDrops - visitorWalletBalance).ToString("N0")) more Link Drops to unlock.
-                        <a href="linkdrops" class="text-indigo-600 dark:text-indigo-400 hover:underline font-bold block mt-0.5">Top Up Link Drops &rarr;</a>
+                        <span class="font-bold">@Loc["Profile_Unlock_InsufficientDropsTitle"]</span> @string.Format(Loc["Profile_Unlock_NeedMoreDrops"], (privateChatFeeLinkDrops - visitorWalletBalance).ToString("N0"))
+                        <a href="linkdrops" class="text-indigo-600 dark:text-indigo-400 hover:underline font-bold block mt-0.5">@Loc["Profile_Unlock_TopUpLink"]</a>
                     </div>
                 </div>
             }
 
             <div class="flex items-center gap-2 pt-2">
                 <button type="button" @onclick="() => showProfileUnlockModal = false" class="flex-1 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition cursor-pointer">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 @if (visitorWalletBalance >= privateChatFeeLinkDrops)
                 {
@@ -1874,11 +1875,11 @@
                         @if (isUnlockingChat)
                         {
                             <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            <span>Unlocking...</span>
+                            <span>@Loc["Profile_Unlock_Unlocking"]</span>
                         }
                         else
                         {
-                            <span>Pay &amp; Start Chat</span>
+                            <span>@Loc["Profile_Unlock_PayBtn"]</span>
                         }
                     </button>
                 }
@@ -1904,7 +1905,7 @@
                     <span class="text-xl">📄</span>
                     <div class="min-w-0">
                         <h3 class="font-mono text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] truncate">@profileTextFileModalTitle</h3>
-                        <p class="font-mono text-[11px] text-[#7A8CA6]">Plain Text Document • @(profileTextFileModalContent?.Length ?? 0) characters</p>
+                        <p class="font-mono text-[11px] text-[#7A8CA6]">@Loc["Profile_TextModal_Subtitle", (profileTextFileModalContent?.Length ?? 0)]</p>
                     </div>
                 </div>
                 <button type="button" @onclick="CloseProfileTextFileModal" class="p-2 text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-[#F2F6FB] dark:hover:bg-[#1B3B5A] text-sm font-bold cursor-pointer transition">
@@ -1919,7 +1920,7 @@
 
             <!-- Modal Footer -->
             <div class="px-6 py-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)] flex justify-between items-center text-xs">
-                <span class="text-[#7A8CA6] font-mono">Press Esc or Close</span>
+                <span class="text-[#7A8CA6] font-mono">@Loc["Profile_TextModal_EscHint"]</span>
                 <button type="button" @onclick="CloseProfileTextFileModal" class="px-4 py-1.5 rounded-lg bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-semibold hover:opacity-90 transition cursor-pointer">
                     Close Document
                 </button>
@@ -1936,29 +1937,29 @@
             <div class="flex items-center justify-between pb-3 border-b border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <h3 class="font-display font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-base flex items-center gap-2">
                     <svg class="w-4 h-4 text-[#1B3B5A] dark:text-[#C4D2E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                    <span>Share Post</span>
+                    <span>@Loc["Profile_ShareModal_Title"]</span>
                 </h3>
-                <button type="button" @onclick="CloseProfileShareModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-lg font-bold cursor-pointer">&times;</button>
+                <button type="button" @onclick="CloseProfileShareModal" aria-label="@Loc["Common_Close"]" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-lg font-bold cursor-pointer">&times;</button>
             </div>
 
             <div class="space-y-1.5">
-                <label class="font-mono text-xs text-[#557392] dark:text-[#C4D2E1]">ADD A NOTE (OPTIONAL)</label>
-                <textarea @bind="profileShareNoteText" rows="3" class="w-full text-xs bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 leading-relaxed resize-none" placeholder="What are your thoughts on this post?"></textarea>
+                <label class="font-mono text-xs text-[#557392] dark:text-[#C4D2E1]">@Loc["Profile_ShareModal_NoteLabel"]</label>
+                <textarea @bind="profileShareNoteText" rows="3" class="w-full text-xs bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 leading-relaxed resize-none" placeholder="@Loc["Profile_ShareModal_Placeholder"]"></textarea>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <button type="button" @onclick="CloseProfileShareModal" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-xl transition cursor-pointer">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="SubmitProfileSharePostAsync" disabled="@isSharingProfilePost" class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] rounded-xl text-xs font-semibold hover:opacity-90 transition cursor-pointer flex items-center gap-2">
                     @if (isSharingProfilePost)
                     {
                         <span class="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        <span>Sharing...</span>
+                        <span>@Loc["Profile_Share_Sharing"]</span>
                     }
                     else
                     {
-                        <span>Share Now</span>
+                        <span>@Loc["Profile_Share_ShareNow"]</span>
                     }
                 </button>
             </div>
@@ -1981,7 +1982,7 @@
                     <span class="p-1.5 rounded-lg bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                     </span>
-                    <h3 class="text-base font-bold text-red-600 dark:text-red-400">Your post got banned</h3>
+                    <h3 class="text-base font-bold text-red-600 dark:text-red-400">@Loc["Profile_BannedModal_Title"]</h3>
                 </div>
                 <button type="button" @onclick="CloseProfileBannedReasonModal" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1990,25 +1991,25 @@
 
             <div class="space-y-3">
                 <p class="text-xs text-[#557392] dark:text-[#C4D2E1] leading-relaxed">
-                    This post was removed from public community feeds by platform moderators because it violated community standards.
+                    @Loc["Profile_BannedModal_Notice"]
                 </p>
 
                 <div class="bg-red-50 dark:bg-red-950/30 p-3.5 rounded-xl border border-red-200 dark:border-red-900/40 space-y-1">
-                    <span class="text-[10px] uppercase font-bold tracking-wider text-red-700 dark:text-red-300 font-mono">Moderation Reason</span>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-red-700 dark:text-red-300 font-mono">@Loc["Profile_BannedModal_ReasonLabel"]</span>
                     <p class="text-xs text-red-900 dark:text-red-200 font-medium">
-                        @(string.IsNullOrWhiteSpace(profileBannedPostTarget.ModerationReason) ? "Violation of community safety and conduct guidelines." : profileBannedPostTarget.ModerationReason)
+                        @(string.IsNullOrWhiteSpace(profileBannedPostTarget.ModerationReason) ? Loc["Profile_BannedModal_DefaultReason"] : profileBannedPostTarget.ModerationReason)
                     </p>
                 </div>
 
                 <p class="text-[11px] text-[#7A8CA6]">
-                    Only you and site administrators can view this post. Other community members cannot see or interact with it.
+                    @Loc["Profile_BannedModal_VisibilityNote"]
                 </p>
             </div>
 
             <div class="flex justify-end pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <button type="button" @onclick="CloseProfileBannedReasonModal"
                         class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:opacity-90 transition cursor-pointer">
-                    Dismiss
+                    @Loc["Common_Dismiss"]
                 </button>
             </div>
         </div>
@@ -2023,30 +2024,30 @@
             <div class="flex items-center justify-between pb-3 border-b border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <h3 class="font-display font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-base flex items-center gap-2">
                     <span class="material-symbols-outlined text-[20px] text-[#1B3B5A] dark:text-[#C4D2E1]">edit</span>
-                    <span>Edit Post Description</span>
+                    <span>@Loc["Profile_EditPost_Title"]</span>
                 </h3>
-                <button type="button" @onclick="CloseEditProfilePostModal" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-lg font-bold">&times;</button>
+                <button type="button" @onclick="CloseEditProfilePostModal" aria-label="@Loc["Common_Close"]" class="text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-lg font-bold">&times;</button>
             </div>
 
             <div class="space-y-1.5">
-                <label class="font-mono text-xs text-[#557392] dark:text-[#C4D2E1]">POST CONTENT</label>
-                <textarea @bind="editingProfilePostContent" rows="5" class="w-full bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl p-3 text-xs resize-none leading-relaxed outline-none focus:ring-2 focus:ring-[#0A1B2E]/20" placeholder="Update your post description..."></textarea>
-                <p class="text-[11px] text-[#7A8CA6]">Note: Post image attachments and polls cannot be modified.</p>
+                <label class="font-mono text-xs text-[#557392] dark:text-[#C4D2E1]">@Loc["Profile_EditPost_ContentLabel"]</label>
+                <textarea @bind="editingProfilePostContent" rows="5" class="w-full bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl p-3 text-xs resize-none leading-relaxed outline-none focus:ring-2 focus:ring-[#0A1B2E]/20" placeholder="@Loc["Profile_EditPost_Placeholder"]"></textarea>
+                <p class="text-[11px] text-[#7A8CA6]">@Loc["Profile_EditPost_Note"]</p>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E1E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <button type="button" @onclick="CloseEditProfilePostModal" class="btn-exec-secondary text-xs">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="SaveEditProfilePostAsync" disabled="@(isSavingEditProfilePost || string.IsNullOrWhiteSpace(editingProfilePostContent))" class="btn-exec-primary text-xs">
                     @if (isSavingEditProfilePost)
                     {
                         <span class="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        <span>Saving...</span>
+                        <span>@Loc["Common_Saving"]</span>
                     }
                     else
                     {
-                        <span>Save Changes</span>
+                        <span>@Loc["Profile_Modal_SaveBtn"]</span>
                     }
                 </button>
             </div>
@@ -2196,7 +2197,7 @@
             if (res.IsSuccess)
             {
                 post.IsPrivate = !post.IsPrivate;
-                Toast.Success(post.IsPrivate ? "Post set to private (only you can see it)." : "Post is now public.");
+                Toast.Success(post.IsPrivate ? Loc["Profile_Toast_PostPrivate"] : Loc["Profile_Toast_PostPublic"]);
             }
             else
             {
@@ -2205,7 +2206,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to update privacy: {ex.Message}");
+            Toast.Error(string.Format(Loc["Profile_Toast_UpdatePrivacyError"], ex.Message));
         }
     }
 
@@ -2223,7 +2224,7 @@
                     postsList.Remove(target);
                     recycledPostsList.Insert(0, target);
                 }
-                Toast.Success("Post moved to recycle bin.");
+                Toast.Success(Loc["Profile_Toast_PostRecycled"]);
                 StateHasChanged();
             }
             else
@@ -2233,7 +2234,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to recycle post: {ex.Message}");
+            Toast.Error(string.Format(Loc["Profile_Toast_RecyclePostError"], ex.Message));
         }
     }
 
@@ -2269,7 +2270,7 @@
             if (res.IsSuccess)
             {
                 editingProfilePost.Content = editingProfilePostContent.Trim();
-                Toast.Success("Post updated successfully!");
+                Toast.Success(Loc["Profile_Toast_PostUpdated"]);
                 CloseEditProfilePostModal();
                 StateHasChanged();
             }
@@ -2280,7 +2281,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to update post: {ex.Message}");
+            Toast.Error(string.Format(Loc["Profile_Toast_UpdatePostError"], ex.Message));
         }
         finally
         {
@@ -2308,7 +2309,7 @@
                 {
                     savedPostsList.RemoveAll(p => p.PostId == post.PostId);
                 }
-                Toast.Success(post.IsSaved ? "Saved to your bookmarks!" : "Removed from saved.");
+                Toast.Success(post.IsSaved ? Loc["Profile_Toast_PostSaved"] : Loc["Profile_Toast_PostUnsaved"]);
                 StateHasChanged();
             }
             else
@@ -2318,7 +2319,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error(ex.Message);
+            Toast.Error(string.Format(Loc["Profile_Toast_PostSaveError"], ex.Message));
         }
     }
 
@@ -2392,7 +2393,7 @@
             }
             else
             {
-                errorMessage = res.Message ?? "Failed to load profile.";
+                errorMessage = res.Message ?? Loc["Profile_Error_LoadFailed"];
             }
         }
         catch (OperationCanceledException) { }
@@ -2486,7 +2487,7 @@
                     skill.EndorsementCount += res.Data ? 1 : -1;
                     if (skill.EndorsementCount < 0) skill.EndorsementCount = 0;
                 }
-                Toast.Success(res.Data ? "Skill endorsed!" : "Endorsement removed.");
+                Toast.Success(res.Data ? Loc["Profile_Toast_SkillEndorsed"] : Loc["Profile_Toast_SkillEndorsementRemoved"]);
             }
             else
             {
@@ -2506,7 +2507,7 @@
             var res = await ProfileApi.VotePollAsync(pollId, optionId, _cts.Token);
             if (res.IsSuccess)
             {
-                Toast.Success("Vote recorded!");
+                Toast.Success(Loc["Profile_Toast_VoteRecorded"]);
                 // Refresh posts to get updated percentages
                 if (profile != null)
                 {
@@ -2535,7 +2536,7 @@
             if (res.IsSuccess)
             {
                 profile.Relationship.IsSavedByMe = res.Data;
-                Toast.Success(res.Data ? "Saved account to bookmarks." : "Removed account from bookmarks.");
+                Toast.Success(res.Data ? Loc["Profile_Toast_AccountSaved"] : Loc["Profile_Toast_AccountUnsaved"]);
             }
             else
             {
@@ -2564,7 +2565,7 @@
                 profile.Relationship.IsFollowedByMe = res.Data;
                 profile.Metrics.FollowersCount += res.Data ? 1 : -1;
                 if (profile.Metrics.FollowersCount < 0) profile.Metrics.FollowersCount = 0;
-                Toast.Success(res.Data ? $"Following @{profile.UserName}" : $"Unfollowed @{profile.UserName}");
+                Toast.Success(res.Data ? string.Format(Loc["Profile_Toast_FollowingUser"], profile.UserName) : string.Format(Loc["Profile_Toast_UnfollowedUser"], profile.UserName));
                 if (activeTab == "followers")
                 {
                     await SetTab("followers");
@@ -2590,11 +2591,11 @@
         try
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", Navigation.Uri);
-            Toast.Success("Profile link copied to clipboard!");
+            Toast.Success(Loc["Profile_Toast_LinkCopied"]);
         }
         catch
         {
-            Toast.Info($"Profile link: {Navigation.Uri}");
+            Toast.Info(string.Format(Loc["Profile_Toast_LinkInfo"], Navigation.Uri));
         }
     }
 
@@ -2629,7 +2630,7 @@
 
         if (file.Size > 5 * 1024 * 1024)
         {
-            Toast.Error("Avatar image file cannot exceed 5 MB.");
+            Toast.Error(Loc["Profile_Toast_AvatarSizeError"]);
             return;
         }
 
@@ -2687,11 +2688,11 @@
             }
 
             editModel.AvatarUrl = newAvatarUrl;
-            Toast.Success("Profile picture updated successfully!");
+            Toast.Success(Loc["Profile_Toast_AvatarUpdated"]);
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to upload avatar: {ex.Message}");
+            Toast.Error(string.Format(Loc["Profile_Toast_AvatarUploadError"], ex.Message));
         }
         finally
         {
@@ -2710,7 +2711,7 @@
             if (updateRes.IsSuccess && updateRes.Data != null)
             {
                 profile = updateRes.Data;
-                Toast.Success("Profile credentials updated!");
+                Toast.Success(Loc["Profile_Toast_ProfileUpdated"]);
                 showEditModal = false;
             }
             else
@@ -2756,7 +2757,7 @@
             if (res.IsSuccess && res.Data != null)
             {
                 profile = res.Data;
-                Toast.Success("Rating and review submitted!");
+                Toast.Success(Loc["Profile_Toast_RatingSubmitted"]);
                 showRatingModal = false;
                 if (activeTab == "reviews")
                 {
@@ -2789,7 +2790,7 @@
             if (res.IsSuccess && res.Data != null)
             {
                 profile = res.Data;
-                Toast.Success("Review and rating removed.");
+                Toast.Success(Loc["Profile_Toast_RatingRemoved"]);
                 showRatingModal = false;
                 if (activeTab == "reviews")
                 {
@@ -2822,7 +2823,7 @@
             var res = await ProfileApi.RestorePostAsync(postId, _cts.Token);
             if (res.IsSuccess)
             {
-                Toast.Success("Post restored successfully to your feed!");
+                Toast.Success(Loc["Profile_Toast_PostRestored"]);
                 await SetTab("recycle-bin");
             }
             else
@@ -2832,7 +2833,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to restore post: {ex.Message}");
+            Toast.Error(string.Format(Loc["Profile_Toast_RestorePostError"], ex.Message));
         }
     }
 
@@ -2857,7 +2858,7 @@
             var res = await ProfileApi.PermanentlyDeletePostAsync(postToDeletePermanentlyId.Value, _cts.Token);
             if (res.IsSuccess)
             {
-                Toast.Success("Post permanently deleted.");
+                Toast.Success(Loc["Profile_Toast_PostDeleted"]);
                 ClosePermanentDeleteModal();
                 await SetTab("recycle-bin");
             }
@@ -2868,7 +2869,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to delete post permanently: {ex.Message}");
+            Toast.Error(string.Format(Loc["Profile_Toast_DeletePostError"], ex.Message));
         }
     }
 
@@ -2925,13 +2926,13 @@
             var res = await ChatApi.UnlockPrivateChatAsync(profile.UserId);
             if (res.IsSuccess)
             {
-                Toast.Success("Private chat unlocked successfully!");
+                Toast.Success(Loc["Profile_Toast_PrivateChatUnlocked"]);
                 showProfileUnlockModal = false;
                 Navigation.NavigateTo($"/chat?to={profile.UserId}");
             }
             else
             {
-                Toast.Error(res.Message ?? "Failed to unlock private chat.");
+                Toast.Error(res.Message ?? Loc["Profile_Toast_PrivateChatUnlockFailed"]);
             }
         }
         catch (Exception ex)
@@ -3023,7 +3024,7 @@
                 {
                     targetPost.CommentCount += 1;
                 }
-                Toast.Success("Comment posted!");
+                Toast.Success(Loc["Profile_Toast_CommentPosted"]);
                 StateHasChanged();
             }
             else
@@ -3033,7 +3034,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to post comment: {ex.Message}");
+            Toast.Error(string.Format(Loc["Profile_Toast_PostCommentError"], ex.Message));
         }
     }
 
@@ -3071,7 +3072,7 @@
                 {
                     targetPost.ShareCount += 1;
                 }
-                Toast.Success("Post shared successfully!");
+                Toast.Success(Loc["Profile_Toast_PostShared"]);
                 CloseProfileShareModal();
                 if (profile != null)
                 {
@@ -3092,7 +3093,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to share post: {ex.Message}");
+            Toast.Error(string.Format(Loc["Profile_Toast_SharePostError"], ex.Message));
         }
         finally
         {

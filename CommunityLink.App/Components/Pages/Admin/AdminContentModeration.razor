@@ -1,12 +1,16 @@
 @page "/admin/content-moderation"
 @page "/admin/content"
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
+@using CommunityLink.App.Apis
+@using CommunityLink.Shared.Features.Administration
+@using CommunityLink.Shared.Security
 @inject AdministrationApiService AdminApi
 @inject ToastService Toast
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppResources> Loc
 
-<PageTitle>@(currentSection == "groups" ? "Group Management & Moderation" : "Post & Poll Moderation") — CommunityLink Admin</PageTitle>
+<PageTitle>@(currentSection == "groups" ? Loc["Admin_Mod_PageTitleGroup"] : Loc["Admin_Mod_PageTitlePost"])</PageTitle>
 
 <div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Header -->
@@ -25,12 +29,12 @@
                 </span>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">
-                        @(currentSection == "groups" ? "Group Management & Moderation" : "Post & Poll Moderation")
+                        @(currentSection == "groups" ? Loc["Admin_Mod_HeadingGroups"] : Loc["Admin_Mod_HeadingPosts"])
                     </h1>
                     <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-0.5">
                         @(currentSection == "groups"
-                            ? "Audit groups, manage active/inactive status, review group reports, and govern community spaces."
-                            : "Audit standalone posts and polls, review community reports, and ban infringing content.")
+                            ? Loc["Admin_Mod_SubtitleGroups"]
+                            : Loc["Admin_Mod_SubtitlePosts"])
                     </p>
                 </div>
             </div>
@@ -38,7 +42,7 @@
         <div class="flex items-center gap-2">
             <button @onclick="LoadDataAsync" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] hover:border-[#0A1B2E] dark:hover:border-[#E1E8F0] hover:text-[#0A1B2E] dark:hover:text-white transition shadow-xs cursor-pointer">
                 <svg class="w-3.5 h-3.5 @(isLoading ? "animate-spin" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                <span>Refresh Feed</span>
+                <span>@Loc["Admin_Mod_RefreshFeed"]</span>
             </button>
         </div>
     </div>
@@ -48,24 +52,24 @@
         <div class="flex items-center gap-2">
             <button type="button" @onclick='() => subTab = "directory"'
                     class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer @(subTab == "directory" ? "bg-[#0A1B2E]/10 dark:bg-white/10 text-[#0A1B2E] dark:text-white font-extrabold" : "text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
-                <span>@(currentSection == "posts" ? "Posts & Polls List" : "Groups List")</span>
+                <span>@(currentSection == "posts" ? Loc["Admin_Mod_TabPostsPollsList"] : Loc["Admin_Mod_TabGroupsList"])</span>
                 @if (currentSection == "posts" && contentItems.Any(c => !c.IsActive))
                 {
                     <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-                        @(contentItems.Count(c => !c.IsActive)) Banned
+                        @string.Format(Loc["Admin_Mod_CountBanned"], contentItems.Count(c => !c.IsActive))
                     </span>
                 }
                 else if (currentSection == "groups" && groups.Any(g => !g.IsActive))
                 {
                     <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-                        @(groups.Count(g => !g.IsActive)) Inactive
+                        @string.Format(Loc["Admin_Mod_CountInactive"], groups.Count(g => !g.IsActive))
                     </span>
                 }
             </button>
 
             <button type="button" @onclick='() => subTab = "reports"'
                     class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer @(subTab == "reports" ? "bg-[#0A1B2E]/10 dark:bg-white/10 text-[#0A1B2E] dark:text-white font-extrabold" : "text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
-                <span>Pending Reports</span>
+                <span>@Loc["Admin_Mod_TabPendingReports"]</span>
                 @{
                     var count = currentSection == "posts" ? postPendingReportCount : groupPendingReportCount;
                 }
@@ -82,20 +86,20 @@
         {
             <!-- Active / Inactive Status Filter -->
             <div class="flex items-center gap-1 bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 p-1 rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] text-xs font-semibold">
-                <span class="px-2 text-[10px] font-mono uppercase text-[#7A8CA6]">Status:</span>
+                <span class="px-2 text-[10px] font-mono uppercase text-[#7A8CA6]">@Loc["Admin_Mod_FilterStatusLabel"]</span>
                 <button type="button" @onclick='() => selectedStatusFilter = "ALL"'
                         class="px-2.5 py-1 rounded-lg transition cursor-pointer @(selectedStatusFilter == "ALL" ? "bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-white shadow-xs font-bold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E]")">
-                    All
+                    @Loc["Admin_Mod_FilterAll"]
                 </button>
                 <button type="button" @onclick='() => selectedStatusFilter = "ACTIVE"'
                         class="px-2.5 py-1 rounded-lg transition cursor-pointer flex items-center gap-1 @(selectedStatusFilter == "ACTIVE" ? "bg-white dark:bg-[#0A1B2E] text-emerald-600 dark:text-emerald-400 shadow-xs font-bold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-emerald-600")">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-                    <span>Active</span>
+                    <span>@Loc["Admin_Mod_FilterActive"]</span>
                 </button>
                 <button type="button" @onclick='() => selectedStatusFilter = "INACTIVE"'
                         class="px-2.5 py-1 rounded-lg transition cursor-pointer flex items-center gap-1 @(selectedStatusFilter == "INACTIVE" ? "bg-white dark:bg-[#0A1B2E] text-rose-600 dark:text-rose-400 shadow-xs font-bold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-rose-600")">
                     <span class="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block"></span>
-                    <span>@(currentSection == "groups" ? "Inactive" : "Banned")</span>
+                    <span>@(currentSection == "groups" ? Loc["Admin_Mod_FilterInactive"] : Loc["Admin_Mod_FilterBanned"])</span>
                 </button>
             </div>
         }
@@ -105,7 +109,7 @@
     {
         <div class="p-16 text-center text-[#557392] dark:text-[#C4D2E1] bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
-            <p class="mt-3 text-xs font-medium">Loading content moderation queue...</p>
+            <p class="mt-3 text-xs font-medium">@Loc["Admin_Mod_LoadingQueue"]</p>
         </div>
     }
     else if (subTab == "reports")
@@ -121,8 +125,8 @@
                 <div class="w-12 h-12 mx-auto rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3">
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
-                <h3 class="text-base font-bold text-[#0A1B2E] dark:text-white">Moderation Queue is Clear</h3>
-                <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1 max-w-sm mx-auto">There are no @(currentSection == "groups" ? "group" : "post/poll") reports requiring administrative review at this time.</p>
+                <h3 class="text-base font-bold text-[#0A1B2E] dark:text-white">@Loc["Admin_Mod_QueueClearTitle"]</h3>
+                <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1 max-w-sm mx-auto">@(currentSection == "groups" ? Loc["Admin_Mod_QueueClearDescGroup"] : Loc["Admin_Mod_QueueClearDescPost"])</p>
             </div>
         }
         else
@@ -141,13 +145,13 @@
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50">
                                         @FormatReason(rep.ReasonCategory)
                                     </span>
-                                    <span class="text-xs text-[#7A8CA6]">Reported @rep.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy • hh:mm tt")</span>
+                                    <span class="text-xs text-[#7A8CA6]">@string.Format(Loc["Admin_Mod_ReportedAt"], rep.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy • hh:mm tt"))</span>
                                 </div>
 
                                 <!-- Reporter & Message -->
                                 <div class="bg-[#F8FAFC] dark:bg-[#0A1B2E]/60 rounded-xl p-3 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.10)]">
                                     <div class="text-[11px] font-semibold text-[#557392] dark:text-[#C4D2E1]">
-                                        Reported by <span class="font-bold text-[#0A1B2E] dark:text-white">@rep.ReporterName</span>:
+                                        @string.Format(Loc["Admin_Mod_ReportedBy"], rep.ReporterName)
                                     </div>
                                     @if (!string.IsNullOrWhiteSpace(rep.Details))
                                     {
@@ -170,12 +174,12 @@
                                         <div class="flex items-center gap-1.5">
                                             @if (rep.IsContentPrivate)
                                             {
-                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">Private Mode</span>
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">@Loc["Admin_Mod_BadgePrivateMode"]</span>
                                             }
                                             @if (!rep.IsContentActive)
                                             {
                                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                                                    @(rep.ContentType == "GROUP" ? "Inactive" : "Banned")
+                                                    @(rep.ContentType == "GROUP" ? Loc["Admin_Mod_FilterInactive"] : Loc["Admin_Mod_FilterBanned"])
                                                 </span>
                                             }
                                         </div>
@@ -194,9 +198,9 @@
                                     {
                                         <button type="button" @onclick='() => OpenActionModal(rep, "DEACTIVATE")'
                                                 class="w-full px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition cursor-pointer flex items-center justify-center gap-1.5"
-                                                title="Make group inactive (disables new posts & polls, existing posts receive comments/likes)">
+                                                title="@Loc["Admin_Mod_TooltipMakeGroupInactive"]">
                                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                                            <span>Make Inactive</span>
+                                            <span>@Loc["Admin_Mod_DeactivateGroup"]</span>
                                         </button>
                                     }
                                     else
@@ -204,7 +208,7 @@
                                         <button type="button" @onclick='() => ExecuteDirectAction("GROUP", rep.ContentId, "ACTIVATE")'
                                                 class="w-full px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 transition cursor-pointer flex items-center justify-center gap-1.5">
                                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                            <span>Make Active</span>
+                                            <span>@Loc["Admin_Mod_ActivateGroup"]</span>
                                         </button>
                                     }
                                 }
@@ -214,9 +218,9 @@
                                     {
                                         <button type="button" @onclick='() => OpenActionModal(rep, "BAN")'
                                                 class="w-full px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white transition cursor-pointer flex items-center justify-center gap-1.5"
-                                                title="Ban post - hidden from all except author & admin">
+                                                title="@Loc["Admin_Mod_TooltipBanPost"]">
                                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                                            <span>Ban Post</span>
+                                            <span>@Loc["Admin_Mod_BanContent"]</span>
                                         </button>
                                     }
                                     else
@@ -224,14 +228,14 @@
                                         <button type="button" @onclick='() => ExecuteDirectAction(rep.ContentType, rep.ContentId, "UNBAN")'
                                                 class="w-full px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 transition cursor-pointer flex items-center justify-center gap-1.5">
                                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                            <span>Unban Post</span>
+                                            <span>@Loc["Admin_Mod_RestoreContent"]</span>
                                         </button>
                                     }
                                 }
 
                                 <button type="button" @onclick='() => DismissReport(rep.ContentReportId)'
                                         class="w-full px-3.5 py-2 rounded-xl text-xs font-semibold text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer flex items-center justify-center gap-1.5">
-                                    <span>Dismiss Report</span>
+                                    <span>@Loc["Admin_Mod_DismissReport"]</span>
                                 </button>
                             </div>
                         </div>
@@ -250,7 +254,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </span>
                 <input type="text" @bind="groupSearchTerm" @bind:event="oninput"
-                       placeholder="Search groups by group name..."
+                       placeholder="@Loc["Admin_Mod_SearchGroupsPlaceholder"]"
                        class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.18)] rounded-xl text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-white/20 shadow-xs" />
                 @if (!string.IsNullOrWhiteSpace(groupSearchTerm))
                 {
@@ -276,7 +280,7 @@
             @if (filteredGroups.Count == 0)
             {
                 <div class="p-12 text-center bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">No groups found matching filter (@selectedStatusFilter)@(string.IsNullOrWhiteSpace(groupSearchTerm) ? "" : $" and search \"{groupSearchTerm}\"").</p>
+                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">@string.Format(Loc["Admin_Mod_NoGroupsFound"], selectedStatusFilter, string.IsNullOrWhiteSpace(groupSearchTerm) ? "" : string.Format(Loc["Admin_Mod_AndSearch"], groupSearchTerm))</p>
                 </div>
             }
             else
@@ -294,14 +298,14 @@
                                 {
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-                                        <span>Active</span>
+                                        <span>@Loc["Admin_Mod_StatusActive"]</span>
                                     </span>
                                 }
                                 else
                                 {
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1">
                                         <span class="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block"></span>
-                                        <span>Inactive (Posting Locked)</span>
+                                        <span>@Loc["Admin_Mod_StatusInactivePostingLocked"]</span>
                                     </span>
                                 }
 
@@ -312,7 +316,7 @@
                                 @if (grp.ReportCount > 0)
                                 {
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white">
-                                        @grp.ReportCount @(grp.ReportCount == 1 ? "Report" : "Reports")
+                                        @string.Format(grp.ReportCount == 1 ? Loc["Admin_Mod_ReportCountSingular"] : Loc["Admin_Mod_ReportCountPlural"], grp.ReportCount)
                                     </span>
                                 }
 
@@ -323,16 +327,16 @@
                                 <h3 class="text-base font-bold text-[#0A1B2E] dark:text-white">@grp.Name</h3>
                                 @if (!string.IsNullOrWhiteSpace(grp.SubCommunityName))
                                 {
-                                    <span class="text-xs text-[#7A8CA6]">in @grp.SubCommunityName</span>
+                                    <span class="text-xs text-[#7A8CA6]">@string.Format(Loc["Admin_Mod_InSubCommunity"], grp.SubCommunityName)</span>
                                 }
                             </div>
 
                             <div class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] flex items-center gap-3">
-                                <span>Creator: <strong class="text-[#0A1B2E] dark:text-white">@grp.CreatorName</strong></span>
+                                <span>@Loc["Admin_Mod_CreatorLabel"]: <strong class="text-[#0A1B2E] dark:text-white">@grp.CreatorName</strong></span>
                                 <span>•</span>
-                                <span>@grp.MemberCount members</span>
+                                <span>@string.Format(Loc["Chat_MemberCount"], grp.MemberCount)</span>
                                 <span>•</span>
-                                <span>@grp.PostCount posts</span>
+                                <span>@string.Format(Loc["Admin_Mod_PostCount"], grp.PostCount)</span>
                             </div>
 
                             @if (!string.IsNullOrWhiteSpace(grp.Description))
@@ -345,7 +349,7 @@
                             @if (!grp.IsActive && !string.IsNullOrWhiteSpace(grp.ModerationReason))
                             {
                                 <div class="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20 font-mono">
-                                    <strong>Deactivation Notice:</strong> @grp.ModerationReason
+                                    <strong>@Loc["Admin_Mod_DeactivationNoticeLabel"]:</strong> @grp.ModerationReason
                                 </div>
                             }
                         </div>
@@ -354,7 +358,7 @@
                         <div class="flex sm:flex-col items-center gap-2 shrink-0">
                             <a href="group/@grp.GroupId" target="_blank"
                                class="w-full px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center justify-center gap-1">
-                                <span>View Group</span>
+                                <span>@Loc["Admin_Mod_ViewGroupBtn"]</span>
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                             </a>
 
@@ -362,18 +366,18 @@
                             {
                                 <button type="button" @onclick='() => OpenGroupActionModal(grp, "DEACTIVATE")'
                                         class="w-full px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition cursor-pointer flex items-center justify-center gap-1.5"
-                                        title="Set group inactive: Disables new posts/polls, but preserves likes/comments/shares">
+                                        title="@Loc["Admin_Mod_TooltipSetGroupInactive"]">
                                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                                    <span>Make Inactive</span>
+                                    <span>@Loc["Admin_Mod_ActionMakeInactive"]</span>
                                 </button>
                             }
                             else
                             {
                                 <button type="button" @onclick='() => ExecuteDirectAction("GROUP", grp.GroupId, "ACTIVATE")'
                                         class="w-full px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 transition cursor-pointer flex items-center justify-center gap-1.5"
-                                        title="Reactivate group to allow new posts and polls">
+                                        title="@Loc["Admin_Mod_TooltipReactivateGroup"]">
                                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                    <span>Make Active</span>
+                                    <span>@Loc["Admin_Mod_ActionMakeActive"]</span>
                                 </button>
                             }
                         </div>
@@ -392,7 +396,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </span>
                 <input type="text" @bind="postSearchTerm" @bind:event="oninput"
-                       placeholder="Search posts &amp; polls by author name or description/content..."
+                       placeholder="@Loc["Admin_Mod_SearchPostsPlaceholder"]"
                        class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.18)] rounded-xl text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-white/20 shadow-xs" />
                 @if (!string.IsNullOrWhiteSpace(postSearchTerm))
                 {
@@ -420,7 +424,7 @@
             @if (filteredItems.Count == 0)
             {
                 <div class="p-12 text-center bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">No content found matching filter (@selectedStatusFilter)@(string.IsNullOrWhiteSpace(postSearchTerm) ? "" : $" and search \"{postSearchTerm}\"").</p>
+                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">@string.Format(Loc["Admin_Mod_NoContentFound"], selectedStatusFilter, string.IsNullOrWhiteSpace(postSearchTerm) ? "" : string.Format(Loc["Admin_Mod_AndSearch"], postSearchTerm))</p>
                 </div>
             }
             else
@@ -438,34 +442,34 @@
                                 {
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1">
                                         <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                                        <span>Banned</span>
+                                        <span>@Loc["Admin_Mod_StatusBanned"]</span>
                                     </span>
                                 }
                                 else
                                 {
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                                        Active
+                                        @Loc["Admin_Mod_StatusActive"]
                                     </span>
                                 }
 
                                 @if (item.ReportCount > 0)
                                 {
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white">
-                                        @item.ReportCount @(item.ReportCount == 1 ? "Report" : "Reports")
+                                        @string.Format(item.ReportCount == 1 ? Loc["Admin_Mod_ReportCountSingular"] : Loc["Admin_Mod_ReportCountPlural"], item.ReportCount)
                                     </span>
                                 }
                                 <span class="text-xs text-[#7A8CA6]">@item.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy • hh:mm tt")</span>
                             </div>
 
                             <div class="text-xs font-semibold text-[#0A1B2E] dark:text-white">
-                                Author: <span class="font-bold">@item.AuthorName</span>
+                                @Loc["Admin_Mod_AuthorLabel"] <span class="font-bold">@item.AuthorName</span>
                                 @if (!string.IsNullOrWhiteSpace(item.CommunityName))
                                 {
-                                    <span class="text-[#7A8CA6]"> • Hub: @item.CommunityName</span>
+                                    <span class="text-[#7A8CA6]"> • @Loc["Admin_Mod_HubLabel"] @item.CommunityName</span>
                                 }
                                 @if (!string.IsNullOrWhiteSpace(item.GroupName))
                                 {
-                                    <span class="text-[#7A8CA6]"> • Group: @item.GroupName</span>
+                                    <span class="text-[#7A8CA6]"> • @Loc["Admin_Mod_GroupLabel"] @item.GroupName</span>
                                 }
                             </div>
 
@@ -485,7 +489,7 @@
                                 <div class="flex items-center gap-1.5 pt-1">
                                     <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center gap-1">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                                        <span>@item.ImageUrls.Count @(item.ImageUrls.Count == 1 ? "Image" : "Images")</span>
+                                        <span>@string.Format(item.ImageUrls.Count == 1 ? Loc["Admin_Mod_ImageCountSingular"] : Loc["Admin_Mod_ImageCountPlural"], item.ImageUrls.Count)</span>
                                     </span>
                                 </div>
                             }
@@ -495,7 +499,7 @@
                                 <div class="flex items-center gap-1.5 pt-0.5">
                                     <span class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                                        <span>@(string.IsNullOrWhiteSpace(item.CodeFileName) ? "Attached File" : item.CodeFileName)</span>
+                                        <span>@(string.IsNullOrWhiteSpace(item.CodeFileName) ? Loc["Admin_Mod_AttachedFile"] : item.CodeFileName)</span>
                                     </span>
                                 </div>
                             }
@@ -503,7 +507,7 @@
                             @if (!string.IsNullOrWhiteSpace(item.ModerationReason))
                             {
                                 <div class="text-[11px] text-rose-600 dark:text-rose-400 bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20 font-mono">
-                                    <strong>Ban Reason:</strong> @item.ModerationReason
+                                    <strong>@Loc["Admin_Mod_BanReasonLabel"]:</strong> @item.ModerationReason
                                 </div>
                             }
                         </div>
@@ -513,25 +517,25 @@
                             <button type="button" @onclick="() => OpenDetailModal(item)"
                                     class="w-full px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center justify-center gap-1.5 cursor-pointer">
                                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                <span>@(item.ContentType == "POLL" ? "View Poll" : "View Post")</span>
+                                <span>@(item.ContentType == "POLL" ? Loc["Admin_Mod_ViewPoll"] : Loc["Admin_Mod_ViewPost"])</span>
                             </button>
 
                             @if (item.IsActive)
                             {
                                 <button type="button" @onclick='() => OpenDirectActionModal(item, "BAN")'
                                         class="w-full px-4 py-2 rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
-                                        title="Ban post - only admin and author will be able to see it">
+                                        title="@Loc["Admin_Mod_TooltipBanPostOnlyAuthorAdmin"]">
                                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                                    <span>Ban</span>
+                                    <span>@Loc["Admin_Mod_ActionBan"]</span>
                                 </button>
                             }
                             else
                             {
                                 <button type="button" @onclick='() => ExecuteDirectAction(item.ContentType, item.Id, "UNBAN")'
                                         class="w-full px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
-                                        title="Unban post and restore full visibility">
+                                        title="@Loc["Admin_Mod_TooltipUnbanPost"]">
                                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                                    <span>Unban</span>
+                                    <span>@Loc["Admin_Mod_ActionUnban"]</span>
                                 </button>
                             }
                         </div>
@@ -550,7 +554,7 @@
             <div class="flex items-center justify-between pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <h3 class="text-base font-bold text-[#0A1B2E] dark:text-white flex items-center gap-2">
                     <span class="material-symbols-outlined text-rose-500">security</span>
-                    <span>Confirm @(selectedAction == "BAN" ? "Ban Content" : (selectedAction == "DEACTIVATE" ? "Deactivate Group" : "Moderation Action"))</span>
+                    <span>@string.Format(Loc["Admin_Mod_ConfirmModalTitle"], selectedAction == "BAN" ? Loc["Admin_Mod_BanContent"] : (selectedAction == "DEACTIVATE" ? Loc["Admin_Mod_DeactivateGroup"] : Loc["Admin_Mod_ActionGeneric"]))</span>
                 </h3>
                 <button type="button" @onclick="CloseActionModal" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -559,16 +563,16 @@
 
             <div>
                 <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">
-                    Action: <span class="font-bold text-rose-500 uppercase">@(selectedAction == "DEACTIVATE" ? "MAKE INACTIVE" : selectedAction)</span>
+                    @Loc["Admin_Mod_ActionLabel"] <span class="font-bold text-rose-500 uppercase">@(selectedAction == "DEACTIVATE" ? Loc["Admin_Mod_ActionMakeInactive"] : selectedAction)</span>
                 </p>
                 <p class="text-xs text-[#7A8CA6] mt-1">
-                    Select a reason or provide a notice. The content owner will receive an immediate in-app notification explaining why this action was taken.
+                    @Loc["Admin_Mod_ActionNoticeDesc"]
                 </p>
             </div>
 
             <!-- Ready reason presets -->
             <div class="space-y-1.5">
-                <label class="text-[11px] font-bold text-[#557392] dark:text-[#C4D2E1] uppercase tracking-wider">Select Preset Reason</label>
+                <label class="text-[11px] font-bold text-[#557392] dark:text-[#C4D2E1] uppercase tracking-wider">@Loc["Admin_Mod_SelectPresetReasonLabel"]</label>
                 <div class="grid grid-cols-1 gap-1.5">
                     @foreach (var reason in standardReasons)
                     {
@@ -582,14 +586,14 @@
 
             <!-- Custom message input -->
             <div class="space-y-1.5">
-                <label class="text-[11px] font-bold text-[#557392] dark:text-[#C4D2E1] uppercase tracking-wider">Custom Setup Message / Note</label>
-                <textarea @bind="customReasonNote" rows="2" placeholder="Explain the decision or add context..."
+                <label class="text-[11px] font-bold text-[#557392] dark:text-[#C4D2E1] uppercase tracking-wider">@Loc["Admin_Mod_CustomSetupNoteLabel"]</label>
+                <textarea @bind="customReasonNote" rows="2" placeholder="@Loc["Admin_Mod_CustomReasonPlaceholder"]"
                           class="w-full text-xs p-3 rounded-xl bg-[#F8FAFC] dark:bg-[#0A1B2E]/60 border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white placeholder-[#7A8CA6] focus:outline-none focus:ring-2 focus:ring-rose-500/30"></textarea>
             </div>
 
             <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <button type="button" @onclick="CloseActionModal" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] cursor-pointer">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="ConfirmActionAsync" disabled="@isSubmitting"
                         class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white transition shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-1.5">
@@ -597,7 +601,7 @@
                     {
                         <span class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
                     }
-                    <span>Apply Moderation</span>
+                    <span>@Loc["Admin_Mod_ApplyModerationBtn"]</span>
                 </button>
             </div>
         </div>
@@ -612,18 +616,18 @@
             <div class="flex items-center justify-between pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <div class="flex items-center gap-2">
                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider @(selectedDetailItem.ContentType == "POST" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300")">
-                        @selectedDetailItem.ContentType DETAILS
+                        @string.Format(Loc["Admin_Mod_ContentTypeDetails"], selectedDetailItem.ContentType)
                     </span>
                     @if (!selectedDetailItem.IsActive)
                     {
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30">
-                            Banned
+                            @Loc["Admin_Mod_StatusBanned"]
                         </span>
                     }
                     else
                     {
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                            Active
+                            @Loc["Admin_Mod_StatusActive"]
                         </span>
                     }
                 </div>
@@ -649,13 +653,13 @@
                     <p class="text-[11px] text-[#7A8CA6]">
                         @if (!string.IsNullOrWhiteSpace(selectedDetailItem.CommunityName))
                         {
-                            <span>Hub: @selectedDetailItem.CommunityName • </span>
+                            <span>@string.Format(Loc["Admin_Mod_HubPrefix"], selectedDetailItem.CommunityName) • </span>
                         }
                         @if (!string.IsNullOrWhiteSpace(selectedDetailItem.GroupName))
                         {
-                            <span>Group: @selectedDetailItem.GroupName • </span>
+                            <span>@string.Format(Loc["Admin_Mod_GroupPrefix"], selectedDetailItem.GroupName) • </span>
                         }
-                        <span>Posted @selectedDetailItem.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy • hh:mm tt")</span>
+                        <span>@string.Format(Loc["Admin_Mod_PostedAt"], selectedDetailItem.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy • hh:mm tt"))</span>
                     </p>
                 </div>
             </div>
@@ -664,7 +668,7 @@
             @if (!string.IsNullOrWhiteSpace(selectedDetailItem.Question))
             {
                 <div class="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 space-y-2">
-                    <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-blue-700 dark:text-blue-300">Poll Question</span>
+                    <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-blue-700 dark:text-blue-300">@Loc["Admin_Mod_PollQuestionLabel"]</span>
                     <p class="text-sm font-bold text-[#0A1B2E] dark:text-white">@selectedDetailItem.Question</p>
                     @if (selectedDetailItem.PollOptions != null && selectedDetailItem.PollOptions.Count > 0)
                     {
@@ -685,7 +689,7 @@
             @if (!string.IsNullOrWhiteSpace(selectedDetailItem.Content))
             {
                 <div class="space-y-1.5">
-                    <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-[#7A8CA6]">Content</span>
+                    <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-[#7A8CA6]">@Loc["Admin_Mod_ContentLabel"]</span>
                     <div class="p-3.5 rounded-xl bg-[#F8FAFC] dark:bg-[#0A1B2E]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.10)] text-xs text-[#0A1B2E] dark:text-[#E1E8F0] leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto">
                         @selectedDetailItem.Content
                     </div>
@@ -696,7 +700,7 @@
             @if (selectedDetailItem.ImageUrls != null && selectedDetailItem.ImageUrls.Count > 0)
             {
                 <div class="space-y-1.5">
-                    <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-[#7A8CA6]">Attached Images (@selectedDetailItem.ImageUrls.Count)</span>
+                    <span class="text-[10px] font-mono uppercase tracking-wider font-bold text-[#7A8CA6]">@string.Format(Loc["Admin_Mod_AttachedImagesCount"], selectedDetailItem.ImageUrls.Count)</span>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         @foreach (var imgUrl in selectedDetailItem.ImageUrls)
                         {
@@ -713,7 +717,7 @@
             {
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-[#7A8CA6]">
-                        <span>Attached File / Code (@(string.IsNullOrWhiteSpace(selectedDetailItem.CodeFileName) ? "snippet.txt" : selectedDetailItem.CodeFileName))</span>
+                        <span>@string.Format(Loc["Admin_Mod_AttachedFileCode"], string.IsNullOrWhiteSpace(selectedDetailItem.CodeFileName) ? "snippet.txt" : selectedDetailItem.CodeFileName)</span>
                     </div>
                     <pre class="p-3 rounded-xl bg-slate-900 text-slate-100 text-xs font-mono max-h-48 overflow-y-auto whitespace-pre-wrap">@selectedDetailItem.CodeSnippet</pre>
                 </div>
@@ -723,7 +727,7 @@
             @if (!selectedDetailItem.IsActive && !string.IsNullOrWhiteSpace(selectedDetailItem.ModerationReason))
             {
                 <div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-xs text-rose-700 dark:text-rose-300 font-mono">
-                    <strong>Moderation Notice:</strong> @selectedDetailItem.ModerationReason
+                    <strong>@Loc["Admin_Mod_ModerationNoticeLabel"]:</strong> @selectedDetailItem.ModerationReason
                 </div>
             }
 
@@ -735,7 +739,7 @@
                         <button type="button" @onclick='() => { CloseDetailModal(); OpenDirectActionModal(selectedDetailItem, "BAN"); }'
                                 class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white transition cursor-pointer flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                            <span>Ban @selectedDetailItem.ContentType</span>
+                            <span>@string.Format(Loc["Admin_Mod_BanContentType"], selectedDetailItem.ContentType)</span>
                         </button>
                     }
                     else
@@ -743,12 +747,12 @@
                         <button type="button" @onclick='async () => { CloseDetailModal(); await ExecuteDirectAction(selectedDetailItem.ContentType, selectedDetailItem.Id, "UNBAN"); }'
                                 class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                            <span>Unban @selectedDetailItem.ContentType</span>
+                            <span>@string.Format(Loc["Admin_Mod_UnbanContentType"], selectedDetailItem.ContentType)</span>
                         </button>
                     }
                 </div>
                 <button type="button" @onclick="CloseDetailModal" class="px-4 py-2 rounded-xl text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:opacity-90 transition cursor-pointer">
-                    Close
+                    @Loc["Common_Close"]
                 </button>
             </div>
         </div>
@@ -886,7 +890,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error($"Error loading queue: {ex.Message}");
+            Toast.Error(string.Format(Loc["Admin_Mod_Toast_LoadQueueError"], ex.Message));
         }
         finally
         {
@@ -896,11 +900,11 @@
 
     private string FormatReason(string reason) => reason switch
     {
-        "INAPPROPRIATE_CONTENT" => "Inappropriate Content",
-        "MISINFORMATION" => "Misinformation",
-        "MISLEADING" => "Misleading Direction",
-        "SPAM" => "Spam / Promotion",
-        "HARASSMENT" => "Harassment",
+        "INAPPROPRIATE_CONTENT" => Loc["ReportContent_ReasonInappropriate_Title"],
+        "MISINFORMATION" => Loc["Admin_Mod_ReasonMisinformation"],
+        "MISLEADING" => Loc["Admin_Mod_ReasonMisleading"],
+        "SPAM" => Loc["Admin_Mod_ReasonSpam"],
+        "HARASSMENT" => Loc["Admin_Mod_ReasonHarassment"],
         _ => reason
     };
 
@@ -948,12 +952,12 @@
         var res = await AdminApi.ModerateContentAsync(req);
         if (res.IsSuccess)
         {
-            Toast.Success("Report dismissed.");
+            Toast.Success(Loc["Admin_Mod_Toast_ReportDismissed"]);
             await LoadDataAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to dismiss report.");
+            Toast.Error(res.Message ?? Loc["Admin_Mod_Toast_DismissFailed"]);
         }
     }
 
@@ -964,12 +968,12 @@
 
         if (res.IsSuccess)
         {
-            Toast.Success($"Action {action} applied.");
+            Toast.Success(string.Format(Loc["Admin_Mod_Toast_ActionApplied"], action));
             await LoadDataAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Action failed.");
+            Toast.Error(res.Message ?? Loc["Admin_Mod_Toast_ActionFailed"]);
         }
     }
 
@@ -991,18 +995,18 @@
             var res = await AdminApi.ModerateContentAsync(req);
             if (res.IsSuccess)
             {
-                Toast.Success($"Successfully updated to {selectedAction}.");
+                Toast.Success(string.Format(Loc["Admin_Mod_Toast_ActionUpdated"], selectedAction));
                 showActionModal = false;
                 await LoadDataAsync();
             }
             else
             {
-                Toast.Error(res.Message ?? "Moderation action failed.");
+                Toast.Error(res.Message ?? Loc["Admin_Mod_Toast_ModerationFailed"]);
             }
         }
         catch (Exception ex)
         {
-            Toast.Error($"Error: {ex.Message}");
+            Toast.Error(string.Format(Loc["Admin_Mod_Toast_GenericError"], ex.Message));
         }
         finally
         {

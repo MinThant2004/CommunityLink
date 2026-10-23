@@ -1,4 +1,6 @@
 @namespace CommunityLink.App.Components.Shared
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<AppResources> Loc
 
 <div class="min-h-screen w-full bg-[#F8FAFC] dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] lg:grid lg:grid-cols-2 transition-colors duration-150">
 
@@ -12,7 +14,7 @@
                     <span class="flex h-10 w-10 items-center justify-center rounded bg-white text-[#0A1B2E] font-extrabold text-sm shadow-sm" style="font-family:'Manrope',sans-serif">@LogoText</span>
                     <span class="text-xl font-bold tracking-tight text-white group-hover:text-[#E1E8F0] transition" style="font-family:'Manrope',sans-serif">Community<span class="text-[#38BDF8]">Link</span></span>
                 </a>
-                <span class="font-mono text-[9px] font-semibold uppercase tracking-wider text-sky-400 px-2 py-0.5 rounded border border-sky-500/30 bg-sky-500/10">COMMUNITY PLATFORM</span>
+                <span class="font-mono text-[9px] font-semibold uppercase tracking-wider text-sky-400 px-2 py-0.5 rounded border border-sky-500/30 bg-sky-500/10">@Loc["Auth_VerifiedNodeProtocol"]</span>
             </div>
 
             <div class="mt-16 max-w-md">
@@ -40,10 +42,17 @@
 
         <div class="relative z-10 flex items-center justify-between pt-8 border-t border-[#1B3B5A] text-xs text-[#7A8CA6] font-mono">
             <span>&copy; 2026 CommunityLink</span>
+            <span class="flex items-center gap-1.5 text-emerald-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>@Loc["Auth_NodeEncryptionActive"]</span>
+            </span>
         </div>
     </aside>
 
-    <main class="flex min-h-screen items-center justify-center p-6 sm:p-12 bg-[#F8FAFC] dark:bg-[#0A1B2E] transition-colors duration-150">
+    <main class="relative flex min-h-screen items-center justify-center p-6 sm:p-12 bg-[#F8FAFC] dark:bg-[#0A1B2E] transition-colors duration-150">
+        <div class="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+            <LanguageSelector />
+        </div>
         <div class="w-full max-w-md">
             @ChildContent
         </div>
@@ -59,34 +68,38 @@
     [Parameter] public RenderFragment? Features { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    private static RenderFragment MemberDefaultFeatures() => __builder =>
+    private RenderFragment MemberDefaultFeatures() => __builder =>
     {
         <ul class="mt-8 space-y-3.5 text-sm text-[#E1E8F0]" style="font-family:'Inter',sans-serif">
             <li class="flex items-center gap-3">
                 <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
-                <span>Join topical communities &amp; discussion groups</span>
+                <span>@Loc["Auth_Feature_TopicalCommunities"]</span>
             </li>
             <li class="flex items-center gap-3">
                 <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
-                <span>Participate in live polls &amp; interactive feeds</span>
+                <span>@Loc["Auth_Feature_RealtimePolls"]</span>
+            </li>
+            <li class="flex items-center gap-3">
+                <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
+                <span>@Loc["Auth_Feature_PeerMessaging"]</span>
             </li>
         </ul>;
     };
 
-    private static RenderFragment AdminDefaultFeatures() => __builder =>
+    private RenderFragment AdminDefaultFeatures() => __builder =>
     {
         <ul class="mt-8 space-y-3.5 text-sm text-[#E1E8F0]" style="font-family:'Inter',sans-serif">
             <li class="flex items-center gap-3">
                 <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
-                <span>Manage directory members &amp; node privileges</span>
+                <span>@Loc["Auth_Feature_ManageMembers"]</span>
             </li>
             <li class="flex items-center gap-3">
                 <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
-                <span>Dynamic RBAC matrix &amp; SLA compliance</span>
+                <span>@Loc["Auth_Feature_RbacCompliance"]</span>
             </li>
             <li class="flex items-center gap-3">
                 <span class="flex h-5 w-5 items-center justify-center rounded bg-[#112A46] border border-[#1B3B5A] text-emerald-400 font-mono text-xs">✓</span>
-                <span>Cryptographic audit trail oversight</span>
+                <span>@Loc["Auth_Feature_AuditTrail"]</span>
             </li>
         </ul>;
     };

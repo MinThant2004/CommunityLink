@@ -422,6 +422,36 @@ public static class RbacSeeder
                     mapping.UpdatedAt = DateTime.UtcNow;
                 }
             }
+
+            // Sync/remove any role permissions that should not belong to the system roles by default
+            if (code == "ADMIN")
+            {
+                var adminDisallowed = await db.TblRolePermissions
+                    .Include(rp => rp.Permission)
+                    .Where(rp => rp.RoleId == role.RoleId && !rp.IsDeleted &&
+                                 (rp.Permission.PermissionCode == PermissionCatalog.AdminRbacManage ||
+                                  rp.Permission.PermissionCode == PermissionCatalog.AdminUserManage ||
+                                  rp.Permission.Type != 1))
+                    .ToListAsync();
+                foreach (var dis in adminDisallowed)
+                {
+                    dis.IsDeleted = true;
+                    dis.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+            else if (code == "DEFAULT_USER")
+            {
+                var userDisallowed = await db.TblRolePermissions
+                    .Include(rp => rp.Permission)
+                    .Where(rp => rp.RoleId == role.RoleId && !rp.IsDeleted &&
+                                 (!defaultCodes.Contains(rp.Permission.PermissionCode) || rp.Permission.Type != 0))
+                    .ToListAsync();
+                foreach (var dis in userDisallowed)
+                {
+                    dis.IsDeleted = true;
+                    dis.UpdatedAt = DateTime.UtcNow;
+                }
+            }
         }
         await db.SaveChangesAsync();
 
@@ -463,12 +493,21 @@ public static class RbacSeeder
                     ELSE 0
                 END;
 
+                -- Sync Permission Type: exactly 10 Admin Domain permissions have Type = 1, all others have Type = 0
                 UPDATE dbo.TblPermission
-                SET Type = 0
+                SET [Type] = 1
                 WHERE UPPER(PermissionCode) IN (
-                    'POST.STANDALONE.CREATE', 'POST.DELETE', 'POLL.CREATE', 'POST.MANAGEMENT',
-                    'COMMUNITY.CREATE', 'SUBCOMMUNITY.CREATE', 'COMMUNITY.MANAGE', 'COMMUNITY.MODERATE',
-                    'GROUP.MANAGE', 'GROUP.MANAGEMENT'
+                    'ADMIN.RBAC.MANAGE', 'ADMIN.USER.MANAGE', 'ADMIN.USER.VIEW', 'SYSTEMAUDIT.VIEW',
+                    'COMMUNITY.MODERATE', 'COMMUNITY.CREATE', 'COMMUNITY.MANAGE',
+                    'GROUP.MANAGEMENT', 'GROUP.MANAGE', 'POST.MANAGEMENT'
+                );
+
+                UPDATE dbo.TblPermission
+                SET [Type] = 0
+                WHERE UPPER(PermissionCode) NOT IN (
+                    'ADMIN.RBAC.MANAGE', 'ADMIN.USER.MANAGE', 'ADMIN.USER.VIEW', 'SYSTEMAUDIT.VIEW',
+                    'COMMUNITY.MODERATE', 'COMMUNITY.CREATE', 'COMMUNITY.MANAGE',
+                    'GROUP.MANAGEMENT', 'GROUP.MANAGE', 'POST.MANAGEMENT'
                 );");
         }
 
@@ -482,7 +521,7 @@ public static class RbacSeeder
             {
                 UserName = "admin",
                 NormalizedUserName = "ADMIN",
-                DisplayName = "System Administrator",
+                DisplayName = "Administrator",
                 Email = "admin@communitylink.local",
                 NormalizedEmail = "ADMIN@COMMUNITYLINK.LOCAL",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123", 12),

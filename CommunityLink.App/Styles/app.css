@@ -1,3 +1,39 @@
+﻿/* ============================================================
+   SELF-HOSTED MYANMAR FONTS (Pyidaungsu & Noto Sans Myanmar)
+   Zero external dependencies, offline-capable, high performance.
+   ============================================================ */
+@font-face {
+  font-family: 'Pyidaungsu';
+  src: url('../fonts/Pyidaungsu-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pyidaungsu';
+  src: url('../fonts/Pyidaungsu-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Myanmar';
+  src: url('../fonts/NotoSansMyanmar-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Myanmar';
+  src: url('../fonts/NotoSansMyanmar-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -548,3 +584,45 @@
   transition: all 0.3s ease;
 }
 
+/* ============================================================
+   LANGUAGE-SCOPED TYPOGRAPHY FOR MYANMAR UNICODE (html[lang="my"])
+   Harmonizes line-heights, vertical rhythm, and prevents clipping.
+   ============================================================ */
+html[lang="my"] {
+  font-family: 'Pyidaungsu', 'Noto Sans Myanmar', 'Myanmar Text', sans-serif;
+}
+
+html[lang="my"] body,
+html[lang="my"] button,
+html[lang="my"] input,
+html[lang="my"] select,
+html[lang="my"] textarea {
+  font-family: 'Pyidaungsu', 'Noto Sans Myanmar', 'Myanmar Text', sans-serif;
+  line-height: 1.65;
+}
+
+/* Ensure subtitles and headers have enough vertical breathing room for deep subscripts */
+html[lang="my"] h1, 
+html[lang="my"] h2, 
+html[lang="my"] h3,
+html[lang="my"] h4,
+html[lang="my"] h5,
+html[lang="my"] h6 {
+  line-height: 1.45;
+  letter-spacing: normal;
+}
+
+/* Relax tight Latin leading when rendering Myanmar script */
+html[lang="my"] .leading-tight,
+html[lang="my"] .leading-none {
+  line-height: 1.35 !important;
+}
+
+html[lang="my"] .leading-snug {
+  line-height: 1.5 !important;
+}
+
+/* Ensure hardcoded inline font-family declarations do not override Myanmar font fallback */
+html[lang="my"] [style*="font-family"] {
+  font-family: 'Pyidaungsu', 'Noto Sans Myanmar', 'Myanmar Text', sans-serif !important;
+}
