@@ -29,6 +29,11 @@ public interface IAdminFinanceService
         DateTime? toDate = null,
         CancellationToken cancellationToken = default);
 
+    Task<Result<IReadOnlyList<AdminFinancePrivateChatBreakdownModel>>> GetFinancePrivateChatBreakdownAsync(
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        CancellationToken cancellationToken = default);
+
     Task<Result<byte[]>> ExportFinanceReportCsvAsync(
         DateTime? fromDate = null,
         DateTime? toDate = null,

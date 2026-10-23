@@ -2,24 +2,25 @@
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ReportView)]
 @using CommunityLink.Shared.Features.Report
 @inject ReportApiService ReportApi
+@inject IStringLocalizer<AppResources> Loc
 
-<PageTitle>Community Hierarchy & Groups Report — CommunityLink</PageTitle>
+<PageTitle>@Loc["Report_Comm_PageTitle"]</PageTitle>
 
 <div class="max-w-6xl mx-auto space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150 p-4 md:p-6">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-4">
         <div>
             <div class="flex items-center gap-2">
                 <svg class="w-7 h-7 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.333A12.062 12.062 0 0 0 12 9c-2.485 0-4.81.75-6.75 2.033V21m15 0H3"/></svg>
-                <h1 class="text-2xl font-bold tracking-tight" style="font-family:'Manrope',sans-serif">Community &amp; Group Hierarchy Report</h1>
+                <h1 class="text-2xl font-bold tracking-tight" style="font-family:'Manrope',sans-serif">@Loc["Report_Comm_Heading"]</h1>
             </div>
             <p class="text-sm text-[#557392] dark:text-[#C4D2E1] mt-1">
-                Overview of communities sorted by highest sub-community count first, detailing active sub-communities, groups, and members.
+                @Loc["Report_Comm_Subtitle"]
             </p>
         </div>
         <div class="flex items-center gap-3">
             <button @onclick="LoadReportAsync" class="px-3.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                Refresh Data
+                @Loc["Report_Comm_BtnRefresh"]
             </button>
         </div>
     </div>
@@ -28,7 +29,7 @@
     {
         <div class="p-16 text-center text-[#557392] dark:text-[#C4D2E1]">
             <div class="inline-block animate-spin rounded-full h-9 w-9 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
-            <p class="mt-3 text-sm font-medium">Aggregating community hierarchy report...</p>
+            <p class="mt-3 text-sm font-medium">@Loc["Report_Comm_Loading"]</p>
         </div>
     }
     else if (communities == null || !communities.Any())
@@ -37,8 +38,8 @@
             <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500 mx-auto flex items-center justify-center mb-3">
                 <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.333A12.062 12.062 0 0 0 12 9c-2.485 0-4.81.75-6.75 2.033V21m15 0H3"/></svg>
             </div>
-            <p class="mt-3 text-sm font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">No communities found</p>
-            <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1">There are no parent communities registered in the system yet.</p>
+            <p class="mt-3 text-sm font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["Report_Comm_EmptyTitle"]</p>
+            <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1">@Loc["Report_Comm_EmptyDesc"]</p>
         </div>
     }
     else
@@ -46,15 +47,15 @@
         <!-- Summary Stat Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white dark:bg-[#112A46] p-4 rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-sm">
-                <div class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Total Communities</div>
+                <div class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">@Loc["Report_Comm_StatTotalComm"]</div>
                 <div class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0] mt-1">@communities.Count</div>
             </div>
             <div class="bg-white dark:bg-[#112A46] p-4 rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-sm">
-                <div class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Total Sub-Communities</div>
+                <div class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">@Loc["Report_Comm_StatTotalSubComm"]</div>
                 <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">@communities.Sum(c => c.SubCommunityCount)</div>
             </div>
             <div class="bg-white dark:bg-[#112A46] p-4 rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-sm">
-                <div class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Total Groups Across Ecosystem</div>
+                <div class="text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">@Loc["Report_Comm_StatTotalGroups"]</div>
                 <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">@communities.Sum(c => c.GroupCount)</div>
             </div>
         </div>
@@ -89,15 +90,15 @@
                         <div class="flex items-center gap-2.5 flex-wrap shrink-0">
                             <div class="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/40 text-xs">
                                 <span class="text-indigo-600 dark:text-indigo-400 font-bold">@c.SubCommunityCount</span>
-                                <span class="text-slate-600 dark:text-slate-400 ml-1">Sub-Communities</span>
+                                <span class="text-slate-600 dark:text-slate-400 ml-1">@Loc["Report_Comm_BadgeSubComm"]</span>
                             </div>
                             <div class="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-xs">
                                 <span class="text-emerald-600 dark:text-emerald-400 font-bold">@c.GroupCount</span>
-                                <span class="text-slate-600 dark:text-slate-400 ml-1">Groups</span>
+                                <span class="text-slate-600 dark:text-slate-400 ml-1">@Loc["Report_Comm_BadgeGroups"]</span>
                             </div>
                             <div class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#0A1B2E] border border-slate-200 dark:border-[rgba(196,210,225,0.15)] text-xs text-[#557392] dark:text-[#C4D2E1] flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
-                                <span>@c.MemberCount members</span>
+                                <span>@string.Format(Loc["Report_Comm_MembersCount"], c.MemberCount)</span>
                             </div>
                         </div>
                     </div>
@@ -106,13 +107,13 @@
                     <div class="p-5">
                         <div class="text-[11px] font-bold text-[#7A8CA6] uppercase tracking-wider mb-3 font-mono flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                            Sub-Communities &amp; Attached Groups
+                            @Loc["Report_Comm_SubCommHeading"]
                         </div>
 
                         @if (c.SubCommunities == null || !c.SubCommunities.Any())
                         {
                             <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#0A1B2E]/50 border border-dashed border-slate-200 dark:border-slate-800 text-xs text-slate-500 italic">
-                                No sub-communities registered under this community.
+                                @Loc["Report_Comm_NoSubComm"]
                             </div>
                         }
                         else
@@ -135,10 +136,10 @@
                                         </div>
                                         <div class="flex items-center gap-2 shrink-0">
                                             <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
-                                                @sc.GroupCount groups
+                                                @string.Format(Loc["Report_Comm_GroupsCount"], sc.GroupCount)
                                             </span>
                                             <span class="text-[10px] text-[#7A8CA6] font-mono">
-                                                @sc.MemberCount mem.
+                                                @string.Format(Loc["Report_Comm_MemCountShort"], sc.MemberCount)
                                             </span>
                                         </div>
                                     </div>

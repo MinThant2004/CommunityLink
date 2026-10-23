@@ -1,10 +1,14 @@
 @inherits LayoutComponentBase
 @implements IDisposable
 @using System.Security.Claims
+@using Microsoft.Extensions.Localization
+@using CommunityLink.App.Services
+@inject CultureService Culture
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject PremiumUpgradeApiService UpgradeApi
+@inject IStringLocalizer<AppResources> Loc
 
 <div class="h-screen flex overflow-hidden bg-[#F8FAFC] dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] font-sans antialiased transition-colors duration-150">
     <!-- Backdrop for mobile when sidebar is open -->
@@ -39,7 +43,7 @@
                 }
                 else if (hasSidebarRole)
                 {
-                    <button @onclick="ToggleSidebar" class="p-1.5 rounded text-[#557392] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition cursor-pointer shrink-0" title="Toggle navigation sidebar" aria-label="Toggle navigation sidebar">
+                    <button @onclick="ToggleSidebar" class="p-1.5 rounded text-[#557392] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition cursor-pointer shrink-0" title="@Loc["Shell_ToggleSidebar"]" aria-label="@Loc["Shell_ToggleSidebar"]">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="3" y1="12" x2="21" y2="12"></line>
                             <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -61,7 +65,7 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </span>
                     <input type="text"
-                           placeholder="Search hubs, spaces, passes..."
+                           placeholder="@Loc["Shell_SearchPlaceholder"]"
                            @bind="searchQuery"
                            @bind:event="oninput"
                            @onkeydown="HandleSearchKeyDown"
@@ -73,31 +77,33 @@
                     <nav class="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" aria-label="Primary">
                         <NavLink class="px-3 py-1.5 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2 whitespace-nowrap" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] shadow-sm" href="" Match="NavLinkMatch.All">
                             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                            <span>Home</span>
+                            <span>@Loc["Nav_Home"]</span>
                         </NavLink>
                         <NavLink class="px-3 py-1.5 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2 whitespace-nowrap" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] shadow-sm" href="communities">
                             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
-                            <span>Communities</span>
+                            <span>@Loc["Nav_Communities"]</span>
                         </NavLink>
                         <NavLink class="px-3 py-1.5 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2 whitespace-nowrap" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] shadow-sm" href="groups">
                             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                            <span>Groups</span>
+                            <span>@Loc["Nav_Groups"]</span>
                         </NavLink>
                         <NavLink class="px-3 py-1.5 rounded text-xs font-semibold text-[#D4AF37] hover:bg-[#D4AF37]/10 transition flex items-center gap-2 whitespace-nowrap" ActiveClass="!bg-[#D4AF37] !text-[#0A0D14] shadow-sm font-bold" href="upgrade">
                             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            <span class="font-bold">Premium</span>
+                            <span class="font-bold">@Loc["Nav_Premium"]</span>
                         </NavLink>
                     </nav>
                 }
             </div>
 
-            <!-- Right: Status Pill, Theme Toggle, Admin Badge, User Actions -->
+            <!-- Right: Status Pill, Language Selector, Theme Toggle, Admin Badge, User Actions -->
             <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <LanguageSelector />
+
                 <!-- Theme Toggle Button (Midnight Executive) -->
                 <button @onclick="ToggleThemeAsync"
                         class="p-1.5 rounded border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.10)] bg-[#F1F5F9] dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E2EC] hover:bg-[#E2E8F0] dark:hover:bg-[#1C263A] transition cursor-pointer flex items-center justify-center shadow-2xs"
-                        title="@(isDarkMode ? "Switch to Executive Minimalist Light Mode" : "Switch to Midnight Executive Dark Mode")"
-                        aria-label="Toggle visual optical mode">
+                        title="@(isDarkMode ? Loc["Shell_ThemeToggle_Light"] : Loc["Shell_ThemeToggle_Dark"])"
+                        aria-label="@Loc["Shell_ThemeToggle_Aria"]">
                     @if (isDarkMode)
                     {
                         <!-- Sun Icon for switching to light -->
@@ -129,7 +135,7 @@
                                 <Authorized>
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono font-bold bg-[#F1F5F9] dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E2EC] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shadow-xs">
                                         <svg class="w-3 h-3 text-[#0A1B2E] dark:text-[#D4AF37]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                        <span class="hidden sm:inline">ADMIN NODE</span>
+                                        <span class="hidden sm:inline">@Loc["Shell_AdminNode"]</span>
                                     </span>
                                 </Authorized>
                             </AuthorizeView>
@@ -157,7 +163,7 @@
                             <div class="relative">
                                 <button type="button" @onclick="ToggleProfileMenu" @onclick:stopPropagation
                                         class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E2EC] hover:text-[#557392] dark:hover:text-white transition flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#F1F5F9] dark:hover:bg-[#182030] cursor-pointer"
-                                        title="Account menu" aria-label="Account menu" aria-expanded="@(isProfileMenuOpen ? "true" : "false")">
+                                        title="@Loc["Shell_AccountMenu"]" aria-label="@Loc["Shell_AccountMenu"]" aria-expanded="@(isProfileMenuOpen ? "true" : "false")">
                                     <svg class="w-3.5 h-3.5 text-[#557392] dark:text-[#94A3B8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                     <span class="hidden md:inline">@context.User.Identity?.Name</span>
                                 </button>
@@ -176,7 +182,7 @@
                                                     <span class="truncate">@userDisplayName</span>
                                                     <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)" Context="cardAdminCtx">
                                                         <Authorized>
-                                                            <span class="w-3.5 h-3.5 flex items-center justify-center text-[#0A1B2E] dark:text-[#D4AF37]" title="Administrator">
+                                                            <span class="w-3.5 h-3.5 flex items-center justify-center text-[#0A1B2E] dark:text-[#D4AF37]" title="@Loc["Shell_Administrator"]">
                                                                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                                             </span>
                                                         </Authorized>
@@ -191,17 +197,34 @@
                                         <nav class="p-2 flex flex-col gap-0.5" aria-label="Account">
                                             <NavLink @onclick="CloseProfileMenu" class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] shadow-sm" href="profile">
                                                 <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                                <span>Profile</span>
+                                                <span>@Loc["Nav_Profile"]</span>
                                             </NavLink>
                                             <NavLink @onclick="CloseProfileMenu" class="px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5" ActiveClass="!bg-[#0A1B2E] !text-white dark:!bg-[#182030] dark:!text-[#D4AF37] shadow-sm" href="activity">
                                                 <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                                                <span>Activity</span>
+                                                <span>@Loc["Nav_Activity"]</span>
                                             </NavLink>
+                                            <AuthorizeView Policy="@(PermissionCatalog.PolicyPrefix + PermissionCatalog.CreatorEarnings)" Context="paidChatSettingsCtx">
+                                                <Authorized>
+                                                    <button type="button" @onclick="OpenPaidChatSettingsModal" class="w-full px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5 cursor-pointer text-left" title="@Loc["Nav_PaidChatSettings"]">
+                                                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.502 49.188 49.188 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                                                        </svg>
+                                                        <span>@Loc["Nav_PaidChatSettings"]</span>
+                                                    </button>
+                                                </Authorized>
+                                            </AuthorizeView>
+                                            <button type="button" @onclick="OpenChangePasswordModal" class="w-full px-3.5 py-2 rounded text-xs font-semibold text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] transition flex items-center gap-2.5 cursor-pointer text-left" title="@Loc["Nav_ChangePassword"]">
+                                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                                </svg>
+                                                <span>@Loc["Nav_ChangePassword"]</span>
+                                            </button>
                                             @if (isNormalUser)
                                             {
-                                                <button type="button" @onclick="OpenCloseAccountModal" class="w-full px-3.5 py-2 rounded text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-2.5 cursor-pointer text-left" title="Delete Account Permanently">
+                                                <button type="button" @onclick="OpenCloseAccountModal" class="w-full px-3.5 py-2 rounded text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-2.5 cursor-pointer text-left" title="@Loc["Nav_DeleteAccount"]">
                                                     <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                    <span>Delete Account</span>
+                                                    <span>@Loc["Nav_DeleteAccount"]</span>
                                                 </button>
                                             }
                                         </nav>
@@ -213,9 +236,9 @@
                                                 {
                                                     <input type="hidden" name="isAdmin" value="true" />
                                                 }
-                                                <button type="submit" class="w-full flex items-center gap-2 px-3.5 py-2 rounded text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer" title="Disconnect Session">
+                                                <button type="submit" class="w-full flex items-center gap-2 px-3.5 py-2 rounded text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer" title="@Loc["Nav_LogOut"]">
                                                     <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                                                    <span>Log Out</span>
+                                                    <span>@Loc["Nav_LogOut"]</span>
                                                 </button>
                                             </form>
                                         </div>
@@ -226,8 +249,8 @@
                     </Authorized>
                     <NotAuthorized>
                         <div class="flex items-center gap-2">
-                            <a href="login" class="px-3.5 py-1.5 rounded text-xs font-bold text-white bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#D4AF37] dark:hover:bg-[#F2CA50] dark:text-[#0A0D14] shadow-xs transition no-underline">Login</a>
-                            <a href="register" class="px-3.5 py-1.5 rounded text-xs font-bold text-[#0A1B2E] dark:text-[#E1E2EC] bg-white dark:bg-[#182030] hover:bg-[#F1F5F9] dark:hover:bg-[#1C263A] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.10)] transition no-underline">Register</a>
+                            <a href="login" class="px-3.5 py-1.5 rounded text-xs font-bold text-white bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#D4AF37] dark:hover:bg-[#F2CA50] dark:text-[#0A0D14] shadow-xs transition no-underline">@Loc["Nav_Login"]</a>
+                            <a href="register" class="px-3.5 py-1.5 rounded text-xs font-bold text-[#0A1B2E] dark:text-[#E1E2EC] bg-white dark:bg-[#182030] hover:bg-[#F1F5F9] dark:hover:bg-[#1C263A] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.10)] transition no-underline">@Loc["Nav_Register"]</a>
                         </div>
                     </NotAuthorized>
                 </AuthorizeView>
@@ -243,8 +266,8 @@
 </div>
 
 <div id="blazor-error-ui" data-nosnippet class="hidden fixed bottom-0 inset-x-0 bg-amber-600 text-white p-3 z-50 text-center font-medium shadow-2xl">
-    An unhandled error has occurred.
-    <a href="." class="underline font-bold ml-2">Reload</a>
+    @Loc["Shell_UnhandledError"]
+    <a href="." class="underline font-bold ml-2">@Loc["Common_Reload"]</a>
     <span class="dismiss cursor-pointer ml-4 font-bold">🗙</span>
 </div>
 
@@ -258,29 +281,39 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Delete Account</h3>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">@Loc["Shell_DeleteAccount_Title"]</h3>
             </div>
             
             <p class="text-sm text-slate-600 dark:text-slate-300">
-                Are you sure you want to delete your account (<strong>@userDisplayName</strong>)?
+                @Loc["Shell_DeleteAccount_Prompt", userDisplayName]
             </p>
 
             <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-xs text-rose-700 dark:text-rose-300 space-y-1">
-                <p class="font-bold">Warning:</p>
-                <p>Deleting your account will log you out immediately. Your account and personal information will be deleted permanently.</p>
+                <p class="font-bold">@Loc["Shell_DeleteAccount_WarningTitle"]</p>
+                <p>@Loc["Shell_DeleteAccount_WarningDesc"]</p>
             </div>
 
             <form method="post" action="/account/delete" class="flex justify-end gap-3 pt-2">
                 <AntiforgeryToken />
                 <button type="button" @onclick="CloseCloseAccountModal" class="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition cursor-pointer">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="submit" class="px-4 py-2 text-sm font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition shadow-sm cursor-pointer">
-                    Yes, Delete My Account
+                    @Loc["Shell_DeleteAccount_ConfirmBtn"]
                 </button>
             </form>
         </div>
     </div>
+}
+
+@if (showChangePasswordModal)
+{
+    <ChangePasswordModal OnClose="CloseChangePasswordModal" />
+}
+
+@if (showPaidChatSettingsModal)
+{
+    <PaidChatSettingsModal OnClose="ClosePaidChatSettingsModal" />
 }
 
 @code {
@@ -289,6 +322,8 @@
     private bool isDarkMode = false;
     private bool isProfileMenuOpen = false;
     private bool showCloseAccountModal = false;
+    private bool showChangePasswordModal = false;
+    private bool showPaidChatSettingsModal = false;
     private bool isNormalUser = false;
     private bool hasSidebarRole = false;
     private bool isChatPage = false;
@@ -296,12 +331,12 @@
     private string userDisplayName = "Member";
     private string userInitials = "U";
     private string userRoleLabel = string.Empty;
+    private string currentRoleCode = string.Empty;
     private string mainPageUrl => isAdminActor ? "admin/dashboard" : "";
 
     protected override async Task OnInitializedAsync()
     {
-        Navigation.LocationChanged += OnLocationChanged;
-        UpdateChatPageState(Navigation.Uri);
+        Culture.OnCultureChanged += HandleCultureChanged;
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
@@ -312,7 +347,8 @@
             userInitials = string.IsNullOrWhiteSpace(userDisplayName) ? "U" : userDisplayName.Trim()[..1].ToUpperInvariant();
         }
 
-        var roleCode = (user.FindFirst(ClaimTypes.Role)?.Value ?? user.FindFirst("role")?.Value ?? string.Empty).Trim();
+        currentRoleCode = (user.FindFirst(ClaimTypes.Role)?.Value ?? user.FindFirst("role")?.Value ?? string.Empty).Trim();
+        var roleCode = currentRoleCode;
         isAdminActor = user.HasClaim("is_admin", "true") ||
                        user.IsInRole("ADMIN") ||
                        user.IsInRole("SYSTEM_ADMIN") ||
@@ -355,17 +391,16 @@
 
         if (string.IsNullOrEmpty(userRoleLabel))
         {
-            userRoleLabel = roleCode.ToUpperInvariant() switch
+            userRoleLabel = currentRoleCode.ToUpperInvariant() switch
             {
                 "SYSTEM_ADMIN" or "SYSTEMADMIN" or "SUPERADMIN" => "System Administrator",
-                "ADMIN" => "Administrator",
-                "USER" => "Default User",
-                "DEFAULT_USER" => "Default User",
-                "MEMBER" => "Community Member",
-                "MODERATOR" => "Community Moderator",
-                "DOMAIN_PRO" or "DOMAIN_PROFESSIONAL" => "Domain Professional",
-                "PUBLIC_FIGURE" => "Public Figure",
-                _ => string.IsNullOrEmpty(roleCode) ? "Guest" : roleCode
+                "ADMIN" => Loc["Role_Administrator"].Value,
+                "USER" or "DEFAULT_USER" => Loc["Role_DefaultUser"].Value,
+                "MEMBER" => Loc["Role_CommunityMember"].Value,
+                "MODERATOR" => Loc["Role_CommunityModerator"].Value,
+                "DOMAIN_PRO" or "DOMAIN_PROFESSIONAL" => Loc["Role_DomainProfessional"].Value,
+                "PUBLIC_FIGURE" => Loc["Role_PublicFigure"].Value,
+                _ => string.IsNullOrEmpty(currentRoleCode) ? Loc["Role_Guest"].Value : currentRoleCode
             };
         }
     }
@@ -415,6 +450,28 @@
         isProfileMenuOpen = false;
     }
 
+    private void OpenChangePasswordModal()
+    {
+        isProfileMenuOpen = false;
+        showChangePasswordModal = true;
+    }
+
+    private void CloseChangePasswordModal()
+    {
+        showChangePasswordModal = false;
+    }
+
+    private void OpenPaidChatSettingsModal()
+    {
+        isProfileMenuOpen = false;
+        showPaidChatSettingsModal = true;
+    }
+
+    private void ClosePaidChatSettingsModal()
+    {
+        showPaidChatSettingsModal = false;
+    }
+
     private void OpenCloseAccountModal()
     {
         isProfileMenuOpen = false;
@@ -433,27 +490,23 @@
             Navigation.NavigateTo($"communities?search={Uri.EscapeDataString(searchQuery.Trim())}");
         }
     }
-
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    private void HandleCultureChanged()
     {
-        UpdateChatPageState(e.Location);
+        userRoleLabel = currentRoleCode.ToUpperInvariant() switch
+        {
+            "ADMIN" => Loc["Role_Administrator"].Value,
+            "USER" => Loc["Role_DefaultUser"].Value,
+            "MEMBER" => Loc["Role_CommunityMember"].Value,
+            "MODERATOR" => Loc["Role_CommunityModerator"].Value,
+            "DOMAIN_PRO" or "DOMAIN_PROFESSIONAL" => Loc["Role_DomainProfessional"].Value,
+            "PUBLIC_FIGURE" => Loc["Role_PublicFigure"].Value,
+            _ => string.IsNullOrEmpty(currentRoleCode) ? Loc["Role_Guest"].Value : currentRoleCode
+        };
         InvokeAsync(StateHasChanged);
-    }
-
-    private void UpdateChatPageState(string uri)
-    {
-        var path = Navigation.ToBaseRelativePath(uri);
-        var qIdx = path.IndexOf('?');
-        if (qIdx >= 0) path = path[..qIdx];
-        var hashIdx = path.IndexOf('#');
-        if (hashIdx >= 0) path = path[..hashIdx];
-
-        isChatPage = path.Equals("chat", StringComparison.OrdinalIgnoreCase) ||
-                     path.StartsWith("chat/", StringComparison.OrdinalIgnoreCase);
     }
 
     public void Dispose()
     {
-        Navigation.LocationChanged -= OnLocationChanged;
+        Culture.OnCultureChanged -= HandleCultureChanged;
     }
 }

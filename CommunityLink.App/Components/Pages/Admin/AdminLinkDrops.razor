@@ -3,139 +3,140 @@
 @attribute [Authorize]
 @inject LinkDropApiService LinkDropApi
 @inject ToastService Toast
+@inject IStringLocalizer<AppResources> Loc
 @inject IConfiguration Configuration
 
-<PageTitle>Link Drops Verification - Admin Portal</PageTitle>
+<PageTitle>@Loc["Admin_LinkDrops_PageTitle"]</PageTitle>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
     <!-- Compact Admin Header Card -->
-    <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm dark:shadow-xl">
+    <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
         <div>
-            <div class="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-wider mb-0.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
-                <span>Administrative Portal</span>
+            <div class="flex items-center gap-2 text-[#0A1B2E] dark:text-[#E1E8F0] font-mono font-bold text-[10px] uppercase tracking-wider mb-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
+                <span>@Loc["Admin_LinkDrops_BadgeAdminPortal"]</span>
             </div>
-            <h1 class="text-xl md:text-2xl font-bold text-slate-900 dark:text-[#E1E8F0] tracking-tight">Link Drops Review &amp; Catalog</h1>
-            <p class="text-slate-500 dark:text-[#C4D2E1] text-xs mt-0.5">Review pending user payment receipts, approve token wallet allocations, and manage purchase packages.</p>
+            <h1 class="text-xl md:text-2xl font-bold text-[#0F172A] dark:text-[#E1E2EC] tracking-tight" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Admin_LinkDrops_Heading"]</h1>
+            <p class="text-[#475569] dark:text-[#94A3B8] text-xs mt-0.5">@Loc["Admin_LinkDrops_Subtitle"]</p>
         </div>
 
         <div class="flex items-center gap-3">
-            <span class="bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300 font-bold px-3.5 py-1.5 rounded-xl text-xs border border-indigo-200 dark:border-indigo-500/30">
-                @pendingList.Count Pending Review
+            <span class="bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] font-mono font-bold px-3 py-1.5 rounded-full text-xs border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
+                @string.Format(Loc["Admin_LinkDrops_CountPendingReview"], pendingList.Count)
             </span>
-            <button @onclick="RefreshAllAsync" class="bg-white dark:bg-[#1B3B5A] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]/80 text-slate-700 dark:text-[#E1E8F0] p-2 rounded-xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] transition" title="Refresh">
+            <button @onclick="RefreshAllAsync" class="bg-white dark:bg-[#191B23] hover:bg-slate-100 dark:hover:bg-[#1D263B] text-[#475569] dark:text-[#94A3B8] p-2 rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] transition cursor-pointer" title="@Loc["Admin_LinkDrops_TooltipRefresh"]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
             </button>
         </div>
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="flex items-center border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] space-x-2 overflow-x-auto">
+    <div class="flex items-center border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] space-x-2 overflow-x-auto">
         <button @onclick='() => activeTab = "pending"'
-                class="@(activeTab == "pending" ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2 shrink-0">
+                class="@(activeTab == "pending" ? "border-[#0A1B2E] dark:border-[#E1E8F0] text-[#0A1B2E] dark:text-[#E1E8F0] font-bold" : "border-transparent text-[#475569] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] font-medium") py-3 px-5 text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-            <span>Pending Queue (@pendingList.Count)</span>
+            <span>@string.Format(Loc["Admin_LinkDrops_TabPending"], pendingList.Count)</span>
         </button>
         <button @onclick='() => activeTab = "packages"'
-                class="@(activeTab == "packages" ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2 shrink-0">
+                class="@(activeTab == "packages" ? "border-[#0A1B2E] dark:border-[#E1E8F0] text-[#0A1B2E] dark:text-[#E1E8F0] font-bold" : "border-transparent text-[#475569] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] font-medium") py-3 px-5 text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
-            <span>Packages Catalog (@packagesList.Count)</span>
+            <span>@string.Format(Loc["Admin_LinkDrops_TabPackages"], packagesList.Count)</span>
         </button>
         <button @onclick='() => activeTab = "methods"'
-                class="@(activeTab == "methods" ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2 shrink-0">
+                class="@(activeTab == "methods" ? "border-[#0A1B2E] dark:border-[#E1E8F0] text-[#0A1B2E] dark:text-[#E1E8F0] font-bold" : "border-transparent text-[#475569] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] font-medium") py-3 px-5 text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>
-            <span>Payment Methods (@methodsList.Count)</span>
+            <span>@string.Format(Loc["Admin_LinkDrops_TabMethods"], methodsList.Count)</span>
         </button>
         <button @onclick='() => activeTab = "rates"'
-                class="@(activeTab == "rates" ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 font-bold" : "border-transparent text-slate-500 hover:text-slate-800 dark:text-[#C4D2E1] dark:hover:text-[#E1E8F0] font-medium") py-3 px-5 text-sm border-b-2 transition flex items-center gap-2 shrink-0">
+                class="@(activeTab == "rates" ? "border-[#0A1B2E] dark:border-[#E1E8F0] text-[#0A1B2E] dark:text-[#E1E8F0] font-bold" : "border-transparent text-[#475569] dark:text-[#94A3B8] hover:text-[#0A1B2E] dark:hover:text-[#E1E2EC] font-medium") py-3 px-5 text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-            <span>Exchange Rates &amp; Currencies</span>
+            <span>@Loc["Admin_LinkDrops_TabRates"]</span>
         </button>
     </div>
 
     <!-- TAB 1: PENDING QUEUE -->
     @if (activeTab == "pending")
     {
-        <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
-            <div class="p-6 border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between">
-                <h2 class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">Pending Payment Verification Requests</h2>
+        <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg overflow-hidden shadow-xs">
+            <div class="p-5 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] flex items-center justify-between">
+                <h2 class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Admin_LinkDrops_QueueHeading"]</h2>
             </div>
 
             @if (isLoadingPending)
             {
-                <div class="p-12 text-center text-slate-500 dark:text-[#C4D2E1]">Loading pending verification queue...</div>
+                <div class="p-12 text-center text-xs text-[#64748B] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_LoadingPending"]</div>
             }
             else if (!pendingList.Any())
             {
-                <div class="p-12 text-center text-emerald-600 dark:text-emerald-400 font-semibold flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                    <span>All purchase requests have been reviewed!</span>
+                <div class="p-12 text-center text-emerald-600 dark:text-[#34D399] font-semibold text-xs flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                    <span>@Loc["Admin_LinkDrops_AllReviewed"]</span>
                 </div>
             }
             else
             {
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-700 dark:text-[#C4D2E1]">
-                        <thead class="bg-slate-50 dark:bg-[#0A1B2E] text-xs uppercase text-slate-500 dark:text-[#C4D2E1] border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)]">
+                    <table class="w-full text-left text-xs text-[#0F172A] dark:text-[#E1E2EC] border-collapse">
+                        <thead class="bg-[#F8FAFC] dark:bg-[#191B23] text-[10px] uppercase font-bold text-[#64748B] tracking-[0.06em] font-mono border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
                             <tr>
-                                <th class="py-3.5 px-6">Purchase #</th>
-                                <th class="py-3.5 px-6">Buyer</th>
-                                <th class="py-3.5 px-6">Package / Type</th>
-                                <th class="py-3.5 px-6">Real Money</th>
-                                <th class="py-3.5 px-6">Drops Granted</th>
-                                <th class="py-3.5 px-6">Channel & Ref No.</th>
-                                <th class="py-3.5 px-6">Proof Receipt</th>
-                                <th class="py-3.5 px-6">Actions</th>
+                                <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColPurchaseNo"]</th>
+                                <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColBuyer"]</th>
+                                <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColPackageType"]</th>
+                                <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColRealMoney"]</th>
+                                <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColDropsGranted"]</th>
+                                <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColChannelRef"]</th>
+                                <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColProofReceipt"]</th>
+                                <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColActions"]</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-200 dark:divide-[rgba(196,210,225,0.12)]">
+                        <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(255,255,255,0.08)]">
                             @foreach (var p in pendingList)
                             {
-                                <tr class="hover:bg-slate-50/80 dark:hover:bg-[#1B3B5A]/40 transition">
-                                    <td class="py-4 px-6 font-mono font-bold text-indigo-600 dark:text-indigo-400">@p.PurchaseNumber</td>
-                                    <td class="py-4 px-6 font-semibold text-slate-900 dark:text-[#E1E8F0]">@p.UserName</td>
-                                    <td class="py-4 px-6 text-slate-600 dark:text-[#C4D2E1]">@(p.PackageName ?? "Custom Purchase")</td>
-                                    <td class="py-4 px-6 font-bold text-slate-900 dark:text-[#E1E8F0]">@p.SnapshotRealMoneyAmount.ToString("N0") @p.SnapshotCurrency</td>
-                                    <td class="py-4 px-6 font-extrabold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                                        <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                                <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1D263B]/60 transition-colors duration-150">
+                                    <td class="py-3.5 px-4 font-mono font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@p.PurchaseNumber</td>
+                                    <td class="py-3.5 px-4 font-semibold text-[#0F172A] dark:text-[#E1E2EC]">@p.UserName</td>
+                                    <td class="py-3.5 px-4 text-[#475569] dark:text-[#94A3B8]">@(p.PackageName ?? Loc["Admin_LinkDrops_CustomPurchase"])</td>
+                                    <td class="py-3.5 px-4 font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC]">@p.SnapshotRealMoneyAmount.ToString("N0") @p.SnapshotCurrency</td>
+                                    <td class="py-3.5 px-4 font-mono font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-1.5">
+                                        <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                                         <span>@p.SnapshotLinkDropAmount.ToString("N0")</span>
                                     </td>
-                                    <td class="py-4 px-6">
+                                    <td class="py-3.5 px-4">
                                         <div class="flex items-center gap-2">
                                             @if (!string.IsNullOrWhiteSpace(p.PaymentMethodLogoUrl))
                                             {
-                                                <img src="@BuildFileUrl(p.PaymentMethodLogoUrl)" alt="@p.PaymentMethodName" class="w-7 h-7 object-contain rounded-md bg-white border border-slate-200 dark:border-[rgba(196,210,225,0.12)] p-0.5 shrink-0" />
+                                                <img src="@BuildFileUrl(p.PaymentMethodLogoUrl)" alt="@p.PaymentMethodName" class="w-6 h-6 object-contain rounded bg-white border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] p-0.5 shrink-0" />
                                             }
                                             <div>
-                                                <div class="font-medium text-slate-800 dark:text-[#E1E8F0]">@p.PaymentMethodName</div>
-                                                <div class="font-mono text-xs text-slate-500 dark:text-[#C4D2E1]">Ref: @p.TransactionReferenceNo</div>
+                                                <div class="font-medium text-[#0F172A] dark:text-[#E1E2EC]">@p.PaymentMethodName</div>
+                                                <div class="font-mono text-[11px] text-[#64748B] dark:text-[#94A3B8]">@string.Format(Loc["Admin_LinkDrops_RefPrefix"], p.TransactionReferenceNo)</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="py-4 px-6">
+                                    <td class="py-3.5 px-4">
                                         @if (p.Proof != null && !string.IsNullOrWhiteSpace(p.Proof.FileUrl))
                                         {
                                             <button @onclick="() => OpenProofModal(p.Proof.FileUrl)"
-                                                    class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-semibold">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
-                                                <span>View Receipt</span>
+                                                    class="text-xs text-[#0A1B2E] dark:text-[#E1E8F0] hover:underline flex items-center gap-1 font-semibold cursor-pointer">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+                                                <span>@Loc["Admin_LinkDrops_BtnViewReceipt"]</span>
                                             </button>
                                         }
                                         else
                                         {
-                                            <span class="text-xs text-slate-400">No image</span>
+                                            <span class="text-xs text-[#64748B] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_NoImage"]</span>
                                         }
                                     </td>
-                                    <td class="py-4 px-6">
+                                    <td class="py-3.5 px-4">
                                         <div class="flex items-center gap-2">
                                             <button @onclick="() => OpenApproveModal(p)"
-                                                    class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
-                                                Approve
+                                                    class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded transition cursor-pointer">
+                                                @Loc["Admin_LinkDrops_BtnApprove"]
                                             </button>
                                             <button @onclick="() => OpenRejectModal(p)"
-                                                    class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
-                                                Reject
+                                                    class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded transition cursor-pointer">
+                                                @Loc["Admin_LinkDrops_BtnReject"]
                                             </button>
                                         </div>
                                     </td>
@@ -152,81 +153,81 @@
     @if (activeTab == "packages")
     {
         <div class="space-y-6">
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-6 space-y-4 shadow-sm">
-                <h2 class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">Create New Package</h2>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg p-5 space-y-4 shadow-xs">
+                <h2 class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Admin_LinkDrops_CreatePkgHeading"]</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Package Name</label>
-                        <input type="text" @bind="newPkgName" placeholder="e.g. 100 Link Drops" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_PkgNameLabel"]</label>
+                        <input type="text" @bind="newPkgName" placeholder="@Loc["Admin_LinkDrops_PkgNamePlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Link Drops Amount</label>
-                        <input type="number" @bind="newPkgDrops" placeholder="e.g. 100" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_DropsAmountLabel"]</label>
+                        <input type="number" @bind="newPkgDrops" placeholder="@Loc["Admin_LinkDrops_DropsAmountPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs font-mono focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Bonus Drops</label>
-                        <input type="number" @bind="newPkgBonus" placeholder="e.g. 0" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_BonusDropsLabel"]</label>
+                        <input type="number" @bind="newPkgBonus" placeholder="@Loc["Admin_LinkDrops_BonusDropsPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs font-mono focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Price (MMK)</label>
-                        <input type="number" step="100" @bind="newPkgPrice" placeholder="e.g. 1000" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_PriceMmkLabel"]</label>
+                        <input type="number" step="100" @bind="newPkgPrice" placeholder="@Loc["Admin_LinkDrops_PriceMmkPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs font-mono focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                 </div>
                 <div class="flex justify-end">
-                    <button @onclick="CreatePackageAsync" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2 rounded-xl transition">
-                        + Add Package
+                    <button @onclick="CreatePackageAsync" class="bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:hover:bg-white text-white dark:text-[#0A1B2E] text-xs font-bold px-4 py-2 rounded transition cursor-pointer shadow-xs active:scale-[0.98]">
+                        @Loc["Admin_LinkDrops_BtnAddPackage"]
                     </button>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl overflow-hidden shadow-sm">
-                <table class="w-full text-left text-sm text-slate-700 dark:text-[#C4D2E1]">
-                    <thead class="bg-slate-50 dark:bg-[#0A1B2E] text-xs uppercase text-slate-500 dark:text-[#C4D2E1] border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)]">
+            <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg overflow-hidden shadow-xs">
+                <table class="w-full text-left text-xs text-[#0F172A] dark:text-[#E1E2EC] border-collapse">
+                    <thead class="bg-[#F8FAFC] dark:bg-[#191B23] text-[10px] uppercase font-bold text-[#64748B] tracking-[0.06em] font-mono border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
                         <tr>
-                            <th class="py-3 px-6">Package</th>
-                            <th class="py-3 px-6">Drops</th>
-                            <th class="py-3 px-6">Bonus</th>
-                            <th class="py-3 px-6">Price</th>
-                            <th class="py-3 px-6">Status</th>
-                            <th class="py-3 px-6 text-center">Edit</th>
-                            <th class="py-3 px-6 text-center">Status Action</th>
+                            <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColPackage"]</th>
+                            <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColDrops"]</th>
+                            <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColBonus"]</th>
+                            <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColPrice"]</th>
+                            <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColStatus"]</th>
+                            <th class="py-3 px-4 text-center">@Loc["Admin_LinkDrops_ColEdit"]</th>
+                            <th class="py-3 px-4 text-center">@Loc["Admin_LinkDrops_ColStatusAction"]</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200 dark:divide-[rgba(196,210,225,0.12)]">
+                    <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(255,255,255,0.08)]">
                         @foreach (var pkg in packagesList)
                         {
-                            <tr class="hover:bg-slate-50/80 dark:hover:bg-[#1B3B5A]/40 transition">
-                                <td class="py-4 px-6 font-bold text-slate-900 dark:text-[#E1E8F0]">@pkg.PackageName</td>
-                                <td class="py-4 px-6 font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                                    <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                            <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1D263B]/60 transition-colors duration-150">
+                                <td class="py-3.5 px-4 font-bold text-[#0F172A] dark:text-[#E1E2EC]">@pkg.PackageName</td>
+                                <td class="py-3.5 px-4 font-mono font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-1.5">
+                                    <LinkDropIcon Class="w-3.5 h-3.5 shrink-0" />
                                     <span>@pkg.LinkDropAmount.ToString("N0")</span>
                                 </td>
-                                <td class="py-4 px-6 text-emerald-600 dark:text-emerald-400 font-semibold">+@pkg.BonusAmount.ToString("N0")</td>
-                                <td class="py-4 px-6 font-bold text-slate-900 dark:text-[#E1E8F0]">@pkg.RealMoneyAmount.ToString("N0") @pkg.Currency</td>
-                                <td class="py-4 px-6">
-                                    <span class="@(pkg.IsActive ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30" : "text-slate-500 dark:text-[#C4D2E1] bg-slate-100 dark:bg-[#1B3B5A] border-slate-200 dark:border-[rgba(196,210,225,0.12)]") text-xs font-bold px-2 py-0.5 rounded-md border">
-                                        @(pkg.IsActive ? "Active" : "Disabled")
+                                <td class="py-3.5 px-4 font-mono font-semibold text-emerald-600 dark:text-[#34D399]">+@pkg.BonusAmount.ToString("N0")</td>
+                                <td class="py-3.5 px-4 font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC]">@pkg.RealMoneyAmount.ToString("N0") @pkg.Currency</td>
+                                <td class="py-3.5 px-4">
+                                    <span class="@(pkg.IsActive ? "text-emerald-700 dark:text-[#34D399] bg-emerald-500/10 border-emerald-500/20" : "text-[#64748B] dark:text-[#94A3B8] bg-slate-100 dark:bg-[#191B23] border-[#CBD5E1] dark:border-[rgba(255,255,255,0.08)]") text-[11px] font-semibold px-2 py-0.5 rounded-full border">
+                                        @(pkg.IsActive ? Loc["Admin_LinkDrops_StatusActive"] : Loc["Admin_LinkDrops_StatusDisabled"])
                                     </span>
                                 </td>
-                                <td class="py-4 px-6 text-center">
+                                <td class="py-3.5 px-4 text-center">
                                     <button @onclick="() => OpenEditPackageModal(pkg)"
-                                            class="px-3 py-1 text-xs font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg border border-sky-200 dark:border-sky-500/30 transition cursor-pointer">
-                                        Edit
+                                            class="px-2.5 py-1 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded border border-sky-200 dark:border-sky-500/30 transition cursor-pointer">
+                                        @Loc["Admin_LinkDrops_ColEdit"]
                                     </button>
                                 </td>
-                                <td class="py-4 px-6 text-center">
+                                <td class="py-3.5 px-4 text-center">
                                     @if (pkg.IsActive)
                                     {
                                         <button @onclick="() => TogglePackageStatusAsync(pkg.PackageId)"
-                                                class="px-3 py-1 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg border border-rose-200 dark:border-rose-500/30 transition cursor-pointer">
-                                            Disable
+                                                class="px-2.5 py-1 text-xs font-semibold text-rose-600 dark:text-[#FFB4AB] hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded border border-rose-200 dark:border-rose-500/30 transition cursor-pointer">
+                                            @Loc["Admin_LinkDrops_BtnDisable"]
                                         </button>
                                     }
                                     else
                                     {
                                         <button @onclick="() => TogglePackageStatusAsync(pkg.PackageId)"
-                                                class="px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg border border-emerald-200 dark:border-emerald-500/30 transition cursor-pointer">
-                                            Enable
+                                                class="px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-[#34D399] hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded border border-emerald-200 dark:border-emerald-500/30 transition cursor-pointer">
+                                            @Loc["Admin_LinkDrops_BtnEnable"]
                                         </button>
                                     }
                                 </td>
@@ -242,131 +243,131 @@
     @if (activeTab == "methods")
     {
         <div class="space-y-6">
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-6 space-y-4 shadow-sm">
-                <h2 class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">Add New Payment Channel</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg p-5 space-y-4 shadow-xs">
+                <h2 class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Admin_LinkDrops_AddMethodHeading"]</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Channel Name</label>
-                        <input type="text" @bind="newMethodName" placeholder="e.g. KBZ Pay, AYA Pay" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_ChannelNameLabel"]</label>
+                        <input type="text" @bind="newMethodName" placeholder="@Loc["Admin_LinkDrops_ChannelNamePlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Account Holder Name</label>
-                        <input type="text" @bind="newAccountName" placeholder="Account Holder Name" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_AccountHolderLabel"]</label>
+                        <input type="text" @bind="newAccountName" placeholder="@Loc["Admin_LinkDrops_AccountHolderPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                     <div class="space-y-1 md:col-span-2">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Account / Phone Number</label>
-                        <input type="text" @bind="newAccountNumber" placeholder="Account or Phone Number" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_AccountNumberLabel"]</label>
+                        <input type="text" @bind="newAccountNumber" placeholder="@Loc["Admin_LinkDrops_AccountNumberPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs font-mono focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                     
                     <!-- Image Upload: Payment Type Logo -->
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Payment Type Logo</label>
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_LogoLabel"]</label>
                         <div class="flex items-center gap-3">
                             <InputFile OnChange="OnNewLogoFileSelected" accept=".jpg,.jpeg,.png,.webp,.svg"
-                                       class="w-full text-xs text-slate-500 dark:text-[#C4D2E1] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#1B3B5A] file:text-slate-700 dark:file:text-[#E1E8F0] hover:file:bg-slate-200 cursor-pointer" />
+                                       class="w-full text-xs text-[#64748B] dark:text-[#94A3B8] file:mr-3 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#191B23] file:text-[#0F172A] dark:file:text-[#E1E2EC] hover:file:bg-slate-200 cursor-pointer" />
                             @if (!string.IsNullOrWhiteSpace(newLogoPreviewUrl))
                             {
-                                <img src="@newLogoPreviewUrl" alt="Logo preview" class="w-10 h-10 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0 shadow-2xs" />
+                                <img src="@newLogoPreviewUrl" alt="Logo preview" class="w-8 h-8 object-contain rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] p-0.5 bg-white shrink-0" />
                             }
                         </div>
                     </div>
 
                     <!-- Image Upload: QR Code Image -->
                     <div class="space-y-1 md:col-span-2">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">QR Code Image</label>
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_QrCodeLabel"]</label>
                         <div class="flex items-center gap-3">
                             <InputFile OnChange="OnNewQrFileSelected" accept=".jpg,.jpeg,.png,.webp"
-                                       class="w-full text-xs text-slate-500 dark:text-[#C4D2E1] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#1B3B5A] file:text-slate-700 dark:file:text-[#E1E8F0] hover:file:bg-slate-200 cursor-pointer" />
+                                       class="w-full text-xs text-[#64748B] dark:text-[#94A3B8] file:mr-3 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#191B23] file:text-[#0F172A] dark:file:text-[#E1E2EC] hover:file:bg-slate-200 cursor-pointer" />
                             @if (!string.IsNullOrWhiteSpace(newQrPreviewUrl))
                             {
-                                <img src="@newQrPreviewUrl" alt="QR code preview" class="w-12 h-12 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0 shadow-2xs" />
+                                <img src="@newQrPreviewUrl" alt="QR code preview" class="w-10 h-10 object-contain rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] p-0.5 bg-white shrink-0" />
                             }
                         </div>
                     </div>
 
                     <div class="space-y-1 md:col-span-2">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Transfer Instructions (Optional)</label>
-                        <textarea @bind="newInstructions" rows="2" placeholder="Payment instructions shown to buyers" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm"></textarea>
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_InstructionsLabel"]</label>
+                        <textarea @bind="newInstructions" rows="2" placeholder="@Loc["Admin_LinkDrops_InstructionsPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors"></textarea>
                     </div>
                 </div>
                 <div class="flex justify-end">
-                    <button @onclick="CreatePaymentMethodAsync" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2 rounded-xl transition">
-                        + Add Channel
+                    <button @onclick="CreatePaymentMethodAsync" class="bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:hover:bg-white text-white dark:text-[#0A1B2E] text-xs font-bold px-4 py-2 rounded transition cursor-pointer shadow-xs active:scale-[0.98]">
+                        @Loc["Admin_LinkDrops_BtnAddChannel"]
                     </button>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl overflow-hidden shadow-sm">
-                <table class="w-full text-left text-sm text-slate-700 dark:text-[#C4D2E1]">
-                    <thead class="bg-slate-50 dark:bg-[#0A1B2E] text-xs uppercase text-slate-500 dark:text-[#C4D2E1] border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)]">
+            <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg overflow-hidden shadow-xs">
+                <table class="w-full text-left text-xs text-[#0F172A] dark:text-[#E1E2EC] border-collapse">
+                    <thead class="bg-[#F8FAFC] dark:bg-[#191B23] text-[10px] uppercase font-bold text-[#64748B] tracking-[0.06em] font-mono border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
                         <tr>
-                            <th class="py-3 px-6">Channel & Logo</th>
-                            <th class="py-3 px-6">QR Code</th>
-                            <th class="py-3 px-6">Account Holder</th>
-                            <th class="py-3 px-6">Account Number</th>
-                            <th class="py-3 px-6">Status</th>
-                            <th class="py-3 px-6 text-center">Edit</th>
-                            <th class="py-3 px-6 text-center">Status Action</th>
+                            <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColChannelLogo"]</th>
+                            <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColQrCode"]</th>
+                            <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColAccountHolder"]</th>
+                            <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColAccountNumber"]</th>
+                            <th class="py-3 px-4">@Loc["Admin_LinkDrops_ColStatus"]</th>
+                            <th class="py-3 px-4 text-center">@Loc["Admin_LinkDrops_ColEdit"]</th>
+                            <th class="py-3 px-4 text-center">@Loc["Admin_LinkDrops_ColStatusAction"]</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200 dark:divide-[rgba(196,210,225,0.12)]">
+                    <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(255,255,255,0.08)]">
                         @foreach (var m in methodsList)
                         {
-                            <tr class="hover:bg-slate-50/80 dark:hover:bg-[#1B3B5A]/40 transition">
-                                <td class="py-4 px-6 font-bold text-slate-900 dark:text-[#E1E8F0]">
-                                    <div class="flex items-center gap-3">
+                            <tr class="hover:bg-[#F8FAFC] dark:hover:bg-[#1D263B]/60 transition-colors duration-150">
+                                <td class="py-3.5 px-4 font-bold text-[#0F172A] dark:text-[#E1E2EC]">
+                                    <div class="flex items-center gap-2.5">
                                         @if (!string.IsNullOrWhiteSpace(m.PaymentLogoUrl))
                                         {
-                                            <img src="@BuildFileUrl(m.PaymentLogoUrl)" alt="@m.MethodName" class="w-8 h-8 object-contain rounded-lg bg-white border border-slate-200 dark:border-[rgba(196,210,225,0.12)] p-0.5 shrink-0 shadow-2xs" />
+                                            <img src="@BuildFileUrl(m.PaymentLogoUrl)" alt="@m.MethodName" class="w-7 h-7 object-contain rounded bg-white border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] p-0.5 shrink-0" />
                                         }
                                         else
                                         {
-                                            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-extrabold flex items-center justify-center text-xs border border-indigo-500/20 shrink-0">
+                                            <div class="w-7 h-7 rounded bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] font-mono font-bold flex items-center justify-center text-[10px] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] shrink-0">
                                                 @(string.IsNullOrWhiteSpace(m.MethodName) ? "PAY" : m.MethodName.Substring(0, Math.Min(2, m.MethodName.Length)).ToUpper())
                                             </div>
                                         }
                                         <span>@m.MethodName</span>
                                     </div>
                                 </td>
-                                <td class="py-4 px-6">
+                                <td class="py-3.5 px-4">
                                     @if (!string.IsNullOrWhiteSpace(m.QrCodeImageUrl))
                                     {
-                                        <button type="button" @onclick="() => OpenProofModal(m.QrCodeImageUrl)" class="inline-flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
-                                            <img src="@BuildFileUrl(m.QrCodeImageUrl)" alt="QR" class="w-6 h-6 object-contain rounded border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-white p-0.5" />
-                                            <span>View QR</span>
+                                        <button type="button" @onclick="() => OpenProofModal(m.QrCodeImageUrl)" class="inline-flex items-center gap-1.5 text-xs text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold hover:underline cursor-pointer">
+                                            <img src="@BuildFileUrl(m.QrCodeImageUrl)" alt="QR" class="w-5 h-5 object-contain rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white p-0.5" />
+                                            <span>@Loc["Admin_LinkDrops_BtnViewQr"]</span>
                                         </button>
                                     }
                                     else
                                     {
-                                        <span class="text-xs text-slate-400">None</span>
+                                        <span class="text-xs text-[#64748B] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_None"]</span>
                                     }
                                 </td>
-                                <td class="py-4 px-6 text-slate-700 dark:text-[#E1E8F0]">@m.AccountName</td>
-                                <td class="py-4 px-6 font-mono font-bold text-indigo-600 dark:text-indigo-400">@m.AccountNumber</td>
-                                <td class="py-4 px-6">
-                                    <span class="@(m.IsActive ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30" : "text-slate-500 dark:text-[#C4D2E1] bg-slate-100 dark:bg-[#1B3B5A] border-slate-200 dark:border-[rgba(196,210,225,0.12)]") text-xs font-bold px-2 py-0.5 rounded-md border">
-                                        @(m.IsActive ? "Active" : "Disabled")
+                                <td class="py-3.5 px-4 text-[#475569] dark:text-[#E1E2EC]">@m.AccountName</td>
+                                <td class="py-3.5 px-4 font-mono font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@m.AccountNumber</td>
+                                <td class="py-3.5 px-4">
+                                    <span class="@(m.IsActive ? "text-emerald-700 dark:text-[#34D399] bg-emerald-500/10 border-emerald-500/20" : "text-[#64748B] dark:text-[#94A3B8] bg-slate-100 dark:bg-[#191B23] border-[#CBD5E1] dark:border-[rgba(255,255,255,0.08)]") text-[11px] font-semibold px-2 py-0.5 rounded-full border">
+                                        @(m.IsActive ? Loc["Admin_LinkDrops_StatusActive"] : Loc["Admin_LinkDrops_StatusDisabled"])
                                     </span>
                                 </td>
-                                <td class="py-4 px-6 text-center">
+                                <td class="py-3.5 px-4 text-center">
                                     <button @onclick="() => OpenEditMethodModal(m)"
-                                            class="px-3 py-1 text-xs font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded-lg border border-sky-200 dark:border-sky-500/30 transition cursor-pointer">
-                                        Edit
+                                            class="px-2.5 py-1 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 rounded border border-sky-200 dark:border-sky-500/30 transition cursor-pointer">
+                                        @Loc["Admin_LinkDrops_ColEdit"]
                                     </button>
                                 </td>
-                                <td class="py-4 px-6 text-center">
+                                <td class="py-3.5 px-4 text-center">
                                     @if (m.IsActive)
                                     {
                                         <button @onclick="() => TogglePaymentMethodStatusAsync(m.PaymentMethodId)"
-                                                class="px-3 py-1 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg border border-rose-200 dark:border-rose-500/30 transition cursor-pointer">
-                                            Disable
+                                                class="px-2.5 py-1 text-xs font-semibold text-rose-600 dark:text-[#FFB4AB] hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded border border-rose-200 dark:border-rose-500/30 transition cursor-pointer">
+                                            @Loc["Admin_LinkDrops_BtnDisable"]
                                         </button>
                                     }
                                     else
                                     {
                                         <button @onclick="() => TogglePaymentMethodStatusAsync(m.PaymentMethodId)"
-                                                class="px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg border border-emerald-200 dark:border-emerald-500/30 transition cursor-pointer">
-                                            Enable
+                                                class="px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-[#34D399] hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded border border-emerald-200 dark:border-emerald-500/30 transition cursor-pointer">
+                                            @Loc["Admin_LinkDrops_BtnEnable"]
                                         </button>
                                     }
                                 </td>
@@ -382,92 +383,92 @@
     @if (activeTab == "rates")
     {
         <div class="space-y-6">
-            <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
+            <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-lg p-6 space-y-6 shadow-xs">
                 <div>
-                    <h2 class="text-xl font-bold text-slate-900 dark:text-[#E1E8F0] flex items-center gap-2">
-                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                        <span>Link Drop Exchange Rate Settings</span>
+                    <h2 class="text-base font-bold text-[#0F172A] dark:text-[#E1E2EC] flex items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif">
+                        <svg class="w-4 h-4 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                        <span>@Loc["Admin_LinkDrops_RatesHeading"]</span>
                     </h2>
-                    <p class="text-slate-600 dark:text-[#C4D2E1] text-sm mt-1">
-                        Configure the exact conversion pricing for 1 Link Drop across supported currencies. When buyers purchase tokens or choose their currency in the wallet, prices calculate automatically using these live rates.
+                    <p class="text-[#475569] dark:text-[#94A3B8] text-xs mt-1">
+                        @Loc["Admin_LinkDrops_RatesDesc"]
                     </p>
                 </div>
 
                 @if (isLoadingRates)
                 {
-                    <div class="py-8 text-center text-slate-500 dark:text-[#C4D2E1]">Loading exchange rates...</div>
+                    <div class="py-8 text-center text-xs text-[#64748B] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_LoadingRates"]</div>
                 }
                 else
                 {
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <!-- MMK Card (Primary) -->
-                        <div class="p-5 rounded-2xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/40 dark:bg-[#0A1B2E]/60 space-y-4 shadow-2xs">
+                        <div class="p-5 rounded-lg border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E]/5 dark:bg-[#112A46]/50 space-y-4 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">Primary Currency</span>
-                                <span class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">MMK (Ks)</span>
+                                <span class="text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">@Loc["Admin_LinkDrops_PrimaryCurrency"]</span>
+                                <span class="text-base font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC]">@Loc["Admin_LinkDrops_CurrencyMmk"]</span>
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-xs font-semibold text-slate-600 dark:text-[#C4D2E1]">1 Link Drop = (MMK)</label>
+                                <label class="text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_RateMmkLabel"]</label>
                                 <div class="relative">
-                                    <input type="number" step="0.01" min="0.01" @bind="rateMmk" class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2.5 text-slate-900 dark:text-[#E1E8F0] text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                                    <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">MMK</span>
+                                    <input type="number" step="0.01" min="0.01" @bind="rateMmk" class="w-full bg-white dark:bg-[#111622] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-2 text-[#0F172A] dark:text-[#E1E2EC] text-sm font-mono font-bold focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] transition-colors" />
+                                    <span class="absolute right-3 top-2 text-xs text-[#64748B] dark:text-[#94A3B8] font-mono font-bold">MMK</span>
                                 </div>
                             </div>
-                            <div class="text-xs text-slate-500 dark:text-[#C4D2E1]">
-                                Example: 100 Link Drops = <strong class="text-slate-800 dark:text-[#E1E8F0]">@((100 * rateMmk).ToString("N0")) MMK</strong>
+                            <div class="text-xs text-[#64748B] dark:text-[#94A3B8] font-mono text-[11px]">
+                                @string.Format(Loc["Admin_LinkDrops_ExampleMmk"], (100 * rateMmk).ToString("N0"))
                             </div>
                         </div>
 
                         <!-- USD Card -->
-                        <div class="p-5 rounded-2xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-slate-50/50 dark:bg-[#0A1B2E]/40 space-y-4">
+                        <div class="p-5 rounded-lg border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] bg-[#F8FAFC]/70 dark:bg-[#191B23]/50 space-y-4 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-[#0A1B2E]/40 dark:hover:border-[rgba(196,210,225,0.30)]">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-slate-200 dark:bg-[#1B3B5A] text-slate-700 dark:text-[#E1E8F0]">International</span>
-                                <span class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">USD ($)</span>
+                                <span class="text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#111622] text-[#475569] dark:text-[#94A3B8] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.08)]">@Loc["Admin_LinkDrops_International"]</span>
+                                <span class="text-base font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC]">@Loc["Admin_LinkDrops_CurrencyUsd"]</span>
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-xs font-semibold text-slate-600 dark:text-[#C4D2E1]">1 Link Drop = (USD)</label>
+                                <label class="text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_RateUsdLabel"]</label>
                                 <div class="relative">
-                                    <input type="number" step="0.0001" min="0.00001" @bind="rateUsd" class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2.5 text-slate-900 dark:text-[#E1E8F0] text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                                    <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">USD</span>
+                                    <input type="number" step="0.0001" min="0.00001" @bind="rateUsd" class="w-full bg-white dark:bg-[#111622] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-2 text-[#0F172A] dark:text-[#E1E2EC] text-sm font-mono font-bold focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] transition-colors" />
+                                    <span class="absolute right-3 top-2 text-xs text-[#64748B] dark:text-[#94A3B8] font-mono font-bold">USD</span>
                                 </div>
                             </div>
-                            <div class="text-xs text-slate-500 dark:text-[#C4D2E1]">
-                                Example: 1,000 Link Drops = <strong class="text-slate-800 dark:text-[#E1E8F0]">$@((1000 * rateUsd).ToString("N2")) USD</strong>
+                            <div class="text-xs text-[#64748B] dark:text-[#94A3B8] font-mono text-[11px]">
+                                @string.Format(Loc["Admin_LinkDrops_ExampleUsd"], (1000 * rateUsd).ToString("N2"))
                             </div>
                         </div>
 
                         <!-- CNY Card -->
-                        <div class="p-5 rounded-2xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-slate-50/50 dark:bg-[#0A1B2E]/40 space-y-4">
+                        <div class="p-5 rounded-lg border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] bg-[#F8FAFC]/70 dark:bg-[#191B23]/50 space-y-4 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-[#0A1B2E]/40 dark:hover:border-[rgba(196,210,225,0.30)]">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-slate-200 dark:bg-[#1B3B5A] text-slate-700 dark:text-[#E1E8F0]">Regional</span>
-                                <span class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">CNY (¥)</span>
+                                <span class="text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#111622] text-[#475569] dark:text-[#94A3B8] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.08)]">@Loc["Admin_LinkDrops_Regional"]</span>
+                                <span class="text-base font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC]">@Loc["Admin_LinkDrops_CurrencyCny"]</span>
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-xs font-semibold text-slate-600 dark:text-[#C4D2E1]">1 Link Drop = (CNY)</label>
+                                <label class="text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_RateCnyLabel"]</label>
                                 <div class="relative">
-                                    <input type="number" step="0.0001" min="0.00001" @bind="rateCny" class="w-full bg-white dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2.5 text-slate-900 dark:text-[#E1E8F0] text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                                    <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">CNY</span>
+                                    <input type="number" step="0.0001" min="0.00001" @bind="rateCny" class="w-full bg-white dark:bg-[#111622] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-2 text-[#0F172A] dark:text-[#E1E2EC] text-sm font-mono font-bold focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] transition-colors" />
+                                    <span class="absolute right-3 top-2 text-xs text-[#64748B] dark:text-[#94A3B8] font-mono font-bold">CNY</span>
                                 </div>
                             </div>
-                            <div class="text-xs text-slate-500 dark:text-[#C4D2E1]">
-                                Example: 1,000 Link Drops = <strong class="text-slate-800 dark:text-[#E1E8F0]">¥@((1000 * rateCny).ToString("N2")) CNY</strong>
+                            <div class="text-xs text-[#64748B] dark:text-[#94A3B8] font-mono text-[11px]">
+                                @string.Format(Loc["Admin_LinkDrops_ExampleCny"], (1000 * rateCny).ToString("N2"))
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200 dark:border-[rgba(196,210,225,0.12)]">
-                        <div class="text-xs text-slate-500 dark:text-[#C4D2E1]">
-                            Rates update instantly across the entire platform upon saving.
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
+                        <div class="text-xs text-[#64748B] dark:text-[#94A3B8]">
+                            @Loc["Admin_LinkDrops_RatesInstantNotice"]
                         </div>
-                        <button @onclick="SaveExchangeRatesAsync" disabled="@isSavingRates" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                        <button @onclick="SaveExchangeRatesAsync" disabled="@isSavingRates" class="w-full sm:w-auto bg-[#0F172A] hover:bg-[#1E293B] dark:bg-[#E1E8F0] dark:hover:bg-white disabled:opacity-50 text-white dark:text-[#0A1B2E] font-bold text-xs px-6 py-2.5 rounded transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
                             @if (isSavingRates)
                             {
-                                <span>Saving...</span>
+                                <span>@Loc["Common_Saving"]</span>
                             }
                             else
                             {
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                                <span>Save Exchange Rates</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                <span>@Loc["Admin_LinkDrops_BtnSaveRates"]</span>
                             }
                         </button>
                     </div>
@@ -481,16 +482,16 @@
 <!-- Approve Confirmation Modal -->
 @if (showApproveModal)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#0A1B2E]/80 backdrop-blur-sm">
-        <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">Approve Purchase Request #@targetPurchase?.PurchaseNumber</h3>
-            <p class="text-xs text-slate-600 dark:text-[#C4D2E1]">
-                This will credit <strong class="text-indigo-600 dark:text-indigo-400 font-bold">@targetPurchase?.SnapshotLinkDropAmount.ToString("N0") Drops</strong> to user <strong class="text-slate-900 dark:text-[#E1E8F0]">@targetPurchase?.UserName</strong>.
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#0A0D14]/80 backdrop-blur-md">
+        <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+            <h3 class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@string.Format(Loc["Admin_LinkDrops_ApproveModalTitle"], targetPurchase?.PurchaseNumber)</h3>
+            <p class="text-xs text-[#475569] dark:text-[#94A3B8]">
+                @string.Format(Loc["Admin_LinkDrops_ApproveModalDesc"], targetPurchase?.SnapshotLinkDropAmount.ToString("N0") ?? "0", targetPurchase?.UserName ?? string.Empty)
             </p>
-            <input type="text" @bind="approveNotes" placeholder="Optional audit notes..." class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-            <div class="flex justify-end gap-3 pt-2">
-                <button @onclick="() => showApproveModal = false" class="px-4 py-2 text-sm text-slate-600 dark:text-[#C4D2E1] hover:text-slate-900 dark:hover:text-[#E1E8F0]">Cancel</button>
-                <button @onclick="ConfirmApproveAsync" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl shadow-sm">Confirm & Credit Wallet</button>
+            <input type="text" @bind="approveNotes" placeholder="@Loc["Admin_LinkDrops_ApproveNotesPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-2 text-[#0F172A] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
+            <div class="flex justify-end gap-2.5 pt-2">
+                <button @onclick="() => showApproveModal = false" class="px-3.5 py-1.5 text-xs text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] transition cursor-pointer">@Loc["Common_Cancel"]</button>
+                <button @onclick="ConfirmApproveAsync" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded shadow-xs transition cursor-pointer">@Loc["Admin_LinkDrops_BtnConfirmCredit"]</button>
             </div>
         </div>
     </div>
@@ -499,14 +500,14 @@
 <!-- Reject Confirmation Modal -->
 @if (showRejectModal)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#0A1B2E]/80 backdrop-blur-sm">
-        <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">Reject Purchase Request #@targetPurchase?.PurchaseNumber</h3>
-            <p class="text-xs text-slate-600 dark:text-[#C4D2E1]">Enter the reason for rejection (visible to buyer):</p>
-            <input type="text" @bind="rejectReason" placeholder="Reason (e.g. Unverified ref number, invalid slip photo)" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
-            <div class="flex justify-end gap-3 pt-2">
-                <button @onclick="() => showRejectModal = false" class="px-4 py-2 text-sm text-slate-600 dark:text-[#C4D2E1] hover:text-slate-900 dark:hover:text-[#E1E8F0]">Cancel</button>
-                <button @onclick="ConfirmRejectAsync" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold rounded-xl shadow-sm">Confirm Rejection</button>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#0A0D14]/80 backdrop-blur-md">
+        <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+            <h3 class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@string.Format(Loc["Admin_LinkDrops_RejectModalTitle"], targetPurchase?.PurchaseNumber)</h3>
+            <p class="text-xs text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_RejectModalDesc"]</p>
+            <input type="text" @bind="rejectReason" placeholder="@Loc["Admin_LinkDrops_RejectReasonPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-2 text-[#0F172A] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
+            <div class="flex justify-end gap-2.5 pt-2">
+                <button @onclick="() => showRejectModal = false" class="px-3.5 py-1.5 text-xs text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] transition cursor-pointer">@Loc["Common_Cancel"]</button>
+                <button @onclick="ConfirmRejectAsync" class="px-4 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded shadow-xs transition cursor-pointer">@Loc["Admin_LinkDrops_BtnConfirmReject"]</button>
             </div>
         </div>
     </div>
@@ -515,14 +516,16 @@
 <!-- Proof Image Viewer Modal -->
 @if (showProofModal)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#0A1B2E]/90 backdrop-blur-sm">
-        <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl relative">
-            <div class="flex items-center justify-between border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] pb-3">
-                <h3 class="text-base font-bold text-slate-900 dark:text-[#E1E8F0]">Payment Receipt Proof</h3>
-                <button @onclick="() => showProofModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-[#E1E8F0]">✕</button>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#0A0D14]/80 backdrop-blur-md">
+        <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] rounded-xl max-w-2xl w-full p-5 space-y-4 shadow-xl relative">
+            <div class="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-3">
+                <h3 class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Admin_LinkDrops_ProofModalTitle"]</h3>
+                <button @onclick="() => showProofModal = false" class="text-[#64748B] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] transition cursor-pointer p-1">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
             </div>
-            <div class="max-h-[70vh] overflow-y-auto flex justify-center bg-slate-100 dark:bg-[#0A1B2E] rounded-xl p-2">
-                <img src="@previewProofUrl" alt="Receipt proof" class="max-w-full h-auto rounded-lg object-contain" />
+            <div class="max-h-[70vh] overflow-y-auto flex justify-center bg-[#F8FAFC] dark:bg-[#191B23] rounded p-2 border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
+                <img src="@previewProofUrl" alt="Receipt proof" class="max-w-full h-auto rounded object-contain" />
             </div>
         </div>
     </div>
@@ -531,47 +534,49 @@
 <!-- Edit Package Modal -->
 @if (showEditPackageModal && editPackage != null)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#0A1B2E]/80 backdrop-blur-sm">
-        <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] pb-3">
-                <h3 class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">Edit Package</h3>
-                <button @onclick="() => showEditPackageModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-[#E1E8F0]">✕</button>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#0A0D14]/80 backdrop-blur-md">
+        <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-3">
+                <h3 class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Admin_LinkDrops_EditPkgTitle"]</h3>
+                <button @onclick="() => showEditPackageModal = false" class="text-[#64748B] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] transition cursor-pointer p-1">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
             </div>
             <div class="space-y-3">
                 <div class="space-y-1">
-                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Package Name</label>
-                    <input type="text" @bind="editPackage.PackageName" placeholder="e.g. 100 Link Drops" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_PkgNameLabel"]</label>
+                    <input type="text" @bind="editPackage.PackageName" placeholder="@Loc["Admin_LinkDrops_PkgNamePlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                 </div>
                 <div class="space-y-1">
-                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Description (Optional)</label>
-                    <textarea @bind="editPackage.Description" rows="2" placeholder="Description" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm"></textarea>
+                    <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_DescriptionLabel"]</label>
+                    <textarea @bind="editPackage.Description" rows="2" placeholder="@Loc["Admin_LinkDrops_DescriptionPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors"></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Link Drops Amount</label>
-                        <input type="number" @bind="editPackage.LinkDropAmount" placeholder="100" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_DropsAmountLabel"]</label>
+                        <input type="number" @bind="editPackage.LinkDropAmount" placeholder="100" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs font-mono focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Bonus Drops</label>
-                        <input type="number" @bind="editPackage.BonusAmount" placeholder="0" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_BonusDropsLabel"]</label>
+                        <input type="number" @bind="editPackage.BonusAmount" placeholder="0" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs font-mono focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Price (MMK)</label>
-                        <input type="number" step="100" @bind="editPackage.RealMoneyAmount" placeholder="1000" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_PriceMmkLabel"]</label>
+                        <input type="number" step="100" @bind="editPackage.RealMoneyAmount" placeholder="1000" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs font-mono focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Display Order</label>
-                        <input type="number" @bind="editPackage.DisplayOrder" placeholder="1" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_DisplayOrderLabel"]</label>
+                        <input type="number" @bind="editPackage.DisplayOrder" placeholder="1" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs font-mono focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                 </div>
-                <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-[#C4D2E1]">
-                    <input type="checkbox" @bind="editPackage.IsActive" class="accent-indigo-500" />
-                    Active (visible for purchase)
+                <label class="flex items-center gap-2 text-xs text-[#475569] dark:text-[#94A3B8] cursor-pointer">
+                    <input type="checkbox" @bind="editPackage.IsActive" class="accent-[#0A1B2E] dark:accent-[#E1E8F0]" />
+                    <span>@Loc["Admin_LinkDrops_ActiveCheckboxLabel"]</span>
                 </label>
             </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button @onclick="() => showEditPackageModal = false" class="px-4 py-2 text-sm text-slate-600 dark:text-[#C4D2E1] hover:text-slate-900 dark:hover:text-[#E1E8F0]">Cancel</button>
-                <button @onclick="SavePackageAsync" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-sm">Save Package</button>
+            <div class="flex justify-end gap-2.5 pt-2">
+                <button @onclick="() => showEditPackageModal = false" class="px-3.5 py-1.5 text-xs text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] transition cursor-pointer">@Loc["Common_Cancel"]</button>
+                <button @onclick="SavePackageAsync" class="px-4 py-1.5 bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:hover:bg-white text-white dark:text-[#0A1B2E] text-xs font-bold rounded shadow-xs transition cursor-pointer">@Loc["Admin_LinkDrops_BtnSavePackage"]</button>
             </div>
         </div>
     </div>
@@ -580,78 +585,80 @@
 <!-- Edit Payment Method Modal -->
 @if (showEditMethodModal && editMethod != null)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#0A1B2E]/80 backdrop-blur-sm">
-        <div class="bg-white dark:bg-[#112A46] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] pb-3">
-                <h3 class="text-lg font-bold text-slate-900 dark:text-[#E1E8F0]">Edit Payment Channel</h3>
-                <button @onclick="() => showEditMethodModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-[#E1E8F0]">✕</button>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#0A0D14]/80 backdrop-blur-md">
+        <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-3">
+                <h3 class="text-sm font-bold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["Admin_LinkDrops_EditChannelTitle"]</h3>
+                <button @onclick="() => showEditMethodModal = false" class="text-[#64748B] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] transition cursor-pointer p-1">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
             </div>
             <div class="space-y-3">
                 <div class="space-y-1">
-                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Channel Name</label>
-                    <input type="text" @bind="editMethod.MethodName" placeholder="Channel Name" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_ChannelNameLabel"]</label>
+                    <input type="text" @bind="editMethod.MethodName" placeholder="@Loc["Admin_LinkDrops_ChannelNamePlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                 </div>
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Account Holder Name</label>
-                        <input type="text" @bind="editMethod.AccountName" placeholder="Account Holder Name" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_AccountHolderLabel"]</label>
+                        <input type="text" @bind="editMethod.AccountName" placeholder="@Loc["Admin_LinkDrops_AccountHolderPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Account / Phone Number</label>
-                        <input type="text" @bind="editMethod.AccountNumber" placeholder="Account / Phone Number" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                        <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_AccountNumberLabel"]</label>
+                        <input type="text" @bind="editMethod.AccountNumber" placeholder="@Loc["Admin_LinkDrops_AccountNumberPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs font-mono focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                     </div>
                 </div>
 
                 <!-- Payment Type Logo Upload -->
                 <div class="space-y-1">
-                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Payment Type Logo</label>
+                    <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_LogoLabel"]</label>
                     <div class="flex items-center gap-3">
                         <InputFile OnChange="OnEditLogoFileSelected" accept=".jpg,.jpeg,.png,.webp,.svg"
-                                   class="w-full text-xs text-slate-500 dark:text-[#C4D2E1] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#1B3B5A] file:text-slate-700 dark:file:text-[#E1E8F0] hover:file:bg-slate-200 cursor-pointer" />
+                                   class="w-full text-xs text-[#64748B] dark:text-[#94A3B8] file:mr-3 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#191B23] file:text-[#0F172A] dark:file:text-[#E1E2EC] hover:file:bg-slate-200 cursor-pointer" />
                         @if (!string.IsNullOrWhiteSpace(editLogoPreviewUrl))
                         {
-                            <img src="@editLogoPreviewUrl" alt="Logo preview" class="w-10 h-10 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0" />
+                            <img src="@editLogoPreviewUrl" alt="Logo preview" class="w-8 h-8 object-contain rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] p-0.5 bg-white shrink-0" />
                         }
                         else if (!string.IsNullOrWhiteSpace(editMethod.PaymentLogoUrl))
                         {
-                            <img src="@BuildFileUrl(editMethod.PaymentLogoUrl)" alt="Current logo" class="w-10 h-10 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0" />
+                            <img src="@BuildFileUrl(editMethod.PaymentLogoUrl)" alt="@Loc["Admin_LinkDrops_CurrentLogo"]" class="w-8 h-8 object-contain rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] p-0.5 bg-white shrink-0" />
                         }
                     </div>
                 </div>
 
                 <!-- QR Code Image Upload -->
                 <div class="space-y-1">
-                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">QR Code Image</label>
+                    <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_QrCodeLabel"]</label>
                     <div class="flex items-center gap-3">
                         <InputFile OnChange="OnEditQrFileSelected" accept=".jpg,.jpeg,.png,.webp"
-                                   class="w-full text-xs text-slate-500 dark:text-[#C4D2E1] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#1B3B5A] file:text-slate-700 dark:file:text-[#E1E8F0] hover:file:bg-slate-200 cursor-pointer" />
+                                   class="w-full text-xs text-[#64748B] dark:text-[#94A3B8] file:mr-3 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-[#191B23] file:text-[#0F172A] dark:file:text-[#E1E2EC] hover:file:bg-slate-200 cursor-pointer" />
                         @if (!string.IsNullOrWhiteSpace(editQrPreviewUrl))
                         {
-                            <img src="@editQrPreviewUrl" alt="QR preview" class="w-12 h-12 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0" />
+                            <img src="@editQrPreviewUrl" alt="QR preview" class="w-10 h-10 object-contain rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] p-0.5 bg-white shrink-0" />
                         }
                         else if (!string.IsNullOrWhiteSpace(editMethod.QrCodeImageUrl))
                         {
-                            <img src="@BuildFileUrl(editMethod.QrCodeImageUrl)" alt="Current QR" class="w-12 h-12 object-contain rounded-lg border border-slate-300 dark:border-[rgba(196,210,225,0.12)] p-0.5 bg-white shrink-0" />
+                            <img src="@BuildFileUrl(editMethod.QrCodeImageUrl)" alt="@Loc["Admin_LinkDrops_CurrentQr"]" class="w-10 h-10 object-contain rounded border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] p-0.5 bg-white shrink-0" />
                         }
                     </div>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Transfer Instructions (Optional)</label>
-                    <textarea @bind="editMethod.Instructions" rows="3" placeholder="Payment instructions shown to buyers" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm"></textarea>
+                    <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_InstructionsLabel"]</label>
+                    <textarea @bind="editMethod.Instructions" rows="3" placeholder="@Loc["Admin_LinkDrops_InstructionsPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors"></textarea>
                 </div>
                 <div class="space-y-1 max-w-[200px]">
-                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1]">Display Order</label>
-                    <input type="number" @bind="editMethod.DisplayOrder" placeholder="Display Order" class="w-full bg-slate-50 dark:bg-[#0A1B2E] border border-slate-300 dark:border-[rgba(196,210,225,0.12)] rounded-xl px-4 py-2 text-slate-900 dark:text-[#E1E8F0] text-sm" />
+                    <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_LinkDrops_DisplayOrderLabel"]</label>
+                    <input type="number" @bind="editMethod.DisplayOrder" placeholder="@Loc["Admin_LinkDrops_DisplayOrderPlaceholder"]" class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-3 py-1.5 text-[#0F172A] dark:text-[#E1E2EC] text-xs font-mono focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] focus:outline-none transition-colors" />
                 </div>
-                <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-[#C4D2E1]">
-                    <input type="checkbox" @bind="editMethod.IsActive" class="accent-indigo-500" />
-                    Active (visible for purchase)
+                <label class="flex items-center gap-2 text-xs text-[#475569] dark:text-[#94A3B8] cursor-pointer">
+                    <input type="checkbox" @bind="editMethod.IsActive" class="accent-[#0A1B2E] dark:accent-[#E1E8F0]" />
+                    <span>@Loc["Admin_LinkDrops_ActiveCheckboxLabel"]</span>
                 </label>
             </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button @onclick="() => showEditMethodModal = false" class="px-4 py-2 text-sm text-slate-600 dark:text-[#C4D2E1] hover:text-slate-900 dark:hover:text-[#E1E8F0]">Cancel</button>
-                <button @onclick="SaveMethodAsync" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-sm">Save Channel</button>
+            <div class="flex justify-end gap-2.5 pt-2">
+                <button @onclick="() => showEditMethodModal = false" class="px-3.5 py-1.5 text-xs text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] transition cursor-pointer">@Loc["Common_Cancel"]</button>
+                <button @onclick="SaveMethodAsync" class="px-4 py-1.5 bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:hover:bg-white text-white dark:text-[#0A1B2E] text-xs font-bold rounded shadow-xs transition cursor-pointer">@Loc["Admin_LinkDrops_BtnSaveChannel"]</button>
             </div>
         </div>
     </div>
@@ -738,7 +745,7 @@
     {
         if (rateMmk <= 0)
         {
-            Toast.Error("MMK rate must be greater than zero.");
+            Toast.Error(Loc["Admin_LinkDrops_Toast_MmkPositive"]);
             return;
         }
 
@@ -752,11 +759,11 @@
         var res = await LinkDropApi.UpdateExchangeRatesAsync(req);
         if (res.IsSuccess)
         {
-            Toast.Success("Exchange rates updated successfully!");
+            Toast.Success(Loc["Admin_LinkDrops_Toast_RatesSuccess"]);
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to update exchange rates.");
+            Toast.Error(res.Message ?? Loc["Admin_LinkDrops_Toast_RatesFailed"]);
         }
         isSavingRates = false;
     }
@@ -824,13 +831,13 @@
         var res = await LinkDropApi.ApprovePurchaseAsync(targetPurchase.PurchaseId, approveNotes);
         if (res.IsSuccess)
         {
-            Toast.Success($"Purchase #{targetPurchase.PurchaseNumber} approved successfully.");
+            Toast.Success(string.Format(Loc["Admin_LinkDrops_Toast_ApproveSuccess"], targetPurchase.PurchaseNumber));
             showApproveModal = false;
             await RefreshAllAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to approve purchase.");
+            Toast.Error(res.Message ?? Loc["Admin_LinkDrops_Toast_ApproveFailed"]);
         }
     }
 
@@ -839,20 +846,20 @@
         if (targetPurchase == null) return;
         if (string.IsNullOrWhiteSpace(rejectReason))
         {
-            Toast.Error("Please enter a reason for rejection.");
+            Toast.Error(Loc["Admin_LinkDrops_Toast_RejectReasonRequired"]);
             return;
         }
 
         var res = await LinkDropApi.RejectPurchaseAsync(targetPurchase.PurchaseId, rejectReason);
         if (res.IsSuccess)
         {
-            Toast.Success($"Purchase #{targetPurchase.PurchaseNumber} rejected.");
+            Toast.Success(string.Format(Loc["Admin_LinkDrops_Toast_RejectSuccess"], targetPurchase.PurchaseNumber));
             showRejectModal = false;
             await RefreshAllAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to reject purchase.");
+            Toast.Error(res.Message ?? Loc["Admin_LinkDrops_Toast_RejectFailed"]);
         }
     }
 
@@ -870,7 +877,7 @@
         var res = await LinkDropApi.CreatePackageAsync(request);
         if (res.IsSuccess)
         {
-            Toast.Success("Package created successfully.");
+            Toast.Success(Loc["Admin_LinkDrops_Toast_PkgCreated"]);
             newPkgName = string.Empty;
             await LoadPackagesAsync();
         }
@@ -909,13 +916,13 @@
         });
         if (res.IsSuccess)
         {
-            Toast.Success("Package updated successfully.");
+            Toast.Success(Loc["Admin_LinkDrops_Toast_PkgUpdated"]);
             showEditPackageModal = false;
             await LoadPackagesAsync();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to update package.");
+            Toast.Error(res.Message ?? Loc["Admin_LinkDrops_Toast_PkgUpdateFailed"]);
         }
     }
 
@@ -924,7 +931,7 @@
         var res = await LinkDropApi.TogglePackageStatusAsync(packageId);
         if (res.IsSuccess)
         {
-            Toast.Success("Package status updated.");
+            Toast.Success(Loc["Admin_LinkDrops_Toast_PkgStatusUpdated"]);
             await LoadPackagesAsync();
         }
     }
@@ -990,7 +997,7 @@
         var res = await LinkDropApi.CreatePaymentMethodAsync(request, newQrFile, newLogoFile);
         if (res.IsSuccess)
         {
-            Toast.Success("Payment method created successfully.");
+            Toast.Success(Loc["Admin_LinkDrops_Toast_MethodCreated"]);
             newMethodName = string.Empty;
             newAccountName = string.Empty;
             newAccountNumber = string.Empty;
@@ -1003,7 +1010,7 @@
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to create payment method.");
+            Toast.Error(res.Message ?? Loc["Admin_LinkDrops_Toast_MethodCreateFailed"]);
         }
     }
 
@@ -1044,7 +1051,7 @@
         }, editQrFile, editLogoFile);
         if (res.IsSuccess)
         {
-            Toast.Success("Payment channel updated successfully.");
+            Toast.Success(Loc["Admin_LinkDrops_Toast_MethodUpdated"]);
             showEditMethodModal = false;
             editQrFile = null;
             editQrPreviewUrl = null;
@@ -1054,7 +1061,7 @@
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to update channel.");
+            Toast.Error(res.Message ?? Loc["Admin_LinkDrops_Toast_MethodUpdateFailed"]);
         }
     }
 
@@ -1063,7 +1070,7 @@
         var res = await LinkDropApi.TogglePaymentMethodStatusAsync(methodId);
         if (res.IsSuccess)
         {
-            Toast.Success("Payment method status updated.");
+            Toast.Success(Loc["Admin_LinkDrops_Toast_MethodStatusUpdated"]);
             await LoadMethodsAsync();
         }
     }

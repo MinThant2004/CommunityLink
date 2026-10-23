@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @using System.Security.Claims
 @using System.Text.Json
+@using System.Globalization
 @inject GroupApiService GroupApi
 @inject PostApiService PostApi
 @inject PollApiService PollApi
@@ -12,15 +13,16 @@
 @inject NavigationManager NavManager
 @inject IWebHostEnvironment Environment
 @inject IJSRuntime JS
+@inject IStringLocalizer<AppResources> Loc
 
-<PageTitle>@(group?.Name ?? "Group Detail") - CommunityLink</PageTitle>
+<PageTitle>@(group?.Name ?? Loc["GroupDetail_PageTitleFallback"]) - CommunityLink</PageTitle>
 
 <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Back to Groups Link -->
     <div class="flex items-center justify-between">
         <a href="/groups" class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            <span>Back to Groups Directory</span>
+            <span>@Loc["GroupDetail_BackToGroups"]</span>
         </a>
     </div>
 
@@ -36,8 +38,8 @@
             <div class="w-12 h-12 rounded-xl bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] flex items-center justify-center mx-auto mb-3">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             </div>
-            <h3 class="text-base font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">Group not found</h3>
-            <p class="text-sm mt-1">This group may have been removed or does not exist.</p>
+            <h3 class="text-base font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["GroupDetail_NotFound_Title"]</h3>
+            <p class="text-sm mt-1">@Loc["GroupDetail_NotFound_Desc"]</p>
         </div>
     }
     else
@@ -65,14 +67,14 @@
                             {
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                    Private Room
+                                    @Loc["GroupDetail_Badge_PrivateRoom"]
                                 </span>
                             }
                             else
                             {
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    Public Room
+                                    @Loc["GroupDetail_Badge_PublicRoom"]
                                 </span>
                             }
                         </div>
@@ -81,7 +83,7 @@
                         {
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] mt-1.5">
                                 <svg class="w-3.5 h-3.5 text-[#D4AF37]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                                Part of @group.SubCommunityName
+                                @(string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_PartOfSubCommunity"], group.SubCommunityName))
                             </span>
                         }
 
@@ -91,30 +93,30 @@
                     <div class="flex items-center gap-2 shrink-0">
                         <button type="button" @onclick="OpenReportGroupModal"
                                 class="p-2 rounded-xl border border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
-                                title="Report this group to administration">
+                                title="@Loc["GroupDetail_Tooltip_ReportGroup"]">
                             <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
-                            <span class="hidden sm:inline">Report</span>
+                            <span class="hidden sm:inline">@Loc["GroupDetail_Action_Report"]</span>
                         </button>
 
                         @if (group.IsJoined)
                         {
                             <button type="button" @onclick="LeaveGroup"
                                     class="px-4 py-2 bg-white dark:bg-[#1B3B5A] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[#557392] dark:text-[#C4D2E1] hover:text-rose-600 dark:hover:text-rose-400 font-semibold text-xs rounded-xl transition border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)]">
-                                Leave Group
+                                @Loc["GroupDetail_Action_LeaveGroup"]
                             </button>
                         }
                         else if (group.UserJoinStatus == "PENDING")
                         {
                             <span class="px-4 py-2 bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50 text-xs font-semibold rounded-xl inline-flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                <span>Join Requested</span>
+                                <span>@Loc["GroupDetail_Status_JoinRequested"]</span>
                             </span>
                         }
                         else
                         {
                             <button type="button" @onclick="JoinGroup"
                                     class="px-5 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs rounded-xl shadow-sm transition">
-                                @(group.Visibility == "PRIVATE" ? "Request to Join" : "Join Group")
+                                @(group.Visibility == "PRIVATE" ? Loc["GroupDetail_Action_RequestToJoin"] : Loc["GroupDetail_Action_JoinGroup"])
                             </button>
                         }
                     </div>
@@ -123,17 +125,17 @@
                 <!-- Stats Bar & Actions -->
                 <div class="pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-4 text-xs font-medium text-[#557392] dark:text-[#C4D2E1]">
-                        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>@group.MemberCount members</span>
+                        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Stats_Members"], group.MemberCount)</span>
                         <span>•</span>
-                        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>@group.PostCount posts</span>
+                        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Stats_Posts"], group.PostCount)</span>
                         <span>•</span>
                         <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
                             <svg class="w-3.5 h-3.5 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                            <span>@(group.AverageRating.HasValue ? group.AverageRating.Value.ToString("0.0") : "No ratings")</span>
+                            <span>@(group.AverageRating.HasValue ? group.AverageRating.Value.ToString("0.0") : Loc["GroupDetail_Stats_NoRatings"])</span>
                             <span class="text-slate-400">(@(group.RatingCount))</span>
                         </span>
                         <span>•</span>
-                        <span>Created by @group.CreatorName</span>
+                        <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Stats_CreatedBy"], group.CreatorName)</span>
                     </div>
 
                     @if (!group.IsActive)
@@ -142,11 +144,11 @@
                         <div class="w-full p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 flex items-start gap-3">
                             <svg class="w-5 h-5 shrink-0 text-amber-500 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                             <div class="text-xs space-y-1">
-                                <p class="font-bold">This group has been made inactive by platform administration.</p>
-                                <p class="text-amber-800 dark:text-amber-200">New posts and polls cannot be uploaded at this time. However, existing posts and polls remain available and can still be liked, commented on, and shared.</p>
+                                <p class="font-bold">@Loc["GroupDetail_Inactive_Title"]</p>
+                                <p class="text-amber-800 dark:text-amber-200">@Loc["GroupDetail_Inactive_Desc"]</p>
                                 @if (!string.IsNullOrWhiteSpace(group.ModerationReason))
                                 {
-                                    <p class="font-mono text-[11px] mt-1 bg-amber-500/15 p-2 rounded-lg">Reason: @group.ModerationReason</p>
+                                    <p class="font-mono text-[11px] mt-1 bg-amber-500/15 p-2 rounded-lg">@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Inactive_Reason"], group.ModerationReason)</p>
                                 }
                             </div>
                         </div>
@@ -160,12 +162,12 @@
                                 <button type="button" @onclick="OpenCreatePostModal"
                                         class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs rounded-xl shadow-sm transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                    <span>Upload Group Post</span>
+                                    <span>@Loc["GroupDetail_Btn_UploadPost"]</span>
                                 </button>
                                 <button type="button" @onclick="OpenCreatePollModal"
                                         class="px-4 py-2 bg-white dark:bg-[#1B3B5A] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold text-xs rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] shadow-sm transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                                    <span>Upload Group Poll</span>
+                                    <span>@Loc["GroupDetail_Btn_UploadPoll"]</span>
                                 </button>
                             }
 
@@ -174,7 +176,7 @@
                                 <button type="button" @onclick="OpenRequestsModal"
                                         class="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-semibold text-xs rounded-xl border border-indigo-200 dark:border-indigo-800 shadow-sm transition inline-flex items-center gap-1.5 cursor-pointer">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                                    <span>Upcoming Requests</span>
+                                    <span>@Loc["GroupDetail_Btn_UpcomingRequests"]</span>
                                     @if (pendingRequestsCount > 0)
                                     {
                                         <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-600 text-white">
@@ -196,23 +198,23 @@
                 <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 flex items-center justify-center text-amber-500">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                 </div>
-                <h2 class="text-lg font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">This group is private</h2>
+                <h2 class="text-lg font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["GroupDetail_Lock_Title"]</h2>
                 <p class="text-sm text-[#557392] dark:text-[#C4D2E1] max-w-md mx-auto mt-2">
-                    Posts, polls, discussions, and member activity in this group are reserved for approved members only.
+                    @Loc["GroupDetail_Lock_Desc"]
                 </p>
                 <div class="mt-6">
                     @if (group.UserJoinStatus == "PENDING")
                     {
                         <span class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-semibold text-sm rounded-xl border border-amber-200 dark:border-amber-900/50">
                             <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>Join Request Pending Approval</span>
+                            <span>@Loc["GroupDetail_Lock_Pending"]</span>
                         </span>
                     }
                     else
                     {
                         <button type="button" @onclick="JoinGroup"
                                 class="inline-flex items-center gap-2 px-6 py-2.5 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-sm rounded-xl shadow-sm transition">
-                            <span>Request to Join Group</span>
+                            <span>@Loc["GroupDetail_Lock_RequestBtn"]</span>
                         </button>
                     }
                 </div>
@@ -225,23 +227,23 @@
                 <button type="button" @onclick='() => SetActiveTab("feed")'
                         class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "feed" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span>Feed (@(posts?.Count ?? 0))</span>
+                    <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Tab_Feed"], posts?.Count ?? 0)</span>
                 </button>
                 <button type="button" @onclick='() => SetActiveTab("polls")'
                         style="@(activeTab == "polls" ? "background-color: #7c3aed; color: #ffffff !important;" : "")"
                         class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "polls" ? "bg-purple-600 text-white shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                    <span>Polls (@(polls?.Count ?? 0))</span>
+                    <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Tab_Polls"], polls?.Count ?? 0)</span>
                 </button>
                 <button type="button" @onclick='() => SetActiveTab("members")'
                         class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "members" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    <span>Members (@(members?.Count ?? 0))</span>
+                    <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Tab_Members"], members?.Count ?? 0)</span>
                 </button>
                 <button type="button" @onclick='() => SetActiveTab("ratings")'
                         class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "ratings" ? "bg-amber-500 text-slate-950 shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
                     <svg class="w-4 h-4 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                    <span>Ratings (@(ratingSummary?.TotalRatings ?? group?.RatingCount ?? 0))</span>
+                    <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Tab_Ratings"], ratingSummary?.TotalRatings ?? group?.RatingCount ?? 0)</span>
                 </button>
             </div>
 
@@ -250,22 +252,22 @@
             {
                 <div class="flex items-center justify-between bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-4 shadow-sm">
                     <div>
-                        <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">Group Polls</h3>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Vote on active polls or start a new survey for this group.</p>
+                        <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["GroupDetail_Polls_HeaderTitle"]</h3>
+                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">@Loc["GroupDetail_Polls_HeaderDesc"]</p>
                     </div>
                     @if (group?.IsJoined == true)
                     {
                         <button type="button" @onclick="OpenCreatePollModal"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                            <span>Upload Group Poll</span>
+                            <span>@Loc["GroupDetail_Btn_UploadPoll"]</span>
                         </button>
                     }
                     else
                     {
                         <button type="button" @onclick="JoinGroup"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold text-xs rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] transition">
-                            <span>Join group to create polls</span>
+                            <span>@Loc["GroupDetail_Polls_JoinToCreate"]</span>
                         </button>
                     }
                 </div>
@@ -274,22 +276,22 @@
             {
                 <div class="flex items-center justify-between bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-4 shadow-sm">
                     <div>
-                        <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">Group Discussion</h3>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Stay updated and connect with other members in this group.</p>
+                        <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["GroupDetail_Feed_HeaderTitle"]</h3>
+                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">@Loc["GroupDetail_Feed_HeaderDesc"]</p>
                     </div>
                     @if (group?.IsJoined == true && canCreatePost)
                     {
                         <button type="button" @onclick="OpenCreatePostModal"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                            <span>Create Post</span>
+                            <span>@Loc["GroupDetail_Feed_CreatePostBtn"]</span>
                         </button>
                     }
                     else if (group?.IsJoined != true)
                     {
                         <button type="button" @onclick="JoinGroup"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold text-xs rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] transition">
-                            <span>Join group to post</span>
+                            <span>@Loc["GroupDetail_Feed_JoinToPost"]</span>
                         </button>
                     }
                 </div>
@@ -310,14 +312,14 @@
                         <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
                             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                         </div>
-                        <h4 class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] text-base" style="font-family:'Manrope',sans-serif">No group posts yet</h4>
+                        <h4 class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] text-base" style="font-family:'Manrope',sans-serif">@Loc["GroupDetail_Feed_EmptyTitle"]</h4>
                         <p class="text-xs text-[#7A8CA6] mt-1 max-w-sm mx-auto">
-                            @(group?.IsJoined == true ? "Start the conversation by sharing the first post in this group!" : "Join this group to share the first post.")
+                            @(group?.IsJoined == true ? Loc["GroupDetail_Feed_EmptyJoinedDesc"] : Loc["GroupDetail_Feed_EmptyNotJoinedDesc"])
                         </p>
                         @if (group?.IsJoined == true)
                         {
                             <button type="button" @onclick="OpenCreatePostModal" class="mt-4 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] text-xs font-semibold rounded-xl shadow transition">
-                                Create Post Now
+                                @Loc["GroupDetail_Feed_CreatePostNow"]
                             </button>
                         }
                     </div>
@@ -335,10 +337,10 @@
                                          class="cursor-pointer bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border-b border-red-500/30 px-4 py-2.5 flex items-center justify-between text-xs font-bold transition">
                                         <div class="flex items-center gap-2">
                                             <svg class="w-4 h-4 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                                            <span>Your post got banned</span>
+                                            <span>@Loc["GroupDetail_Post_BannedBannerTitle"]</span>
                                         </div>
                                         <span class="text-[11px] underline font-semibold flex items-center gap-1">
-                                            <span>View reason</span>
+                                            <span>@Loc["GroupDetail_Post_BannedViewReason"]</span>
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                         </span>
                                     </div>
@@ -370,16 +372,16 @@
                                                 </a>
                                                 @if (post.AuthorRoleCode == "PUBLIC_FIGURE")
                                                 {
-                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-950/50 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="Public Figure VIP">
+                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-950/50 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="@Loc["GroupDetail_Post_VipTooltip"]">
                                                         <svg class="w-3 h-3 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                                                        <span class="hidden sm:inline">VIP</span>
+                                                        <span class="hidden sm:inline">@Loc["GroupDetail_Post_VipBadge"]</span>
                                                     </span>
                                                 }
                                                 else if (post.AuthorRoleCode == "DOMAIN_PRO" || post.IsAuthorVerified)
                                                 {
-                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="Domain Professional Verified">
+                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="@Loc["GroupDetail_Post_ProTooltip"]">
                                                         <svg class="w-3 h-3 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                                                        <span class="hidden sm:inline">PRO</span>
+                                                        <span class="hidden sm:inline">@Loc["GroupDetail_Post_ProBadge"]</span>
                                                     </span>
                                                 }
                                             </div>
@@ -389,7 +391,7 @@
 
                                     <div class="relative">
                                         <button type="button" @onclick="() => TogglePostMenu(post.PostId)"
-                                                class="p-1.5 text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition cursor-pointer" title="Options">
+                                                class="p-1.5 text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition cursor-pointer" title="@Loc["GroupDetail_Post_OptionsTooltip"]">
                                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                 <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                                             </svg>
@@ -401,14 +403,14 @@
                                                 <button type="button" @onclick='() => OpenReportContentModal(post.PostId, "POST")'
                                                         class="w-full text-left px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
                                                     <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
-                                                    <span>Report Post</span>
+                                                    <span>@Loc["GroupDetail_Post_ReportBtn"]</span>
                                                 </button>
 
                                                 <!-- Save Button (For all users) -->
                                                 <button type="button" @onclick="() => ToggleSavePost(post.PostId)"
                                                         class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                                                    <span>@(post.IsSavedByCurrentUser ? "Unsave Post" : "Save Post")</span>
+                                                    <span>@(post.IsSavedByCurrentUser ? Loc["GroupDetail_Post_UnsaveBtn"] : Loc["GroupDetail_Post_SaveBtn"])</span>
                                                 </button>
 
                                                 <!-- Privacy, Edit & Delete (Author only) -->
@@ -417,18 +419,18 @@
                                                     <button type="button" @onclick="() => TogglePostPrivacyAsync(post)"
                                                             class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
                                                         <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                                        <span>@(post.IsPrivate ? "Make Public" : "Make Private")</span>
+                                                        <span>@(post.IsPrivate ? Loc["GroupDetail_Post_MakePublic"] : Loc["GroupDetail_Post_MakePrivate"])</span>
                                                     </button>
                                                     <button type="button" @onclick="() => OpenEditPost(post)"
                                                             class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                        <span>Edit Description</span>
+                                                        <span>@Loc["GroupDetail_Post_EditBtn"]</span>
                                                     </button>
                                                     <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] my-1"></div>
                                                     <button type="button" @onclick="() => ConfirmDeletePost(post.PostId)"
                                                             class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 transition cursor-pointer">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                        <span>Delete Post</span>
+                                                        <span>@Loc["GroupDetail_Post_DeleteBtn"]</span>
                                                     </button>
                                                 }
                                             </div>
@@ -563,7 +565,7 @@
                                     <div class="relative overflow-hidden border-t border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#0d1117] group select-none">
                                         <!-- Active Display Image (Standard Fixed Height matching text snippet preview) -->
                                         <div class="relative w-full h-72 sm:h-80 flex items-center justify-center bg-[#0d1117] overflow-hidden">
-                                            <img src="@currentImage" alt="Post attachment @(activeIdx + 1) of @imgCount"
+                                            <img src="@currentImage" alt="@string.Format(Loc["GroupDetail_Post_ImgAlt"], activeIdx + 1, imgCount)"
                                                  class="w-full h-full object-contain transition-all duration-200" />
                                         </div>
 
@@ -574,7 +576,7 @@
                                             {
                                                 <button type="button" @onclick="() => PrevImage(post.PostId, imgCount)"
                                                         class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/85 text-white/90 hover:text-white flex items-center justify-center transition shadow-lg backdrop-blur-xs cursor-pointer z-10"
-                                                        aria-label="Previous image">
+                                                        aria-label="@Loc["GroupDetail_Post_PrevImgAria"]">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
                                                 </button>
                                             }
@@ -584,7 +586,7 @@
                                             {
                                                 <button type="button" @onclick="() => NextImage(post.PostId, imgCount)"
                                                         class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/85 text-white/90 hover:text-white flex items-center justify-center transition shadow-lg backdrop-blur-xs cursor-pointer z-10"
-                                                        aria-label="Next image">
+                                                        aria-label="@Loc["GroupDetail_Post_NextImgAria"]">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                                                 </button>
                                             }
@@ -601,7 +603,7 @@
                                                     var targetIdx = dotIdx;
                                                     <button type="button" @onclick="() => SetActiveImage(post.PostId, targetIdx)"
                                                             class="transition-all duration-200 cursor-pointer @(dotIdx == activeIdx ? "w-5 h-1.5 rounded-full bg-white shadow-xs" : "w-1.5 h-1.5 rounded-full bg-white/50 hover:bg-white/80")"
-                                                            aria-label="Go to image @(targetIdx + 1)">
+                                                            aria-label="@string.Format(Loc["GroupDetail_Post_GoToImgAria"], targetIdx + 1)">
                                                     </button>
                                                 }
                                             </div>
@@ -647,11 +649,11 @@
                                             <div class="flex-1 flex gap-2">
                                                 <input type="text" @bind="commentInputs[post.PostId]"
                                                        @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitComment(post.PostId); })"
-                                                       placeholder="Write a comment..."
+                                                       placeholder="@Loc["GroupDetail_Post_CommentPlaceholder"]"
                                                        class="w-full text-sm bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20" />
                                                 <button type="button" @onclick="() => SubmitComment(post.PostId)"
                                                         class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded-xl text-xs font-semibold shadow transition">
-                                                    Post
+                                                    @Loc["GroupDetail_Post_CommentSubmitBtn"]
                                                 </button>
                                             </div>
                                         </div>
@@ -661,7 +663,7 @@
                                         {
                                             if (commentList.Count == 0)
                                             {
-                                                <p class="text-xs text-[#7A8CA6] text-center py-2">No comments yet. Be the first to comment!</p>
+                                                <p class="text-xs text-[#7A8CA6] text-center py-2">@Loc["GroupDetail_Post_NoComments"]</p>
                                             }
                                             else
                                             {
@@ -699,16 +701,16 @@
                         <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
                             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                         </div>
-                        <h4 class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] text-base">No live polls in this group</h4>
+                        <h4 class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] text-base">@Loc["GroupDetail_Poll_EmptyTitle"]</h4>
                         <p class="text-xs text-[#557392] dark:text-[#7A8CA6] mt-1 max-w-sm mx-auto">
-                            @(group?.IsJoined == true ? "Launch a poll to gather feedback or opinions from fellow members." : "Join this group to participate in or create polls.")
+                            @(group?.IsJoined == true ? Loc["GroupDetail_Poll_EmptyJoinedDesc"] : Loc["GroupDetail_Poll_EmptyNotJoinedDesc"])
                         </p>
                         @if (group?.IsJoined == true)
                         {
                             <button type="button" @onclick="OpenCreatePollModal"
                                     class="mt-4 px-5 py-2.5 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] text-xs font-semibold rounded shadow-sm transition inline-flex items-center gap-1.5 cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                                <span>Upload Group Poll</span>
+                                <span>@Loc["GroupDetail_Btn_UploadPoll"]</span>
                             </button>
                         }
                     </div>
@@ -745,14 +747,14 @@
                                         @if (poll.ExpiresAt.HasValue)
                                         {
                                             <span class="text-xs px-2.5 py-1 rounded-full @(poll.IsExpired ? "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50" : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/50")">
-                                                @(poll.IsExpired ? "Closed" : $"Ends {poll.ExpiresAt.Value.ToLocalTime():g}")
+                                                @(poll.IsExpired ? Loc["GroupDetail_Poll_Closed"] : string.Format(Loc["GroupDetail_Poll_EndsAt"], poll.ExpiresAt.Value.ToLocalTime().ToString("g")))
                                             </span>
                                         }
 
                                         <!-- Three-Dots Action Menu for Poll -->
                                         <div class="relative">
                                             <button type="button" @onclick="() => TogglePollMenu(poll.PollId)"
-                                                    class="p-1.5 text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition cursor-pointer" title="Options">
+                                                    class="p-1.5 text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition cursor-pointer" title="@Loc["GroupDetail_Post_OptionsTooltip"]">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                                                 </svg>
@@ -764,14 +766,14 @@
                                                     <button type="button" @onclick='() => OpenReportContentModal(poll.PollId, "POLL")'
                                                             class="w-full text-left px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
                                                         <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
-                                                        <span>Report Poll</span>
+                                                        <span>@Loc["GroupDetail_Poll_ReportBtn"]</span>
                                                     </button>
 
                                                     <!-- Save Button (All users) -->
                                                     <button type="button" @onclick="() => ToggleSavePoll(poll.PostId)"
                                                             class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                                                        <span>Save Poll</span>
+                                                        <span>@Loc["GroupDetail_Poll_SaveBtn"]</span>
                                                     </button>
 
                                                     <!-- Edit, Privacy & Delete (Author only) -->
@@ -780,18 +782,18 @@
                                                         <button type="button" @onclick="() => TogglePollPrivacyAsync(poll)"
                                                                 class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
                                                             <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                                            <span>@(poll.IsPrivate ? "Make Public" : "Make Private")</span>
+                                                            <span>@(poll.IsPrivate ? Loc["GroupDetail_Poll_MakePublic"] : Loc["GroupDetail_Poll_MakePrivate"])</span>
                                                         </button>
                                                         <button type="button" @onclick="() => OpenEditPoll(poll)"
                                                                 class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                            <span>Edit Poll</span>
+                                                            <span>@Loc["GroupDetail_Poll_EditBtn"]</span>
                                                         </button>
                                                         <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] my-1"></div>
                                                         <button type="button" @onclick="() => DeletePoll(poll.PollId)"
                                                                 class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                            <span>Delete Poll</span>
+                                                            <span>@Loc["GroupDetail_Poll_DeleteBtn"]</span>
                                                         </button>
                                                     }
                                                 </div>
@@ -842,23 +844,23 @@
                                 <!-- Poll Summary Footer -->
                                 <div class="px-5 py-2.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between text-xs text-[#557392] dark:text-[#7A8CA6]">
                                     <div class="flex items-center gap-2">
-                                        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>@poll.TotalVotes total votes</span>
+                                        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>@string.Format(Loc["GroupDetail_Poll_TotalVotes"], poll.TotalVotes)</span>
                                         <span>•</span>
-                                        <span>@(poll.IsMultipleChoice ? "Multiple votes allowed" : "Single choice")</span>
+                                        <span>@(poll.IsMultipleChoice ? Loc["GroupDetail_Poll_MultipleVotesAllowed"] : Loc["GroupDetail_Poll_SingleChoice"])</span>
                                     </div>
                                     @if (poll.HasVoted)
                                     {
                                         <span class="text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold flex items-center gap-1">
-                                            <span>✓</span> You voted
+                                            <span>✓</span> @Loc["GroupDetail_Poll_YouVoted"]
                                         </span>
                                     }
                                     else if (poll.IsExpired)
                                     {
-                                        <span class="text-rose-600 dark:text-rose-400 font-medium">Voting ended</span>
+                                        <span class="text-rose-600 dark:text-rose-400 font-medium">@Loc["GroupDetail_Poll_VotingEnded"]</span>
                                     }
                                     else
                                     {
-                                        <span class="text-[#557392] dark:text-[#C4D2E1] font-medium">Click an option to vote</span>
+                                        <span class="text-[#557392] dark:text-[#C4D2E1] font-medium">@Loc["GroupDetail_Poll_ClickToVote"]</span>
                                     }
                                 </div>
 
@@ -899,11 +901,11 @@
                                             <div class="flex-1 flex gap-2">
                                                 <input type="text" @bind="commentInputs[poll.PostId]"
                                                        @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitComment(poll.PostId); })"
-                                                       placeholder="Comment on this poll..."
+                                                       placeholder="@Loc["GroupDetail_Poll_CommentPlaceholder"]"
                                                        class="w-full text-sm bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded px-3 py-2 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]" />
                                                 <button type="button" @onclick="() => SubmitComment(poll.PostId)"
                                                         class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded text-xs font-semibold shadow-sm transition">
-                                                    Post
+                                                    @Loc["GroupDetail_Post_CommentSubmitBtn"]
                                                 </button>
                                             </div>
                                         </div>
@@ -912,7 +914,7 @@
                                         {
                                             if (commentList.Count == 0)
                                             {
-                                                <p class="text-xs text-[#557392] dark:text-[#7A8CA6] text-center py-2">No comments yet.</p>
+                                                <p class="text-xs text-[#557392] dark:text-[#7A8CA6] text-center py-2">@Loc["GroupDetail_Poll_NoComments"]</p>
                                             }
                                             else
                                             {
@@ -948,7 +950,7 @@
             {
                 @if (members == null || members.Count == 0)
                 {
-                    <p class="text-xs text-[#557392] dark:text-[#7A8CA6] text-center py-6">No members listed.</p>
+                    <p class="text-xs text-[#557392] dark:text-[#7A8CA6] text-center py-6">@Loc["GroupDetail_Members_Empty"]</p>
                 }
                 else
                 {
@@ -968,7 +970,7 @@
                                     </div>
                                 </div>
                                 <span class="px-2.5 py-0.5 rounded text-[10px] font-bold @(m.Role == "Owner" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E]" : (m.Role == "Admin" ? "bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)]" : "bg-[#F8FAFC] dark:bg-[#0A1B2E] text-[#557392] dark:text-[#7A8CA6] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]"))">
-                                    @m.Role
+                                    @GetMemberRoleLocalized(m.Role)
                                 </span>
                             </div>
                         }
@@ -995,11 +997,11 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 class="text-base font-bold text-slate-900">Group Ratings & Reviews</h3>
+                                    <h3 class="text-base font-bold text-slate-900">@Loc["GroupDetail_Ratings_HeaderTitle"]</h3>
                                     <p class="text-xs text-slate-500 mt-0.5">
                                         @(ratingSummary != null && ratingSummary.TotalRatings > 0 
-                                            ? $"Based on {ratingSummary.TotalRatings} member review{(ratingSummary.TotalRatings > 1 ? "s" : "")}."
-                                            : "No member ratings yet. Be the first member to review this group!")
+                                            ? string.Format(Loc["GroupDetail_Ratings_BasedOn"], ratingSummary.TotalRatings)
+                                            : Loc["GroupDetail_Ratings_NoRatingsSubtitle"])
                                     </p>
                                 </div>
                             </div>
@@ -1009,7 +1011,7 @@
                                 <button type="button" @onclick="OpenRatingModal"
                                         class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-amber-500/20 transition active:scale-95 inline-flex items-center gap-2 cursor-pointer">
                                     <svg class="w-4 h-4 fill-slate-950 text-slate-950" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                                    <span>@(ratingSummary?.UserRating != null ? "Edit Your Review" : "Rate This Group")</span>
+                                    <span>@(ratingSummary?.UserRating != null ? Loc["GroupDetail_Ratings_EditYourReview"] : Loc["GroupDetail_Ratings_RateThisGroup"])</span>
                                 </button>
                             }
                         </div>
@@ -1019,10 +1021,10 @@
                             <div class="mt-4 p-3.5 bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl flex items-center justify-between gap-3 text-xs text-amber-800 dark:text-amber-300">
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                    <span>Only approved group members can rate and review this group. You can still view all reviews below.</span>
+                                    <span>@Loc["GroupDetail_Ratings_NonMemberNotice"]</span>
                                 </div>
                                 <button type="button" @onclick="JoinGroup" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shrink-0 transition">
-                                    Join Group
+                                    @Loc["GroupDetail_Action_JoinGroup"]
                                 </button>
                             </div>
                         }
@@ -1041,14 +1043,14 @@
                             <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mx-auto mb-3 text-amber-500">
                                 <svg class="w-7 h-7 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                             </div>
-                            <h4 class="font-semibold text-slate-800 text-base">No reviews yet</h4>
+                            <h4 class="font-semibold text-slate-800 text-base">@Loc["GroupDetail_Ratings_EmptyTitle"]</h4>
                             <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-                                @(group?.IsJoined == true ? "Share your rating and feedback to help others know what this group is about." : "Members have not reviewed this group yet.")
+                                @(group?.IsJoined == true ? Loc["GroupDetail_Ratings_EmptyJoinedSubtitle"] : Loc["GroupDetail_Ratings_EmptyNotJoinedSubtitle"])
                             </p>
                             @if (group?.IsJoined == true)
                             {
                                 <button type="button" @onclick="OpenRatingModal" class="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow transition">
-                                    Write the First Review
+                                    @Loc["GroupDetail_Ratings_WriteFirstReview"]
                                 </button>
                             }
                         </div>
@@ -1083,7 +1085,7 @@
                                                     @if (isMyReview)
                                                     {
                                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                                                            Your review
+                                                            @Loc["GroupDetail_Ratings_YourReviewBadge"]
                                                         </span>
                                                     }
                                                 </div>
@@ -1104,7 +1106,7 @@
                                             </div>
                                             <span class="text-[11px] text-slate-400 block mt-0.5">
                                                 @FormatTimeAgo(review.CreatedAt)
-                                                @(review.UpdatedAt.HasValue ? " (edited)" : "")
+                                                @(review.UpdatedAt.HasValue ? $" {Loc["GroupDetail_Ratings_EditedBadge"]}" : "")
                                             </span>
                                         </div>
                                     </div>
@@ -1133,24 +1135,24 @@
             <div class="px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                    <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">Post to @group?.Name</h3>
+                    <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">@string.Format(Loc["GroupDetail_Modal_PostToGroupTitle"], group?.Name)</h3>
                 </div>
                 <button type="button" @onclick="() => showPostModal = false" class="text-[#557392] dark:text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white font-bold text-sm cursor-pointer">&times;</button>
             </div>
             <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
                 <div>
-                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">What's on your mind? *</label>
-                    <textarea @bind="newPostText" rows="4" placeholder="Share thoughts, news, or questions with the group..."
+                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">@Loc["GroupDetail_Modal_PostWhatsOnYourMind"]</label>
+                    <textarea @bind="newPostText" rows="4" placeholder="@Loc["GroupDetail_Modal_PostPlaceholder"]"
                               class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded-xl p-3 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]"></textarea>
                 </div>
 
                 <!-- Text File Attachment Section -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Attach Text File (.txt) (Optional)</label>
+                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">@Loc["GroupDetail_Modal_AttachTextFileLabel"]</label>
                         @if (!string.IsNullOrEmpty(newPostCodeSnippet))
                         {
-                            <button type="button" @onclick="RemovePostCodeFile" class="text-xs text-rose-500 hover:underline">Remove file</button>
+                            <button type="button" @onclick="RemovePostCodeFile" class="text-xs text-rose-500 hover:underline">@Loc["GroupDetail_Modal_RemoveFileBtn"]</button>
                         }
                     </div>
 
@@ -1158,7 +1160,7 @@
                     {
                         <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
                             <span class="text-base">📄</span>
-                            <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isReadingTextFile ? "Scanning text file..." : "Click to select a .txt file")</span>
+                            <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isReadingTextFile ? Loc["GroupDetail_Modal_ScanningTextFile"] : Loc["GroupDetail_Modal_SelectTextFile"])</span>
                             <InputFile OnChange="HandlePostTextFileSelected" accept=".txt" class="hidden" disabled="@isReadingTextFile" />
                         </label>
                     }
@@ -1167,7 +1169,7 @@
                         <div class="prof-code-block p-3 space-y-1.5 rounded-xl border border-gray-800 bg-[#0d1117] text-gray-200">
                             <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
                                 <span class="font-bold text-emerald-400 font-mono">📄 @(string.IsNullOrWhiteSpace(newPostCodeFileName) ? "attachment.txt" : newPostCodeFileName)</span>
-                                <span class="font-mono text-gray-500">TEXT</span>
+                                <span class="font-mono text-gray-500">@Loc["GroupDetail_Modal_TextBadge"]</span>
                             </div>
                             <div class="overflow-x-auto overflow-y-auto max-h-40 text-[11px] leading-relaxed">
                                 <pre class="whitespace-pre font-mono"><code>@newPostCodeSnippet</code></pre>
@@ -1179,13 +1181,13 @@
                 <!-- Multiple Images Attachment Section -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Attach Images (Multiple allowed)</label>
-                        <span class="text-[10px] text-[#7A8CA6]">PNG, JPG, WebP</span>
+                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">@Loc["GroupDetail_Modal_AttachImagesLabel"]</label>
+                        <span class="text-[10px] text-[#7A8CA6]">@Loc["GroupDetail_Modal_ImageFormatsHint"]</span>
                     </div>
 
                     <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
                         <span class="text-base">🖼️</span>
-                        <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isUploadingImage ? "Uploading image(s)..." : "Upload images (Choose multiple)")</span>
+                        <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isUploadingImage ? Loc["GroupDetail_Modal_UploadingImages"] : Loc["GroupDetail_Modal_ChooseImagesPrompt"])</span>
                         <InputFile OnChange="HandleMultipleImagesSelected" accept="image/*" multiple class="hidden" disabled="@isUploadingImage" />
                     </label>
 
@@ -1197,7 +1199,7 @@
                                 var imgIndex = i;
                                 var imgUrl = uploadedImageUrls[imgIndex];
                                 <div class="relative rounded-lg overflow-hidden border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] bg-slate-900 group aspect-video">
-                                    <img src="@imgUrl" alt="Thumbnail" class="w-full h-full object-cover" />
+                                    <img src="@imgUrl" alt="@Loc["GroupDetail_Modal_ThumbnailAlt"]" class="w-full h-full object-cover" />
                                     <button type="button" @onclick="() => RemoveUploadedImage(imgIndex)"
                                             class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow cursor-pointer transition">
                                         &times;
@@ -1209,18 +1211,18 @@
                 </div>
             </div>
             <div class="px-5 py-3.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex justify-end gap-2.5">
-                <button type="button" @onclick="() => showPostModal = false" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg transition cursor-pointer">Cancel</button>
+                <button type="button" @onclick="() => showPostModal = false" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded-lg transition cursor-pointer">@Loc["Common_Cancel"]</button>
                 <button type="button" @onclick="SubmitGroupPost" disabled="@(isSubmitting || isUploadingImage || isReadingTextFile || (string.IsNullOrWhiteSpace(newPostText) && string.IsNullOrWhiteSpace(newPostCodeSnippet) && uploadedImageUrls.Count == 0))"
                         class="px-5 py-2 text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded-lg shadow-sm transition disabled:opacity-50 flex items-center gap-2 cursor-pointer">
                     @if (isSubmitting)
                     {
                         <span class="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                         <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <span>Publishing...</span>
+                        <span>@Loc["GroupDetail_Modal_PublishingPost"]</span>
                     }
                     else
                     {
-                        <span>Publish Post</span>
+                        <span>@Loc["GroupDetail_Modal_PublishPostBtn"]</span>
                     }
                 </button>
             </div>
@@ -1236,39 +1238,39 @@
             <div class="px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                    <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">Create Poll in @group?.Name</h3>
+                    <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">@string.Format(Loc["GroupDetail_Modal_CreatePollTitle"], group?.Name)</h3>
                 </div>
                 <button type="button" @onclick="() => showPollModal = false" class="text-[#557392] dark:text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white">✕</button>
             </div>
             <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
                 <div>
-                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">Question *</label>
-                    <input type="text" @bind="newPollQuestion" placeholder="e.g. Which project should we prioritize next?"
+                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">@Loc["GroupDetail_Modal_PollQuestionLabel"]</label>
+                    <input type="text" @bind="newPollQuestion" placeholder="@Loc["GroupDetail_Modal_PollQuestionPlaceholder"]"
                            class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded px-3 py-2 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]" />
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">Details / Context (Optional)</label>
-                    <textarea @bind="newPollDescription" rows="2" placeholder="Add extra details or guidelines for voters..."
+                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">@Loc["GroupDetail_Modal_PollContextLabel"]</label>
+                    <textarea @bind="newPollDescription" rows="2" placeholder="@Loc["GroupDetail_Modal_PollContextPlaceholder"]"
                               class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded p-2.5 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]"></textarea>
                 </div>
 
                 <!-- Custom Duration Picker -->
                 <div class="p-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] rounded border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] space-y-2">
-                    <span class="block text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">Poll Duration</span>
+                    <span class="block text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["GroupDetail_Modal_PollDurationTitle"]</span>
                     <div class="grid grid-cols-3 gap-2 text-xs">
                         <div>
-                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">Days</label>
+                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">@Loc["GroupDetail_Modal_PollDays"]</label>
                             <input type="number" min="0" max="365" @bind="pollDurationDays"
                                    class="w-full bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded px-2 py-1.5 text-center text-xs font-semibold" />
                         </div>
                         <div>
-                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">Hours</label>
+                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">@Loc["GroupDetail_Modal_PollHours"]</label>
                             <input type="number" min="0" max="23" @bind="pollDurationHours"
                                    class="w-full bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded px-2 py-1.5 text-center text-xs font-semibold" />
                         </div>
                         <div>
-                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">Minutes</label>
+                            <label class="text-[11px] text-[#557392] dark:text-[#7A8CA6] block mb-0.5">@Loc["GroupDetail_Modal_PollMinutes"]</label>
                             <input type="number" min="0" max="59" @bind="pollDurationMinutes"
                                    class="w-full bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded px-2 py-1.5 text-center text-xs font-semibold" />
                         </div>
@@ -1278,11 +1280,11 @@
                 <!-- Dynamic Poll Options -->
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
-                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Poll Options * (Min 2, Max 10)</label>
+                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">@Loc["GroupDetail_Modal_PollOptionsLabel"]</label>
                         @if (pollOptionsList.Count < 10)
                         {
                             <button type="button" @onclick="AddPollOption" class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:underline">
-                                + Add Option
+                                @Loc["GroupDetail_Modal_AddOptionBtn"]
                             </button>
                         }
                     </div>
@@ -1299,11 +1301,11 @@
                                 <input type="text"
                                        value="@pollOptionsList[index]"
                                        @onchange="(e) => pollOptionsList[index] = e.Value?.ToString() ?? string.Empty"
-                                       placeholder="@($"Option {labelChar}")"
+                                       placeholder="@string.Format(Loc["GroupDetail_Modal_OptionPlaceholder"], labelChar)"
                                        class="flex-1 text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded px-3 py-2 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]" />
                                 @if (pollOptionsList.Count > 2)
                                 {
-                                    <button type="button" @onclick="() => RemovePollOption(index)" class="p-1.5 text-[#557392] dark:text-[#7A8CA6] hover:text-rose-500 transition" title="Remove option">
+                                    <button type="button" @onclick="() => RemovePollOption(index)" class="p-1.5 text-[#557392] dark:text-[#7A8CA6] hover:text-rose-500 transition" title="@Loc["GroupDetail_Modal_RemoveOptionTooltip"]">
                                         ✕
                                     </button>
                                 }
@@ -1315,24 +1317,24 @@
                 <!-- Multiple Choice Toggle -->
                 <div class="flex items-center gap-2 pt-1">
                     <input type="checkbox" id="grpMultiChoice" @bind="pollIsMultipleChoice" class="rounded text-[#0A1B2E] dark:text-[#E1E8F0] focus:ring-[#0A1B2E] bg-white dark:bg-[#0A1B2E] border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)]" />
-                    <label for="grpMultiChoice" class="text-xs font-medium text-[#557392] dark:text-[#C4D2E1] cursor-pointer">Allow voters to select multiple choices</label>
+                    <label for="grpMultiChoice" class="text-xs font-medium text-[#557392] dark:text-[#C4D2E1] cursor-pointer">@Loc["GroupDetail_Modal_AllowMultipleChoices"]</label>
                 </div>
             </div>
             <div class="px-5 py-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-end gap-2">
                 <button type="button" @onclick="() => showPollModal = false" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded transition">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="SubmitGroupPoll" disabled="@isSubmitting"
                         class="px-5 py-2.5 text-xs font-bold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded shadow-sm transition disabled:opacity-50 flex items-center gap-2 cursor-pointer">
                     @if (isSubmitting)
                     {
                         <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <span>Creating Poll...</span>
+                        <span>@Loc["GroupDetail_Modal_CreatingPoll"]</span>
                     }
                     else
                     {
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                        <span>Publish Group Poll</span>
+                        <span>@Loc["GroupDetail_Modal_PublishPollBtn"]</span>
                     }
                 </button>
             </div>
@@ -1348,22 +1350,22 @@
             <div class="px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-[#0A1B2E] dark:text-[#E1E8F0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                    <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">Share to Your Network</h3>
+                    <h3 class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-sm">@Loc["GroupDetail_Modal_ShareTitle"]</h3>
                 </div>
                 <button type="button" @onclick="() => showShareModal = false" class="text-[#557392] dark:text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white">✕</button>
             </div>
             <div class="p-5 space-y-3">
-                <p class="text-xs text-[#557392] dark:text-[#7A8CA6]">Share this group update with other members. You can optionally add a note with your thoughts.</p>
+                <p class="text-xs text-[#557392] dark:text-[#7A8CA6]">@Loc["GroupDetail_Modal_ShareDesc"]</p>
                 <div>
-                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">Share Note <span class="text-[#557392] dark:text-[#7A8CA6] font-normal">(Optional)</span></label>
-                    <textarea @bind="shareNoteText" rows="3" placeholder="Add your perspective (optional)..."
+                    <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">@Loc["GroupDetail_Modal_ShareNoteLabel"] <span class="text-[#557392] dark:text-[#7A8CA6] font-normal">(@Loc["Common_Optional"])</span></label>
+                    <textarea @bind="shareNoteText" rows="3" placeholder="@Loc["GroupDetail_Modal_ShareNotePlaceholder"]"
                               class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded p-3 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]"></textarea>
                 </div>
             </div>
             <div class="px-5 py-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex justify-end gap-2">
-                <button type="button" @onclick="() => showShareModal = false" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded transition">Cancel</button>
+                <button type="button" @onclick="() => showShareModal = false" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded transition">@Loc["Common_Cancel"]</button>
                 <button type="button" @onclick="SubmitShare" disabled="@isSubmitting" class="px-5 py-2 text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded shadow-sm transition disabled:opacity-50">
-                    Share Now
+                    @Loc["GroupDetail_Modal_ShareNowBtn"]
                 </button>
             </div>
         </div>
@@ -1378,30 +1380,30 @@
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <h3 class="font-bold text-slate-900 dark:text-[#E1E8F0] text-base flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                    <span>Edit Post Description</span>
+                    <span>@Loc["GroupDetail_Modal_EditPostTitle"]</span>
                 </h3>
                 <button type="button" @onclick="() => showEditPostModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg">&times;</button>
             </div>
 
             <div class="space-y-1">
-                <label class="text-xs font-semibold text-slate-500 dark:text-[#C4D2E1]">Post Description / Content</label>
-                <textarea @bind="editingPostContent" rows="5" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none resize-none transition" placeholder="Update your post description..."></textarea>
-                <p class="text-[11px] text-slate-400 dark:text-[#7A8CA6]">Note: Post images cannot be modified.</p>
+                <label class="text-xs font-semibold text-slate-500 dark:text-[#C4D2E1]">@Loc["GroupDetail_Modal_EditPostDescLabel"]</label>
+                <textarea @bind="editingPostContent" rows="5" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none resize-none transition" placeholder="@Loc["GroupDetail_Modal_EditPostPlaceholder"]"></textarea>
+                <p class="text-[11px] text-slate-400 dark:text-[#7A8CA6]">@Loc["GroupDetail_Modal_EditPostNote"]</p>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button type="button" @onclick="() => showEditPostModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="SaveEditPostAsync" disabled="@(isSavingEditPost || string.IsNullOrWhiteSpace(editingPostContent))" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-md shadow-indigo-600/20 flex items-center gap-2 cursor-pointer">
                     @if (isSavingEditPost)
                     {
                         <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <span>Saving...</span>
+                        <span>@Loc["GroupDetail_Modal_Saving"]</span>
                     }
                     else
                     {
-                        <span>Save Changes</span>
+                        <span>@Loc["GroupDetail_Modal_SaveChangesBtn"]</span>
                     }
                 </button>
             </div>
@@ -1417,39 +1419,39 @@
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <h3 class="font-bold text-slate-900 dark:text-[#E1E8F0] text-base flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                    <span>Edit Poll</span>
+                    <span>@Loc["GroupDetail_Modal_EditPollTitle"]</span>
                 </h3>
                 <button type="button" @onclick="() => showEditPollModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg">&times;</button>
             </div>
 
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-[#C4D2E1] mb-1">Poll Question <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-[#C4D2E1] mb-1">@Loc["GroupDetail_Modal_EditPollQuestionLabel"] <span class="text-rose-500">*</span></label>
                     <input type="text" @bind="editingPollQuestion" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition" />
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-[#C4D2E1] mb-1">Description <span class="text-slate-400 dark:text-[#7A8CA6] font-normal">(Optional)</span></label>
-                    <textarea @bind="editingPollContent" rows="3" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none resize-none transition" placeholder="Add additional context for voters..."></textarea>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-[#C4D2E1] mb-1">@Loc["GroupDetail_Modal_EditPollDescLabel"] <span class="text-slate-400 dark:text-[#7A8CA6] font-normal">(@Loc["Common_Optional"])</span></label>
+                    <textarea @bind="editingPollContent" rows="3" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none resize-none transition" placeholder="@Loc["GroupDetail_Modal_EditPollDescPlaceholder"]"></textarea>
                 </div>
                 <div class="p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-500 dark:text-[#C4D2E1] flex items-center gap-2">
                     <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>Options and existing votes cannot be modified to maintain voting integrity.</span>
+                    <span>@Loc["GroupDetail_Modal_EditPollIntegrityNotice"]</span>
                 </div>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button type="button" @onclick="() => showEditPollModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="SaveEditPollAsync" disabled="@(isSavingEditPoll || string.IsNullOrWhiteSpace(editingPollQuestion))" class="px-5 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-md shadow-purple-600/20 flex items-center gap-2 cursor-pointer">
                     @if (isSavingEditPoll)
                     {
                         <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <span>Saving...</span>
+                        <span>@Loc["GroupDetail_Modal_Saving"]</span>
                     }
                     else
                     {
-                        <span>Save Poll</span>
+                        <span>@Loc["GroupDetail_Modal_SavePollBtn"]</span>
                     }
                 </button>
             </div>
@@ -1466,14 +1468,14 @@
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-amber-500 fill-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                     <h3 class="font-bold text-base text-slate-900 dark:text-[#E1E8F0]">
-                        @(ratingSummary?.UserRating != null ? "Edit Your Review" : "Rate This Group")
+                        @(ratingSummary?.UserRating != null ? Loc["GroupDetail_Ratings_EditYourReview"] : Loc["GroupDetail_Ratings_RateThisGroup"])
                     </h3>
                 </div>
                 <button type="button" @onclick="CloseRatingModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
             </div>
 
             <div class="text-center space-y-3">
-                <p class="text-xs text-slate-500 dark:text-[#C4D2E1]">Tap a star to rate your experience in <strong class="text-slate-700 dark:text-white">@group?.Name</strong></p>
+                <p class="text-xs text-slate-500 dark:text-[#C4D2E1]">@string.Format(Loc["GroupDetail_Modal_RatePrompt"], group?.Name)</p>
                 
                 <!-- Interactive Star Selector -->
                 <div class="flex items-center justify-center gap-2 text-3xl py-1">
@@ -1486,12 +1488,12 @@
                     }
                 </div>
                 <div class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-                    @selectedRatingScore Star@(selectedRatingScore > 1 ? "s" : "")
+                    @string.Format(Loc["GroupDetail_Modal_StarCount"], selectedRatingScore)
                 </div>
 
                 <div class="text-left mt-2">
-                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1] uppercase tracking-wider mb-1">Your Review / Comments</label>
-                    <textarea @bind="ratingReviewText" rows="3" maxlength="1000" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition" placeholder="Tell other members what you think of this group, its topics, and discussions..."></textarea>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1] uppercase tracking-wider mb-1">@Loc["GroupDetail_Modal_ReviewCommentsLabel"]</label>
+                    <textarea @bind="ratingReviewText" rows="3" maxlength="1000" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition" placeholder="@Loc["GroupDetail_Modal_ReviewPlaceholder"]"></textarea>
                     <div class="text-[11px] text-slate-400 text-right mt-0.5">@(ratingReviewText?.Length ?? 0)/1000</div>
                 </div>
             </div>
@@ -1505,17 +1507,17 @@
 
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button type="button" @onclick="CloseRatingModal" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="SubmitRatingAsync" disabled="@isSubmittingRating" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition shadow-md shadow-amber-500/30 flex items-center gap-2 cursor-pointer">
                     @if (isSubmittingRating)
                     {
                         <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <span>Submitting...</span>
+                        <span>@Loc["GroupDetail_Modal_Submitting"]</span>
                     }
                     else
                     {
-                        <span>@(ratingSummary?.UserRating != null ? "Update Review" : "Submit Review")</span>
+                        <span>@(ratingSummary?.UserRating != null ? Loc["GroupDetail_Modal_UpdateReviewBtn"] : Loc["GroupDetail_Modal_SubmitReviewBtn"])</span>
                     }
                 </button>
             </div>
@@ -1534,8 +1536,8 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                     </span>
                     <div>
-                        <h3 class="font-bold text-base text-[#0A1B2E] dark:text-[#E1E8F0]">Upcoming Join Requests</h3>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">Review members requesting to join @group?.Name</p>
+                        <h3 class="font-bold text-base text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["GroupDetail_Requests_Title"]</h3>
+                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">@string.Format(Loc["GroupDetail_Requests_Subtitle"], group?.Name)</p>
                     </div>
                 </div>
                 <button type="button" @onclick="CloseRequestsModal" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
@@ -1546,7 +1548,7 @@
                 {
                     <div class="text-center py-8">
                         <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-indigo-600 border-t-transparent"></div>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-2">Loading requests...</p>
+                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-2">@Loc["GroupDetail_Requests_Loading"]</p>
                     </div>
                 }
                 else if (pendingJoinRequests == null || pendingJoinRequests.Count == 0)
@@ -1555,8 +1557,8 @@
                         <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
                         </div>
-                        <p class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">No pending requests</p>
-                        <p class="text-[11px] text-[#7A8CA6] mt-0.5">When new members request to join, they will appear here.</p>
+                        <p class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["GroupDetail_Requests_EmptyTitle"]</p>
+                        <p class="text-[11px] text-[#7A8CA6] mt-0.5">@Loc["GroupDetail_Requests_EmptySubtitle"]</p>
                     </div>
                 }
                 else
@@ -1578,11 +1580,11 @@
                             <div class="flex items-center justify-end gap-2 pt-2">
                                 <button type="button" @onclick="() => ReviewRequestAsync(req.GroupJoinRequestId, false)"
                                         class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[#557392] dark:text-[#C4D2E1] rounded-xl text-xs font-semibold transition cursor-pointer">
-                                    Reject
+                                    @Loc["GroupDetail_Requests_RejectBtn"]
                                 </button>
                                 <button type="button" @onclick="() => ReviewRequestAsync(req.GroupJoinRequestId, true)"
                                         class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
-                                    Approve Member
+                                    @Loc["GroupDetail_Requests_ApproveBtn"]
                                 </button>
                             </div>
                         </div>
@@ -1593,7 +1595,7 @@
             <div class="pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex justify-end">
                 <button type="button" @onclick="CloseRequestsModal"
                         class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[#0A1B2E] dark:text-[#E1E8F0] text-xs font-semibold rounded-xl cursor-pointer">
-                    Close
+                    @Loc["Common_Close"]
                 </button>
             </div>
         </div>
@@ -1610,7 +1612,7 @@
                     <span class="p-1.5 rounded-lg bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                     </span>
-                    <h3 class="text-base font-bold text-red-600 dark:text-red-400">Your post got banned</h3>
+                    <h3 class="text-base font-bold text-red-600 dark:text-red-400">@Loc["GroupDetail_Post_BannedBannerTitle"]</h3>
                 </div>
                 <button type="button" @onclick="CloseBannedReasonModal" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1619,25 +1621,25 @@
 
             <div class="space-y-3">
                 <p class="text-xs text-[#557392] dark:text-[#C4D2E1] leading-relaxed">
-                    This post was removed from public community feeds by platform moderators because it violated community standards.
+                    @Loc["GroupDetail_Banned_Desc"]
                 </p>
 
                 <div class="bg-red-50 dark:bg-red-950/30 p-3.5 rounded-xl border border-red-200 dark:border-red-900/40 space-y-1">
-                    <span class="text-[10px] uppercase font-bold tracking-wider text-red-700 dark:text-red-300 font-mono">Moderation Reason</span>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-red-700 dark:text-red-300 font-mono">@Loc["GroupDetail_Banned_ReasonHeader"]</span>
                     <p class="text-xs text-red-900 dark:text-red-200 font-medium">
-                        @(string.IsNullOrWhiteSpace(bannedPostTarget.ModerationReason) ? "Violation of community safety and conduct guidelines." : bannedPostTarget.ModerationReason)
+                        @(string.IsNullOrWhiteSpace(bannedPostTarget.ModerationReason) ? Loc["GroupDetail_Banned_DefaultReason"] : bannedPostTarget.ModerationReason)
                     </p>
                 </div>
 
                 <p class="text-[11px] text-[#7A8CA6]">
-                    Only you and site administrators can view this post. Other community members cannot see or interact with it.
+                    @Loc["GroupDetail_Banned_AudienceNotice"]
                 </p>
             </div>
 
             <div class="flex justify-end pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <button type="button" @onclick="CloseBannedReasonModal"
                         class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:opacity-90 transition cursor-pointer">
-                    Dismiss
+                    @Loc["GroupDetail_Banned_DismissBtn"]
                 </button>
             </div>
         </div>
@@ -1885,7 +1887,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to load requests: {ex.Message}");
+            Toast.Error(string.Format(Loc["GroupDetail_Toast_LoadRequestsFailed"], ex.Message));
         }
         finally
         {
@@ -1903,13 +1905,13 @@
         var res = approve ? await GroupApi.ApproveJoinRequestAsync(requestId) : await GroupApi.RejectJoinRequestAsync(requestId);
         if (res.IsSuccess)
         {
-            Toast.Success(res.Message ?? (approve ? "Member approved!" : "Request rejected."));
+            Toast.Success(res.Message ?? (approve ? Loc["GroupDetail_Toast_MemberApproved"] : Loc["GroupDetail_Toast_RequestRejected"]));
             await OpenRequestsModal();
             await LoadGroupData();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to review join request.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_ReviewFailed"]);
         }
     }
 
@@ -1920,12 +1922,12 @@
         if (res.IsSuccess)
         {
             post.IsPrivate = !post.IsPrivate;
-            Toast.Success(post.IsPrivate ? "Post set to Private mode." : "Post set to Public mode.");
+            Toast.Success(post.IsPrivate ? Loc["GroupDetail_Toast_PostPrivate"] : Loc["GroupDetail_Toast_PostPublic"]);
             StateHasChanged();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to toggle post privacy.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PostPrivacyFailed"]);
         }
     }
 
@@ -1936,12 +1938,12 @@
         if (res.IsSuccess)
         {
             poll.IsPrivate = !poll.IsPrivate;
-            Toast.Success(poll.IsPrivate ? "Poll set to Private mode." : "Poll set to Public mode.");
+            Toast.Success(poll.IsPrivate ? Loc["GroupDetail_Toast_PollPrivate"] : Loc["GroupDetail_Toast_PollPublic"]);
             StateHasChanged();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to toggle poll privacy.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PollPrivacyFailed"]);
         }
     }
 
@@ -2114,7 +2116,7 @@
     {
         if (selectedRatingScore < 1 || selectedRatingScore > 5)
         {
-            ratingErrorMessage = "Please select a rating between 1 and 5 stars.";
+            ratingErrorMessage = Loc["GroupDetail_Val_RatingRange"];
             return;
         }
 
@@ -2127,13 +2129,13 @@
 
         if (res.IsSuccess)
         {
-            Toast.Success(res.Message ?? "Rating saved!");
+            Toast.Success(res.Message ?? Loc["GroupDetail_Toast_RatingSaved"]);
             showRatingModal = false;
             await Task.WhenAll(LoadGroupRatings(), LoadGroupData());
         }
         else
         {
-            ratingErrorMessage = res.Message ?? "Failed to submit rating.";
+            ratingErrorMessage = res.Message ?? Loc["GroupDetail_Toast_RatingFailed"];
         }
     }
 
@@ -2142,12 +2144,12 @@
         var res = await GroupApi.JoinGroupAsync(groupId);
         if (res.IsSuccess)
         {
-            Toast.Success(res.Message ?? "Joined!");
+            Toast.Success(res.Message ?? Loc["GroupDetail_Toast_JoinedSuccess"]);
             await LoadGroupData();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to join.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_JoinFailed"]);
         }
     }
 
@@ -2156,12 +2158,12 @@
         var res = await GroupApi.LeaveGroupAsync(groupId);
         if (res.IsSuccess)
         {
-            Toast.Success("Left group.");
+            Toast.Success(Loc["GroupDetail_Toast_LeftSuccess"]);
             await LoadGroupData();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to leave.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_LeaveFailed"]);
         }
     }
 
@@ -2232,11 +2234,11 @@
                 uploadedImageUrls.Add($"/uploads/posts/{subfolder}/{uniqueFileName}");
             }
 
-            Toast.Success($"{files.Count} image(s) attached!");
+            Toast.Success(string.Format(Loc["GroupDetail_Toast_ImagesAttached"], files.Count));
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to process images: {ex.Message}");
+            Toast.Error(string.Format(Loc["GroupDetail_Toast_ImagesFailed"], ex.Message));
         }
         finally
         {
@@ -2259,7 +2261,7 @@
 
         if (!file.Name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
         {
-            Toast.Error("Only plain text (.txt) files are allowed.");
+            Toast.Error(Loc["GroupDetail_Toast_OnlyTxtAllowed"]);
             return;
         }
 
@@ -2270,11 +2272,11 @@
             using var reader = new StreamReader(stream);
             newPostCodeSnippet = await reader.ReadToEndAsync();
             newPostCodeFileName = file.Name;
-            Toast.Success($"Text file '{file.Name}' read successfully.");
+            Toast.Success(string.Format(Loc["GroupDetail_Toast_TxtReadSuccess"], file.Name));
         }
         catch (Exception ex)
         {
-            Toast.Error($"Failed to read text file: {ex.Message}");
+            Toast.Error(string.Format(Loc["GroupDetail_Toast_TxtReadFailed"], ex.Message));
         }
         finally
         {
@@ -2292,7 +2294,7 @@
     {
         if (string.IsNullOrWhiteSpace(newPostText) && string.IsNullOrWhiteSpace(newPostCodeSnippet) && uploadedImageUrls.Count == 0)
         {
-            Toast.Warning("Post content cannot be empty.");
+            Toast.Warning(Loc["GroupDetail_Val_PostContentRequired"]);
             return;
         }
 
@@ -2313,7 +2315,7 @@
 
         if (res.IsSuccess)
         {
-            Toast.Success("Group post published!");
+            Toast.Success(Loc["GroupDetail_Toast_PostPublished"]);
             showPostModal = false;
             newPostText = "";
             uploadedImageUrls.Clear();
@@ -2324,7 +2326,7 @@
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to create post.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PostCreateFailed"]);
         }
     }
 
@@ -2332,14 +2334,14 @@
     {
         if (string.IsNullOrWhiteSpace(newPollQuestion))
         {
-            Toast.Warning("Please specify a poll question.");
+            Toast.Warning(Loc["GroupDetail_Val_PollQuestionRequired"]);
             return;
         }
 
         var validOptions = pollOptionsList.Where(o => !string.IsNullOrWhiteSpace(o)).Select(o => o.Trim()).ToList();
         if (validOptions.Count < 2)
         {
-            Toast.Warning("A poll must contain at least 2 non-empty options.");
+            Toast.Warning(Loc["GroupDetail_Val_PollOptionsMin"]);
             return;
         }
 
@@ -2359,14 +2361,14 @@
 
         if (res.IsSuccess)
         {
-            Toast.Success("Group poll created successfully!");
+            Toast.Success(Loc["GroupDetail_Toast_PollCreated"]);
             showPollModal = false;
             activeTab = "polls";
             await LoadGroupPolls();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to create poll.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PollCreateFailed"]);
         }
     }
 
@@ -2380,7 +2382,7 @@
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to update like.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_LikeFailed"]);
         }
     }
 
@@ -2422,7 +2424,7 @@
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to post comment.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_CommentFailed"]);
         }
     }
 
@@ -2441,13 +2443,13 @@
 
         if (res.IsSuccess)
         {
-            Toast.Success("Shared successfully!");
+            Toast.Success(Loc["GroupDetail_Toast_ShareSuccess"]);
             showShareModal = false;
             await Task.WhenAll(LoadGroupPosts(), LoadGroupPolls());
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to share.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_ShareFailed"]);
         }
     }
 
@@ -2456,12 +2458,12 @@
         var res = await PollApi.VoteAsync(new VoteRequestModel(pollId, [optionId]));
         if (res.IsSuccess)
         {
-            Toast.Success("Vote recorded!");
+            Toast.Success(Loc["GroupDetail_Toast_VoteSuccess"]);
             await LoadGroupPolls();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to submit vote.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_VoteFailed"]);
         }
     }
 
@@ -2471,12 +2473,12 @@
         var res = await PostApi.DeletePostAsync(postId);
         if (res.IsSuccess)
         {
-            Toast.Success("Post deleted.");
+            Toast.Success(Loc["GroupDetail_Toast_PostDeleted"]);
             await LoadGroupPosts();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to delete post.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PostDeleteFailed"]);
         }
     }
 
@@ -2491,12 +2493,12 @@
         var res = await PostApi.ToggleSavePostAsync(postId);
         if (res.IsSuccess)
         {
-            Toast.Success(res.Data ? "Post saved to your profile!" : "Post removed from saved.");
+            Toast.Success(res.Data ? Loc["GroupDetail_Toast_PostSaved"] : Loc["GroupDetail_Toast_PostUnsaved"]);
             await LoadGroupPosts();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to save post.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PostSaveFailed"]);
         }
     }
 
@@ -2518,13 +2520,13 @@
 
         if (res.IsSuccess)
         {
-            Toast.Success("Post description updated!");
+            Toast.Success(Loc["GroupDetail_Toast_PostUpdated"]);
             showEditPostModal = false;
             await LoadGroupPosts();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to update post.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PostUpdateFailed"]);
         }
     }
 
@@ -2539,11 +2541,11 @@
         var res = await PostApi.ToggleSavePostAsync(postId);
         if (res.IsSuccess)
         {
-            Toast.Success(res.Data ? "Poll saved to your profile!" : "Poll removed from saved.");
+            Toast.Success(res.Data ? Loc["GroupDetail_Toast_PollSaved"] : Loc["GroupDetail_Toast_PollUnsaved"]);
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to save poll.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PollSaveFailed"]);
         }
     }
 
@@ -2566,13 +2568,13 @@
 
         if (res.IsSuccess)
         {
-            Toast.Success("Poll updated successfully!");
+            Toast.Success(Loc["GroupDetail_Toast_PollUpdated"]);
             showEditPollModal = false;
             await LoadGroupPolls();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to update poll.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PollUpdateFailed"]);
         }
     }
 
@@ -2582,22 +2584,30 @@
         var res = await PollApi.DeletePollAsync(pollId);
         if (res.IsSuccess)
         {
-            Toast.Success("Poll deleted successfully.");
+            Toast.Success(Loc["GroupDetail_Toast_PollDeleted"]);
             await LoadGroupPolls();
         }
         else
         {
-            Toast.Error(res.Message ?? "Failed to delete poll.");
+            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_DeletePollFailed"]);
         }
     }
 
     private string FormatTimeAgo(DateTime utcDate)
     {
         var span = DateTime.UtcNow - utcDate;
-        if (span.TotalMinutes < 1) return "Just now";
-        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
-        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
-        if (span.TotalDays < 7) return $"{(int)span.TotalDays}d ago";
+        if (span.TotalMinutes < 1) return Loc["GroupDetail_Time_JustNow"];
+        if (span.TotalMinutes < 60) return string.Format(Loc["GroupDetail_Time_MinutesAgo"], (int)span.TotalMinutes);
+        if (span.TotalHours < 24) return string.Format(Loc["GroupDetail_Time_HoursAgo"], (int)span.TotalHours);
+        if (span.TotalDays < 7) return string.Format(Loc["GroupDetail_Time_DaysAgo"], (int)span.TotalDays);
         return utcDate.ToLocalTime().ToString("MMM d, yyyy");
+    }
+
+    private string GetMemberRoleLocalized(string? role)
+    {
+        if (string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase)) return Loc["GroupDetail_Role_Owner"];
+        if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase)) return Loc["GroupDetail_Role_Admin"];
+        if (string.Equals(role, "Member", StringComparison.OrdinalIgnoreCase)) return Loc["GroupDetail_Role_Member"];
+        return role ?? string.Empty;
     }
 }

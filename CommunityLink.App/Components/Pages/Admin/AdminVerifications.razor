@@ -2,9 +2,10 @@
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserManage)]
 @inject PremiumUpgradeApiService UpgradeApi
 @inject ToastService Toast
+@inject IStringLocalizer<AppResources> Loc
 @rendermode InteractiveServer
 
-<PageTitle>Identity Verification Audits — Admin Control Panel</PageTitle>
+<PageTitle>@Loc["Admin_Verif_PageTitle"]</PageTitle>
 
 <div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E2EC] transition-colors duration-150">
     <!-- Header -->
@@ -12,14 +13,14 @@
         <div>
             <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E2EC] flex items-center gap-2.5" style="font-family:'Manrope',sans-serif">
                 <svg class="w-6 h-6 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                <span>Identity Verification Audits</span>
+                <span>@Loc["Admin_Verif_Heading"]</span>
             </h1>
-            <p class="text-sm text-[#557392] dark:text-[#94A3B8]">Inspect official government credentials, legal identities, and LinkDrop payments submitted for premium badge upgrades.</p>
+            <p class="text-sm text-[#557392] dark:text-[#94A3B8]">@Loc["Admin_Verif_Subtitle"]</p>
         </div>
         <div class="flex items-center gap-2">
             <button @onclick="LoadVerificationsAsync" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E2EC] bg-white dark:bg-[#111622] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] hover:bg-[#F1F5F9] dark:hover:bg-[#182030] transition flex items-center gap-2 cursor-pointer shadow-sm">
                 <svg class="w-3.5 h-3.5 @(isLoading ? "animate-spin" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>Refresh List</span>
+                <span>@Loc["Admin_Verif_RefreshList"]</span>
             </button>
         </div>
     </div>
@@ -28,18 +29,18 @@
     <div class="flex items-center gap-2 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-3 text-xs font-semibold">
         <button @onclick='() => statusFilter = "PENDING"' class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer @(statusFilter == "PENDING" ? "bg-amber-600 text-white shadow-sm" : "bg-white dark:bg-[#111622] text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
             <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>Pending Review (@(allList?.Count(v => IsPending(v.Status)) ?? 0))</span>
+            <span>@string.Format(Loc["Admin_Verif_TabPending"], allList?.Count(v => IsPending(v.Status)) ?? 0)</span>
         </button>
         <button @onclick='() => statusFilter = "APPROVED"' class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer @(statusFilter == "APPROVED" ? "bg-emerald-600 text-white shadow-sm" : "bg-white dark:bg-[#111622] text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
             <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>Approved (@(allList?.Count(v => IsApproved(v.Status)) ?? 0))</span>
+            <span>@string.Format(Loc["Admin_Verif_TabApproved"], allList?.Count(v => IsApproved(v.Status)) ?? 0)</span>
         </button>
         <button @onclick='() => statusFilter = "REJECTED"' class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer @(statusFilter == "REJECTED" ? "bg-rose-600 text-white shadow-sm" : "bg-white dark:bg-[#111622] text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
             <svg class="w-3.5 h-3.5 text-rose-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            <span>Rejected (@(allList?.Count(v => IsRejected(v.Status)) ?? 0))</span>
+            <span>@string.Format(Loc["Admin_Verif_TabRejected"], allList?.Count(v => IsRejected(v.Status)) ?? 0)</span>
         </button>
         <button @onclick='() => statusFilter = "ALL"' class="px-3 py-1.5 rounded-lg transition cursor-pointer @(statusFilter == "ALL" ? "bg-[#0A1B2E] dark:bg-[#182030] text-white dark:text-[#D4AF37] shadow-sm" : "bg-white dark:bg-[#111622] text-[#557392] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")">
-            All Records (@(allList?.Count ?? 0))
+            @string.Format(Loc["Admin_Verif_TabAll"], allList?.Count ?? 0)
         </button>
     </div>
 
@@ -48,15 +49,15 @@
     {
         <div class="p-12 text-center text-[#557392] dark:text-[#94A3B8] bg-white dark:bg-[#111622] rounded-xl border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] shadow-sm">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#D4AF37] border-t-transparent"></div>
-            <p class="mt-3 text-xs font-medium">Loading identity audits...</p>
+            <p class="mt-3 text-xs font-medium">@Loc["Admin_Verif_Loading"]</p>
         </div>
     }
     else if (FilteredList.Count == 0)
     {
         <div class="p-12 text-center bg-white dark:bg-[#111622] rounded-xl border border-dashed border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] text-[#7A8CA6] dark:text-[#94A3B8] space-y-3">
             <svg class="w-12 h-12 mx-auto text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-6l-2 3h-4l-2-3H2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-7z"/><path d="M5.45 5.11L2 12v0h20v0l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-            <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-[#E1E2EC]">No Applications Found</h4>
-            <p class="text-xs max-w-sm mx-auto">There are no verification requests matching your selected filter at this time.</p>
+            <h4 class="font-bold text-sm text-[#0A1B2E] dark:text-[#E1E2EC]">@Loc["Admin_Verif_EmptyTitle"]</h4>
+            <p class="text-xs max-w-sm mx-auto">@Loc["Admin_Verif_EmptyDesc"]</p>
         </div>
     }
     else
@@ -66,13 +67,13 @@
                 <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
                     <thead class="bg-slate-50 dark:bg-[#0A0D14] text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
                         <tr>
-                            <th class="p-4">Applicant</th>
-                            <th class="p-4">Target Tier</th>
-                            <th class="p-4">Legal Name</th>
-                            <th class="p-4">Payment</th>
-                            <th class="p-4">Submitted At</th>
-                            <th class="p-4">Status</th>
-                            <th class="p-4 text-right">Actions</th>
+                            <th class="p-4">@Loc["Admin_Verif_ColApplicant"]</th>
+                            <th class="p-4">@Loc["Admin_Verif_ColTargetTier"]</th>
+                            <th class="p-4">@Loc["Admin_Verif_ColLegalName"]</th>
+                            <th class="p-4">@Loc["Admin_Verif_ColPayment"]</th>
+                            <th class="p-4">@Loc["Admin_Verif_ColSubmittedAt"]</th>
+                            <th class="p-4">@Loc["Admin_Verif_ColStatus"]</th>
+                            <th class="p-4 text-right">@Loc["Admin_Verif_ColActions"]</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(255,255,255,0.08)]">
@@ -93,14 +94,14 @@
                                         {
                                             <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40 flex items-center gap-1">
                                                 <svg class="w-3 h-3 text-purple-500" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                                <span>VIP Figure</span>
+                                                <span>@Loc["Admin_Verif_TierVIP"]</span>
                                             </span>
                                         }
                                         else
                                         {
                                             <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40 flex items-center gap-1">
                                                 <svg class="w-3 h-3 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                                <span>Domain Pro</span>
+                                                <span>@Loc["Admin_Verif_TierDomainPro"]</span>
                                             </span>
                                         }
                                         <span class="font-medium text-slate-600 dark:text-slate-400">@item.PlanName</span>
@@ -126,7 +127,7 @@
                                     }
                                     else
                                     {
-                                        <span class="text-slate-400 font-medium">@(item.PaymentMethod ?? "Direct")</span>
+                                        <span class="text-slate-400 font-medium">@(item.PaymentMethod ?? Loc["Admin_Verif_PaymentDirect"])</span>
                                     }
                                 </td>
                                 <td class="p-4 text-slate-500 dark:text-slate-400">
@@ -138,27 +139,27 @@
                                     {
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
                                             <svg class="w-3 h-3 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                            <span>Pending Audit</span>
+                                            <span>@Loc["Admin_Verif_StatusPending"]</span>
                                         </span>
                                     }
                                     else if (isApproved)
                                     {
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
                                             <svg class="w-3 h-3 text-emerald-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                                            <span>Approved</span>
+                                            <span>@Loc["Admin_Verif_StatusApproved"]</span>
                                         </span>
                                     }
                                     else
                                     {
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40">
                                             <svg class="w-3 h-3 text-rose-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                            <span>Rejected</span>
+                                            <span>@Loc["Admin_Verif_StatusRejected"]</span>
                                         </span>
                                     }
                                 </td>
                                 <td class="p-4 text-right">
                                     <button @onclick="() => InspectVerification(item)" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#0A1B2E] dark:bg-[#D4AF37] dark:text-[#0A0D14] hover:bg-[#112A46] dark:hover:bg-[#E5C158] transition cursor-pointer shadow-sm">
-                                        Inspect ID
+                                        @Loc["Admin_Verif_BtnInspect"]
                                     </button>
                                 </td>
                             </tr>
@@ -182,8 +183,8 @@
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-base">Identity Audit: @selectedItem.FullLegalName</h3>
-                        <p class="text-xs text-slate-300">Applying for @selectedItem.PlanName (@selectedItem.TargetRoleCode)</p>
+                        <h3 class="font-bold text-base">@string.Format(Loc["Admin_Verif_ModalTitle"], selectedItem.FullLegalName)</h3>
+                        <p class="text-xs text-slate-300">@string.Format(Loc["Admin_Verif_ModalSubtitle"], selectedItem.PlanName, selectedItem.TargetRoleCode)</p>
                     </div>
                 </div>
                 <button @onclick="CloseModal" class="text-slate-400 hover:text-white p-1 rounded-md text-lg cursor-pointer">✕</button>
@@ -194,19 +195,19 @@
                 <!-- Applicant Metadata Card -->
                 <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 dark:bg-[#0A0D14] border border-slate-200 dark:border-[rgba(255,255,255,0.08)] text-xs">
                     <div>
-                        <span class="text-slate-400 font-medium block">Account Username</span>
+                        <span class="text-slate-400 font-medium block">@Loc["Admin_Verif_UsernameLabel"]</span>
                         <span class="font-bold text-slate-800 dark:text-white text-sm">@selectedItem.UserName</span>
                     </div>
                     <div>
-                        <span class="text-slate-400 font-medium block">Submission Date</span>
+                        <span class="text-slate-400 font-medium block">@Loc["Admin_Verif_SubmissionDateLabel"]</span>
                         <span class="font-semibold text-slate-700 dark:text-slate-300">@selectedItem.CreatedAtUtc.ToLocalTime().ToString("f")</span>
                     </div>
                     <div>
-                        <span class="text-slate-400 font-medium block">Work / Corporate Email</span>
-                        <span class="font-semibold text-slate-700 dark:text-slate-300">@(string.IsNullOrWhiteSpace(selectedItem.WorkEmail) ? "None specified" : selectedItem.WorkEmail)</span>
+                        <span class="text-slate-400 font-medium block">@Loc["Admin_Verif_WorkEmailLabel"]</span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-300">@(string.IsNullOrWhiteSpace(selectedItem.WorkEmail) ? Loc["Admin_Verif_NoneSpecified"] : selectedItem.WorkEmail)</span>
                     </div>
                     <div>
-                        <span class="text-slate-400 font-medium block">Professional Profile URL</span>
+                        <span class="text-slate-400 font-medium block">@Loc["Admin_Verif_ProfileUrlLabel"]</span>
                         @if (!string.IsNullOrWhiteSpace(selectedItem.ProfessionalUrl))
                         {
                             <a href="@selectedItem.ProfessionalUrl" target="_blank" class="font-bold text-indigo-600 dark:text-indigo-400 hover:underline truncate block">
@@ -215,18 +216,18 @@
                         }
                         else
                         {
-                            <span class="text-slate-400">Not provided</span>
+                            <span class="text-slate-400">@Loc["Admin_Verif_NotProvided"]</span>
                         }
                     </div>
                     <div>
-                        <span class="text-slate-400 font-medium block">LinkDrop Escrow Paid</span>
+                        <span class="text-slate-400 font-medium block">@Loc["Admin_Verif_EscrowPaidLabel"]</span>
                         <span class="font-bold text-sky-700 dark:text-sky-300 flex items-center gap-1.5 mt-0.5">
                             <LinkDropIcon Class="w-4 h-4 shrink-0" />
-                            <span>@selectedItem.LinkDropPointsDeducted.ToString("N0") LD Points</span>
+                            <span>@string.Format(Loc["Admin_Verif_PointsSuffix"], selectedItem.LinkDropPointsDeducted.ToString("N0"))</span>
                         </span>
                     </div>
                     <div>
-                        <span class="text-slate-400 font-medium block">Review Status</span>
+                        <span class="text-slate-400 font-medium block">@Loc["Admin_Verif_ReviewStatusLabel"]</span>
                         <span class="font-bold @(selectedItem.Status == "APPROVED" ? "text-emerald-600 dark:text-emerald-400" : selectedItem.Status == "REJECTED" ? "text-rose-600 dark:text-rose-400" : "text-amber-600 dark:text-amber-400")">
                             @selectedItem.Status
                         </span>
@@ -235,14 +236,14 @@
 
                 <!-- Identity Card Images -->
                 <div class="space-y-4">
-                    <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Government Identity Card Credentials</h4>
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">@Loc["Admin_Verif_CardCredentialsHeading"]</h4>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Front Card -->
                         <div class="border border-slate-200 dark:border-[rgba(255,255,255,0.08)] rounded-xl p-3 bg-white dark:bg-[#182030] space-y-2">
                             <div class="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                <span>Front Face View</span>
-                                <a href="@selectedItem.IdCardFrontUrl" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px]">Open Full ↗</a>
+                                <span>@Loc["Admin_Verif_FrontFace"]</span>
+                                <a href="@selectedItem.IdCardFrontUrl" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px]">@Loc["Admin_Verif_OpenFull"]</a>
                             </div>
                             <div class="aspect-[1.586/1] bg-slate-100 dark:bg-[#0A0D14] rounded-lg overflow-hidden border border-slate-200 dark:border-[rgba(255,255,255,0.08)] flex items-center justify-center">
                                 <img src="@selectedItem.IdCardFrontUrl" alt="Identity Card Front" class="w-full h-full object-contain cursor-zoom-in" @onclick='() => previewImageUrl = selectedItem.IdCardFrontUrl' />
@@ -252,10 +253,10 @@
                         <!-- Back Card -->
                         <div class="border border-slate-200 dark:border-[rgba(255,255,255,0.08)] rounded-xl p-3 bg-white dark:bg-[#182030] space-y-2">
                             <div class="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                <span>Back Face View</span>
+                                <span>@Loc["Admin_Verif_BackFace"]</span>
                                 @if (!string.IsNullOrWhiteSpace(selectedItem.IdCardBackUrl))
                                 {
-                                    <a href="@selectedItem.IdCardBackUrl" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px]">Open Full ↗</a>
+                                    <a href="@selectedItem.IdCardBackUrl" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px]">@Loc["Admin_Verif_OpenFull"]</a>
                                 }
                             </div>
                             <div class="aspect-[1.586/1] bg-slate-100 dark:bg-[#0A0D14] rounded-lg overflow-hidden border border-slate-200 dark:border-[rgba(255,255,255,0.08)] flex items-center justify-center">
@@ -265,7 +266,7 @@
                                 }
                                 else
                                 {
-                                    <span class="text-xs text-slate-400 italic">No back-side image uploaded</span>
+                                    <span class="text-xs text-slate-400 italic">@Loc["Admin_Verif_NoBackImage"]</span>
                                 }
                             </div>
                         </div>
@@ -276,14 +277,14 @@
                 @if (!IsPending(selectedItem.Status))
                 {
                     <div class="p-4 rounded-xl border @(IsApproved(selectedItem.Status) ? "border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-950/20" : "border-rose-200 dark:border-rose-800/40 bg-rose-50/50 dark:bg-rose-950/20") text-xs">
-                        <div class="font-bold text-slate-800 dark:text-white mb-1">Audit Record (@selectedItem.Status)</div>
+                        <div class="font-bold text-slate-800 dark:text-white mb-1">@string.Format(Loc["Admin_Verif_AuditRecord"], selectedItem.Status)</div>
                         @if (!string.IsNullOrWhiteSpace(selectedItem.ReviewNotes))
                         {
-                            <p class="text-slate-600 dark:text-slate-300"><strong>Notes:</strong> @selectedItem.ReviewNotes</p>
+                            <p class="text-slate-600 dark:text-slate-300"><strong>@Loc["Admin_Verif_NotesLabel"]</strong> @selectedItem.ReviewNotes</p>
                         }
                         @if (selectedItem.ReviewedAtUtc.HasValue)
                         {
-                            <p class="text-[10px] text-slate-400 mt-2">Processed on @selectedItem.ReviewedAtUtc.Value.ToLocalTime().ToString("f")</p>
+                            <p class="text-[10px] text-slate-400 mt-2">@string.Format(Loc["Admin_Verif_ProcessedOn"], selectedItem.ReviewedAtUtc.Value.ToLocalTime().ToString("f"))</p>
                         }
                     </div>
                 }
@@ -291,16 +292,16 @@
                 {
                     <!-- Review Actions Form -->
                     <div class="p-4 rounded-xl border border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-slate-50 dark:bg-[#0A0D14] space-y-3 text-xs">
-                        <h5 class="font-bold text-slate-800 dark:text-white">Admin Audit Action</h5>
+                        <h5 class="font-bold text-slate-800 dark:text-white">@Loc["Admin_Verif_AuditActionHeading"]</h5>
                         <div>
-                            <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Optional Notes / Reason</label>
-                            <input type="text" @bind="adminNotesInput" placeholder="e.g. Identity verified against government database or reason if declining..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E2EC] focus:outline-none focus:border-indigo-600 dark:focus:border-[#D4AF37]" />
+                            <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">@Loc["Admin_Verif_OptionalNotesLabel"]</label>
+                            <input type="text" @bind="adminNotesInput" placeholder="@Loc["Admin_Verif_NotesPlaceholder"]" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#182030] text-[#0A1B2E] dark:text-[#E1E2EC] focus:outline-none focus:border-indigo-600 dark:focus:border-[#D4AF37]" />
                         </div>
                         @if (selectedItem.LinkDropPointsDeducted > 0)
                         {
                             <div class="p-2.5 rounded-lg bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/40 text-sky-800 dark:text-sky-300 text-[11px] flex items-center gap-2">
                                 <LinkDropIcon Class="w-4 h-4 shrink-0" />
-                                <span><strong>Escrow Notice:</strong> Rejecting will automatically refund <strong>@selectedItem.LinkDropPointsDeducted.ToString("N0") LinkDrops</strong> to @selectedItem.UserName's wallet.</span>
+                                <span><strong>@Loc["Admin_Verif_EscrowNoticePrefix"]</strong> @((MarkupString)string.Format(Loc["Admin_Verif_EscrowNoticeDesc"], $"<strong>{selectedItem.LinkDropPointsDeducted:N0} LinkDrops</strong>", $"<strong>{selectedItem.UserName}</strong>"))</span>
                             </div>
                         }
                     </div>
@@ -310,7 +311,7 @@
             <!-- Modal Footer -->
             <div class="px-6 py-4 bg-slate-50 dark:bg-[#0A0D14] border-t border-slate-200 dark:border-[rgba(255,255,255,0.08)] flex items-center justify-between">
                 <button @onclick="CloseModal" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer">
-                    Close
+                    @Loc["Common_Close"]
                 </button>
 
                 @if (IsPending(selectedItem.Status))
@@ -318,11 +319,11 @@
                     <div class="flex items-center gap-3">
                         <button @onclick="RejectSelectedAsync" disabled="@isProcessing" class="px-4 py-2 rounded-lg text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800/40 transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                            <span>Reject &amp; Refund</span>
+                            <span>@Loc["Admin_Verif_RejectRefundBtn"]</span>
                         </button>
                         <button @onclick="ApproveSelectedAsync" disabled="@isProcessing" class="px-5 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            <span>Approve &amp; Issue Badge</span>
+                            <span>@Loc["Admin_Verif_ApproveIssueBtn"]</span>
                         </button>
                     </div>
                 }
@@ -337,7 +338,7 @@
     <div class="fixed inset-0 z-60 bg-black/80 flex items-center justify-center p-6 cursor-pointer" @onclick='() => previewImageUrl = null'>
         <div class="relative max-w-4xl max-h-[90vh]">
             <img src="@previewImageUrl" alt="Enlarged view" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain" />
-            <div class="text-center text-white text-xs mt-3 font-semibold">Click anywhere to close</div>
+            <div class="text-center text-white text-xs mt-3 font-semibold">@Loc["Admin_Verif_LightboxClose"]</div>
         </div>
     </div>
 }
@@ -392,12 +393,12 @@
             }
             else
             {
-                Toast.Error(res.Message ?? "Failed to fetch verification audits.");
+                Toast.Error(res.Message ?? Loc["Admin_Verif_Toast_FetchFailed"]);
             }
         }
         catch (Exception ex)
         {
-            Toast.Error($"Error: {ex.Message}");
+            Toast.Error(string.Format(Loc["Admin_Verif_Toast_GenericError"], ex.Message));
         }
         finally
         {
@@ -426,18 +427,18 @@
             var res = await UpgradeApi.ApproveVerificationAsync(selectedItem.VerificationId, adminNotesInput);
             if (res.IsSuccess)
             {
-                Toast.Success($"Verification for {selectedItem.FullLegalName} successfully approved! Badge issued.");
+                Toast.Success(string.Format(Loc["Admin_Verif_Toast_ApproveSuccess"], selectedItem.FullLegalName));
                 CloseModal();
                 await LoadVerificationsAsync();
             }
             else
             {
-                Toast.Error(res.Message ?? "Failed to approve verification.");
+                Toast.Error(res.Message ?? Loc["Admin_Verif_Toast_ApproveFailed"]);
             }
         }
         catch (Exception ex)
         {
-            Toast.Error($"Error: {ex.Message}");
+            Toast.Error(string.Format(Loc["Admin_Verif_Toast_GenericError"], ex.Message));
         }
         finally
         {
@@ -450,7 +451,7 @@
         if (selectedItem == null) return;
         if (string.IsNullOrWhiteSpace(adminNotesInput))
         {
-            Toast.Warning("Please provide a reason in the notes field before rejecting.");
+            Toast.Warning(Loc["Admin_Verif_Toast_RejectNotesRequired"]);
             return;
         }
 
@@ -460,18 +461,18 @@
             var res = await UpgradeApi.RejectVerificationAsync(selectedItem.VerificationId, adminNotesInput);
             if (res.IsSuccess)
             {
-                Toast.Success($"Verification for {selectedItem.FullLegalName} rejected and points refunded.");
+                Toast.Success(string.Format(Loc["Admin_Verif_Toast_RejectSuccess"], selectedItem.FullLegalName));
                 CloseModal();
                 await LoadVerificationsAsync();
             }
             else
             {
-                Toast.Error(res.Message ?? "Failed to reject verification.");
+                Toast.Error(res.Message ?? Loc["Admin_Verif_Toast_RejectFailed"]);
             }
         }
         catch (Exception ex)
         {
-            Toast.Error($"Error: {ex.Message}");
+            Toast.Error(string.Format(Loc["Admin_Verif_Toast_GenericError"], ex.Message));
         }
         finally
         {

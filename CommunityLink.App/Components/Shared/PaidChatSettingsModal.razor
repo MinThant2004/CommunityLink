@@ -1,0 +1,190 @@
+@rendermode InteractiveServer
+@using Microsoft.Extensions.Localization
+@inject ChatApiService ChatApi
+@inject IStringLocalizer<AppResources> Loc
+
+<div class="fixed inset-0 z-[120] flex items-center justify-center bg-[#0A1B2E]/60 dark:bg-black/80 backdrop-blur-sm p-4 animate-fade-in" @onclick="CloseOnBackdrop">
+    <div class="w-full max-w-md space-y-6 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] bg-white dark:bg-[#112A46] p-7 shadow-2xl relative" @onclick:stopPropagation>
+
+        <button type="button" @onclick="OnClose" aria-label="@Loc["Common_Close"]"
+                class="absolute top-5 right-5 flex h-8 w-8 items-center justify-center rounded-lg text-[#64748B] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+
+        <!-- Header -->
+        <div class="border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-4">
+            <div class="flex items-start gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-[#F1F5F9] dark:bg-[#182030] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center shrink-0 shadow-xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.502 49.188 49.188 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">
+                        @Loc["PaidChat_Title"]
+                    </h3>
+                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1">
+                        @Loc["PaidChat_Subtitle"]
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(chatSettingsSuccessMessage))
+        {
+            <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 rounded-lg p-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    <span>@chatSettingsSuccessMessage</span>
+                </span>
+                <button type="button" @onclick="() => chatSettingsSuccessMessage = null" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 cursor-pointer">&times;</button>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(chatSettingsErrorMessage))
+        {
+            <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 rounded-lg p-3 text-xs font-semibold text-rose-800 dark:text-rose-300 flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                    <svg class="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>@chatSettingsErrorMessage</span>
+                </span>
+                <button type="button" @onclick="() => chatSettingsErrorMessage = null" class="text-rose-600 dark:text-rose-400 hover:text-rose-900 cursor-pointer">&times;</button>
+            </div>
+        }
+
+        @if (isLoadingSettings)
+        {
+            <div class="py-8 text-center space-y-3">
+                <div class="inline-block animate-spin rounded-full h-7 w-7 border-4 border-slate-200 dark:border-slate-700 border-t-[#0A1B2E] dark:border-t-[#E1E8F0]"></div>
+                <p class="text-xs font-medium text-[#64748B]">@Loc["PaidChat_LoadingSettings"]</p>
+            </div>
+        }
+        else
+        {
+            <div class="space-y-5">
+                <!-- Toggle Enable -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-[#0F172A] dark:text-[#E1E8F0]">@Loc["PaidChat_StatusLabel"]</label>
+                    <div class="flex items-center gap-3">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" @bind="isPrivateChatEnabled" class="sr-only peer" />
+                            <div class="w-11 h-6 bg-slate-200 dark:bg-[#191B23] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0A1B2E] dark:peer-checked:bg-[#E1E8F0]"></div>
+                        </label>
+                        <span class="text-sm font-medium @(isPrivateChatEnabled ? "text-[#0A1B2E] dark:text-[#E1E8F0] font-bold" : "text-[#64748B]")">
+                            @(isPrivateChatEnabled ? Loc["PaidChat_StatusEnabled"] : Loc["PaidChat_StatusDisabled"])
+                        </span>
+                    </div>
+                    <p class="text-xs text-[#64748B]">
+                        @Loc["PaidChat_StatusDescription"]
+                    </p>
+                </div>
+
+                <!-- Fee Input -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-[#0F172A] dark:text-[#E1E8F0]">@Loc["PaidChat_FeeLabel"]</label>
+                    <div class="relative max-w-xs flex items-center">
+                        <input type="number" min="0" step="1" @bind="privateChatFeeLinkDrops" disabled="@(!isPrivateChatEnabled)"
+                               class="w-full pl-9 pr-4 py-2 border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] text-[#0F172A] dark:text-[#E1E8F0] rounded-lg text-sm font-mono font-semibold focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] disabled:bg-slate-100 dark:disabled:bg-[#111622] disabled:text-slate-400" />
+                        <span class="absolute left-3 top-2.5 flex items-center">
+                            <LinkDropIcon Class="w-4 h-4 shrink-0" />
+                        </span>
+                    </div>
+                    <p class="text-xs text-[#64748B]">
+                        @Loc["PaidChat_FeeDescription"]
+                    </p>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-end gap-3">
+                <button type="button" @onclick="OnClose"
+                        class="px-4 py-2 bg-[#F1F5F9] dark:bg-[#182030] text-[#475569] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded-lg text-xs font-semibold hover:bg-[#E2E8F0] dark:hover:bg-[#1E2638] transition cursor-pointer">
+                    @Loc["PaidChat_Done"]
+                </button>
+                <button type="button" @onclick="SaveChatSettingsAsync" disabled="@isSavingChatSettings"
+                        class="px-5 py-2 bg-[#0F172A] hover:bg-[#1E293B] text-white dark:bg-[#E1E8F0] dark:hover:bg-white dark:text-[#0A1B2E] rounded-lg text-xs font-bold transition-all duration-150 shadow-xs active:scale-[0.98] disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+                    @if (isSavingChatSettings)
+                    {
+                        <span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white dark:border-[#0A0D14] border-t-transparent"></span>
+                        <span>@Loc["PaidChat_Saving"]</span>
+                    }
+                    else
+                    {
+                        <span>@Loc["PaidChat_SaveSettings"]</span>
+                    }
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private bool isLoadingSettings = true;
+    private bool isPrivateChatEnabled = false;
+    private long privateChatFeeLinkDrops = 0;
+    private bool isSavingChatSettings = false;
+    private string? chatSettingsSuccessMessage;
+    private string? chatSettingsErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadChatSettingsAsync();
+    }
+
+    private async Task CloseOnBackdrop()
+    {
+        if (!isSavingChatSettings)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+
+    private async Task LoadChatSettingsAsync()
+    {
+        try
+        {
+            var res = await ChatApi.GetCreatorChatSettingsAsync();
+            if (res.IsSuccess && res.Data != null)
+            {
+                isPrivateChatEnabled = res.Data.IsPrivateChatEnabled;
+                privateChatFeeLinkDrops = res.Data.PrivateChatFeeLinkDrops;
+            }
+        }
+        catch
+        {
+            // Ignore error loading chat settings
+        }
+
+        isLoadingSettings = false;
+    }
+
+    private async Task SaveChatSettingsAsync()
+    {
+        isSavingChatSettings = true;
+        chatSettingsSuccessMessage = null;
+        chatSettingsErrorMessage = null;
+
+        try
+        {
+            var req = new SaveCreatorChatSettingRequestModel(isPrivateChatEnabled, privateChatFeeLinkDrops);
+            var res = await ChatApi.SaveCreatorChatSettingsAsync(req);
+            if (res.IsSuccess && res.Data != null)
+            {
+                isPrivateChatEnabled = res.Data.IsPrivateChatEnabled;
+                privateChatFeeLinkDrops = res.Data.PrivateChatFeeLinkDrops;
+                chatSettingsSuccessMessage = Loc["PaidChat_SuccessMessage"];
+            }
+            else
+            {
+                chatSettingsErrorMessage = res.Message ?? Loc["PaidChat_ErrorMessage"];
+            }
+        }
+        catch (Exception ex)
+        {
+            chatSettingsErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isSavingChatSettings = false;
+        }
+    }
+}

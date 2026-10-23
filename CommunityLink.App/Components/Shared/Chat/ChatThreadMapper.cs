@@ -1,5 +1,6 @@
 using CommunityLink.Shared.Features.Chat;
 using CommunityLink.Shared.Features.ChatGroup;
+using Microsoft.Extensions.Localization;
 
 namespace CommunityLink.App.Components.Shared.Chat;
 
@@ -33,16 +34,19 @@ public static class ChatThreadMapper
         };
     }
 
-    public static string FormatPresenceText(bool isOnline, DateTime? lastActiveAt)
+    public static string FormatPresenceText(bool isOnline, DateTime? lastActiveAt) =>
+        FormatPresenceText(isOnline, lastActiveAt, null);
+
+    public static string FormatPresenceText(bool isOnline, DateTime? lastActiveAt, IStringLocalizer<AppResources>? loc)
     {
         if (isOnline)
         {
-            return "online";
+            return loc is not null ? loc["Chat_Online"] : "online";
         }
 
         if (!lastActiveAt.HasValue)
         {
-            return "offline";
+            return loc is not null ? loc["Chat_Offline"] : "offline";
         }
 
         var localTime = lastActiveAt.Value.ToLocalTime();
@@ -51,23 +55,34 @@ public static class ChatThreadMapper
 
         if (diff.TotalMinutes < 1)
         {
-            return "last seen just now";
+            return loc is not null ? loc["Chat_Presence_JustNow"] : "last seen just now";
         }
         if (diff.TotalMinutes < 60)
         {
             int mins = (int)diff.TotalMinutes;
+            if (loc is not null)
+            {
+                var unit = mins == 1 ? loc["Chat_Presence_Minute"] : loc["Chat_Presence_Minutes"];
+                return loc["Chat_Presence_MinsAgo", mins, unit];
+            }
             return $"last seen {mins} {(mins == 1 ? "minute" : "minutes")} ago";
         }
         if (localTime.Date == now.Date)
         {
-            return $"last seen at {localTime:h:mm tt}";
+            return loc is not null
+                ? loc["Chat_Presence_At", localTime.ToString("h:mm tt")]
+                : $"last seen at {localTime:h:mm tt}";
         }
         if (localTime.Date == now.Date.AddDays(-1))
         {
-            return $"last seen yesterday at {localTime:h:mm tt}";
+            return loc is not null
+                ? loc["Chat_Presence_YesterdayAt", localTime.ToString("h:mm tt")]
+                : $"last seen yesterday at {localTime:h:mm tt}";
         }
 
-        return $"last seen {localTime:MMM d, yyyy}";
+        return loc is not null
+            ? loc["Chat_Presence_Date", localTime.ToString("MMM d, yyyy")]
+            : $"last seen {localTime:MMM d, yyyy}";
     }
 
     public static ChatThreadViewModel ToThread(this ChatGroupModel model) => new()
@@ -194,7 +209,10 @@ public static class ChatThreadMapper
         };
     }
 
-    public static string FormatActivityTime(DateTime? utcActivity)
+    public static string FormatActivityTime(DateTime? utcActivity) =>
+        FormatActivityTime(utcActivity, null);
+
+    public static string FormatActivityTime(DateTime? utcActivity, IStringLocalizer<AppResources>? loc)
     {
         if (utcActivity is null)
         {
@@ -211,7 +229,7 @@ public static class ChatThreadMapper
 
         if (local.Date == today.AddDays(-1))
         {
-            return "Yesterday";
+            return loc is not null ? loc["Chat_Date_Yesterday"] : "Yesterday";
         }
 
         return local.Date.Year == today.Year
@@ -219,18 +237,21 @@ public static class ChatThreadMapper
             : local.ToString("MMM d, yyyy");
     }
 
-    public static string FormatDateSeparator(DateTime localDate)
+    public static string FormatDateSeparator(DateTime localDate) =>
+        FormatDateSeparator(localDate, null);
+
+    public static string FormatDateSeparator(DateTime localDate, IStringLocalizer<AppResources>? loc)
     {
         var today = DateTime.Today;
 
-        if (localDate == today)
+        if (localDate.Date == today)
         {
-            return "Today";
+            return loc is not null ? loc["Chat_Date_Today"] : "Today";
         }
 
-        if (localDate == today.AddDays(-1))
+        if (localDate.Date == today.AddDays(-1))
         {
-            return "Yesterday";
+            return loc is not null ? loc["Chat_Date_Yesterday"] : "Yesterday";
         }
 
         return localDate.Year == today.Year
@@ -238,11 +259,14 @@ public static class ChatThreadMapper
             : localDate.ToString("MMMM d, yyyy");
     }
 
-    public static string FormatPreview(string? preview)
+    public static string FormatPreview(string? preview) =>
+        FormatPreview(preview, null);
+
+    public static string FormatPreview(string? preview, IStringLocalizer<AppResources>? loc)
     {
         if (string.IsNullOrWhiteSpace(preview))
         {
-            return "No messages yet";
+            return loc is not null ? loc["Chat_NoMessagesYet"] : "No messages yet";
         }
 
         var single = preview.ReplaceLineEndings(" ").Trim();

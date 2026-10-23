@@ -234,10 +234,31 @@ public sealed class CreatorEarningsService(
             .OrderByDescending(t => t.Date)
             .ToList();
 
+        var sourceBreakdownList = new List<CreatorSourceEarningsModel>
+        {
+            new(
+                Source: "GROUP",
+                Label: "Paid Group Joins",
+                Gross: groupGross,
+                Commission: groupCommission,
+                Net: groupNet,
+                TransactionCount: groupTransactions.Count
+            ),
+            new(
+                Source: "PRIVATE_CHAT",
+                Label: "Private Chat Unlocks",
+                Gross: privateGross,
+                Commission: privateCommission,
+                Net: privateNet,
+                TransactionCount: privateTransactions.Count
+            )
+        };
+
         var dashboard = new CreatorEarningsDashboardModel(
             Summary: summary,
             GroupBreakdown: groupBreakdownList,
             UserBreakdown: userBreakdownList,
+            SourceBreakdown: sourceBreakdownList,
             Transactions: transactionModels
         );
 

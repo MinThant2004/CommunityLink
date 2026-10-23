@@ -5,8 +5,9 @@
 @inject ToastService Toast
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JS
+@inject IStringLocalizer<AppResources> Loc
 
-<PageTitle>Admin Account Creation &amp; Management — Admin Control Panel</PageTitle>
+<PageTitle>@Loc["Admin_Accounts_PageTitle"]</PageTitle>
 
 <div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Header -->
@@ -14,13 +15,13 @@
         <div>
             <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2.5" style="font-family:'Manrope',sans-serif">
                 <svg class="w-6 h-6 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                <span>Admin Account Management</span>
+                <span>@Loc["Admin_Accounts_Heading"]</span>
             </h1>
-            <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">Provision operator credentials, invite administrators via 15-minute secure setup links, and govern access.</p>
+            <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">@Loc["Admin_Accounts_Subtitle"]</p>
         </div>
         <button @onclick="OpenInviteModal" class="px-4 py-2.5 rounded-lg text-xs font-bold text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white shadow-sm transition flex items-center gap-2 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            <span>Account Creation</span>
+            <span>@Loc["Admin_Accounts_CreateAccountBtn"]</span>
         </button>
     </div>
 
@@ -31,15 +32,15 @@
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold uppercase tracking-wider font-mono flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>15-Minute Setup Link Dispatched</span>
+                    <span>@Loc["Admin_Accounts_LinkDispatched"]</span>
                 </span>
-                <button @onclick="() => generatedInviteLink = null" class="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-100 text-xs">✕ Close</button>
+                <button @onclick="() => generatedInviteLink = null" class="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-100 text-xs">@Loc["Admin_Accounts_Close"]</button>
             </div>
-            <p class="text-xs text-emerald-700 dark:text-emerald-300">An email has been sent. You can also copy this setup link directly for the admin:</p>
+            <p class="text-xs text-emerald-700 dark:text-emerald-300">@Loc["Admin_Accounts_LinkNotice"]</p>
             <div class="flex items-center gap-2">
                 <input type="text" readonly value="@generatedInviteLink" class="w-full text-xs font-mono bg-white dark:bg-[#0A1B2E] border border-emerald-300 dark:border-emerald-700 rounded px-3 py-1.5 text-[#0A1B2E] dark:text-[#E1E8F0] select-all" />
                 <button @onclick="CopyInviteLink" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold whitespace-nowrap">
-                    @copyButtonText
+                    @(isInviteLinkCopied ? Loc["Admin_Accounts_Copied"] : Loc["Admin_Accounts_CopyLink"])
                 </button>
             </div>
         </div>
@@ -49,10 +50,10 @@
     <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden shadow-sm">
         <div class="p-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E] flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="w-full md:w-80">
-                <input type="text" class="w-full px-3.5 py-2 rounded-lg text-sm bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] transition" placeholder="Search admin by name or email..." @bind="searchFilter" @bind:event="oninput" />
+                <input type="text" class="w-full px-3.5 py-2 rounded-lg text-sm bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] transition" placeholder="@Loc["Admin_Accounts_SearchPlaceholder"]" @bind="searchFilter" @bind:event="oninput" />
             </div>
             <div class="text-xs text-[#7A8CA6] dark:text-[#C4D2E1] font-mono">
-                @FilteredAdmins.Count Administrator Accounts
+                @string.Format(Loc["Admin_Accounts_AdminCount"], FilteredAdmins.Count)
             </div>
         </div>
 
@@ -60,13 +61,13 @@
         {
             <div class="p-12 text-center text-[#557392] dark:text-[#C4D2E1]">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
-                <p class="mt-2 text-sm font-medium">Loading administrator directory...</p>
+                <p class="mt-2 text-sm font-medium">@Loc["Admin_Accounts_Loading"]</p>
             </div>
         }
         else if (!FilteredAdmins.Any())
         {
             <div class="p-8 text-center text-[#7A8CA6] dark:text-[#C4D2E1]">
-                <p class="text-sm font-medium">No administrator accounts match your criteria.</p>
+                <p class="text-sm font-medium">@Loc["Admin_Accounts_NoAdmins"]</p>
             </div>
         }
         else
@@ -75,14 +76,14 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-[#F1F5F9] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[10px] font-bold text-[#7A8CA6] dark:text-[#C4D2E1] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
-                            <th class="px-6 py-3">ID</th>
-                            <th class="px-6 py-3">Administrator</th>
-                            <th class="px-6 py-3">Email Address</th>
-                            <th class="px-6 py-3">Admin Type</th>
-                            <th class="px-6 py-3">Status</th>
-                            <th class="px-6 py-3">Last Login</th>
-                            <th class="px-6 py-3">Provisioned Date</th>
-                            <th class="px-6 py-3 text-right">Actions</th>
+                            <th class="px-6 py-3">@Loc["Admin_Accounts_ColId"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Accounts_ColAdministrator"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Accounts_ColEmail"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Accounts_ColAdminType"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Accounts_ColStatus"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Accounts_ColLastLogin"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Accounts_ColProvisionedDate"]</th>
+                            <th class="px-6 py-3 text-right">@Loc["Admin_Accounts_ColActions"]</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)] text-sm">
@@ -104,7 +105,7 @@
                                     {
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold font-mono bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
                                             <svg class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
-                                            <span>SYSTEMADMIN</span>
+                                            <span>@Loc["Admin_Accounts_RoleSuperAdmin"]</span>
                                         </span>
                                     }
                                     else
@@ -132,18 +133,18 @@
                                     @if (admin.IsActive)
                                     {
                                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> @Loc["Admin_Accounts_Active"]
                                         </span>
                                     }
                                     else
                                     {
                                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/40 px-2.5 py-0.5 rounded-full border border-gray-200 dark:border-gray-800">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Deactivated
+                                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> @Loc["Admin_Accounts_Deactivated"]
                                         </span>
                                     }
                                 </td>
                                 <td class="px-6 py-4 font-mono text-xs text-[#7A8CA6] dark:text-[#C4D2E1]">
-                                    @(admin.LastLoginAt.HasValue ? admin.LastLoginAt.Value.ToString("yyyy-MM-dd HH:mm") : "Never")
+                                    @(admin.LastLoginAt.HasValue ? admin.LastLoginAt.Value.ToString("yyyy-MM-dd HH:mm") : Loc["Admin_Accounts_LastLoginNever"])
                                 </td>
                                 <td class="px-6 py-4 font-mono text-xs text-[#7A8CA6] dark:text-[#C4D2E1]">
                                     @admin.CreatedAt.ToString("yyyy-MM-dd")
@@ -152,16 +153,16 @@
                                     @if (isCurrentCallerSuperAdmin && !admin.IsSuperAdmin)
                                     {
                                         <button @onclick="() => ToggleAdminStatus(admin)" class="px-2.5 py-1 rounded text-xs font-semibold transition border @(admin.IsActive ? "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 border-amber-200 dark:border-amber-800" : "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border-emerald-200 dark:border-emerald-800")">
-                                            @(admin.IsActive ? "Deactivate" : "Activate")
+                                            @(admin.IsActive ? Loc["Admin_Accounts_Deactivate"] : Loc["Admin_Accounts_Activate"])
                                         </button>
                                     }
                                     else if (admin.IsSuperAdmin)
                                     {
-                                        <span class="text-xs text-[#7A8CA6] dark:text-[#C4D2E1] italic">Protected</span>
+                                        <span class="text-xs text-[#7A8CA6] dark:text-[#C4D2E1] italic">@Loc["Admin_Accounts_Protected"]</span>
                                     }
                                     else
                                     {
-                                        <span class="text-xs text-[#7A8CA6] dark:text-[#C4D2E1] italic" title="Only SYSTEMADMIN can toggle account statuses">Read-only</span>
+                                        <span class="text-xs text-[#7A8CA6] dark:text-[#C4D2E1] italic" title="@Loc["Admin_Accounts_ReadOnlyTitle"]">@Loc["Admin_Accounts_ReadOnly"]</span>
                                     }
                                 </td>
                             </tr>
@@ -181,12 +182,12 @@
             <div class="p-6 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E]">
                 <div class="flex items-center justify-between">
                     <div>
-                        <span class="font-mono text-[10px] font-bold uppercase tracking-wider text-[#0A1B2E] dark:text-[#E1E8F0]">PROVISION OPERATOR</span>
-                        <h2 class="text-xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">Account Creation</h2>
+                        <span class="font-mono text-[10px] font-bold uppercase tracking-wider text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["Admin_Accounts_ModalSuperTitle"]</span>
+                        <h2 class="text-xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">@Loc["Admin_Accounts_ModalTitle"]</h2>
                     </div>
                     <button @onclick="CloseInviteModal" class="p-1 rounded text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white hover:bg-[#E2E8F0] dark:hover:bg-[#1B3B5A] transition">✕</button>
                 </div>
-                <p class="mt-1 text-xs text-[#557392] dark:text-[#C4D2E1]">Enter the admin's Gmail/Email. A secure 15-minute link will be sent for password creation.</p>
+                <p class="mt-1 text-xs text-[#557392] dark:text-[#C4D2E1]">@Loc["Admin_Accounts_ModalSubtitle"]</p>
             </div>
 
             <div class="p-6 space-y-4">
@@ -199,8 +200,8 @@
                 }
 
                 <div class="space-y-1.5">
-                    <label class="block text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0] uppercase font-mono tracking-wider">Admin Gmail / Email Address</label>
-                    <input type="email" @bind="targetEmail" placeholder="admin.name@gmail.com" class="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] transition" />
+                    <label class="block text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0] uppercase font-mono tracking-wider">@Loc["Admin_Accounts_ModalEmailLabel"]</label>
+                    <input type="email" @bind="targetEmail" placeholder="@Loc["Admin_Accounts_ModalEmailPlaceholder"]" class="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white dark:bg-[#0A1B2E] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:border-[#0A1B2E] transition" />
                 </div>
 
                 <div class="space-y-1.5">
@@ -224,23 +225,23 @@
                 <div class="p-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] rounded-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-xs text-[#557392] dark:text-[#C4D2E1] space-y-1">
                     <p class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        <span>15-Minute Expiration Notice</span>
+                        <span>@Loc["Admin_Accounts_NoticeTitle"]</span>
                     </p>
-                    <p>The invited admin will receive a link to set their password. Once created, they will log in strictly through the <strong>Admin Portal Login</strong>.</p>
+                    <p>@Loc["Admin_Accounts_NoticeDesc"]</p>
                 </div>
             </div>
 
             <div class="p-4 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-end gap-2">
-                <button @onclick="CloseInviteModal" class="px-4 py-2 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:bg-[#E2E8F0] dark:hover:bg-[#1B3B5A] transition">Cancel</button>
+                <button @onclick="CloseInviteModal" class="px-4 py-2 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:bg-[#E2E8F0] dark:hover:bg-[#1B3B5A] transition">@Loc["Common_Cancel"]</button>
                 <button @onclick="SendAdminInvite" disabled="@isInviting" class="px-5 py-2 rounded-lg text-xs font-bold text-white dark:text-[#0A1B2E] bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white shadow-sm transition flex items-center gap-2">
                     @if (isInviting)
                     {
                         <span class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white dark:border-[#0A1B2E] border-t-transparent"></span>
-                        <span>Dispatching Link...</span>
+                        <span>@Loc["Admin_Accounts_DispatchingLink"]</span>
                     }
                     else
                     {
-                        <span>Send Setup Link</span>
+                        <span>@Loc["Admin_Accounts_SendSetupLink"]</span>
                         <span>&rarr;</span>
                     }
                 </button>
@@ -306,7 +307,7 @@
 
     // Generated Invite Link
     private string? generatedInviteLink;
-    private string copyButtonText = "Copy Link";
+    private bool isInviteLinkCopied;
 
     private List<AdminAccountModel> FilteredAdmins => string.IsNullOrWhiteSpace(searchFilter)
         ? adminAccounts
@@ -373,7 +374,7 @@
         modalError = null;
         if (string.IsNullOrWhiteSpace(targetEmail))
         {
-            modalError = "Please enter an email address.";
+            modalError = Loc["Admin_Accounts_Val_EmailRequired"];
             return;
         }
 
@@ -399,8 +400,8 @@
         else
         {
             generatedInviteLink = result.Data;
-            copyButtonText = "Copy Link";
-            Toast.Success("Admin invitation link created! Valid for 15 minutes.");
+            isInviteLinkCopied = false;
+            Toast.Success(Loc["Admin_Accounts_Toast_InviteCreated"]);
             showInviteModal = false;
             await LoadDataAsync();
         }
@@ -411,8 +412,8 @@
         if (!string.IsNullOrEmpty(generatedInviteLink))
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", generatedInviteLink);
-            copyButtonText = "Copied!";
-            Toast.Success("Invite link copied to clipboard.");
+            isInviteLinkCopied = true;
+            Toast.Success(Loc["Admin_Accounts_Toast_LinkCopied"]);
         }
     }
 

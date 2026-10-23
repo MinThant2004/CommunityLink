@@ -62,8 +62,8 @@ public class AuthenticationService : IAuthenticationService
         if (!UserNamePattern.IsMatch(request.UserName))
             return Result<LoginResponseModel>.Failure("Username must be 3-30 characters and contain only letters, numbers or underscores.", ResultStatus.ValidationError);
 
-        if (request.Password.Length < MinPasswordLength)
-            return Result<LoginResponseModel>.Failure($"Password must be at least {MinPasswordLength} characters long.", ResultStatus.ValidationError);
+        if (!IsValidPassword(request.Password, out var passwordError))
+            return Result<LoginResponseModel>.Failure(passwordError, ResultStatus.ValidationError);
 
         var confirmPassword = string.IsNullOrWhiteSpace(request.ConfirmPassword) ? request.Password : request.ConfirmPassword;
         if (request.Password != confirmPassword)
@@ -301,8 +301,9 @@ public class AuthenticationService : IAuthenticationService
         if (request.CurrentPassword == request.NewPassword)
             return Result<bool>.Failure("New password must be different from the current password.", ResultStatus.ValidationError);
 
-        if (request.NewPassword.Length < MinPasswordLength)
-            return Result<bool>.Failure($"Password must be at least {MinPasswordLength} characters long.", ResultStatus.ValidationError);
+        var passwordError = string.Empty;
+        if (!IsValidPassword(request.NewPassword, out passwordError))
+            return Result<bool>.Failure(passwordError, ResultStatus.ValidationError);
 
         var user = await _dbContext.TblUsers.FirstOrDefaultAsync(u => u.UserId == userId && !u.IsDeleted);
         if (user != null)
@@ -442,11 +443,15 @@ public class AuthenticationService : IAuthenticationService
         if (!otpRecord.VerifiedAt.HasValue)
             return Result<bool>.Failure("Verify your one-time password before resetting your password.", ResultStatus.ValidationError);
 
-        var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
-
         var user = await _dbContext.TblUsers.FirstOrDefaultAsync(u => u.NormalizedEmail == otpRecord.Email && !u.IsDeleted);
         if (user != null)
         {
+            if (!string.IsNullOrEmpty(user.PasswordHash) && BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+            {
+                return Result<bool>.Failure("New password cannot be the same as your current password.", ResultStatus.ValidationError);
+            }
+
+            var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
             user.PasswordHash = newPasswordHash;
             user.UpdatedAt = DateTime.UtcNow;
             otpRecord.IsUsed = true;
@@ -457,6 +462,12 @@ public class AuthenticationService : IAuthenticationService
         var admin = await _dbContext.TblAdmins.FirstOrDefaultAsync(a => a.NormalizedEmail == otpRecord.Email && !a.IsDeleted);
         if (admin != null)
         {
+            if (!string.IsNullOrEmpty(admin.PasswordHash) && BCrypt.Net.BCrypt.Verify(request.NewPassword, admin.PasswordHash))
+            {
+                return Result<bool>.Failure("New password cannot be the same as your current password.", ResultStatus.ValidationError);
+            }
+
+            var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
             admin.PasswordHash = newPasswordHash;
             admin.UpdatedAt = DateTime.UtcNow;
             otpRecord.IsUsed = true;
@@ -478,17 +489,22 @@ public class AuthenticationService : IAuthenticationService
         }
         if (!password.Any(char.IsUpper))
         {
-            error = "Password must contain at least one uppercase letter.";
+            error = "Password must contain at least one uppercase letter (A-Z).";
             return false;
         }
         if (!password.Any(char.IsLower))
         {
-            error = "Password must contain at least one lowercase letter.";
+            error = "Password must contain at least one lowercase letter (a-z).";
             return false;
         }
         if (!password.Any(char.IsDigit))
         {
-            error = "Password must contain at least one number.";
+            error = "Password must contain at least one number (0-9).";
+            return false;
+        }
+        if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
+        {
+            error = "Password must contain at least one special character (!@#$%^&*...).";
             return false;
         }
 

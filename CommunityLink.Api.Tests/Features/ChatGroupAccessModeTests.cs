@@ -22,7 +22,7 @@ public class ChatGroupAccessModeTests : IClassFixture<CommunityApiFactory>
         _factory = factory;
         _client = factory.CreateClient();
     }
-
+    
     private async Task<(string Token, int UserId)> GetTokenAndUserIdAsync(string roleCode, string username, string email, string password)
     {
         using var scope = _factory.Services.CreateScope();

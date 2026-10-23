@@ -9,6 +9,7 @@ using CommunityLink.Domain.Features.Authentication;
 using CommunityLink.Domain.Features.LinkDrop;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Localization;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,7 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddLocalization();
 
 // Add SignalR
 builder.Services.AddSignalR();
@@ -117,6 +119,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// Request Localization Middleware (en default, my supported via Accept-Language)
+var supportedCultures = new[] { "en", "my", "en-US", "my-MM" };
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture("en")
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+app.UseRequestLocalization(localizationOptions);
 
 app.UseAuthentication();
 app.UseMiddleware<PasswordChangeRequirementMiddleware>();

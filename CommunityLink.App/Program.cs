@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Localization;
+using CommunityLink.App;
 using CommunityLink.App.Components;
 using CommunityLink.App.Apis;
 using CommunityLink.App.Services;
@@ -5,12 +7,22 @@ using CommunityLink.Shared.Security;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Razor components
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Localization Services
+builder.Services.AddLocalization(options =>
+{
+    options.ResourcesPath = "Resources";
+});
+builder.Services.AddScoped<CultureService>();
+builder.Services.AddScoped<IStringLocalizer<AppResources>, DynamicAppStringLocalizer>();
+builder.Services.AddScoped<IStringLocalizer, DynamicAppStringLocalizer>();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();
@@ -43,11 +55,14 @@ var apiBaseUrl = builder.Configuration["CommunityApi:BaseUrl"] ?? "http://localh
 var timeoutSec = builder.Configuration.GetValue<int>("CommunityApi:TimeoutSeconds", 30);
 var uploadTimeoutSec = builder.Configuration.GetValue<int>("CommunityApi:UploadTimeoutSeconds", 120);
 
+builder.Services.AddTransient<AcceptLanguageHeaderHandler>();
+
 builder.Services.AddHttpClient("CommunityApi", client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(timeoutSec);
 })
+.AddHttpMessageHandler<AcceptLanguageHeaderHandler>()
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
     ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
@@ -61,6 +76,7 @@ builder.Services.AddHttpClient("CommunityApiUpload", client =>
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(uploadTimeoutSec);
 })
+.AddHttpMessageHandler<AcceptLanguageHeaderHandler>()
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
     ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
@@ -103,6 +119,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// Request Localization Middleware (en default, my supported)
+var supportedCultures = new[] { "en", "my", "en-US", "my-MM" };
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture("en")
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+app.UseRequestLocalization(localizationOptions);
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
@@ -150,6 +176,9 @@ app.MapPost("/account/admin/logout", async (HttpContext context, IAntiforgery an
 
 // Login / Register Flow Endpoints (issue the Ace.Community.Auth cookie ticket)
 app.MapAuthFlowEndpoints();
+
+// Culture Switching Endpoints (/culture/set)
+app.MapCultureEndpoints();
 
 app.Run();
 

@@ -1,0 +1,58 @@
+@using System.Globalization
+@using Microsoft.Extensions.Localization
+@using CommunityLink.App.Services
+@implements IDisposable
+@inject CultureService Culture
+@inject IStringLocalizer<AppResources> Loc
+
+<nav aria-label="@Loc["Common_LanguageSelection"]" class="inline-flex items-center gap-1 rounded-md border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.1)] bg-white/80 dark:bg-[#0A0D14]/80 p-0.5 text-xs font-medium backdrop-blur-sm transition-colors">
+    <button type="button"
+            @onclick='() => SwitchCultureAsync("en")'
+            class="px-2 py-1 rounded transition-colors cursor-pointer @(IsActive("en") 
+                ? "bg-[#0A1B2E] text-white dark:bg-[#D4AF37] dark:text-[#0A0D14] font-semibold shadow-xs" 
+                : "text-[#557392] hover:text-[#0A1B2E] dark:text-[#94A3B8] dark:hover:text-[#E1E2EC] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")"
+            aria-label="@Loc["Common_SwitchToEnglish"]"
+            aria-pressed="@(IsActive("en") ? "true" : "false")">
+        EN
+    </button>
+    <span class="text-[#CBD5E1] dark:text-[rgba(255,255,255,0.2)] select-none text-[11px]" aria-hidden="true">|</span>
+    <button type="button"
+            @onclick='() => SwitchCultureAsync("my")'
+            class="px-2 py-1 rounded transition-colors cursor-pointer @(IsActive("my") 
+                ? "bg-[#0A1B2E] text-white dark:bg-[#D4AF37] dark:text-[#0A0D14] font-semibold shadow-xs" 
+                : "text-[#557392] hover:text-[#0A1B2E] dark:text-[#94A3B8] dark:hover:text-[#E1E2EC] hover:bg-[#F1F5F9] dark:hover:bg-[#182030]")"
+            aria-label="@Loc["Common_SwitchToMyanmar"]"
+            aria-pressed="@(IsActive("my") ? "true" : "false")">
+        မြန်မာ
+    </button>
+</nav>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Culture.OnCultureChanged += HandleCultureChanged;
+    }
+
+    private void HandleCultureChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private bool IsActive(string cultureCode)
+    {
+        return string.Equals(Culture.CurrentCultureName, cultureCode, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task SwitchCultureAsync(string cultureCode)
+    {
+        if (IsActive(cultureCode))
+            return;
+
+        await Culture.SetCultureAsync(cultureCode);
+    }
+
+    public void Dispose()
+    {
+        Culture.OnCultureChanged -= HandleCultureChanged;
+    }
+}

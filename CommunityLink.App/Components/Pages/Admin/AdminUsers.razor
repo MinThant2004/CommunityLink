@@ -3,17 +3,18 @@
 @inject AdministrationApiService AdminApi
 @inject RoleAndPermissionApiService RoleApi
 @inject ToastService Toast
+@inject IStringLocalizer<AppResources> Loc
 
-<PageTitle>User Management — Admin Control Panel</PageTitle>
+<PageTitle>@Loc["Admin_Users_PageTitle"]</PageTitle>
 
 <div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center gap-2.5" style="font-family:'Manrope',sans-serif">
                 <svg class="w-6 h-6 text-[#D4AF37] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span>Platform User Directory</span>
+                <span>@Loc["Admin_Users_Heading"]</span>
             </h1>
-            <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">Manage registered users, roles, and account statuses across the platform.</p>
+            <p class="text-sm text-[#557392] dark:text-[#C4D2E1]">@Loc["Admin_Users_Subtitle"]</p>
         </div>
     </div>
 
@@ -24,32 +25,32 @@
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#7A8CA6]">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </span>
-                    <input type="text" class="w-full pl-9 pr-3.5 py-2 rounded-xl text-sm bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] transition" placeholder="Search by name, username, email..." @bind="searchFilter" @bind:after="OnSearchChanged" />
+                    <input type="text" class="w-full pl-9 pr-3.5 py-2 rounded-xl text-sm bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] dark:placeholder-[rgba(196,210,225,0.40)] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0] transition" placeholder="@Loc["Admin_Users_SearchPlaceholder"]" @bind="searchFilter" @bind:after="OnSearchChanged" />
                 </div>
 
                 <!-- Status Filter -->
                 <select value="@statusFilterRaw" @onchange="OnStatusFilterChanged" class="w-full md:w-40 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 cursor-pointer">
-                    <option value="all">All Statuses</option>
-                    <option value="active">Active Users</option>
-                    <option value="deactivated">Deactivated Users</option>
+                    <option value="all">@Loc["Admin_Users_StatusAll"]</option>
+                    <option value="active">@Loc["Admin_Users_StatusActive"]</option>
+                    <option value="deactivated">@Loc["Admin_Users_StatusDeactivated"]</option>
                 </select>
 
                 <!-- Role Category Filter -->
                 <select value="@roleFilter" @onchange="OnRoleFilterChanged" class="w-full md:w-44 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 cursor-pointer">
-                    <option value="all">All Roles</option>
-                    <option value="user">Normal Users</option>
-                    <option value="creator">Creators & Pros</option>
-                    <option value="admin">Administrators</option>
+                    <option value="all">@Loc["Admin_Users_RoleAll"]</option>
+                    <option value="user">@Loc["Admin_Users_RoleUser"]</option>
+                    <option value="creator">@Loc["Admin_Users_RoleCreator"]</option>
+                    <option value="admin">@Loc["Admin_Users_RoleAdmin"]</option>
                 </select>
             </div>
 
             <div class="flex items-center gap-2 shrink-0 text-xs text-[#557392] dark:text-[#C4D2E1]">
-                <span class="font-medium">Rows per page:</span>
+                <span class="font-medium">@Loc["Admin_Users_RowsPerPageLabel"]</span>
                 <select value="@pageSize" @onchange="OnPageSizeChanged" class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 cursor-pointer">
-                    <option value="10">10 rows</option>
-                    <option value="25">25 rows</option>
-                    <option value="50">50 rows</option>
-                    <option value="100">100 rows</option>
+                    <option value="10">@string.Format(Loc["Admin_Finance_RowsPerPage"], 10)</option>
+                    <option value="25">@string.Format(Loc["Admin_Finance_RowsPerPage"], 25)</option>
+                    <option value="50">@string.Format(Loc["Admin_Finance_RowsPerPage"], 50)</option>
+                    <option value="100">@string.Format(Loc["Admin_Finance_RowsPerPage"], 100)</option>
                 </select>
             </div>
         </div>
@@ -58,13 +59,13 @@
         {
             <div class="p-12 text-center text-[#557392] dark:text-[#C4D2E1]">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
-                <p class="mt-2 text-sm font-medium">Loading user records...</p>
+                <p class="mt-2 text-sm font-medium">@Loc["Admin_Users_LoadingRecords"]</p>
             </div>
         }
         else if (users == null || !users.Any())
         {
             <div class="p-8 text-center text-[#7A8CA6] dark:text-[#C4D2E1]">
-                <p class="text-sm font-medium">No users found matching query.</p>
+                <p class="text-sm font-medium">@Loc["Admin_Users_NoUsersFound"]</p>
             </div>
         }
         else
@@ -73,14 +74,14 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-[#F1F5F9] dark:bg-[#0A1B2E] border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[10px] font-bold text-[#7A8CA6] uppercase tracking-[0.06em]" style="font-family:'JetBrains Mono',monospace">
-                            <th class="px-6 py-3">No</th>
-                            <th class="px-6 py-3">Display Name</th>
-                            <th class="px-6 py-3">Username</th>
-                            <th class="px-6 py-3">Email</th>
-                            <th class="px-6 py-3">Assigned Role</th>
-                            <th class="px-6 py-3">Status</th>
-                            <th class="px-6 py-3">Registered Date</th>
-                            <th class="px-6 py-3 text-right">Actions</th>
+                            <th class="px-6 py-3">@Loc["Admin_Users_ColNo"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Users_ColDisplayName"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Users_ColUsername"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Users_ColEmail"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Users_ColAssignedRole"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Users_ColStatus"]</th>
+                            <th class="px-6 py-3">@Loc["Admin_Users_ColRegisteredDate"]</th>
+                            <th class="px-6 py-3 text-right">@Loc["Admin_Users_ColActions"]</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)] text-sm">
@@ -99,7 +100,7 @@
                                         {
                                             @if (!availableRoles.Any(r => r.RoleId == u.RoleId))
                                             {
-                                                <option value="@u.RoleId" disabled selected>@u.RoleCode (Default)</option>
+                                                <option value="@u.RoleId" disabled selected>@string.Format(Loc["Admin_Users_RoleDefault"], u.RoleCode)</option>
                                             }
                                             @foreach (var r in availableRoles)
                                             {
@@ -114,7 +115,7 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold @(u.IsActive ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50" : "bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50")">
-                                        @(u.IsActive ? "Active" : "Deactivated")
+                                        @(u.IsActive ? Loc["Admin_Users_StatusActiveBadge"] : Loc["Admin_Users_StatusDeactivatedBadge"])
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-xs text-[#7A8CA6] font-mono">@u.CreatedAt.ToString("g")</td>
@@ -123,24 +124,24 @@
                                     {
                                         <button type="button"
                                                 @onclick="() => PromptStatusToggle(u)"
-                                                title="Deactivate account"
+                                                title="@Loc["Admin_Users_DeactivateTitle"]"
                                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition cursor-pointer">
                                             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                                             </svg>
-                                            <span>Deactivate</span>
+                                            <span>@Loc["Admin_Users_DeactivateBtn"]</span>
                                         </button>
                                     }
                                     else
                                     {
                                         <button type="button"
                                                 @onclick="() => PromptStatusToggle(u)"
-                                                title="Activate account"
+                                                title="@Loc["Admin_Users_ActivateTitle"]"
                                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition cursor-pointer">
                                             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
-                                            <span>Activate</span>
+                                            <span>@Loc["Admin_Users_ActivateBtn"]</span>
                                         </button>
                                     }
                                 </td>
@@ -158,32 +159,32 @@
                     {
                         var startItem = (pageNumber - 1) * pageSize + 1;
                         var endItem = Math.Min(pageNumber * pageSize, totalCount);
-                        <span>Showing <strong class="text-[#0A1B2E] dark:text-[#E1E8F0]">@startItem</strong> to <strong class="text-[#0A1B2E] dark:text-[#E1E8F0]">@endItem</strong> of <strong class="text-[#0A1B2E] dark:text-[#E1E8F0]">@totalCount</strong> registered users</span>
+                        <span>@string.Format(Loc["Admin_Users_ShowingRange"], startItem, endItem, totalCount)</span>
                     }
                     else
                     {
-                        <span>No user records available</span>
+                        <span>@Loc["Admin_Users_NoRecords"]</span>
                     }
                 </div>
 
                 <!-- Pagination Navigation Controls -->
                 <div class="flex items-center gap-1.5">
-                    <button @onclick="GoToFirstPage" disabled="@(pageNumber <= 1)" title="First Page" class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
-                        &laquo; First
+                    <button @onclick="GoToFirstPage" disabled="@(pageNumber <= 1)" title="@Loc["Admin_Users_PaginationFirst"]" class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                        @Loc["Admin_Users_PaginationFirst"]
                     </button>
-                    <button @onclick="PreviousPage" disabled="@(pageNumber <= 1)" title="Previous Page" class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
-                        &larr; Prev
+                    <button @onclick="PreviousPage" disabled="@(pageNumber <= 1)" title="@Loc["Admin_Users_PaginationPrev"]" class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                        @Loc["Admin_Users_PaginationPrev"]
                     </button>
                     
                     <span class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] font-mono font-bold">
-                        Page @pageNumber of @totalPages
+                        @string.Format(Loc["Admin_Users_PaginationPageOf"], pageNumber, totalPages)
                     </span>
 
-                    <button @onclick="NextPage" disabled="@(pageNumber >= totalPages)" title="Next Page" class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
-                        Next &rarr;
+                    <button @onclick="NextPage" disabled="@(pageNumber >= totalPages)" title="@Loc["Admin_Users_PaginationNext"]" class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                        @Loc["Admin_Users_PaginationNext"]
                     </button>
-                    <button @onclick="GoToLastPage" disabled="@(pageNumber >= totalPages)" title="Last Page" class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
-                        Last &raquo;
+                    <button @onclick="GoToLastPage" disabled="@(pageNumber >= totalPages)" title="@Loc["Admin_Users_PaginationLast"]" class="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] font-semibold hover:bg-slate-100 dark:hover:bg-[#1B3B5A] disabled:opacity-40 transition cursor-pointer">
+                        @Loc["Admin_Users_PaginationLast"]
                     </button>
                 </div>
             </div>
@@ -201,30 +202,30 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Confirm Role Assignment</h3>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">@Loc["Admin_Users_ConfirmRoleTitle"]</h3>
             </div>
             
             <p class="text-sm text-slate-600 dark:text-slate-300">
-                Are you sure you want to change the role of <strong>@pendingUser.DisplayName</strong> (@@@pendingUser.UserName)?
+                @string.Format(Loc["Admin_Users_ConfirmRoleDesc"], pendingUser.DisplayName, pendingUser.UserName)
             </p>
 
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-xs space-y-1">
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Current Role:</span>
+                    <span class="text-slate-500">@Loc["Admin_Users_CurrentRole"]</span>
                     <span class="font-bold text-slate-800 dark:text-slate-200">@pendingUser.RoleCode</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">New Role:</span>
+                    <span class="text-slate-500">@Loc["Admin_Users_NewRole"]</span>
                     <span class="font-bold text-indigo-600 dark:text-indigo-400">@pendingRole.Name (@pendingRole.Code)</span>
                 </div>
             </div>
 
             <div class="flex justify-end gap-3 pt-2">
                 <button type="button" @onclick="CancelRoleChange" class="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition cursor-pointer">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="ConfirmRoleChange" disabled="@isAssigning" class="px-4 py-2 text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition shadow-sm cursor-pointer disabled:opacity-50">
-                    @(isAssigning ? "Updating..." : "Yes, Update Role")
+                    @(isAssigning ? Loc["Admin_Users_Updating"] : Loc["Admin_Users_ConfirmRoleBtn"])
                 </button>
             </div>
         </div>
@@ -241,38 +242,38 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="@(pendingStatusUser.IsActive ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" : "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z")" />
                     </svg>
                 </div>
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white">@(pendingStatusUser.IsActive ? "Deactivate User Account" : "Activate User Account")</h3>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">@(pendingStatusUser.IsActive ? Loc["Admin_Users_DeactivateModalTitle"] : Loc["Admin_Users_ActivateModalTitle"])</h3>
             </div>
             
             <p class="text-sm text-slate-600 dark:text-slate-300">
-                Are you sure you want to @(pendingStatusUser.IsActive ? "deactivate" : "activate") the account for <strong>@pendingStatusUser.DisplayName</strong> (@@@pendingStatusUser.UserName)?
+                @string.Format(pendingStatusUser.IsActive ? Loc["Admin_Users_DeactivateConfirmPrompt"] : Loc["Admin_Users_ActivateConfirmPrompt"], pendingStatusUser.DisplayName, pendingStatusUser.UserName)
             </p>
 
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-xs space-y-1">
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Account Email:</span>
+                    <span class="text-slate-500">@Loc["Admin_Users_AccountEmail"]</span>
                     <span class="font-bold text-slate-800 dark:text-slate-200">@pendingStatusUser.Email</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Current Status:</span>
+                    <span class="text-slate-500">@Loc["Admin_Users_CurrentStatus"]</span>
                     <span class="font-bold @(pendingStatusUser.IsActive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")">
-                        @(pendingStatusUser.IsActive ? "Active" : "Inactive")
+                        @(pendingStatusUser.IsActive ? Loc["Admin_Users_StatusActiveBadge"] : Loc["Admin_Users_StatusInactiveBadge"])
                     </span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Target Status:</span>
+                    <span class="text-slate-500">@Loc["Admin_Users_TargetStatus"]</span>
                     <span class="font-bold @(pendingStatusUser.IsActive ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400")">
-                        @(pendingStatusUser.IsActive ? "Deactivated" : "Active")
+                        @(pendingStatusUser.IsActive ? Loc["Admin_Users_StatusDeactivatedBadge"] : Loc["Admin_Users_StatusActiveBadge"])
                     </span>
                 </div>
             </div>
 
             <div class="flex justify-end gap-3 pt-2">
                 <button type="button" @onclick="CancelStatusToggle" class="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition cursor-pointer">
-                    Cancel
+                    @Loc["Common_Cancel"]
                 </button>
                 <button type="button" @onclick="ConfirmStatusToggle" disabled="@isTogglingStatus" class="px-4 py-2 text-sm font-semibold rounded-xl @(pendingStatusUser.IsActive ? "bg-rose-600 hover:bg-rose-700" : "bg-emerald-600 hover:bg-emerald-700") text-white transition shadow-sm cursor-pointer disabled:opacity-50">
-                    @(isTogglingStatus ? "Updating..." : (pendingStatusUser.IsActive ? "Yes, Deactivate Account" : "Yes, Activate Account"))
+                    @(isTogglingStatus ? Loc["Admin_Users_Updating"] : (pendingStatusUser.IsActive ? Loc["Admin_Users_ConfirmDeactivateBtn"] : Loc["Admin_Users_ConfirmActivateBtn"]))
                 </button>
             </div>
         </div>
@@ -382,7 +383,7 @@
 
         if (res.IsSuccess)
         {
-            Toast.Success("Role updated successfully!");
+            Toast.Success(Loc["Admin_Users_RoleUpdatedSuccess"] ?? "Role updated successfully!");
             await LoadUsersAsync();
         }
         else

@@ -69,6 +69,21 @@ public sealed class AdminFinanceApiService(IHttpClientFactory clientFactory, IHt
         return GetAsync<IReadOnlyList<AdminFinanceGroupBreakdownModel>>(url, cancellationToken);
     }
 
+    public Task<Result<IReadOnlyList<AdminFinancePrivateChatBreakdownModel>>> GetPrivateChatsAsync(
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        var queryParams = new List<string>();
+        if (fromDate.HasValue) queryParams.Add($"fromDate={Uri.EscapeDataString(fromDate.Value.ToString("yyyy-MM-dd"))}");
+        if (toDate.HasValue) queryParams.Add($"toDate={Uri.EscapeDataString(toDate.Value.ToString("yyyy-MM-dd"))}");
+
+        var url = "api/admin/finance/private-chats";
+        if (queryParams.Count > 0) url += "?" + string.Join("&", queryParams);
+
+        return GetAsync<IReadOnlyList<AdminFinancePrivateChatBreakdownModel>>(url, cancellationToken);
+    }
+
     public async Task<Result<byte[]>> GetExportCsvBytesAsync(
         DateTime? fromDate = null,
         DateTime? toDate = null,

@@ -10,7 +10,12 @@ public sealed record AdminFinanceSummaryModel(
     long PendingCreatorPayoutsLinkDrops,
     int GrossTransactionCount,
     int CompletedPayoutCount,
-    int PendingPayoutCount
+    int PendingPayoutCount,
+    long GroupRevenueLinkDrops = 0,
+    int GroupTxCount = 0,
+    long PrivateChatRevenueLinkDrops = 0,
+    int PrivateChatTxCount = 0,
+    long TotalGrossRevenueLinkDrops = 0
 );
 
 public sealed record AdminFinanceTransactionModel(
@@ -33,10 +38,18 @@ public sealed record AdminFinancePagedTransactionModel(
     int TotalPages
 );
 
-
 public sealed record AdminFinanceGroupBreakdownModel(
     int ChatGroupId,
     string ChatGroupName,
+    long GrossRevenueLinkDrops,
+    long PlatformCommissionLinkDrops,
+    long CreatorNetEarningsLinkDrops,
+    int CompletedTransactionCount
+);
+
+public sealed record AdminFinancePrivateChatBreakdownModel(
+    int CreatorUserId,
+    string CreatorName,
     long GrossRevenueLinkDrops,
     long PlatformCommissionLinkDrops,
     long CreatorNetEarningsLinkDrops,
