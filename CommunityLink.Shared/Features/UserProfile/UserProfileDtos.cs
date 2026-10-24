@@ -131,6 +131,8 @@ public class UserPostItemDto
     public UserPollDetailDto? Poll { get; set; }
     public int CommunityId { get; set; }
     public string CommunityName { get; set; } = string.Empty;
+    public int? GroupId { get; set; }
+    public string? GroupName { get; set; }
     public int AuthorUserId { get; set; }
     public string AuthorUserName { get; set; } = string.Empty;
     public string AuthorDisplayName { get; set; } = string.Empty;

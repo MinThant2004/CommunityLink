@@ -1,0 +1,184 @@
+
+Dapper (ORM)
+
+- Application layer <= [ORM Layer : Dapper/Entity ] => Database 
+
+---
+1. 
+
+   // this is dapper so use 'IDbConnection' instead of 'SqlConnection' from System.Data.SqlClient/AdoDotNet
+   using (IDbConnection db = new SqlConnection(_connectionString))
+   {
+
+   }
+---
+
+Full File:
+
+using Dapper;
+using KHNDotNetCoreTraining.ConsoleApp.Models;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+
+namespace KHNDotNetCoreTraining.ConsoleApp
+{
+    public class DapperExample
+    {
+        private readonly string _connectionString = "Data Source =.; Initial Catalog = DotNetTrainingBatch5;User Id = sa; Password = sasa@123";
+
+        public void Read()
+        {
+            // this is dapper so use 'IDbConnection' instead of 'SqlConnection' from System.Data.SqlClient/AdoDotNet
+
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+
+                // The advantages of this Dapper is we can use query instantly
+                //unlike this:
+                //       SqlConnection connection = new SqlConnection(_connectionString);
+                //connection.Open();
+                //=>  db.Query("SELECT * FROM tbl_blog DeleteFlag = 0;");
+
+                // no need to use open and close.
+
+                string query = "SELECT * FROM tbl_blog WHERE DeleteFlag = 0;";
+                // this 'var' is not like JS, C# var here accpet everything that the left side return to:
+                // but don't know what that var data type is so use 
+                // var int a = 1;
+
+                //  var IEnumerable<dynamic> lst = db.Query(query).ToList();
+                var lst = db.Query(query).ToList();
+
+                // AI show:
+                // var lst = db.Query(query).ToList();
+
+                foreach (var item in lst)
+                {
+                    Console.WriteLine(item.BlogId);
+                    Console.WriteLine(item.BlogTitle);
+                    Console.WriteLine(item.BlogAuthor);
+                    Console.WriteLine(item.BlogContent);
+
+                }
+
+
+
+                // dynamic = where don't have exact data type, but it didn't show error, only in runtime.
+                //dynamic a = 1;
+                //a.getid();
+
+                // List
+                // => List<string> list = new List<string>();
+                // list.Add
+
+                // Array
+                //string[] list2 =
+
+            }
+
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+
+
+                string query = "SELECT * FROM tbl_blog WHERE DeleteFlag = 0;";
+                List<BlogDataModel> lst = db.Query<BlogDataModel>(query).ToList();
+                // AI show:
+                // var lst = db.Query<BlogDataModel>(query).ToList();
+
+                foreach (var item in lst)
+                {
+                    Console.WriteLine(item.BlogId);
+                    Console.WriteLine(item.BlogTitle);
+                    Console.WriteLine(item.BlogAuthor);
+                    Console.WriteLine(item.BlogContent);
+
+                }
+            }
+
+            // DTO => Data Transfer OBJECT ( Models)
+        }
+
+        public void Create(string title, string author, string content)
+        {
+
+            string query = $@"INSERT INTO [dbo].[Tbl_Blog]
+              ([BlogTitle]
+              ,[BlogAuthor]
+              ,[BlogContent]
+              ,[DeleteFlag])
+        VALUES
+              (@BlogTitle
+              ,@BlogAuthor
+              ,@BlogContent
+              ,0)";
+
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                // Execute = to run the query, and return the number of rows affected
+                // Execute(query, new {Here are dynamic query that can inputanything})
+                int result = db.Execute(query, new BlogDataModel
+                {
+                    BlogTitle = title,
+                    BlogAuthor = author,
+                    BlogContent = content
+                });
+                Console.WriteLine(result == 1 ? "Saving Successful" : "Saving Failed");
+            }
+        }
+
+
+        public void Edit(int id)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+
+                string query = "SELECT * FROM tbl_blog WHERE DeleteFlag = 0 AND BlogId = @BlogId;";
+                var item = db.Query<BlogDataModel>(query, new BlogDataModel
+                {
+                    BlogId = id
+                }).FirstOrDefault();
+                // FirstOrDefault = it's will take the first, even if there are two then will take the first one. If none then default
+
+                if(item is null)
+                {
+                    Console.WriteLine("No data found");
+                    return;
+                }
+                    Console.WriteLine(item.BlogId);
+                    Console.WriteLine(item.BlogTitle);
+                    Console.WriteLine(item.BlogAuthor);
+                    Console.WriteLine(item.BlogContent);
+            }
+
+        }
+
+
+    }
+}
+
+-----------------------------------------------
+
+In Model file, Models>BlogDataModel.cs file:
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text;
+
+namespace KHNDotNetCoreTraining.ConsoleApp.Models
+{
+    public class BlogDataModel
+    {
+        public int BlogId { get; set; }
+        public string BlogTitle { get; set; }
+        public string BlogAuthor { get; set; }
+        public string BlogContent { get; set; }
+    }
+}
+
+---

@@ -376,10 +376,8 @@
 
                                 <!-- Metadata Row -->
                                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#64748B] dark:text-[#7A8CA6] pt-0.5">
-                                    <span class="font-mono font-semibold text-[#0A1B2E] dark:text-white">@@@profile.UserName</span>
                                     @if (!string.IsNullOrWhiteSpace(profile.Location))
                                     {
-                                        <span>•</span>
                                         <span class="inline-flex items-center gap-1">
                                             <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                                             <span>@profile.Location</span>
@@ -387,7 +385,10 @@
                                     }
                                     @if (profile.IsVerified)
                                     {
-                                        <span>•</span>
+                                        @if (!string.IsNullOrWhiteSpace(profile.Location))
+                                        {
+                                            <span>•</span>
+                                        }
                                         <span class="font-mono text-[11px] font-semibold text-sky-600 dark:text-sky-400 inline-flex items-center gap-1">
                                             <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
                                             <span>@Loc["Profile_Badge_CredentialAudited"]</span>
@@ -453,12 +454,6 @@
                                 <button @onclick="ShareProfile" class="btn-exec-secondary px-2.5" title="@Loc["Profile_Action_CopyLinkTitle"]">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                                 </button>
-                            </div>
-
-                            <!-- Availability Status -->
-                            <div class="flex items-center gap-1.5 font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider pt-0.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                <span>@(string.IsNullOrWhiteSpace(profile.AvailabilityStatus) ? Loc["Profile_Availability_Default"] : profile.AvailabilityStatus)</span>
                             </div>
                         </div>
 
@@ -591,16 +586,6 @@
                                     <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">@Loc["Profile_Reputation_MemberResponseStatus"]</div>
                                 </div>
                             </div>
-
-                            <div class="px-3 py-2 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center gap-2.5">
-                                <span class="w-7 h-7 rounded-[0.25rem] bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs shrink-0">
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-                                </span>
-                                <div>
-                                    <div class="font-body text-xs font-bold text-[#0A1B2E] dark:text-white">@(string.IsNullOrWhiteSpace(profile.PercentileBadgeText) ? (profile.IsVerified ? Loc["Profile_Reputation_AuditedNode"] : Loc["Profile_Reputation_StandardContributor"]) : profile.PercentileBadgeText)</div>
-                                    <div class="font-body text-[10px] text-[#64748B] dark:text-[#7A8CA6]">@Loc["Profile_Reputation_ReputationTier"]</div>
-                                </div>
-                            </div>
                         </div>
 
                     </div>
@@ -684,11 +669,14 @@
                                         @if (!string.IsNullOrWhiteSpace(post.SharedByUserName))
                                         {
                                             <div class="flex items-center gap-1.5 text-xs text-[#64748B] dark:text-[#7A8CA6] font-medium pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
-                                                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                                <svg class="w-4 h-4 text-emerald-500 fill-none stroke-current" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                    <path d="M15 14l5-5-5-5" />
+                                                    <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
+                                                </svg>
                                                 @((MarkupString)string.Format(Loc["Profile_Post_SharedBy"], $"<span class=\"font-bold text-[#0A1B2E] dark:text-[#E1E8F0]\">{(post.SharedByDisplayName ?? post.SharedByUserName)}</span>"))
                                                 @if (post.SharedAt.HasValue)
                                                 {
-                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.SharedAt.Value.ToString("g")</span>
+                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.SharedAt.Value.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                                 }
                                             </div>
                                         }
@@ -724,14 +712,17 @@
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
                                                         <span class="text-xs font-bold text-[#0A1B2E] dark:text-white">@post.AuthorDisplayName</span>
-                                                        <span class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">@@@post.AuthorUserName</span>
                                                     </div>
                                                     <div class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
-                                                        @if (!string.IsNullOrWhiteSpace(post.CommunityName))
+                                                        @if (!string.IsNullOrWhiteSpace(post.GroupName))
+                                                        {
+                                                            <span>@post.GroupName • </span>
+                                                        }
+                                                        else if (!string.IsNullOrWhiteSpace(post.CommunityName) && !string.Equals(post.CommunityName, "General", StringComparison.OrdinalIgnoreCase))
                                                         {
                                                             <span>@post.CommunityName • </span>
                                                         }
-                                                        <span>@post.CreatedAt.ToString("g")</span>
+                                                        <span>@post.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -742,13 +733,6 @@
                                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1" title="@Loc["Profile_Post_PrivateTooltip"]">
                                                         <span class="material-symbols-outlined text-[12px]">lock</span>
                                                         <span>@Loc["Profile_Post_PrivateBadge"]</span>
-                                                    </span>
-                                                }
-
-                                                @if (post.HasPoll)
-                                                {
-                                                    <span class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-[0.25rem] bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
-                                                        POLL
                                                     </span>
                                                 }
 
@@ -843,51 +827,48 @@
                                             </div>
                                         }
 
-                                        <!-- Code Snippet / Text Files -->
+                                        <!-- Code Snippet / Attached Files -->
                                         @if (!string.IsNullOrWhiteSpace(post.CodeSnippet))
                                         {
                                             var textFiles = ParseProfileTextFiles(post.CodeSnippet, post.CodeFileName);
-                                            if (textFiles.Count > 1)
+                                            @foreach (var tf in textFiles)
                                             {
-                                                <div class="mt-2 space-y-1.5">
-                                                    <div class="text-[11px] font-semibold text-[#64748B] dark:text-[#7A8CA6] flex items-center gap-1">
-                                                        <span>@Loc["Profile_Post_AttachedFiles", textFiles.Count]</span>
+                                                <div class="prof-code-block p-2.5 space-y-1 text-xs my-2">
+                                                    <div class="flex items-center justify-between pb-1 border-b border-gray-800 text-[10px] text-gray-400">
+                                                        <div class="flex items-center gap-1.5 font-mono min-w-0">
+                                                            <span class="font-bold text-emerald-400 truncate">📄 @tf.FileName</span>
+                                                            @if (tf.FileSizeBytes.HasValue)
+                                                            {
+                                                                <span class="text-gray-500 shrink-0">(@FormatProfileFileSize(tf.FileSizeBytes.Value))</span>
+                                                            }
+                                                        </div>
+                                                        <div class="flex items-center gap-2 shrink-0 ml-2">
+                                                            @if (!string.IsNullOrWhiteSpace(tf.FileUrl))
+                                                            {
+                                                                <a href="@tf.FileUrl" download="@tf.FileName" target="_blank"
+                                                                   class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                                   title="Download file">
+                                                                    <span class="material-symbols-outlined text-[12px]">download</span>
+                                                                    <span>Download</span>
+                                                                </a>
+                                                            }
+                                                            @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                                            {
+                                                                <button type="button" class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                                        @onclick="() => CopyProfileSnippetAsync(tf.Content)"
+                                                                        title="Copy content">
+                                                                    <span class="material-symbols-outlined text-[12px]">content_copy</span>
+                                                                    <span>Copy</span>
+                                                                </button>
+                                                            }
+                                                        </div>
                                                     </div>
-                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                        @foreach (var tf in textFiles)
-                                                        {
-                                                            <button type="button" @onclick="() => OpenProfileTextFileModal(tf.FileName, tf.Content)"
-                                                                    class="flex items-center justify-between p-3 rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] bg-[#F8FAFC] dark:bg-[#0A1B2E] hover:border-[#0A1B2E] dark:hover:border-white transition text-left cursor-pointer group shadow-2xs">
-                                                                <div class="flex items-center gap-2.5 min-w-0">
-                                                                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm shrink-0">
-                                                                        📄
-                                                                    </div>
-                                                                    <div class="min-w-0">
-                                                                        <p class="font-mono text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0] truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400">@tf.FileName</p>
-                                                                        <p class="font-mono text-[10px] text-[#7A8CA6]">@Loc["Profile_Post_CharsClickToRead", tf.Content.Length]</p>
-                                                                    </div>
-                                                                </div>
-                                                                <span class="text-xs text-[#7A8CA6] group-hover:translate-x-0.5 transition font-bold ml-2">↗</span>
-                                                            </button>
-                                                        }
-                                                    </div>
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                var single = textFiles.FirstOrDefault() ?? new AttachedTextFileItem(post.CodeFileName ?? "attachment.txt", post.CodeSnippet);
-                                                <div class="prof-code-block p-3 space-y-1.5 mt-2">
-                                                    <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
-                                                        <button type="button" @onclick="() => OpenProfileTextFileModal(single.FileName, single.Content)"
-                                                                class="font-bold text-emerald-400 font-mono hover:underline flex items-center gap-1 cursor-pointer">
-                                                            <span>📄 @single.FileName</span>
-                                                            <span class="text-gray-400 font-normal text-[9px]">@Loc["Profile_Post_ClickToExpand"]</span>
-                                                        </button>
-                                                        <span class="font-mono">@Loc["Profile_Post_TextBadge"]</span>
-                                                    </div>
-                                                    <div class="overflow-x-auto overflow-y-auto max-h-72 text-[11px] leading-relaxed">
-                                                        <pre class="whitespace-pre font-mono"><code>@single.Content</code></pre>
-                                                    </div>
+                                                    @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                                    {
+                                                        <div class="overflow-x-auto overflow-y-auto max-h-56 text-[11px] leading-relaxed select-text p-2">
+                                                            <pre class="whitespace-pre font-mono text-tertiary"><code>@tf.Content</code></pre>
+                                                        </div>
+                                                    }
                                                 </div>
                                             }
                                         }
@@ -910,27 +891,33 @@
                                             {
                                                 <div class="mt-3 p-3.5 rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.18)] bg-[#F8FAFC] dark:bg-[#0A1B2E]/70 space-y-2.5">
                                                     <div class="flex items-center gap-2 pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.10)]">
-                                                        @if (!string.IsNullOrWhiteSpace(post.OriginalPost.AuthorAvatarUrl))
-                                                        {
-                                                            <img src="@post.OriginalPost.AuthorAvatarUrl" alt="@post.OriginalPost.AuthorDisplayName" class="w-7 h-7 rounded-full object-cover ring-1 ring-[#CBD5E1]" />
-                                                        }
-                                                        else
-                                                        {
-                                                            <div class="w-7 h-7 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-bold text-[11px] flex items-center justify-center font-mono">
-                                                                @(string.IsNullOrWhiteSpace(post.OriginalPost.AuthorDisplayName) ? "U" : post.OriginalPost.AuthorDisplayName.Substring(0, 1).ToUpper())
-                                                            </div>
-                                                        }
+                                                        <a href="u/@(string.IsNullOrWhiteSpace(post.OriginalPost.AuthorUserName) ? post.OriginalPost.AuthorDisplayName : post.OriginalPost.AuthorUserName)" class="shrink-0 group">
+                                                            @if (!string.IsNullOrWhiteSpace(post.OriginalPost.AuthorAvatarUrl))
+                                                            {
+                                                                <img src="@post.OriginalPost.AuthorAvatarUrl" alt="@post.OriginalPost.AuthorDisplayName" class="w-7 h-7 rounded-full object-cover ring-1 ring-[#CBD5E1] group-hover:ring-2 group-hover:ring-blue-500 transition" />
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="w-7 h-7 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-bold text-[11px] flex items-center justify-center font-mono group-hover:ring-2 group-hover:ring-blue-500 transition">
+                                                                    @(string.IsNullOrWhiteSpace(post.OriginalPost.AuthorDisplayName) ? "U" : post.OriginalPost.AuthorDisplayName.Substring(0, 1).ToUpper())
+                                                                </div>
+                                                            }
+                                                        </a>
                                                         <div>
                                                             <div class="flex items-center gap-1.5">
                                                                 <a href="u/@(string.IsNullOrWhiteSpace(post.OriginalPost.AuthorUserName) ? post.OriginalPost.AuthorDisplayName : post.OriginalPost.AuthorUserName)" class="font-bold text-xs text-[#0A1B2E] dark:text-[#E1E8F0] hover:underline">
                                                                     @post.OriginalPost.AuthorDisplayName
                                                                 </a>
-                                                                @if (!string.IsNullOrWhiteSpace(post.OriginalPost.CommunityName))
+                                                                @if (!string.IsNullOrWhiteSpace(post.OriginalPost.GroupName))
+                                                                {
+                                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.OriginalPost.GroupName</span>
+                                                                }
+                                                                else if (!string.IsNullOrWhiteSpace(post.OriginalPost.CommunityName) && !post.OriginalPost.CommunityName.Equals("General", StringComparison.OrdinalIgnoreCase))
                                                                 {
                                                                     <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.OriginalPost.CommunityName</span>
                                                                 }
                                                             </div>
-                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@post.OriginalPost.CreatedAt.ToString("g")</span>
+                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@post.OriginalPost.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                                         </div>
                                                     </div>
 
@@ -944,26 +931,114 @@
                                                 @if (!string.IsNullOrWhiteSpace(post.OriginalPost.CodeSnippet))
                                                 {
                                                     var origFiles = ParseProfileTextFiles(post.OriginalPost.CodeSnippet, post.OriginalPost.CodeFileName);
-                                                    var singleOrig = origFiles.FirstOrDefault() ?? new AttachedTextFileItem(post.OriginalPost.CodeFileName ?? "attachment.txt", post.OriginalPost.CodeSnippet);
-                                                    <div class="prof-code-block p-2.5 space-y-1 text-xs">
-                                                        <div class="flex items-center justify-between pb-1 border-b border-gray-800 text-[10px] text-gray-400">
-                                                            <span class="font-bold text-emerald-400 font-mono">📄 @singleOrig.FileName</span>
-                                                            <span class="font-mono">@Loc["Profile_Post_TextBadge"]</span>
+                                                    @foreach (var tf in origFiles)
+                                                    {
+                                                        <div class="prof-code-block p-2.5 space-y-1 text-xs my-2">
+                                                            <div class="flex items-center justify-between pb-1 border-b border-gray-800 text-[10px] text-gray-400">
+                                                                <div class="flex items-center gap-1.5 font-mono min-w-0">
+                                                                    <span class="font-bold text-emerald-400 truncate">📄 @tf.FileName</span>
+                                                                    @if (tf.FileSizeBytes.HasValue)
+                                                                    {
+                                                                        <span class="text-gray-500 shrink-0">(@FormatProfileFileSize(tf.FileSizeBytes.Value))</span>
+                                                                    }
+                                                                </div>
+                                                                <div class="flex items-center gap-2 shrink-0 ml-2">
+                                                                    @if (!string.IsNullOrWhiteSpace(tf.FileUrl))
+                                                                    {
+                                                                        <a href="@tf.FileUrl" download="@tf.FileName" target="_blank"
+                                                                           class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                                           title="Download file">
+                                                                            <span class="material-symbols-outlined text-[12px]">download</span>
+                                                                            <span>Download</span>
+                                                                        </a>
+                                                                    }
+                                                                    @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                                                    {
+                                                                        <button type="button" class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                                                @onclick="() => CopyProfileSnippetAsync(tf.Content)"
+                                                                                title="Copy content">
+                                                                            <span class="material-symbols-outlined text-[12px]">content_copy</span>
+                                                                            <span>Copy</span>
+                                                                        </button>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                            @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                                            {
+                                                                <div class="overflow-x-auto overflow-y-auto max-h-56 text-[11px] leading-relaxed select-text p-2">
+                                                                    <pre class="whitespace-pre font-mono text-tertiary"><code>@tf.Content</code></pre>
+                                                                </div>
+                                                            }
                                                         </div>
-                                                        <div class="overflow-x-auto overflow-y-auto max-h-48 text-[11px] leading-relaxed">
-                                                            <pre class="whitespace-pre font-mono"><code>@singleOrig.Content</code></pre>
-                                                        </div>
-                                                    </div>
+                                                    }
                                                 }
 
                                                 @if (post.OriginalPost.ImageUrls != null && post.OriginalPost.ImageUrls.Any())
                                                 {
-                                                    <div class="rounded-lg overflow-hidden border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#0d1117] max-h-60 flex items-center justify-center">
-                                                        <img src="@post.OriginalPost.ImageUrls.First()" alt="Original attachment" class="w-full h-full object-contain max-h-60" />
+                                                    <div class="rounded-lg overflow-hidden border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#0d1117] max-h-60 flex items-center justify-center cursor-pointer">
+                                                        <img src="@post.OriginalPost.ImageUrls.First()" alt="Original attachment" class="w-full h-full object-contain max-h-60 hover:opacity-95 transition-opacity" @onclick="() => OpenEnlargedImage(post.OriginalPost.ImageUrls.First())" />
                                                     </div>
                                                 }
                                                 </div>
                                             }
+                                        }
+
+                                        <!-- Post Images (Carousel Style matching Home) -->
+                                        @if (post.ImageUrls != null && post.ImageUrls.Any())
+                                        {
+                                            var imgCount = post.ImageUrls.Count;
+                                            var activeIdx = Math.Clamp(GetActiveImageIndex(post.PostId), 0, imgCount - 1);
+                                            var currentImage = post.ImageUrls[activeIdx];
+
+                                            <div class="relative w-full rounded-lg overflow-hidden bg-slate-950 group border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] mt-2">
+                                                <!-- Carousel Images Track -->
+                                                <div class="w-full h-48 sm:h-60 flex transition-transform duration-500 ease-out">
+                                                    <div class="w-full h-full flex-shrink-0 relative">
+                                                        <img class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                                                             src="@currentImage"
+                                                             alt="Post attachment"
+                                                             @onclick="() => OpenEnlargedImage(currentImage)" />
+                                                        <div class="absolute bottom-2.5 left-3 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[11px] text-white pointer-events-none">
+                                                            @(activeIdx + 1) / @imgCount
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                @if (imgCount > 1)
+                                                {
+                                                    <!-- Pill Counter Badge -->
+                                                    <div class="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] text-white font-mono shadow-xs">
+                                                        @(activeIdx + 1) / @imgCount
+                                                    </div>
+
+                                                    <!-- Carousel Controls -->
+                                                    @if (activeIdx > 0)
+                                                    {
+                                                        <button type="button" @onclick="() => PrevImage(post.PostId, imgCount)"
+                                                                class="absolute left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-black/80 cursor-pointer z-10">
+                                                            <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+                                                        </button>
+                                                    }
+
+                                                    @if (activeIdx < imgCount - 1)
+                                                    {
+                                                        <button type="button" @onclick="() => NextImage(post.PostId, imgCount)"
+                                                                class="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-black/80 cursor-pointer z-10">
+                                                            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                                                        </button>
+                                                    }
+
+                                                    <!-- Pagination Indicator Dots -->
+                                                    <div class="absolute bottom-2.5 right-3 flex items-center gap-1 z-10">
+                                                        @for (int dotIdx = 0; dotIdx < imgCount; dotIdx++)
+                                                        {
+                                                            var targetIdx = dotIdx;
+                                                            <button type="button" @onclick="() => SetActiveImage(post.PostId, targetIdx)"
+                                                                    class="@(dotIdx == activeIdx ? "w-2 h-2 rounded-full bg-blue-500 transition-all" : "w-1.5 h-1.5 rounded-full bg-white/50 transition-all") cursor-pointer"></button>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
                                         }
 
                                         <!-- Diagram Image -->
@@ -980,33 +1055,29 @@
                                             </div>
                                         }
 
-                                        <!-- Footer Engagement Counts Strip -->
-                                        <div class="px-1 py-1 flex items-center justify-between text-xs text-[#7A8CA6] font-mono border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pt-2 pb-1">
-                                            <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-rose-500 fill-rose-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>@post.LikeCount @(post.LikeCount == 1 ? "Like" : "Likes")</span>
-                                            <span>@post.CommentCount comments • @post.ShareCount shares</span>
-                                        </div>
-
-                                        <!-- Post Action Buttons: Like, Comment, Share -->
-                                        <div class="flex items-center justify-between pt-1 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] text-xs">
-                                            <div class="flex items-center gap-5 w-full">
-                                                <!-- Like -->
-                                                <button type="button" @onclick="() => ToggleProfilePostLikeAsync(post.PostId)" class="flex items-center gap-1.5 font-medium transition cursor-pointer @(post.IsLikedByCurrentUser ? "text-rose-600 font-semibold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white")">
-                                                    <svg class="w-4 h-4 @(post.IsLikedByCurrentUser ? "fill-rose-500 stroke-rose-500" : "fill-none stroke-currentColor")" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                        <!-- Engagement Strip (Home Style) -->
+                                        <div class="flex items-center justify-between pt-1 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
+                                            <div class="flex items-center gap-4">
+                                                <button type="button" @onclick="() => ToggleProfilePostLikeAsync(post.PostId)"
+                                                        class="flex items-center gap-1 text-xs @(post.IsLikedByCurrentUser ? "text-rose-600 font-semibold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-rose-600") transition-colors cursor-pointer"
+                                                        title="@Loc["Profile_Post_ActionLike"]">
+                                                    <span class="material-symbols-outlined text-[17px] @(post.IsLikedByCurrentUser ? "text-rose-600" : "")">favorite</span>
+                                                    <span>@post.LikeCount</span>
+                                                </button>
+                                                <button type="button" @onclick="() => ToggleProfileCommentBox(post.PostId)"
+                                                        class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition-colors cursor-pointer"
+                                                        title="@Loc["Profile_Post_ActionComment"]">
+                                                    <span class="material-symbols-outlined text-[17px]">chat_bubble</span>
+                                                    <span>@post.CommentCount</span>
+                                                </button>
+                                                <button type="button" @onclick="() => OpenProfileShareModal(post.PostId)"
+                                                        class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition-colors cursor-pointer"
+                                                        title="@Loc["Profile_Post_ActionShare"]">
+                                                    <svg class="w-4 h-4 fill-none stroke-current" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                        <path d="M15 14l5-5-5-5" />
+                                                        <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
                                                     </svg>
-                                                    <span>@Loc["Profile_Post_ActionLike"]</span>
-                                                </button>
-
-                                                <!-- Comment Toggle -->
-                                                <button type="button" @onclick="() => ToggleProfileCommentBox(post.PostId)" class="flex items-center gap-1.5 font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer @(openProfileCommentPostIds.Contains(post.PostId) ? "!text-[#0A1B2E] dark:!text-white font-bold" : "")">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                                    <span>@Loc["Profile_Post_ActionComment"]</span>
-                                                </button>
-
-                                                <!-- Share -->
-                                                <button type="button" @onclick="() => OpenProfileShareModal(post.PostId)" class="flex items-center gap-1.5 font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                                                    <span>@Loc["Profile_Post_ActionShare"]</span>
+                                                    <span>@post.ShareCount</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -1044,7 +1115,7 @@
                                                                     <div class="flex-1 min-w-0">
                                                                         <div class="flex items-center justify-between mb-0.5">
                                                                             <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@c.AuthorName</span>
-                                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@c.CreatedAt.ToString("g")</span>
+                                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@c.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                                                         </div>
                                                                         <p class="text-[#557392] dark:text-[#C4D2E1] leading-relaxed whitespace-pre-wrap">@c.Content</p>
                                                                     </div>
@@ -1117,7 +1188,7 @@
                                                     </div>
                                                 }
                                             </div>
-                                            <span>@review.CreatedAt.ToString("g")</span>
+                                            <span>@review.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                         </div>
                                     </div>
                                 }
@@ -1215,11 +1286,14 @@
                                         @if (!string.IsNullOrWhiteSpace(post.SharedByUserName))
                                         {
                                             <div class="flex items-center gap-1.5 text-xs text-[#64748B] dark:text-[#7A8CA6] font-medium pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
-                                                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                                <svg class="w-4 h-4 text-emerald-500 fill-none stroke-current" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                    <path d="M15 14l5-5-5-5" />
+                                                    <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
+                                                </svg>
                                                 @((MarkupString)string.Format(Loc["Profile_Post_SharedBy"], $"<span class=\"font-bold text-[#0A1B2E] dark:text-[#E1E8F0]\">{(post.SharedByDisplayName ?? post.SharedByUserName)}</span>"))
                                                 @if (post.SharedAt.HasValue)
                                                 {
-                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.SharedAt.Value.ToString("g")</span>
+                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.SharedAt.Value.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                                 }
                                             </div>
                                         }
@@ -1241,24 +1315,20 @@
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
                                                         <a href="u/@post.AuthorUserName" class="text-xs font-bold text-[#0A1B2E] dark:text-white hover:underline">@post.AuthorDisplayName</a>
-                                                        <a href="u/@post.AuthorUserName" class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] hover:underline">@@@post.AuthorUserName</a>
                                                     </div>
                                                     <div class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
-                                                        @if (!string.IsNullOrWhiteSpace(post.CommunityName))
+                                                        @if (!string.IsNullOrWhiteSpace(post.GroupName))
+                                                        {
+                                                            <span>@post.GroupName • </span>
+                                                        }
+                                                        else if (!string.IsNullOrWhiteSpace(post.CommunityName) && !string.Equals(post.CommunityName, "General", StringComparison.OrdinalIgnoreCase))
                                                         {
                                                             <span>@post.CommunityName • </span>
                                                         }
-                                                        <span>@post.CreatedAt.ToString("g")</span>
+                                                        <span>@post.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            @if (post.HasPoll)
-                                            {
-                                                <span class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-[0.25rem] bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
-                                                    POLL
-                                                </span>
-                                            }
                                         </div>
 
                                         <!-- Title & Body -->
@@ -1302,63 +1372,105 @@
                                             </div>
                                         }
 
-                                        <!-- Code Snippet / Text Files -->
+                                        <!-- Code Snippet / Attached Files -->
                                         @if (!string.IsNullOrWhiteSpace(post.CodeSnippet))
                                         {
                                             var textFiles = ParseProfileTextFiles(post.CodeSnippet, post.CodeFileName);
-                                            if (textFiles.Count > 1)
+                                            @foreach (var tf in textFiles)
                                             {
-                                                <div class="mt-2 space-y-1.5">
-                                                    <div class="text-[11px] font-semibold text-[#64748B] dark:text-[#7A8CA6] flex items-center gap-1">
-                                                        <span>@Loc["Profile_Post_AttachedFiles", textFiles.Count]</span>
+                                                <div class="prof-code-block p-2.5 space-y-1 text-xs my-2">
+                                                    <div class="flex items-center justify-between pb-1 border-b border-gray-800 text-[10px] text-gray-400">
+                                                        <div class="flex items-center gap-1.5 font-mono min-w-0">
+                                                            <span class="font-bold text-emerald-400 truncate">📄 @tf.FileName</span>
+                                                            @if (tf.FileSizeBytes.HasValue)
+                                                            {
+                                                                <span class="text-gray-500 shrink-0">(@FormatProfileFileSize(tf.FileSizeBytes.Value))</span>
+                                                            }
+                                                        </div>
+                                                        <div class="flex items-center gap-2 shrink-0 ml-2">
+                                                            @if (!string.IsNullOrWhiteSpace(tf.FileUrl))
+                                                            {
+                                                                <a href="@tf.FileUrl" download="@tf.FileName" target="_blank"
+                                                                   class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                                   title="Download file">
+                                                                    <span class="material-symbols-outlined text-[12px]">download</span>
+                                                                    <span>Download</span>
+                                                                </a>
+                                                            }
+                                                            @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                                            {
+                                                                <button type="button" class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                                        @onclick="() => CopyProfileSnippetAsync(tf.Content)"
+                                                                        title="Copy content">
+                                                                    <span class="material-symbols-outlined text-[12px]">content_copy</span>
+                                                                    <span>Copy</span>
+                                                                </button>
+                                                            }
+                                                        </div>
                                                     </div>
-                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                        @foreach (var tf in textFiles)
-                                                        {
-                                                            <button type="button" @onclick="() => OpenProfileTextFileModal(tf.FileName, tf.Content)"
-                                                                    class="flex items-center justify-between p-3 rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] bg-[#F8FAFC] dark:bg-[#0A1B2E] hover:border-[#0A1B2E] dark:hover:border-white transition text-left cursor-pointer group shadow-2xs">
-                                                                <div class="flex items-center gap-2.5 min-w-0">
-                                                                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm shrink-0">
-                                                                        📄
-                                                                    </div>
-                                                                    <div class="min-w-0">
-                                                                        <p class="font-mono text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0] truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400">@tf.FileName</p>
-                                                                        <p class="font-mono text-[10px] text-[#7A8CA6]">@Loc["Profile_Post_CharsClickToRead", tf.Content.Length]</p>
-                                                                    </div>
-                                                                </div>
-                                                                <span class="text-xs text-[#7A8CA6] group-hover:translate-x-0.5 transition font-bold ml-2">↗</span>
-                                                            </button>
-                                                        }
-                                                    </div>
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                var single = textFiles.FirstOrDefault() ?? new AttachedTextFileItem(post.CodeFileName ?? "attachment.txt", post.CodeSnippet);
-                                                <div class="prof-code-block p-3 space-y-1.5 mt-2">
-                                                    <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
-                                                        <button type="button" @onclick="() => OpenProfileTextFileModal(single.FileName, single.Content)"
-                                                                class="font-bold text-emerald-400 font-mono hover:underline flex items-center gap-1 cursor-pointer">
-                                                            <span>📄 @single.FileName</span>
-                                                            <span class="text-gray-400 font-normal text-[9px]">@Loc["Profile_Post_ClickToExpand"]</span>
-                                                        </button>
-                                                        <span class="font-mono">@Loc["Profile_Post_TextBadge"]</span>
-                                                    </div>
-                                                    <div class="overflow-x-auto overflow-y-auto max-h-72 text-[11px] leading-relaxed">
-                                                        <pre class="whitespace-pre font-mono"><code>@single.Content</code></pre>
-                                                    </div>
+                                                    @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                                    {
+                                                        <div class="overflow-x-auto overflow-y-auto max-h-56 text-[11px] leading-relaxed select-text p-2">
+                                                            <pre class="whitespace-pre font-mono text-tertiary"><code>@tf.Content</code></pre>
+                                                        </div>
+                                                    }
                                                 </div>
                                             }
                                         }
 
-                                        <!-- Post Images -->
+                                        <!-- Post Images (Carousel Style matching Home) -->
                                         @if (post.ImageUrls != null && post.ImageUrls.Any())
                                         {
-                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                                                @foreach (var imgUrl in post.ImageUrls)
+                                            var imgCount = post.ImageUrls.Count;
+                                            var activeIdx = Math.Clamp(GetActiveImageIndex(post.PostId), 0, imgCount - 1);
+                                            var currentImage = post.ImageUrls[activeIdx];
+
+                                            <div class="relative w-full rounded-lg overflow-hidden bg-slate-950 group border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] mt-2">
+                                                <!-- Carousel Images Track -->
+                                                <div class="w-full h-48 sm:h-60 flex transition-transform duration-500 ease-out">
+                                                    <div class="w-full h-full flex-shrink-0 relative">
+                                                        <img class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                                                             src="@currentImage"
+                                                             alt="Post attachment"
+                                                             @onclick="() => OpenEnlargedImage(currentImage)" />
+                                                        <div class="absolute bottom-2.5 left-3 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[11px] text-white pointer-events-none">
+                                                            @(activeIdx + 1) / @imgCount
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                @if (imgCount > 1)
                                                 {
-                                                    <div class="rounded-xl overflow-hidden border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] bg-slate-950 flex items-center justify-center max-h-72">
-                                                        <img src="@imgUrl" alt="Post attachment" class="w-full h-full object-contain max-h-72" />
+                                                    <!-- Pill Counter Badge -->
+                                                    <div class="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] text-white font-mono shadow-xs">
+                                                        @(activeIdx + 1) / @imgCount
+                                                    </div>
+
+                                                    <!-- Carousel Controls -->
+                                                    @if (activeIdx > 0)
+                                                    {
+                                                        <button type="button" @onclick="() => PrevImage(post.PostId, imgCount)"
+                                                                class="absolute left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-black/80 cursor-pointer z-10">
+                                                            <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+                                                        </button>
+                                                    }
+
+                                                    @if (activeIdx < imgCount - 1)
+                                                    {
+                                                        <button type="button" @onclick="() => NextImage(post.PostId, imgCount)"
+                                                                class="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-black/80 cursor-pointer z-10">
+                                                            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                                                        </button>
+                                                    }
+
+                                                    <!-- Pagination Indicator Dots -->
+                                                    <div class="absolute bottom-2.5 right-3 flex items-center gap-1 z-10">
+                                                        @for (int dotIdx = 0; dotIdx < imgCount; dotIdx++)
+                                                        {
+                                                            var targetIdx = dotIdx;
+                                                            <button type="button" @onclick="() => SetActiveImage(post.PostId, targetIdx)"
+                                                                    class="@(dotIdx == activeIdx ? "w-2 h-2 rounded-full bg-blue-500 transition-all" : "w-1.5 h-1.5 rounded-full bg-white/50 transition-all") cursor-pointer"></button>
+                                                        }
                                                     </div>
                                                 }
                                             </div>
@@ -1378,33 +1490,29 @@
                                             </div>
                                         }
 
-                                        <!-- Footer Engagement Counts Strip -->
-                                        <div class="px-1 py-1 flex items-center justify-between text-xs text-[#7A8CA6] font-mono border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pt-2 pb-1">
-                                            <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-rose-500 fill-rose-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>@post.LikeCount @(post.LikeCount == 1 ? "Like" : "Likes")</span>
-                                            <span>@post.CommentCount comments • @post.ShareCount shares</span>
-                                        </div>
-
-                                        <!-- Post Action Buttons: Like, Comment, Share -->
-                                        <div class="flex items-center justify-between pt-1 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] text-xs">
-                                            <div class="flex items-center gap-5 w-full">
-                                                <!-- Like -->
-                                                <button type="button" @onclick="() => ToggleProfilePostLikeAsync(post.PostId)" class="flex items-center gap-1.5 font-medium transition cursor-pointer @(post.IsLikedByCurrentUser ? "text-rose-600 font-semibold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white")">
-                                                    <svg class="w-4 h-4 @(post.IsLikedByCurrentUser ? "fill-rose-500 stroke-rose-500" : "fill-none stroke-currentColor")" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                        <!-- Engagement Strip (Home Style) -->
+                                        <div class="flex items-center justify-between pt-1 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
+                                            <div class="flex items-center gap-4">
+                                                <button type="button" @onclick="() => ToggleProfilePostLikeAsync(post.PostId)"
+                                                        class="flex items-center gap-1 text-xs @(post.IsLikedByCurrentUser ? "text-rose-600 font-semibold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-rose-600") transition-colors cursor-pointer"
+                                                        title="@Loc["Profile_Post_ActionLike"]">
+                                                    <span class="material-symbols-outlined text-[17px] @(post.IsLikedByCurrentUser ? "text-rose-600" : "")">favorite</span>
+                                                    <span>@post.LikeCount</span>
+                                                </button>
+                                                <button type="button" @onclick="() => ToggleProfileCommentBox(post.PostId)"
+                                                        class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition-colors cursor-pointer"
+                                                        title="@Loc["Profile_Post_ActionComment"]">
+                                                    <span class="material-symbols-outlined text-[17px]">chat_bubble</span>
+                                                    <span>@post.CommentCount</span>
+                                                </button>
+                                                <button type="button" @onclick="() => OpenProfileShareModal(post.PostId)"
+                                                        class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition-colors cursor-pointer"
+                                                        title="@Loc["Profile_Post_ActionShare"]">
+                                                    <svg class="w-4 h-4 fill-none stroke-current" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                        <path d="M15 14l5-5-5-5" />
+                                                        <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
                                                     </svg>
-                                                    <span>@Loc["Profile_Post_ActionLike"]</span>
-                                                </button>
-
-                                                <!-- Comment Toggle -->
-                                                <button type="button" @onclick="() => ToggleProfileCommentBox(post.PostId)" class="flex items-center gap-1.5 font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer @(openProfileCommentPostIds.Contains(post.PostId) ? "!text-[#0A1B2E] dark:!text-white font-bold" : "")">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                                    <span>@Loc["Profile_Post_ActionComment"]</span>
-                                                </button>
-
-                                                <!-- Share -->
-                                                <button type="button" @onclick="() => OpenProfileShareModal(post.PostId)" class="flex items-center gap-1.5 font-medium text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                                                    <span>@Loc["Profile_Post_ActionShare"]</span>
+                                                    <span>@post.ShareCount</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -1442,7 +1550,7 @@
                                                                     <div class="flex-1 min-w-0">
                                                                         <div class="flex items-center justify-between mb-0.5">
                                                                             <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@c.AuthorName</span>
-                                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@c.CreatedAt.ToString("g")</span>
+                                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@c.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                                                         </div>
                                                                         <p class="text-[#557392] dark:text-[#C4D2E1] leading-relaxed whitespace-pre-wrap">@c.Content</p>
                                                                     </div>
@@ -1485,9 +1593,16 @@
                                         <div class="card-executive p-4 space-y-3 border-l-4 border-l-amber-500">
                                             <div class="flex items-center justify-between font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
                                                 <div class="flex items-center gap-2">
-                                                    <span class="font-semibold text-blue-600 dark:text-blue-400">@rp.CommunityName</span>
+                                                    @if (!string.IsNullOrWhiteSpace(rp.GroupName))
+                                                    {
+                                                        <span class="font-semibold text-blue-600 dark:text-blue-400">@rp.GroupName</span>
+                                                    }
+                                                    else if (!string.IsNullOrWhiteSpace(rp.CommunityName) && !string.Equals(rp.CommunityName, "General", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        <span class="font-semibold text-blue-600 dark:text-blue-400">@rp.CommunityName</span>
+                                                    }
                                                     <span>•</span>
-                                                    <span>@Loc["Profile_Recycle_RecycledAt", (rp.DeletedAt?.ToString("g") ?? rp.CreatedAt.ToString("g"))]</span>
+                                                    <span>@Loc["Profile_Recycle_RecycledAt", (rp.DeletedAt?.ToLocalTime().ToString("dd-MM-yyyy") ?? rp.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy"))]</span>
                                                 </div>
                                                 <span class="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 font-semibold text-[10px]">
                                                     @(rp.DaysRemaining.HasValue ? $"Expires in {rp.DaysRemaining.Value} days" : "Expires in 10 days")
@@ -1501,7 +1616,7 @@
                                                 <div class="flex items-center gap-2">
                                                     @foreach (var img in rp.ImageUrls.Take(3))
                                                     {
-                                                        <img src="@img" alt="Attachment" class="w-14 h-14 rounded object-cover border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]" />
+                                                        <img src="@img" alt="Attachment" class="w-14 h-14 rounded object-cover border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] cursor-pointer hover:opacity-90 transition-opacity" @onclick="() => OpenEnlargedImage(img)" />
                                                     }
                                                 </div>
                                             }
@@ -2055,8 +2170,97 @@
     </div>
 }
 
+<!-- ========================================================================= -->
+<!-- FULL-SIZE IMAGE LIGHTBOX MODAL                                            -->
+<!-- ========================================================================= -->
+@if (isLightboxOpen && !string.IsNullOrEmpty(lightboxImageUrl))
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+         @onclick="CloseLightbox">
+        <div class="relative max-w-4xl max-h-[90vh] bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] rounded-xl p-4 shadow-2xl overflow-hidden flex flex-col items-center"
+             @onclick:stopPropagation="true">
+            <div class="w-full flex items-center justify-between pb-2 mb-2 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[#0F172A] dark:text-[#E1E2EC] px-1">
+                <span class="text-xs font-bold text-[#0F172A] dark:text-[#E1E2EC]">@(string.IsNullOrEmpty(lightboxTitle) ? Loc["LinkDrops_EnlargedImageView"] : lightboxTitle)</span>
+                <button type="button" @onclick="CloseLightbox" class="text-[#64748B] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] text-xs font-bold p-1 cursor-pointer">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="overflow-auto max-h-[80vh] flex items-center justify-center w-full">
+                <img src="@lightboxImageUrl" alt="Full size image" class="max-w-full max-h-[78vh] object-contain rounded-lg" />
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    public sealed record AttachedTextFileItem(string FileName, string Content);
+    private readonly Dictionary<int, int> postActiveImageIndex = new();
+
+    private int GetActiveImageIndex(int postId)
+    {
+        return postActiveImageIndex.TryGetValue(postId, out var idx) ? idx : 0;
+    }
+
+    private void SetActiveImage(int postId, int index)
+    {
+        postActiveImageIndex[postId] = index;
+    }
+
+    private void NextImage(int postId, int count)
+    {
+        var current = GetActiveImageIndex(postId);
+        if (current < count - 1)
+        {
+            postActiveImageIndex[postId] = current + 1;
+        }
+    }
+
+    private void PrevImage(int postId, int count)
+    {
+        var current = GetActiveImageIndex(postId);
+        if (current > 0)
+        {
+            postActiveImageIndex[postId] = current - 1;
+        }
+    }
+
+    private bool isLightboxOpen = false;
+    private string? lightboxImageUrl;
+    private string? lightboxTitle;
+
+    private void OpenEnlargedImage(string url, string? title = null)
+    {
+        lightboxImageUrl = url;
+        lightboxTitle = title ?? Loc["LinkDrops_EnlargedImageView"];
+        isLightboxOpen = true;
+    }
+
+    private void CloseLightbox()
+    {
+        isLightboxOpen = false;
+    }
+
+    public sealed record AttachedTextFileItem(string FileName, string Content, string? FileUrl = null, long? FileSizeBytes = null);
+
+    private static string FormatProfileFileSize(long bytes)
+    {
+        if (bytes >= 1024 * 1024) return $"{(bytes / (1024.0 * 1024.0)):0.#} MB";
+        if (bytes >= 1024) return $"{(bytes / 1024.0):0.#} KB";
+        return $"{bytes} B";
+    }
+
+    private async Task CopyProfileSnippetAsync(string? code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return;
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", code);
+            Toast.Success("Copied to clipboard!");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to copy: {ex.Message}");
+        }
+    }
 
     private bool showProfileTextFileModal = false;
     private string profileTextFileModalTitle = string.Empty;

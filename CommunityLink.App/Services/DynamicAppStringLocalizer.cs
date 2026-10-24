@@ -27,9 +27,16 @@ public class DynamicAppStringLocalizer : IStringLocalizer<CommunityLink.App.AppR
                 return new LocalizedString(name ?? string.Empty, string.Empty, resourceNotFound: true);
             }
 
-            var culture = _cultureService.CurrentCulture;
-            var val = _resourceManager.GetString(name, culture);
-            return new LocalizedString(name, val ?? name, resourceNotFound: val == null);
+            try
+            {
+                var culture = _cultureService.CurrentCulture;
+                var val = _resourceManager.GetString(name, culture);
+                return new LocalizedString(name, val ?? name, resourceNotFound: val == null);
+            }
+            catch (MissingManifestResourceException)
+            {
+                return new LocalizedString(name, name, resourceNotFound: true);
+            }
         }
     }
 
@@ -43,7 +50,15 @@ public class DynamicAppStringLocalizer : IStringLocalizer<CommunityLink.App.AppR
             }
 
             var culture = _cultureService.CurrentCulture;
-            var format = _resourceManager.GetString(name, culture);
+            string? format;
+            try
+            {
+                format = _resourceManager.GetString(name, culture);
+            }
+            catch (MissingManifestResourceException)
+            {
+                return new LocalizedString(name, name, resourceNotFound: true);
+            }
 
             if (format == null)
             {
@@ -64,8 +79,16 @@ public class DynamicAppStringLocalizer : IStringLocalizer<CommunityLink.App.AppR
 
     public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
     {
-        var culture = _cultureService.CurrentCulture;
-        var resourceSet = _resourceManager.GetResourceSet(culture, createIfNotExists: true, tryParents: true);
+        ResourceSet? resourceSet = null;
+        try
+        {
+            var culture = _cultureService.CurrentCulture;
+            resourceSet = _resourceManager.GetResourceSet(culture, createIfNotExists: true, tryParents: true);
+        }
+        catch (MissingManifestResourceException)
+        {
+        }
+
         if (resourceSet != null)
         {
             foreach (DictionaryEntry entry in resourceSet)

@@ -405,6 +405,7 @@ public class UserProfileService : IUserProfileService
                 .AsSplitQuery()
                 .Include(p => p.Author)
                 .Include(p => p.Community)
+                .Include(p => p.Group)
                 .Include(p => p.TblPostImages)
                 .Include(p => p.TblPostLikes)
                 .Include(p => p.TblComments)
@@ -459,7 +460,7 @@ public class UserProfileService : IUserProfileService
                         AuthorAvatarUrl = r.Author?.AvatarUrl,
                         Content = r.Content,
                         CreatedAt = r.CreatedAt,
-                        CommunityName = r.Community?.Name,
+                        CommunityName = r.Community != null && !string.Equals(r.Community.Name, "General", StringComparison.OrdinalIgnoreCase) ? r.Community.Name : string.Empty,
                         GroupName = r.Group?.Name,
                         ImageUrls = r.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
                         CodeSnippet = r.CodeSnippet,
@@ -535,7 +536,7 @@ public class UserProfileService : IUserProfileService
                     AuthorAvatarUrl = s.Post.Author?.AvatarUrl,
                     Content = s.Post.Content,
                     CreatedAt = s.Post.CreatedAt,
-                    CommunityName = s.Post.Community?.Name,
+                    CommunityName = s.Post.Community != null && !string.Equals(s.Post.Community.Name, "General", StringComparison.OrdinalIgnoreCase) ? s.Post.Community.Name : string.Empty,
                     GroupName = s.Post.Group?.Name,
                     ImageUrls = s.Post.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
                     CodeSnippet = s.Post.CodeSnippet,
@@ -573,6 +574,8 @@ public class UserProfileService : IUserProfileService
                     .ThenInclude(p => p.Author)
                 .Include(sp => sp.Post)
                     .ThenInclude(p => p.Community)
+                .Include(sp => sp.Post)
+                    .ThenInclude(p => p.Group)
                 .Include(sp => sp.Post)
                     .ThenInclude(p => p.TblPostImages)
                 .Include(sp => sp.Post)
@@ -624,6 +627,7 @@ public class UserProfileService : IUserProfileService
                 .AsSplitQuery()
                 .Include(p => p.Author)
                 .Include(p => p.Community)
+                .Include(p => p.Group)
                 .Include(p => p.TblPostImages)
                 .Include(p => p.TblPolls)
                     .ThenInclude(poll => poll.TblPollOptions)
@@ -1212,7 +1216,9 @@ public class UserProfileService : IUserProfileService
             HasPoll = p.HasPoll,
             Poll = pollDto,
             CommunityId = p.CommunityId ?? 0,
-            CommunityName = p.Community != null ? p.Community.Name : "General",
+            CommunityName = p.Community != null && !string.Equals(p.Community.Name, "General", StringComparison.OrdinalIgnoreCase) ? p.Community.Name : string.Empty,
+            GroupId = p.GroupId,
+            GroupName = p.Group != null ? p.Group.Name : null,
             AuthorUserId = p.AuthorId,
             AuthorUserName = p.Author != null ? p.Author.UserName : "unknown",
             AuthorDisplayName = p.Author != null ? (p.Author.DisplayName ?? p.Author.UserName) : "Unknown",
