@@ -314,7 +314,7 @@
         if (span.TotalMinutes < 60) return Loc["Notifications_Time_MinutesAgo", (int)span.TotalMinutes].Value;
         if (span.TotalHours < 24) return Loc["Notifications_Time_HoursAgo", (int)span.TotalHours].Value;
         if (span.TotalDays < 7) return Loc["Notifications_Time_DaysAgo", (int)span.TotalDays].Value;
-        return utcDate.ToLocalTime().ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+        return utcDate.ToLocalTime().ToString("dd-MM-yyyy");
     }
 
     public void Dispose()

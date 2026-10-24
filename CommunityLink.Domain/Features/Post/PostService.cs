@@ -823,8 +823,8 @@ public sealed class PostService(
             // 4. Self posts and other public posts (placed last)
             int GetPostTier(PostModel item)
             {
-                // Self posts are placed last (Tier 4)
-                if (currentUserId.HasValue && item.AuthorId == currentUserId.Value) return 4;
+                // Self posts are ranked Tier 1 so current user's newly published posts appear at the top
+                if (currentUserId.HasValue && item.AuthorId == currentUserId.Value) return 1;
 
                 // Tier 1: Followed user's post or share
                 if (followedAuthorIds.Contains(item.AuthorId)) return 1;

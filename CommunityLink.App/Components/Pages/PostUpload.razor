@@ -4,6 +4,7 @@
 @attribute [Authorize]
 @using System.Security.Claims
 @using System.IO
+@using System.Text.Json
 @using System.Globalization
 @inject PostApiService PostApi
 @inject CommunityApiService CommunityApi
@@ -13,6 +14,7 @@
 @inject IWebHostEnvironment Environment
 @inject NavigationManager NavManager
 @inject IStringLocalizer<AppResources> Loc
+@inject IJSRuntime JS
 
 <PageTitle>@Loc["PostUpload_PageTitle"] - CommunityLink</PageTitle>
 
@@ -119,7 +121,7 @@
                                         </span>
                                     }
                                 </div>
-                                <span class="text-xs text-[#7A8CA6]">@post.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy • hh:mm tt")</span>
+                                <span class="text-xs text-[#7A8CA6]">@post.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                             </div>
                         </div>
 
@@ -178,20 +180,52 @@
                         <p class="text-sm text-[#0A1B2E] dark:text-[#E1E8F0] whitespace-pre-line leading-relaxed">@post.Content</p>
                     </div>
 
-                    <!-- Code Snippet / Text File Display -->
+                    <!-- Attached Files Component -->
                     @if (!string.IsNullOrWhiteSpace(post.CodeSnippet))
                     {
-                        <div class="px-4 sm:px-5 pb-3">
-                            <div class="prof-code-block p-3 space-y-1.5">
-                                <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
-                                    <span class="font-bold text-emerald-400 font-mono">@(string.IsNullOrWhiteSpace(post.CodeFileName) ? "attachment.txt" : post.CodeFileName)</span>
-                                    <span class="font-mono">@(string.IsNullOrWhiteSpace(post.CodeLanguage) ? "TEXT" : post.CodeLanguage)</span>
-                                </div>
-                                <div class="overflow-x-auto overflow-y-auto max-h-72 text-[11px] leading-relaxed">
-                                    <pre class="whitespace-pre font-mono"><code>@post.CodeSnippet</code></pre>
+                        var textFiles = ParsePostUploadTextFiles(post.CodeSnippet, post.CodeFileName);
+                        @foreach (var tf in textFiles)
+                        {
+                            <div class="px-4 sm:px-5 pb-3">
+                                <div class="prof-code-block p-2.5 space-y-1 text-xs">
+                                    <div class="flex items-center justify-between pb-1 border-b border-gray-800 text-[10px] text-gray-400">
+                                        <div class="flex items-center gap-1.5 font-mono min-w-0">
+                                            <span class="font-bold text-emerald-400 truncate">📄 @tf.FileName</span>
+                                            @if (tf.FileSizeBytes.HasValue)
+                                            {
+                                                <span class="text-gray-500 shrink-0">(@FormatFileSize(tf.FileSizeBytes.Value))</span>
+                                            }
+                                        </div>
+                                        <div class="flex items-center gap-2 shrink-0 ml-2">
+                                            @if (!string.IsNullOrWhiteSpace(tf.FileUrl))
+                                            {
+                                                <a href="@tf.FileUrl" download="@tf.FileName" target="_blank"
+                                                   class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                   title="Download file">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                    <span>Download</span>
+                                                </a>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                            {
+                                                <button type="button" class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                        @onclick="() => CopyPostUploadSnippetAsync(tf.Content)"
+                                                        title="Copy content">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                                    <span>Copy</span>
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                    {
+                                        <div class="overflow-x-auto overflow-y-auto max-h-56 text-[11px] leading-relaxed select-text p-2">
+                                            <pre class="whitespace-pre font-mono text-tertiary"><code>@tf.Content</code></pre>
+                                        </div>
+                                    }
                                 </div>
                             </div>
-                        </div>
+                        }
                     }
 
                     <!-- Post Images -->
@@ -302,7 +336,7 @@
                                                 <div class="flex-1 bg-white dark:bg-[#112A46] p-2.5 rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-2xs">
                                                     <div class="flex items-center justify-between gap-2 mb-1">
                                                         <span class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@comment.AuthorName</span>
-                                                        <span class="text-[10px] text-[#7A8CA6] font-mono">@comment.CreatedAt.ToLocalTime().ToString("g")</span>
+                                                        <span class="text-[10px] text-[#7A8CA6] font-mono">@comment.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                                     </div>
                                                     <p class="text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line">@comment.Content</p>
                                                 </div>
@@ -397,14 +431,19 @@
 
                     @if (!string.IsNullOrEmpty(uploadedCodeSnippet))
                     {
+                        var previewFiles = ParsePostUploadTextFiles(uploadedCodeSnippet, uploadedCodeFileName);
+                        var firstFile = previewFiles.FirstOrDefault();
                         <div class="mt-2 prof-code-block p-3 space-y-1.5">
                             <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
-                                <span class="font-bold text-emerald-400 font-mono">📄 @(string.IsNullOrWhiteSpace(uploadedCodeFileName) ? "attached.txt" : uploadedCodeFileName)</span>
-                                <span class="font-mono">@Loc["PostUpload_Create_TextFileBadge"]</span>
+                                <span class="font-bold text-emerald-400 font-mono">📄 @(firstFile?.FileName ?? uploadedCodeFileName ?? "attached")</span>
+                                <span class="font-mono">@(firstFile?.FileSizeBytes.HasValue == true ? FormatFileSize(firstFile.FileSizeBytes.Value) : Loc["PostUpload_Create_TextFileBadge"])</span>
                             </div>
-                            <div class="overflow-x-auto overflow-y-auto max-h-48 text-[11px] leading-relaxed">
-                                <pre class="whitespace-pre font-mono"><code>@uploadedCodeSnippet</code></pre>
-                            </div>
+                            @if (!string.IsNullOrWhiteSpace(firstFile?.Content))
+                            {
+                                <div class="overflow-x-auto overflow-y-auto max-h-48 text-[11px] leading-relaxed">
+                                    <pre class="whitespace-pre font-mono"><code>@firstFile.Content</code></pre>
+                                </div>
+                            }
                         </div>
                     }
                 </div>
@@ -498,14 +537,19 @@
 
                     @if (!string.IsNullOrEmpty(editCodeSnippet))
                     {
+                        var previewFiles = ParsePostUploadTextFiles(editCodeSnippet, editCodeFileName);
+                        var firstFile = previewFiles.FirstOrDefault();
                         <div class="mt-2 prof-code-block p-3 space-y-1.5">
                             <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
-                                <span class="font-bold text-emerald-400 font-mono">📄 @(string.IsNullOrWhiteSpace(editCodeFileName) ? "attached.txt" : editCodeFileName)</span>
-                                <span class="font-mono">@Loc["PostUpload_Edit_TextFileBadge"]</span>
+                                <span class="font-bold text-emerald-400 font-mono">📄 @(firstFile?.FileName ?? editCodeFileName ?? "attached")</span>
+                                <span class="font-mono">@(firstFile?.FileSizeBytes.HasValue == true ? FormatFileSize(firstFile.FileSizeBytes.Value) : Loc["PostUpload_Edit_TextFileBadge"])</span>
                             </div>
-                            <div class="overflow-x-auto overflow-y-auto max-h-48 text-[11px] leading-relaxed">
-                                <pre class="whitespace-pre font-mono"><code>@editCodeSnippet</code></pre>
-                            </div>
+                            @if (!string.IsNullOrWhiteSpace(firstFile?.Content))
+                            {
+                                <div class="overflow-x-auto overflow-y-auto max-h-48 text-[11px] leading-relaxed">
+                                    <pre class="whitespace-pre font-mono"><code>@firstFile.Content</code></pre>
+                                </div>
+                            }
                         </div>
                     }
                 </div>
@@ -689,6 +733,31 @@
                 <button type="button" @onclick="CloseBannedReasonModal"
                         class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:opacity-90 transition cursor-pointer">
                     @Loc["PostUpload_Banned_DismissBtn"]
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showTextModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn" @onclick="CloseTextFileModal">
+        <div class="bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl relative" @onclick:stopPropagation>
+            <div class="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">📄</span>
+                    <h3 class="font-mono text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@viewingFileName</h3>
+                </div>
+                <button type="button" @onclick="CloseTextFileModal" class="p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="max-h-96 overflow-y-auto bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <pre class="font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed select-text"><code>@viewingFileContent</code></pre>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" @onclick="CloseTextFileModal" class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] rounded-xl text-xs font-semibold hover:opacity-90 transition">
+                    @Loc["Common_Close"]
                 </button>
             </div>
         </div>
@@ -914,13 +983,53 @@
         var file = e.File;
         if (file == null) return;
 
+        var extension = Path.GetExtension(file.Name);
+        if (!string.Equals(extension, ".txt", StringComparison.OrdinalIgnoreCase))
+        {
+            Toast.Error("Only .txt files are allowed.");
+            return;
+        }
+
         try
         {
             isReadingTextFile = true;
+            var subfolder = DateTime.UtcNow.ToString("yyyyMM");
+            var uploadsDir = Path.Combine(Environment.WebRootPath, "uploads", "posts", "files", subfolder);
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow.Ticks}{extension}";
+            var fullPath = Path.Combine(uploadsDir, uniqueFileName);
+
+            using (var stream = file.OpenReadStream(maxAllowedSize: 25 * 1024 * 1024))
+            using (var fileStream = new FileStream(fullPath, FileMode.Create))
+            {
+                await stream.CopyToAsync(fileStream);
+            }
+
+            var fileUrl = $"/uploads/posts/files/{subfolder}/{uniqueFileName}";
+            string content = string.Empty;
+
+            var textExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".txt", ".md", ".json", ".csv", ".xml", ".html", ".css", ".js", ".ts", ".cs", ".py", ".sql", ".log"
+            };
+
+            if (textExtensions.Contains(extension) && file.Size <= 2 * 1024 * 1024)
+            {
+                try
+                {
+                    content = await File.ReadAllTextAsync(fullPath);
+                }
+                catch { }
+            }
+
+            var item = new AttachedTextFileItem(file.Name, content, fileUrl, file.Size);
+            uploadedCodeSnippet = JsonSerializer.Serialize(new List<AttachedTextFileItem> { item });
             uploadedCodeFileName = file.Name;
-            using var reader = new StreamReader(file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024));
-            uploadedCodeSnippet = await reader.ReadToEndAsync();
-            Toast.Success(string.Format(CultureInfo.CurrentCulture, Loc["PostUpload_Toast_FileScanned"], file.Name, uploadedCodeSnippet.Length));
+            Toast.Success(string.Format(CultureInfo.CurrentCulture, Loc["PostUpload_Toast_FileScanned"], file.Name, file.Size));
         }
         catch (Exception ex)
         {
@@ -943,11 +1052,51 @@
         var file = e.File;
         if (file == null) return;
 
+        var extension = Path.GetExtension(file.Name);
+        if (!string.Equals(extension, ".txt", StringComparison.OrdinalIgnoreCase))
+        {
+            Toast.Error("Only .txt files are allowed.");
+            return;
+        }
+
         try
         {
+            var subfolder = DateTime.UtcNow.ToString("yyyyMM");
+            var uploadsDir = Path.Combine(Environment.WebRootPath, "uploads", "posts", "files", subfolder);
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow.Ticks}{extension}";
+            var fullPath = Path.Combine(uploadsDir, uniqueFileName);
+
+            using (var stream = file.OpenReadStream(maxAllowedSize: 25 * 1024 * 1024))
+            using (var fileStream = new FileStream(fullPath, FileMode.Create))
+            {
+                await stream.CopyToAsync(fileStream);
+            }
+
+            var fileUrl = $"/uploads/posts/files/{subfolder}/{uniqueFileName}";
+            string content = string.Empty;
+
+            var textExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".txt", ".md", ".json", ".csv", ".xml", ".html", ".css", ".js", ".ts", ".cs", ".py", ".sql", ".log"
+            };
+
+            if (textExtensions.Contains(extension) && file.Size <= 2 * 1024 * 1024)
+            {
+                try
+                {
+                    content = await File.ReadAllTextAsync(fullPath);
+                }
+                catch { }
+            }
+
+            var item = new AttachedTextFileItem(file.Name, content, fileUrl, file.Size);
+            editCodeSnippet = JsonSerializer.Serialize(new List<AttachedTextFileItem> { item });
             editCodeFileName = file.Name;
-            using var reader = new StreamReader(file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024));
-            editCodeSnippet = await reader.ReadToEndAsync();
             Toast.Success(string.Format(CultureInfo.CurrentCulture, Loc["PostUpload_Toast_FileAttached"], file.Name));
         }
         catch (Exception ex)
@@ -1006,7 +1155,7 @@
 
     private async Task SubmitCreatePost()
     {
-        if (string.IsNullOrWhiteSpace(newPostText))
+        if (string.IsNullOrWhiteSpace(newPostText) && string.IsNullOrWhiteSpace(uploadedCodeSnippet) && string.IsNullOrWhiteSpace(uploadedImageUrl))
         {
             Toast.Warning(Loc["PostUpload_Val_ContentRequired"]);
             return;
@@ -1028,12 +1177,12 @@
 
         var req = new CreatePostRequestModel(
             targetCommunityId,
-            newPostText,
+            newPostText?.Trim() ?? string.Empty,
             images,
             GroupId: null,
             CodeSnippet: uploadedCodeSnippet,
             CodeFileName: uploadedCodeFileName,
-            CodeLanguage: "TEXT");
+            CodeLanguage: !string.IsNullOrWhiteSpace(uploadedCodeSnippet) ? "FILE" : null);
 
         var res = await PostApi.CreatePostAsync(req);
         isSubmitting = false;
@@ -1052,7 +1201,7 @@
 
     private async Task SubmitUpdatePost()
     {
-        if (string.IsNullOrWhiteSpace(editPostText))
+        if (string.IsNullOrWhiteSpace(editPostText) && string.IsNullOrWhiteSpace(editCodeSnippet) && string.IsNullOrWhiteSpace(uploadedImageUrl))
         {
             Toast.Warning(Loc["PostUpload_Val_ContentRequired"]);
             return;
@@ -1061,11 +1210,11 @@
         isSubmitting = true;
         var images = string.IsNullOrWhiteSpace(uploadedImageUrl) ? null : new List<string> { uploadedImageUrl };
         var req = new UpdatePostRequestModel(
-            editPostText,
+            editPostText?.Trim() ?? string.Empty,
             images,
             CodeSnippet: editCodeSnippet,
             CodeFileName: editCodeFileName,
-            CodeLanguage: "TEXT");
+            CodeLanguage: !string.IsNullOrWhiteSpace(editCodeSnippet) ? "FILE" : null);
 
         var res = await PostApi.UpdatePostAsync(editingPostId, req);
         isSubmitting = false;
@@ -1186,5 +1335,69 @@
         {
             Toast.Error(res.Message ?? Loc["PostUpload_Toast_CommentFailed"]);
         }
+    }
+
+    public sealed record AttachedTextFileItem(string FileName, string Content, string? FileUrl = null, long? FileSizeBytes = null);
+
+    private static List<AttachedTextFileItem> ParsePostUploadTextFiles(string codeSnippet, string? codeFileName)
+    {
+        var list = new List<AttachedTextFileItem>();
+        if (string.IsNullOrWhiteSpace(codeSnippet)) return list;
+
+        if (codeSnippet.TrimStart().StartsWith("[") && codeSnippet.Contains("\"FileName\""))
+        {
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<List<AttachedTextFileItem>>(codeSnippet, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (parsed != null && parsed.Count > 0)
+                {
+                    return parsed;
+                }
+            }
+            catch { }
+        }
+
+        list.Add(new AttachedTextFileItem(string.IsNullOrWhiteSpace(codeFileName) ? "attachment.txt" : codeFileName, codeSnippet));
+        return list;
+    }
+
+    private static string FormatFileSize(long? bytes)
+    {
+        if (!bytes.HasValue || bytes <= 0) return string.Empty;
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes.Value / 1024.0:F1} KB";
+        return $"{bytes.Value / (1024.0 * 1024.0):F1} MB";
+    }
+
+    private async Task CopyPostUploadSnippetAsync(string? code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return;
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", code);
+            Toast.Success("Copied to clipboard!");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to copy: {ex.Message}");
+        }
+    }
+
+    private bool showTextModal = false;
+    private string viewingFileName = "";
+    private string viewingFileContent = "";
+
+    private void OpenTextFileModal(string fileName, string content)
+    {
+        viewingFileName = fileName;
+        viewingFileContent = content;
+        showTextModal = true;
+    }
+
+    private void CloseTextFileModal()
+    {
+        showTextModal = false;
+        viewingFileName = "";
+        viewingFileContent = "";
     }
 }
