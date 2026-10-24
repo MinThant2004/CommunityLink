@@ -1609,13 +1609,11 @@ else if (dashboard != null)
                                             </a>
                                             @if (person.IsVerified)
                                             {
-                                                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-amber-400 text-neutral-950 flex items-center justify-center text-[10px] font-bold shadow-xs" title="@Loc["Home_Sidebar_VerifiedMember"]">
-                                                    ✓
-                                                </span>
+                                                <VerifiedBadge CssClass="absolute -bottom-1 -right-1 w-4 h-4 shadow-xs" />
                                             }
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <a href="u/@person.UserName" class="text-sm sm:text-base font-bold text-on-surface group-hover:text-white transition-colors truncate block">
+                                            <a href="u/@person.UserName" class="text-sm sm:text-base font-bold text-on-surface group-hover:text-primary transition-colors truncate block">
                                                 @(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)
                                             </a>
                                             <p class="text-xs text-on-surface-variant font-medium truncate mt-0.5">
@@ -1692,19 +1690,19 @@ else if (dashboard != null)
                                 <!-- Action Buttons -->
                                 <div class="flex items-center gap-2 pt-2 border-t border-white/5 mt-auto">
                                     <button type="button" @onclick="() => ToggleFollowPersonAsync(person.UserId)"
-                                            class="px-3.5 py-1.5 rounded-lg @(person.IsFollowedByCurrentUser ? "bg-surface-container-highest text-white border border-white/15" : "bg-surface-container-highest hover:bg-white/10 text-on-surface-variant border border-white/5") text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer shrink-0">
+                                            class="px-3.5 py-1.5 rounded-lg @(person.IsFollowedByCurrentUser ? "bg-surface-container-highest text-on-surface border border-white/15" : "bg-surface-container hover:bg-surface-container-high text-on-surface-variant border border-white/5") text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer shrink-0">
                                         @if (person.IsFollowedByCurrentUser)
                                         {
-                                            <span class="material-symbols-outlined text-[15px]">check</span>
+                                            <span class="material-symbols-outlined text-[15px] text-amber-400">check</span>
                                             <span>@Loc["Home_People_FollowingBtn"]</span>
                                         }
                                         else
                                         {
-                                            <span class="material-symbols-outlined text-[15px]">person_add</span>
+                                            <span class="material-symbols-outlined text-[15px] text-outline">person_add</span>
                                             <span>@Loc["Home_People_FollowBtn"]</span>
                                         }
                                     </button>
-                                    <a href="u/@person.UserName" class="flex-1 py-1.5 bg-surface-container-highest hover:bg-white/10 text-on-surface text-xs font-semibold rounded-lg flex items-center justify-center gap-1 border border-white/5 transition-colors">
+                                    <a href="u/@person.UserName" class="flex-1 py-1.5 bg-surface-container-highest hover:bg-surface-container text-on-surface text-xs font-semibold rounded-lg flex items-center justify-center gap-1 border border-white/5 transition-colors">
                                         <span>@Loc["Home_People_ViewFullProfile"]</span>
                                         <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
                                     </a>
