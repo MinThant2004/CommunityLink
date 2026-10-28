@@ -9,6 +9,7 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IStringLocalizer<AppResources> Loc
+@inject IJSRuntime JS
 
 <PageTitle>@Loc["CreatorEarnings_PageTitle"]</PageTitle>
 
@@ -181,7 +182,7 @@
                     </div>
                     @if (activeFilterType == "GROUP" || activeFilterType == "PRIVATE_CHAT")
                     {
-                        <button type="button" @onclick='() => SetFilterType("ALL")' class="px-2.5 py-1 bg-[#F1F5F9] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] text-[#475569] dark:text-[#C4D2E1] rounded-lg text-xs font-semibold hover:bg-[#E2E8F0] dark:hover:bg-[#1E2638] transition cursor-pointer">
+                        <button type="button" @onclick="ClearSourceFilter" class="px-2.5 py-1 bg-[#F1F5F9] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] text-[#475569] dark:text-[#C4D2E1] rounded-lg text-xs font-semibold hover:bg-[#E2E8F0] dark:hover:bg-[#1E2638] transition cursor-pointer">
                             @Loc["CreatorEarnings_ClearFilter"]
                         </button>
                     }
@@ -243,7 +244,7 @@
         </div>
 
         <!-- EARNINGS HISTORY TABLE SECTION -->
-        <div class="bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-6 shadow-xs space-y-4">
+        <div id="earnings-history-section" class="scroll-mt-6 bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] rounded-xl p-6 shadow-xs space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] pb-4">
                 <div>
                     <h2 class="text-lg font-bold text-[#0F172A] dark:text-[#E1E8F0]" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["CreatorEarnings_HistoryTitle"]</h2>
@@ -490,7 +491,10 @@
 
     private async Task LoadEarningsData()
     {
-        isLoading = true;
+        if (dashboard == null)
+        {
+            isLoading = true;
+        }
         errorMessage = null;
 
         try
@@ -521,6 +525,13 @@
         await LoadEarningsData();
     }
 
+    private async Task ClearSourceFilter()
+    {
+        await ScrollToHistoryTableAsync();
+        await SetFilterType("ALL");
+        await ScrollToHistoryTableAsync();
+    }
+
     private async Task ToggleSourceFilter(string source)
     {
         if (activeFilterType == source)
@@ -532,7 +543,9 @@
             activeFilterType = source;
             selectedChatGroupId = null;
         }
+        await ScrollToHistoryTableAsync();
         await LoadEarningsData();
+        await ScrollToHistoryTableAsync();
     }
 
     private int GetSourceSharePercent(string source, IReadOnlyList<CreatorSourceEarningsModel> sources)
@@ -572,13 +585,30 @@
             selectedChatGroupId = chatGroupId;
         }
         pageNumber = 1;
+        await ScrollToHistoryTableAsync();
         await LoadEarningsData();
+        await ScrollToHistoryTableAsync();
     }
 
     private async Task ClearGroupFilter()
     {
         selectedChatGroupId = null;
         pageNumber = 1;
+        await ScrollToHistoryTableAsync();
         await LoadEarningsData();
+        await ScrollToHistoryTableAsync();
+    }
+
+    private async Task ScrollToHistoryTableAsync()
+    {
+        try
+        {
+            await Task.Yield();
+            await JS.InvokeVoidAsync("scrollToElement", "earnings-history-section");
+        }
+        catch
+        {
+            // Graceful fallback if JS interop is unavailable
+        }
     }
 }
