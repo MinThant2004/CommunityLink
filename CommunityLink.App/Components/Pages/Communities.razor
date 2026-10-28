@@ -268,9 +268,9 @@
                                     else
                                     {
                                         <button type="button" @onclick="() => JoinCommunity(community.CommunityId)"
-                                                class="flex-1 py-2 px-space-sm rounded-lg bg-[#0A1B2E] hover:bg-[#153252] text-white dark:bg-[#D4AF37] dark:hover:bg-[#F2CA50] dark:text-[#0A1B2E] font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all font-bold cursor-pointer shadow-sm border border-[#0A1B2E] dark:border-[#D4AF37]">
-                                            <span class="material-symbols-outlined text-sm text-white dark:text-[#0A1B2E]">lock_open</span>
-                                            <span class="text-white dark:text-[#0A1B2E] font-bold">@Loc["Communities_Card_Join"]</span>
+                                                class="flex-1 py-2 px-space-sm rounded-lg bg-[#0A1B2E] hover:bg-[#153252] text-white dark:bg-[#1E3A8A] dark:hover:bg-[#2563EB] dark:text-white font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all font-bold cursor-pointer shadow-sm border border-[#0A1B2E] dark:border-[#1E3A8A]">
+                                            <span class="material-symbols-outlined text-sm text-white">lock_open</span>
+                                            <span class="text-white font-bold">@Loc["Communities_Card_Join"]</span>
                                         </button>
                                     }
                                 </div>
@@ -714,8 +714,20 @@
             var user = authState.User;
             if (user.Identity?.IsAuthenticated == true)
             {
-                isAdmin = user.IsInRole("ADMIN") ||
-                          string.Equals(user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                           ?? user.FindFirst("role")?.Value
+                           ?? string.Empty;
+
+                isAdmin = user.HasClaim("is_admin", "true") ||
+                          user.HasClaim("role_type", "1") ||
+                          user.IsInRole("ADMIN") ||
+                          user.IsInRole("SYSTEM_ADMIN") ||
+                          user.IsInRole("SYSTEMADMIN") ||
+                          user.IsInRole("SUPERADMIN") ||
+                          string.Equals(role, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                          string.Equals(role, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                          string.Equals(role, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+                          string.Equals(role, "SUPERADMIN", StringComparison.OrdinalIgnoreCase) ||
                           user.HasClaim("permission", PermissionCatalog.AdminUserView);
                 if (isAdmin)
                 {

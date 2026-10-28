@@ -81,22 +81,7 @@
 </style>
 
 <div class="min-h-screen bg-background font-body-md text-body-md text-on-surface antialiased transition-colors duration-200">
-    <!-- Top System Directory Strip -->
-    <section class="bg-surface-container-lowest/80 backdrop-blur-md border-b border-surface-container-high/30">
-        <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-space-sm flex items-center justify-between gap-3">
-            <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
-                <a href="/" class="hover:text-on-surface transition-colors flex items-center gap-1">@Loc["Upgrade_Nav_Platform"]</a>
-                <span class="material-symbols-outlined text-xs">chevron_right</span>
-                <span class="text-on-surface font-semibold">@Loc["Upgrade_Nav_TierMembership"]</span>
-            </div>
-            <div class="flex items-center gap-space-sm">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider hidden sm:inline">@Loc["Upgrade_Strip_EscrowProtocol"]</span>
-                <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm border border-primary/20">
-                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>@Loc["Upgrade_Strip_EscrowActive"]
-                </span>
-            </div>
-        </div>
-    </section>
+    
 
     <div class="relative w-full overflow-hidden">
         <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
@@ -118,15 +103,27 @@
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
                     <div class="flex flex-col gap-space-xs max-w-2xl">
                         <div class="flex flex-wrap items-center gap-space-sm">
-                            <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-highest text-[#0A1B2E] dark:text-[#D4AF37] font-label-sm text-label-sm uppercase tracking-wider border border-[#0A1B2E]/10 dark:border-[#D4AF37]/30 font-bold">
-                                <span class="material-symbols-outlined text-xs text-[#0A1B2E] dark:text-[#D4AF37]" style="font-variation-settings: 'FILL' 1;">verified</span>@Loc["Upgrade_Hero_VerifiedTiers"]
-                            </span>
                             <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm border border-surface-container-high/40">
                                 <LinkDropIcon Class="w-4 h-4 shrink-0" />
                                 <span>@Loc["Upgrade_Hero_YourBalance"]</span>
-                                <strong class="text-[#0A1B2E] dark:text-[#D4AF37] font-mono">@Loc["Upgrade_Hero_DropsCount", userWalletDrops.ToString("N0")]</strong>
+                                <strong class="text-on-surface font-mono">@Loc["Upgrade_Hero_DropsCount", userWalletDrops.ToString("N0")]</strong>
                                 <a href="linkdrops" class="text-secondary hover:underline font-semibold ml-1">@Loc["Upgrade_Hero_TopUp"]</a>
                             </span>
+                            @if (myStatus?.HasActiveSubscription == true)
+                            {
+                                <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-[#D4AF37] dark:bg-[#D4AF37]/15 font-label-sm text-label-sm border border-amber-500/30 dark:border-[#D4AF37]/40 font-medium">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#D4AF37] animate-pulse"></span>
+                                    <span>Active: <strong>@myStatus.TierName</strong></span>
+                                    <span class="text-xs opacity-75">(@(myStatus.ExpiresAtUtc?.ToString("MMMM dd, yyyy") ?? "-"), @myStatus.DaysRemaining days left)</span>
+                                </span>
+                            }
+                            else if (myStatus?.PendingVerification != null)
+                            {
+                                <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-label-sm text-label-sm border border-amber-500/20 font-medium">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                    <span>Pending Audit: <strong>@myStatus.PendingVerification.PlanName</strong></span>
+                                </span>
+                            }
                         </div>
 
                         <h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight mt-space-xs font-bold">
@@ -142,53 +139,17 @@
                     <div class="flex items-center gap-space-sm shrink-0">
                         <div class="inline-flex items-center p-1 rounded-lg bg-surface-container border border-surface-container-high/50 shadow-inner">
                             <button type="button" @onclick='() => isAnnual = false'
-                                    class="px-3.5 py-1.5 rounded-md font-label-md text-label-md font-bold transition cursor-pointer @(!isAnnual ? "upgrade-interval-btn-active bg-[#0A1B2E] text-white dark:bg-[#D4AF37] dark:text-[#0A0D14] shadow-sm" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40")">
+                                    class="px-3.5 py-1.5 rounded-md font-label-md text-label-md font-bold transition cursor-pointer @(!isAnnual ? "bg-[#0A1B2E] text-white dark:bg-slate-700 dark:text-white shadow-sm" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40")">
                                 Monthly
                             </button>
                             <button type="button" @onclick='() => isAnnual = true'
-                                    class="px-3.5 py-1.5 rounded-md font-label-md text-label-md font-bold transition cursor-pointer @(isAnnual ? "upgrade-interval-btn-active bg-[#0A1B2E] text-white dark:bg-[#D4AF37] dark:text-[#0A0D14] shadow-sm" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40")">
+                                    class="px-3.5 py-1.5 rounded-md font-label-md text-label-md font-bold transition cursor-pointer @(isAnnual ? "bg-[#0A1B2E] text-white dark:bg-slate-700 dark:text-white shadow-sm" : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40")">
                                 Annual
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Active Subscription Notice (if user already upgraded) -->
-            @if (myStatus?.HasActiveSubscription == true)
-            {
-                <div class="p-space-md rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-on-surface flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
-                    <div class="flex items-center gap-space-sm">
-                        <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">verified</span>
-                        </div>
-                        <div>
-                            <h3 class="font-title-md font-bold text-on-surface">@Loc["Upgrade_Status_ActiveTitle", myStatus.TierName ?? ""]</h3>
-                            <p class="font-body-sm text-on-surface-variant">@Loc["Upgrade_Status_ActiveDesc", (myStatus.ExpiresAtUtc?.ToString("MMMM dd, yyyy") ?? "-"), (myStatus.DaysRemaining ?? 0)]</p>
-                        </div>
-                    </div>
-                    <span class="px-space-sm py-1 rounded-md font-label-sm text-label-sm uppercase tracking-wider font-bold bg-emerald-600 text-white shadow-sm shrink-0">
-                        @Loc["Upgrade_Status_VerifiedActive"]
-                    </span>
-                </div>
-            }
-            else if (myStatus?.PendingVerification != null)
-            {
-                <div class="p-space-md rounded-xl bg-amber-500/10 border border-amber-500/20 text-on-surface flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
-                    <div class="flex items-center gap-space-sm">
-                        <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 animate-pulse">
-                            <span class="material-symbols-outlined text-lg">hourglass_top</span>
-                        </div>
-                        <div>
-                            <h3 class="font-title-md font-bold text-on-surface">@Loc["Upgrade_Status_PendingTitle"]</h3>
-                            <p class="font-body-sm text-on-surface-variant">@((MarkupString)string.Format(Loc["Upgrade_Status_PendingDesc"], $"<strong>{myStatus.PendingVerification.PlanName}</strong>"))</p>
-                        </div>
-                    </div>
-                    <span class="px-space-sm py-1 rounded-md font-label-sm text-label-sm uppercase tracking-wider font-bold bg-amber-500 text-white shadow-sm shrink-0">
-                        @Loc["Upgrade_Status_PendingBadge"]
-                    </span>
-                </div>
-            }
 
             <!-- 3-TIER PRICING CARDS -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md items-stretch">
@@ -255,14 +216,14 @@
                 @{
                     var proPlan = SelectedDomainProPlan;
                 }
-                <div class="rounded-xl bg-surface-container-low border-2 border-amber-500/50 dark:border-[#D4AF37]/50 p-space-md md:p-space-lg flex flex-col justify-between space-y-space-md shadow-sm relative">
+                <div class="rounded-xl bg-surface-container-low border-2 border-secondary/50 p-space-md md:p-space-lg flex flex-col justify-between space-y-space-md shadow-sm relative">
                     <div class="space-y-space-md">
                         <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded font-label-sm text-label-sm uppercase tracking-wider font-bold bg-amber-500/10 text-amber-600 dark:text-[#D4AF37] dark:bg-[#D4AF37]/15 dark:border-[#D4AF37]/30 border border-amber-500/20">
+                            <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded font-label-sm text-label-sm uppercase tracking-wider font-bold bg-secondary/10 text-secondary border border-secondary/20">
                                 <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
                                 <span>@Loc["Upgrade_Plan_DomainProBadge"]</span>
                             </span>
-                            <span class="font-label-sm text-on-surface-variant">@Loc["Upgrade_Plan_PractitionerTier"]</span>
+                            
                         </div>
 
                         <div>
@@ -274,7 +235,7 @@
                             @if (proPlan != null)
                             {
                                 <div class="flex items-baseline gap-1.5">
-                                    <span class="font-headline-lg font-bold text-[#0A1B2E] dark:text-[#D4AF37] font-mono flex items-center gap-1.5">
+                                    <span class="font-headline-lg font-bold text-secondary font-mono flex items-center gap-1.5">
                                         <LinkDropIcon Class="w-5 h-5 shrink-0" />
                                         <span>@proPlan.LinkDropCost.ToString("N0")</span>
                                     </span>
@@ -294,7 +255,7 @@
                                 @foreach (var perk in proPlan.Perks)
                                 {
                                     <li class="flex items-start gap-2">
-                                        <span class="material-symbols-outlined text-xs text-amber-500 dark:text-[#D4AF37] mt-0.5" style="font-variation-settings: 'FILL' 1;">check</span>
+                                        <span class="material-symbols-outlined text-xs text-secondary mt-0.5" style="font-variation-settings: 'FILL' 1;">check</span>
                                         <span>@perk</span>
                                     </li>
                                 }
@@ -326,7 +287,7 @@
                             else
                             {
                                 <button type="button" @onclick="() => OpenUpgradeModal(proPlan)"
-                                        class="upgrade-btn-primary w-full py-2.5 rounded-lg font-label-md text-label-md font-bold text-white dark:text-[#0A0D14] bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#D4AF37] dark:hover:bg-[#F2CA50] shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                        class="w-full py-2.5 rounded-lg font-label-md text-label-md font-bold text-on-secondary bg-secondary hover:bg-secondary/90 shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
                                     <span>@Loc["Upgrade_Plan_Btn_UpgradeToDomainPro"]</span>
                                     <span>&rarr;</span>
                                 </button>
@@ -352,7 +313,7 @@
                                 <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
                                 <span>@Loc["Upgrade_Plan_PublicFigureBadge"]</span>
                             </span>
-                            <span class="font-label-sm text-on-surface-variant">@Loc["Upgrade_Plan_LuminaryTier"]</span>
+                            
                         </div>
 
                         <div>
