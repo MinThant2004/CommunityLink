@@ -419,7 +419,7 @@
 
                                     <button type="button" @onclick="HandleProfileMessageClick" class="btn-exec-primary">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                                        @if (isPaidChatEnabled && privateChatFeeLinkDrops > 0)
+                                        @if (isPaidChatEnabled && privateChatFeeLinkDrops > 0 && !isPrivateChatUnlocked)
                                         {
                                             <span class="inline-flex items-center gap-1.5">
                                                 <span>@Loc["Profile_Action_Chat"]</span>
@@ -1939,7 +1939,7 @@
 }
 
 <!-- PROFILE PRIVATE CHAT UNLOCK MODAL -->
-@if (showProfileUnlockModal && profile != null)
+@if (showProfileUnlockModal && profile != null && !isPrivateChatUnlocked)
 {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
         <div class="bg-white dark:bg-[#112A46] rounded-3xl shadow-2xl border border-slate-200 dark:border-[rgba(196,210,225,0.15)] max-w-sm w-full overflow-hidden p-6 text-center space-y-4">
@@ -2313,6 +2313,7 @@
 
     // Private Chat State
     private bool isPaidChatEnabled;
+    private bool isPrivateChatUnlocked;
     private long privateChatFeeLinkDrops;
     private long visitorWalletBalance;
     private bool showProfileUnlockModal;
@@ -3086,11 +3087,26 @@
         if (profile == null) return;
         try
         {
-            var settingRes = await ChatApi.GetCreatorChatSettingsAsync(profile.UserId, _cts.Token);
+            isPaidChatEnabled = false;
+            isPrivateChatUnlocked = false;
+            privateChatFeeLinkDrops = 0;
+
+            var statusRes = await ChatApi.GetPrivateChatStatusAsync(profile.UserId, _cts.Token);
+            if (statusRes.IsSuccess && statusRes.Data != null)
+            {
+                isPaidChatEnabled = statusRes.Data.IsPaidChat;
+                isPrivateChatUnlocked = statusRes.Data.IsUnlocked;
+                privateChatFeeLinkDrops = statusRes.Data.FeeLinkDrops;
+            }
+            else
+            {
+                var settingRes = await ChatApi.GetCreatorChatSettingsAsync(profile.UserId, _cts.Token);
             if (settingRes.IsSuccess && settingRes.Data != null)
             {
                 isPaidChatEnabled = settingRes.Data.IsPrivateChatEnabled;
                 privateChatFeeLinkDrops = settingRes.Data.PrivateChatFeeLinkDrops;
+                isPrivateChatUnlocked = false;
+            }
             }
 
             var walletRes = await LinkDropApi.GetUserWalletAsync(_cts.Token);
@@ -3109,7 +3125,7 @@
         // Open the unified /chat surface directly on this 1:1 thread.
         var chatRoute = $"/chat?to={profile.UserId}";
 
-        if (isPaidChatEnabled && privateChatFeeLinkDrops > 0)
+        if (isPaidChatEnabled && privateChatFeeLinkDrops > 0 && !isPrivateChatUnlocked)
         {
             var walletRes = await LinkDropApi.GetUserWalletAsync();
             if (walletRes.IsSuccess && walletRes.Data != null)
@@ -3134,6 +3150,7 @@
             var res = await ChatApi.UnlockPrivateChatAsync(profile.UserId);
             if (res.IsSuccess)
             {
+                isPrivateChatUnlocked = true;
                 Toast.Success(Loc["Profile_Toast_PrivateChatUnlocked"]);
                 showProfileUnlockModal = false;
                 Navigation.NavigateTo($"/chat?to={profile.UserId}");

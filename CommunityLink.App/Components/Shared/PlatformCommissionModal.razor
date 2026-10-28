@@ -1,0 +1,214 @@
+@rendermode InteractiveServer
+@using CommunityLink.Shared.Features.Admin
+@using CommunityLink.Shared.Security
+@using Microsoft.Extensions.Localization
+@inject AdministrationApiService AdminApi
+@inject ToastService Toast
+@inject IStringLocalizer<AppResources> Loc
+
+<div class="fixed inset-0 z-[120] flex items-center justify-center bg-[#0A1B2E]/60 dark:bg-black/80 backdrop-blur-sm p-4 animate-fade-in" @onclick="CloseOnBackdrop">
+    <div class="w-full max-w-md space-y-5 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] bg-white dark:bg-[#112A46] p-6 sm:p-7 shadow-2xl relative" @onclick:stopPropagation>
+
+        <button type="button" @onclick="OnClose" aria-label="@Loc["Common_Close"]"
+                class="absolute top-5 right-5 flex h-8 w-8 items-center justify-center rounded-lg text-[#64748B] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] hover:text-[#0A1B2E] dark:hover:text-white transition cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+
+        <!-- Header -->
+        <div class="border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-4 pr-8">
+            <div class="flex items-start gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">
+                        @Loc["Nav_AdminPlatformSettings"]
+                    </h3>
+                    <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1 leading-relaxed">
+                        @Loc["Admin_Settings_CardSubtitle"]
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="py-8 text-center space-y-3">
+                <div class="inline-block animate-spin rounded-full h-7 w-7 border-4 border-slate-200 dark:border-slate-700 border-t-[#0A1B2E] dark:border-t-[#E1E8F0]"></div>
+                <p class="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">@Loc["Admin_Settings_Loading"]</p>
+            </div>
+        }
+        else
+        {
+            <!-- Current Rate Badge -->
+            <div class="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] dark:bg-[#0A0D14] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
+                <span class="text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_Settings_Heading"]</span>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-white dark:bg-[#182030] text-[#0F172A] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] shadow-2xs">
+                    @string.Format(Loc["Admin_Settings_CurrentRate"], settingDto.CommissionPercentage.ToString("F2"))
+                </span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-lg border border-rose-200 dark:border-rose-900/50">
+                    <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+                    <span>@errorMessage</span>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                    <svg class="w-4 h-4 shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                    <span>@successMessage</span>
+                </div>
+            }
+
+            <!-- Form & Controls -->
+            <div class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">@Loc["Admin_Settings_InputLabel"]</label>
+                    <div class="relative flex items-center">
+                        <input type="number" step="0.01" min="0" max="100"
+                               @bind="commissionInput"
+                               @bind:event="oninput"
+                               @onchange="ValidateCommissionInput"
+                               class="w-full bg-[#F8FAFC] dark:bg-[#191B23] border @(string.IsNullOrEmpty(errorMessage) ? "border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] focus:border-[#0A1B2E] dark:focus:border-[#E1E8F0]" : "border-rose-400 focus:border-rose-500 bg-rose-50/30") rounded-lg pl-3.5 pr-8 py-2 text-sm text-[#0F172A] dark:text-[#E1E2EC] font-mono font-medium focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 transition" />
+                        <span class="absolute right-3 text-sm font-bold text-[#64748B] pointer-events-none">%</span>
+                    </div>
+                </div>
+
+                @if (settingDto.UpdatedAt.HasValue)
+                {
+                    <p class="text-[11px] text-[#64748B] dark:text-[#94A3B8] pt-2 border-t border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)]">
+                        @Loc["Admin_Settings_LastUpdated"] <span class="font-mono font-medium text-[#475569] dark:text-[#C4D2E1]">@settingDto.UpdatedAt.Value.ToString("MMM dd, yyyy HH:mm:ss") UTC</span>
+                        @(settingDto.UpdatedBy.HasValue ? $" ({string.Format(Loc["Admin_Settings_AdminId"], settingDto.UpdatedBy)})" : "")
+                    </p>
+                }
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-4 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-end gap-3">
+                <button type="button" @onclick="OnClose" disabled="@isSaving"
+                        class="px-4 py-2 bg-[#F1F5F9] dark:bg-[#182030] text-[#475569] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded-lg text-xs font-semibold hover:bg-[#E2E8F0] dark:hover:bg-[#1E2638] transition cursor-pointer disabled:opacity-50">
+                    @Loc["Common_Cancel"]
+                </button>
+                <button type="button" @onclick="SaveCommissionAsync" disabled="@(isSaving || !string.IsNullOrEmpty(errorMessage))"
+                        class="px-5 py-2 rounded-lg text-xs font-bold text-white dark:text-[#0A1B2E] bg-[#0A1B2E] hover:bg-[#112A46] dark:bg-[#E1E8F0] dark:hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 shadow-xs active:scale-[0.98] flex items-center gap-2 cursor-pointer">
+                    @if (isSaving)
+                    {
+                        <span class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white dark:border-[#0A1B2E] border-t-transparent"></span>
+                        <span>@Loc["Admin_Settings_Saving"]</span>
+                    }
+                    else
+                    {
+                        <span>@Loc["Admin_Settings_SaveBtn"]</span>
+                    }
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private PlatformCommissionSettingDto settingDto = new();
+    private string commissionInput = "10.00";
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCommissionAsync();
+    }
+
+    private async Task CloseOnBackdrop()
+    {
+        if (!isSaving)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+
+    private async Task LoadCommissionAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        successMessage = null;
+        var res = await AdminApi.GetPlatformCommissionAsync();
+        if (res.IsSuccess && res.Data != null)
+        {
+            settingDto = res.Data;
+            commissionInput = settingDto.CommissionPercentage.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            Toast.Error(res.Message ?? Loc["Admin_Settings_Toast_LoadFailed"]);
+        }
+        isLoading = false;
+    }
+
+    private void ValidateCommissionInput()
+    {
+        successMessage = null;
+        if (string.IsNullOrWhiteSpace(commissionInput))
+        {
+            errorMessage = Loc["Admin_Settings_ValRequired"];
+            return;
+        }
+
+        if (!decimal.TryParse(commissionInput, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var val))
+        {
+            errorMessage = Loc["Admin_Settings_ValNumeric"];
+            return;
+        }
+
+        if (val < 0)
+        {
+            errorMessage = Loc["Admin_Settings_ValMin"];
+            return;
+        }
+
+        if (val > 100)
+        {
+            errorMessage = Loc["Admin_Settings_ValMax"];
+            return;
+        }
+
+        errorMessage = null;
+    }
+
+    private async Task SaveCommissionAsync()
+    {
+        ValidateCommissionInput();
+        if (!string.IsNullOrEmpty(errorMessage)) return;
+
+        if (!decimal.TryParse(commissionInput, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var val))
+            return;
+
+        isSaving = true;
+        successMessage = null;
+
+        var request = new UpdateCommissionSettingRequestDto { CommissionPercentage = val };
+        var res = await AdminApi.UpdatePlatformCommissionAsync(request);
+
+        if (res.IsSuccess && res.Data != null)
+        {
+            settingDto = res.Data;
+            commissionInput = settingDto.CommissionPercentage.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+            successMessage = res.Message ?? Loc["Admin_Settings_SaveSuccess"];
+            Toast.Success(successMessage);
+        }
+        else
+        {
+            errorMessage = res.Message ?? Loc["Admin_Settings_SaveFailed"];
+            Toast.Error(errorMessage);
+        }
+
+        isSaving = false;
+    }
+}
