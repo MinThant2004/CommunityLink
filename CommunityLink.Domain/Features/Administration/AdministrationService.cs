@@ -889,6 +889,25 @@ public sealed class AdministrationService(
                     contentCreatedAt = grp.CreatedAt;
                 }
             }
+            else if (r.ContentType == "USER")
+            {
+                var targetUser = await dbContext.TblUsers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.UserId == r.ContentId, cancellationToken);
+
+                if (targetUser != null)
+                {
+                    authorId = targetUser.UserId;
+                    authorName = targetUser.DisplayName ?? targetUser.UserName;
+                    authorAvatar = targetUser.AvatarUrl;
+                    summary = $"User Profile: {targetUser.DisplayName} (@{targetUser.UserName}) • Guaranteed SLA: {targetUser.ResponseSlaText ?? "Standard"} • Bio: {targetUser.Bio ?? targetUser.Headline ?? "No bio"}";
+                    commName = "Member Profile";
+                    grpName = targetUser.ResponseSlaText ?? "Direct Chat";
+                    isActive = targetUser.IsActive && !targetUser.IsDeleted;
+                    isPrivate = false;
+                    contentCreatedAt = targetUser.CreatedAt;
+                }
+            }
 
             list.Add(new ContentReportModel(
                 r.ContentReportId,
@@ -1197,6 +1216,42 @@ public sealed class AdministrationService(
                     grp.ModerationReason = null;
                     grp.UpdatedAt = DateTime.UtcNow;
                     grp.UpdatedBy = adminUserId;
+                    break;
+            }
+        }
+        else if (contentType == "USER")
+        {
+            var targetUser = await dbContext.TblUsers.FirstOrDefaultAsync(u => u.UserId == contentId && !u.IsDeleted, cancellationToken);
+            if (targetUser == null) return Result.Failure("User not found.", ResultStatus.NotFound);
+
+            authorId = targetUser.UserId;
+
+            switch (actionUpper)
+            {
+                case "DEACTIVATE":
+                case "BAN":
+                    targetUser.IsActive = false;
+                    targetUser.UpdatedAt = DateTime.UtcNow;
+                    targetUser.UpdatedBy = adminUserId;
+                    break;
+                case "ACTIVATE":
+                case "UNBAN":
+                    targetUser.IsActive = true;
+                    targetUser.UpdatedAt = DateTime.UtcNow;
+                    targetUser.UpdatedBy = adminUserId;
+                    break;
+                case "WARN":
+                    dbContext.TblNotifications.Add(new TblNotification
+                    {
+                        RecipientUserId = targetUser.UserId,
+                        NotificationType = "SYSTEM_WARNING",
+                        Title = "Moderation Warning: SLA & Conduct Standards",
+                        Message = $"You received an official moderation warning regarding: {reasonText}. Please ensure you fulfill your promised response SLA and maintain community standards.",
+                        TargetEntityName = "TblUser",
+                        TargetEntityId = targetUser.UserId,
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    });
                     break;
             }
         }

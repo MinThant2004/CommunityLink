@@ -10,7 +10,11 @@ public sealed record SubmitIdentityVerificationRequestDto(
     string? ProfessionalUrl,
     string IdCardFrontUrl,
     string? IdCardBackUrl,
-    string PaymentMethod = "LinkDropPoints"
+    string PaymentMethod = "LinkDropPoints",
+    string? ResponseSlaText = null,
+    string? Skills = null,
+    string? Location = null,
+    IReadOnlyList<string>? CertificateUrls = null
 );
 
 public sealed record IdentityVerificationDetailDto(
@@ -36,7 +40,10 @@ public sealed record IdentityVerificationDetailDto(
     string? ReviewNotes,
     string? ReviewedByAdminEmail,
     DateTime? ReviewedAtUtc,
-    DateTime CreatedAtUtc
+    DateTime CreatedAtUtc,
+    string? Skills = null,
+    string? Location = null,
+    IReadOnlyList<string>? CertificateUrls = null
 );
 
 public sealed record UserSubscriptionStatusDto(

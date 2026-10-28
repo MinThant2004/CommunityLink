@@ -183,12 +183,25 @@ public static class RbacSeeder
                     ReviewNotes             NVARCHAR(1000) NULL,
                     ReviewedByAdminId       INT NULL,
                     ReviewedAtUtc           DATETIME2(7) NULL,
+                    Skills                  NVARCHAR(1000) NULL,
+                    Location                NVARCHAR(200) NULL,
+                    CertificateUrls         NVARCHAR(MAX) NULL,
                     CreatedAtUtc            DATETIME2(7) NOT NULL CONSTRAINT DF_TblIdVerif_CreatedAtUtc DEFAULT (SYSUTCDATETIME()),
                     CONSTRAINT PK_TblIdentityVerification PRIMARY KEY CLUSTERED (VerificationId ASC),
                     CONSTRAINT FK_TblIdentityVerification_User FOREIGN KEY (UserId) REFERENCES dbo.TblUser (UserId),
                     CONSTRAINT FK_TblIdentityVerification_Plan FOREIGN KEY (PlanId) REFERENCES dbo.TblSubscriptionPlan (PlanId),
                     CONSTRAINT FK_TblIdentityVerification_Admin FOREIGN KEY (ReviewedByAdminId) REFERENCES dbo.TblAdmin (AdminId)
                 );
+            END;
+
+            IF OBJECT_ID(N'dbo.TblIdentityVerification', N'U') IS NOT NULL
+            BEGIN
+                IF COL_LENGTH('dbo.TblIdentityVerification', 'Skills') IS NULL
+                    ALTER TABLE dbo.TblIdentityVerification ADD Skills NVARCHAR(1000) NULL;
+                IF COL_LENGTH('dbo.TblIdentityVerification', 'Location') IS NULL
+                    ALTER TABLE dbo.TblIdentityVerification ADD Location NVARCHAR(200) NULL;
+                IF COL_LENGTH('dbo.TblIdentityVerification', 'CertificateUrls') IS NULL
+                    ALTER TABLE dbo.TblIdentityVerification ADD CertificateUrls NVARCHAR(MAX) NULL;
             END;");
 
             await db.Database.ExecuteSqlRawAsync(@"

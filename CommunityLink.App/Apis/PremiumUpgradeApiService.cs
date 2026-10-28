@@ -26,6 +26,10 @@ public sealed class PremiumUpgradeApiService(IHttpClientFactory clientFactory, I
         string idCardFrontFileName,
         byte[]? idCardBackBytes,
         string? idCardBackFileName,
+        string? responseSlaText = null,
+        string? skills = null,
+        string? location = null,
+        List<(byte[] bytes, string fileName, string contentType)>? certificates = null,
         CancellationToken cancellationToken = default)
     {
         var client = CreateClient();
@@ -39,6 +43,12 @@ public sealed class PremiumUpgradeApiService(IHttpClientFactory clientFactory, I
             content.Add(new StringContent(professionalUrl), "professionalUrl");
         if (!string.IsNullOrWhiteSpace(paymentMethod))
             content.Add(new StringContent(paymentMethod), "paymentMethod");
+        if (!string.IsNullOrWhiteSpace(responseSlaText))
+            content.Add(new StringContent(responseSlaText), "responseSlaText");
+        if (!string.IsNullOrWhiteSpace(skills))
+            content.Add(new StringContent(skills), "skills");
+        if (!string.IsNullOrWhiteSpace(location))
+            content.Add(new StringContent(location), "location");
 
         var frontContent = new ByteArrayContent(idCardFrontBytes);
         frontContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/jpeg");
@@ -49,6 +59,17 @@ public sealed class PremiumUpgradeApiService(IHttpClientFactory clientFactory, I
             var backContent = new ByteArrayContent(idCardBackBytes);
             backContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/jpeg");
             content.Add(backContent, "idCardBack", idCardBackFileName);
+        }
+
+        if (certificates != null)
+        {
+            foreach (var cert in certificates)
+            {
+                var certContent = new ByteArrayContent(cert.bytes);
+                var ctype = string.IsNullOrWhiteSpace(cert.contentType) ? "application/octet-stream" : cert.contentType;
+                certContent.Headers.ContentType = MediaTypeHeaderValue.Parse(ctype);
+                content.Add(certContent, "certificates", cert.fileName);
+            }
         }
 
         var response = await client.PostAsync("api/premium/apply", content, cancellationToken);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CommunityLink.Database.AppDbContextModels;
@@ -34,6 +34,12 @@ public partial class TblIdentityVerification
     public int? ReviewedByAdminId { get; set; }
 
     public DateTime? ReviewedAtUtc { get; set; }
+
+    public string? Skills { get; set; }
+
+    public string? Location { get; set; }
+
+    public string? CertificateUrls { get; set; }
 
     public DateTime CreatedAtUtc { get; set; }
 
