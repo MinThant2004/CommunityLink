@@ -208,6 +208,13 @@ public class UsersController : BaseController
         return ToActionResult(result);
     }
 
+    [HttpGet("{targetUserId}/groups/created")]
+    public async Task<IActionResult> GetUserCreatedGroups(int targetUserId, CancellationToken cancellationToken)
+    {
+        var result = await _userProfileService.GetUserCreatedGroupsAsync(targetUserId, cancellationToken);
+        return ToActionResult(result);
+    }
+
     [HttpGet("{targetUserId}/reviews")]
     public async Task<IActionResult> GetUserReviews(int targetUserId, CancellationToken cancellationToken)
     {

@@ -237,24 +237,7 @@
             
             <!-- ================= COMPACT AMBIENT BACKDROP ================= -->
             <div class="relative w-full overflow-hidden bg-slate-100/80 dark:bg-[#0A1B2E] border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] transition-colors">
-                <div class="absolute inset-0 pointer-events-none opacity-20 dark:opacity-25">
-                    <svg class="w-full h-full" height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <pattern height="32" id="prof-grid-pattern" patternUnits="userSpaceOnUse" width="32">
-                                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" class="text-slate-400 dark:text-[#C4D2E1]" stroke-width="1"></path>
-                            </pattern>
-                            <radialGradient cx="75%" cy="30%" id="prof-aura" r="60%">
-                                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25"></stop>
-                                <stop offset="60%" stop-color="#1e3a8a" stop-opacity="0.10"></stop>
-                                <stop offset="100%" stop-color="#0A1B2E" stop-opacity="0"></stop>
-                            </radialGradient>
-                        </defs>
-                        <rect fill="url(#prof-grid-pattern)" height="100%" width="100%"></rect>
-                        <rect fill="url(#prof-aura)" height="100%" width="100%"></rect>
-                    </svg>
-                </div>
-
-                <div class="h-28 sm:h-36 max-w-[1400px] mx-auto px-4 sm:px-6 relative flex items-end justify-between pb-3">
+                <div class="h-10 sm:h-11 max-w-[1400px] mx-auto px-4 sm:px-6 relative flex items-center justify-between">
                     <div class="hidden sm:flex items-center gap-2 font-mono text-[10px] text-slate-500 dark:text-[#7A8CA6] tracking-wider uppercase">
                         <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span>NODE #@(profile.UserId) // SYNCHRONIZED</span>
@@ -268,7 +251,7 @@
             </div>
 
             <!-- ================= PRIMARY PROFILE CONTAINER ================= -->
-            <div class="max-w-[1400px] w-full mx-auto px-4 sm:px-6 -mt-10 sm:-mt-14 z-10 relative space-y-4">
+            <div class="max-w-[1400px] w-full mx-auto px-4 sm:px-6 mt-3 sm:mt-4 z-10 relative space-y-4">
 
                 <!-- 1. Primary Header Card -->
                 <div class="card-executive p-5 sm:p-6 space-y-5">
@@ -383,15 +366,15 @@
                                             <span>@profile.Location</span>
                                         </span>
                                     }
-                                    @if (profile.IsVerified)
+                                    @if (profile.IsVerified && !string.IsNullOrWhiteSpace(profile.AvailabilityStatus))
                                     {
                                         @if (!string.IsNullOrWhiteSpace(profile.Location))
                                         {
                                             <span>•</span>
                                         }
-                                        <span class="font-mono text-[11px] font-semibold text-sky-600 dark:text-sky-400 inline-flex items-center gap-1">
-                                            <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
-                                            <span>@Loc["Profile_Badge_CredentialAudited"]</span>
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium @(profile.AvailabilityStatus.Contains("busy", StringComparison.OrdinalIgnoreCase) ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800/60" : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50")">
+                                            <span class="w-1.5 h-1.5 rounded-full @(profile.AvailabilityStatus.Contains("busy", StringComparison.OrdinalIgnoreCase) ? "bg-amber-500" : "bg-emerald-500")"></span>
+                                            <span>@profile.AvailabilityStatus</span>
                                         </span>
                                     }
                                 </div>
@@ -402,6 +385,23 @@
                                     <p class="font-body text-xs text-[#475569] dark:text-[#C4D2E1] leading-relaxed max-w-2xl pt-1">
                                         @profile.Bio
                                     </p>
+                                }
+
+                                <!-- Verified Skills Badges -->
+                                @if (profile.Skills?.Count > 0)
+                                {
+                                    <div class="flex flex-wrap items-center gap-1.5 pt-1.5">
+                                        @foreach (var skill in profile.Skills)
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/40">
+                                                <span>@skill.SkillName</span>
+                                                @if (skill.IsVerified)
+                                                {
+                                                    <svg class="w-3 h-3 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                                                }
+                                            </span>
+                                        }
+                                    </div>
                                 }
                             </div>
 
@@ -442,6 +442,10 @@
                                         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                                         <span>@(profile.Relationship.HasRated ? Loc["Profile_Action_EditReview"] : Loc["Profile_Action_Rate"])</span>
                                     </button>
+
+                                    <button type="button" @onclick='() => OpenProfileReportModal(profile.UserId, "USER")' class="btn-exec-secondary px-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40" title="@Loc["Profile_Action_ReportUser"]">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    </button>
                                 }
                                 else
                                 {
@@ -459,35 +463,28 @@
 
                     </div>
 
-                    <!-- 4-Stat Analytical Strip (Section 6.5) -->
-                    <div class="panel-recessed p-2.5 sm:p-3 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 divide-y sm:divide-y-0 sm:divide-x divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)]">
-                        <button type="button" @onclick='() => SetTab("followers")' class="text-left px-2 sm:px-3 py-1 group">
+                    <!-- 3-Stat Analytical Strip -->
+                    <div class="panel-recessed p-2.5 sm:p-3 grid grid-cols-3 gap-2 sm:gap-4 divide-x divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)]">
+                        <button type="button" @onclick='() => SetTab("followers")' class="text-left px-2 sm:px-3 py-1 group cursor-pointer">
                             <div class="font-display text-lg sm:text-xl font-bold text-[#0A1B2E] dark:text-white group-hover:text-blue-600 transition">
                                 @(profile.Metrics.FollowersCount >= 1000 ? (profile.Metrics.FollowersCount / 1000.0).ToString("0.0k") : profile.Metrics.FollowersCount.ToString("N0"))
                             </div>
                             <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Stats_Followers"]</div>
                         </button>
 
-                        <button type="button" @onclick='() => SetTab("following")' class="text-left px-2 sm:px-3 py-1 group">
+                        <button type="button" @onclick='() => SetTab("following")' class="text-left px-2 sm:px-3 py-1 group cursor-pointer">
                             <div class="font-display text-lg sm:text-xl font-bold text-[#0A1B2E] dark:text-white group-hover:text-blue-600 transition">
                                 @profile.Metrics.FollowingCount.ToString("N0")
                             </div>
                             <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Stats_Following"]</div>
                         </button>
 
-                        <button type="button" @onclick='() => SetTab("posts")' class="text-left px-2 sm:px-3 py-1 group">
+                        <a href="groups" class="text-left px-2 sm:px-3 py-1 group block cursor-pointer">
                             <div class="font-display text-lg sm:text-xl font-bold text-[#0A1B2E] dark:text-white group-hover:text-blue-600 transition">
-                                @profile.Metrics.PostsCount.ToString("N0")
+                                @profile.Metrics.GroupsOwnedCount.ToString("N0")
                             </div>
-                            <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Stats_PublishedGuides"]</div>
-                        </button>
-
-                        <button type="button" @onclick='() => SetTab("communities")' class="text-left px-2 sm:px-3 py-1 group">
-                            <div class="font-display text-lg sm:text-xl font-bold text-[#0A1B2E] dark:text-white group-hover:text-blue-600 transition">
-                                @profile.Metrics.JoinedCommunitiesCount.ToString("N0")
-                            </div>
-                            <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Stats_CommunitiesLed"]</div>
-                        </button>
+                            <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Stats_GroupsOwned"]</div>
+                        </a>
                     </div>
 
                 </div>
@@ -629,11 +626,6 @@
                                 <span>@Loc["Profile_Tab_RecycleBin", recycledPostsList.Count]</span>
                             </button>
                         }
-                    </div>
-
-                    <div class="hidden sm:flex items-center gap-1 shrink-0 ml-4 font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
-                        <span>@Loc["Profile_Tab_Filter"]</span>
-                        <span class="px-2 py-0.5 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-white font-semibold">@Loc["Profile_Tab_Latest"]</span>
                     </div>
                 </div>
 
@@ -1642,31 +1634,31 @@
                     <!-- Right Column: Sidebar Widgets (4 Cols) -->
                     <div class="lg:col-span-4 space-y-4">
                         
-                        <!-- 1. Affiliated Hubs Widget -->
+                        <!-- 1. Created Groups Widget -->
                         <div class="card-executive p-4 space-y-3">
                             <div class="flex items-center justify-between pb-2 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                 <h3 class="font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">
-                                    AFFILIATED HUBS
+                                    @Loc["Profile_Widget_GroupsTitle"]
                                 </h3>
-                                <button @onclick='() => SetTab("communities")' class="font-mono text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-                                    VIEW ALL (@communitiesList.Count) &gt;
-                                </button>
+                                <a href="groups" class="font-mono text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                                    @Loc["Profile_Widget_HubsViewAll"] (@(profile?.CreatedGroups?.Count ?? 0)) &gt;
+                                </a>
                             </div>
 
                             <div class="space-y-2">
-                                @if (communitiesList.Any())
+                                @if (profile?.CreatedGroups != null && profile.CreatedGroups.Any())
                                 {
-                                    @foreach (var comm in communitiesList.Take(3))
+                                    @foreach (var grp in profile.CreatedGroups.Take(3))
                                     {
                                         <div class="p-2.5 rounded-[0.375rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between gap-2">
                                             <div class="min-w-0">
-                                                <h4 class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white truncate">@comm.Name</h4>
+                                                <h4 class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white truncate">@grp.Name</h4>
                                                 <div class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
-                                                    @comm.MemberCount members • @comm.RoleName
+                                                    @string.Format(Loc["Profile_Widget_HubsMembers"], grp.MemberCount)@(!string.IsNullOrWhiteSpace(grp.SubCommunityName) ? $" • {grp.SubCommunityName}" : "")
                                                 </div>
                                             </div>
-                                            <a href="communities" class="btn-exec-secondary text-[10px] py-1 px-2 shrink-0">
-                                                Join
+                                            <a href="groups" class="btn-exec-secondary text-[10px] py-1 px-2 shrink-0">
+                                                @Loc["Profile_Widget_HubsViewBtn"]
                                             </a>
                                         </div>
                                     }
@@ -1674,7 +1666,7 @@
                                 else
                                 {
                                     <div class="py-4 text-center font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
-                                        NO AFFILIATED HUBS
+                                        @Loc["Profile_Widget_GroupsEmpty"]
                                     </div>
                                 }
                             </div>
@@ -1711,35 +1703,6 @@
                                 }
                             </div>
                         </div>
-
-                        <!-- 3. Identity Verification Audit Stamp Card -->
-                        @if (profile.IsVerified)
-                        {
-                            <div class="card-executive p-4 space-y-2.5">
-                                <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                                    <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                    <span class="font-mono text-[10px] font-bold uppercase tracking-wider">@Loc["Profile_Audit_Title"]</span>
-                                </div>
-                                <p class="font-body text-xs text-[#475569] dark:text-[#C4D2E1] leading-relaxed">
-                                    @((MarkupString)string.Format(Loc["Profile_Audit_Desc"], $"<strong class=\"text-[#0A1B2E] dark:text-white\">{(profile.Role?.RoleName ?? "Community Member")}</strong>"))
-                                </p>
-                                <div class="p-2.5 rounded-[0.25rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] space-y-1 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                                    <div class="flex justify-between">
-                                        <span>@Loc["Profile_Audit_IdLabel"]</span>
-                                        <span class="font-semibold text-[#0A1B2E] dark:text-white">@(profile.VerificationAudit?.AuditCode ?? $"#CL-{profile.UserId:D4}-VERIFIED")</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>@Loc["Profile_Audit_AuthorityLabel"]</span>
-                                        <span class="font-semibold text-[#0A1B2E] dark:text-white">@(profile.VerificationAudit?.Authority ?? "CommunityLink SecOps")</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>@Loc["Profile_Audit_StatusLabel"]</span>
-                                        <span class="text-emerald-600 dark:text-emerald-400 font-bold">@Loc["Profile_Audit_StatusActive"]</span>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-
                     </div>
 
                 </div>
@@ -1876,15 +1839,54 @@
                         <input type="text" @bind="editModel.Pronouns" placeholder="@Loc["Profile_Modal_EditPronounsPlaceholder"]" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
                     </div>
                     <div>
-                        <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">@Loc["Profile_Modal_EditLocationLabel"]</label>
-                        <input type="text" @bind="editModel.Location" placeholder="@Loc["Profile_Modal_EditLocationPlaceholder"]" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Modal_EditLocationLabel"]</label>
+                            @if (profile?.IsVerified != true)
+                            {
+                                <span class="text-[9px] font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Premium Only</span>
+                            }
+                        </div>
+                        @if (profile?.IsVerified == true)
+                        {
+                            <input type="text" @bind="editModel.Location" placeholder="@Loc["Profile_Modal_EditLocationPlaceholder"]" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
+                        }
+                        else
+                        {
+                            <input type="text" value="@(string.IsNullOrWhiteSpace(profile?.Location) ? "No Location Set" : profile.Location)" disabled class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-slate-100 dark:bg-slate-800/40 border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.10)] text-slate-400 cursor-not-allowed" />
+                            <p class="text-[10px] text-slate-400 mt-0.5">Upgrade to Premium to edit your location.</p>
+                        }
                     </div>
                 </div>
 
+                <!-- Skills & Competencies (Editable for Premium Users) -->
                 <div>
-                    <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">@Loc["Profile_Modal_EditAvailabilityLabel"]</label>
-                    <input type="text" @bind="editModel.AvailabilityStatus" placeholder="@Loc["Profile_Modal_EditAvailabilityPlaceholder"]" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">Skills &amp; Competencies</label>
+                        @if (profile?.IsVerified != true)
+                        {
+                            <span class="text-[9px] font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Premium Only</span>
+                        }
+                    </div>
+                    @if (profile?.IsVerified == true)
+                    {
+                        <input type="text" @bind="editModel.SkillsText" placeholder="e.g. C# .NET, Cloud Architecture, UI/UX Design (comma-separated)" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
+                        <p class="text-[10px] text-slate-400 mt-0.5">Separate multiple skills with commas.</p>
+                    }
+                    else
+                    {
+                        <input type="text" value="@(profile?.Skills?.Count > 0 ? string.Join(", ", profile.Skills.Select(s => s.SkillName)) : "No Skills Set")" disabled class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-slate-100 dark:bg-slate-800/40 border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.10)] text-slate-400 cursor-not-allowed" />
+                        <p class="text-[10px] text-slate-400 mt-0.5">Upgrade to Premium to customize your verified competencies.</p>
+                    }
                 </div>
+
+                <!-- Availability Status (Premium Users Only) -->
+                @if (profile?.IsVerified == true)
+                {
+                    <div>
+                        <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">@Loc["Profile_Modal_EditAvailabilityLabel"]</label>
+                        <input type="text" @bind="editModel.AvailabilityStatus" placeholder="@Loc["Profile_Modal_EditAvailabilityPlaceholder"]" class="w-full px-3 py-1.5 text-xs rounded-[0.25rem] bg-white dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-white outline-none focus:border-blue-500" />
+                    </div>
+                }
 
                 <div>
                     <label class="block font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider mb-1">@Loc["Profile_Modal_EditBioLabel"]</label>
@@ -2813,9 +2815,10 @@
             Headline = profile.Headline,
             Pronouns = profile.Pronouns,
             Location = profile.Location,
-            AvailabilityStatus = profile.AvailabilityStatus,
+            AvailabilityStatus = profile.IsVerified ? profile.AvailabilityStatus : null,
             Bio = profile.Bio,
-            AvatarUrl = profile.AvatarUrl
+            AvatarUrl = profile.AvatarUrl,
+            SkillsText = profile.Skills?.Count > 0 ? string.Join(", ", profile.Skills.Select(s => s.SkillName)) : string.Empty
         };
         editErrorMessage = null;
         showEditModal = true;
@@ -2876,9 +2879,10 @@
                 Headline = profile.Headline,
                 Pronouns = profile.Pronouns,
                 Location = profile.Location,
-                AvailabilityStatus = profile.AvailabilityStatus,
+                AvailabilityStatus = profile.IsVerified ? profile.AvailabilityStatus : null,
                 Bio = profile.Bio,
-                AvatarUrl = newAvatarUrl
+                AvatarUrl = newAvatarUrl,
+                SkillsText = profile.Skills?.Count > 0 ? string.Join(", ", profile.Skills.Select(s => s.SkillName)) : null
             };
 
             var updateRes = await ProfileApi.UpdateProfileAsync(updateReq, _cts.Token);

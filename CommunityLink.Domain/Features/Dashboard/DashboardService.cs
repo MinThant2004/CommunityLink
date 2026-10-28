@@ -85,7 +85,7 @@ public sealed class DashboardService(
                     u.AverageRating,
                     followedUserIds.Contains(u.UserId),
                     u.Headline,
-                    u.AvailabilityStatus,
+                    u.IsVerified ? u.AvailabilityStatus : null,
                     u.ResponseSlaText,
                     u.PercentileBadgeText,
                     u.RatingCount,

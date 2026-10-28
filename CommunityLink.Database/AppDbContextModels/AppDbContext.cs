@@ -985,6 +985,8 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValue("PendingReview", "DF_TblIdVerif_Status");
             entity.Property(e => e.TargetRoleCode).HasMaxLength(50);
             entity.Property(e => e.WorkEmail).HasMaxLength(256);
+            entity.Property(e => e.Skills).HasMaxLength(1000);
+            entity.Property(e => e.Location).HasMaxLength(200);
 
             entity.HasOne(d => d.Plan).WithMany(p => p.TblIdentityVerifications)
                 .HasForeignKey(d => d.PlanId)

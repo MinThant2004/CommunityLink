@@ -549,10 +549,29 @@
                 <!-- Legal Full Name -->
                 <div class="space-y-1">
                     <label class="block font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
-                        @Loc["Upgrade_Modal_LegalNameLabel"]
+                        @Loc["Upgrade_Modal_LegalNameLabel"] <span class="text-error font-bold">*</span>
                     </label>
                     <input type="text" required placeholder="@Loc["Upgrade_Modal_LegalNamePlaceholder"]" @bind="inputLegalName"
                            class="w-full px-3 py-2 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface font-body-sm focus:border-[#0A1B2E] dark:focus:border-[#D4AF37] outline-none" />
+                </div>
+
+                <!-- Location (Mandatory) -->
+                <div class="space-y-1">
+                    <label class="block font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
+                        Location <span class="text-error font-bold">*</span>
+                    </label>
+                    <input type="text" required placeholder="e.g. Yangon, Myanmar / London, UK" @bind="inputLocation"
+                           class="w-full px-3 py-2 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface font-body-sm focus:border-[#0A1B2E] dark:focus:border-[#D4AF37] outline-none" />
+                </div>
+
+                <!-- Skills & Competencies (Mandatory) -->
+                <div class="space-y-1">
+                    <label class="block font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
+                        Skills &amp; Competencies <span class="text-error font-bold">*</span>
+                    </label>
+                    <input type="text" required placeholder="e.g. C# .NET, Cloud Architecture, UI/UX Design (comma-separated)" @bind="inputSkills"
+                           class="w-full px-3 py-2 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface font-body-sm focus:border-[#0A1B2E] dark:focus:border-[#D4AF37] outline-none" />
+                    <p class="font-label-sm text-on-surface-variant">Separate skills with commas. These will be verified and displayed on your verified profile.</p>
                 </div>
 
                 <!-- Professional Credentials / Links -->
@@ -573,10 +592,25 @@
                     </div>
                 </div>
 
+                <!-- Guaranteed Response SLA Dropdown -->
+                <div class="space-y-1">
+                    <label class="block font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
+                        @Loc["Upgrade_Modal_ResponseSlaLabel"]
+                    </label>
+                    <select @bind="selectedResponseSla"
+                            class="w-full px-3 py-2 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface font-body-sm focus:border-[#0A1B2E] dark:focus:border-[#D4AF37] outline-none">
+                        <option value="Replies within 12 hours">@Loc["Upgrade_Modal_Sla_12"]</option>
+                        <option value="Replies within 24 hours">@Loc["Upgrade_Modal_Sla_24"]</option>
+                        <option value="Replies within 36 hours">@Loc["Upgrade_Modal_Sla_36"]</option>
+                        <option value="Replies within 48 hours">@Loc["Upgrade_Modal_Sla_48"]</option>
+                    </select>
+                    <p class="font-label-sm text-on-surface-variant">@Loc["Upgrade_Modal_ResponseSlaHint"]</p>
+                </div>
+
                 <!-- Identity Card Upload (Front) -->
                 <div class="space-y-1">
                     <label class="block font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
-                        @Loc["Upgrade_Modal_IdFrontLabel"]
+                        @Loc["Upgrade_Modal_IdFrontLabel"] <span class="text-error font-bold">*</span>
                     </label>
                     <div class="p-space-sm rounded-lg border border-dashed border-outline-variant/60 bg-surface-container text-center space-y-1.5">
                         <InputFile OnChange="HandleFrontIdUpload" accept=".jpg,.jpeg,.png,.webp" class="font-body-sm file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:font-label-sm file:font-bold file:bg-[#0A1B2E] file:text-white dark:file:bg-[#D4AF37] dark:file:text-[#0A0D14] hover:file:opacity-90 cursor-pointer" />
@@ -598,6 +632,38 @@
                         @if (!string.IsNullOrEmpty(backIdFileName))
                         {
                             <p class="font-body-sm text-emerald-600 font-bold">@Loc["Upgrade_Modal_FileSelected", backIdFileName]</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Certificate File Upload (Multiple Files Supported) -->
+                <div class="space-y-1">
+                    <label class="block font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider flex items-center justify-between">
+                        <span>Certificates &amp; Credentials</span>
+                        <span class="text-[11px] font-normal text-on-surface-variant lowercase">(multiple uploads supported)</span>
+                    </label>
+                    <div class="p-space-sm rounded-lg border border-dashed border-outline-variant/60 bg-surface-container text-center space-y-2">
+                        <InputFile OnChange="HandleCertificatesUpload" multiple accept=".pdf,.jpg,.jpeg,.png,.webp" class="font-body-sm file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:font-label-sm file:font-bold file:bg-[#0A1B2E] file:text-white dark:file:bg-[#D4AF37] dark:file:text-[#0A0D14] hover:file:opacity-90 cursor-pointer" />
+                        <p class="font-label-sm text-on-surface-variant">Upload degree diplomas, professional certifications, or licenses (PDF, JPG, PNG)</p>
+                        @if (uploadedCertificates.Count > 0)
+                        {
+                            <div class="mt-2 space-y-1.5 text-left max-h-40 overflow-y-auto">
+                                @for (int i = 0; i < uploadedCertificates.Count; i++)
+                                {
+                                    var index = i;
+                                    var cert = uploadedCertificates[i];
+                                    <div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest border border-surface-container-high/40 text-on-surface font-body-sm">
+                                        <div class="flex items-center gap-2 truncate">
+                                            <span class="material-symbols-outlined text-base text-[#0A1B2E] dark:text-[#D4AF37]">description</span>
+                                            <span class="truncate font-medium">@cert.FileName</span>
+                                            <span class="text-xs text-on-surface-variant shrink-0">(@FormatCertificateSize(cert.Bytes.Length))</span>
+                                        </div>
+                                        <button type="button" @onclick="() => RemoveCertificate(index)" class="text-error hover:text-error/80 text-xs px-2 py-0.5 rounded cursor-pointer shrink-0 font-bold">
+                                            ✕ Remove
+                                        </button>
+                                    </div>
+                                }
+                            </div>
                         }
                     </div>
                 </div>
@@ -702,14 +768,20 @@
 
     // Intake Form inputs
     private string inputLegalName = "";
+    private string inputLocation = "";
+    private string inputSkills = "";
     private string inputWorkEmail = "";
     private string inputProfessionalUrl = "";
     private string selectedPaymentMethod = "LinkDropPoints";
+    private string selectedResponseSla = "Replies within 24 hours";
 
     private byte[]? frontIdBytes;
     private string? frontIdFileName;
     private byte[]? backIdBytes;
     private string? backIdFileName;
+    private List<CertificateUploadItem> uploadedCertificates = new();
+
+    public record CertificateUploadItem(string FileName, byte[] Bytes, string ContentType);
 
     private SubscriptionPlanDto? SelectedDomainProPlan =>
         plans?.FirstOrDefault(p => p.TargetRoleCode == "DOMAIN_PRO" && (isAnnual ? p.BillingInterval == "Annual" : p.BillingInterval == "Monthly"))
@@ -774,13 +846,17 @@
         if (plan == null) return;
         targetPlan = plan;
         inputLegalName = "";
+        inputLocation = "";
+        inputSkills = "";
         inputWorkEmail = "";
         inputProfessionalUrl = "";
         selectedPaymentMethod = "LinkDropPoints";
+        selectedResponseSla = "Replies within 24 hours";
         frontIdBytes = null;
         frontIdFileName = null;
         backIdBytes = null;
         backIdFileName = null;
+        uploadedCertificates.Clear();
         modalError = null;
         showUpgradeModal = true;
     }
@@ -789,6 +865,47 @@
     {
         showUpgradeModal = false;
         modalError = null;
+    }
+
+    private static string FormatCertificateSize(long bytes)
+    {
+        if (bytes >= 1024 * 1024) return $"{(bytes / (1024.0 * 1024.0)):0.#} MB";
+        if (bytes >= 1024) return $"{(bytes / 1024.0):0.#} KB";
+        return $"{bytes} B";
+    }
+
+    private async Task HandleCertificatesUpload(InputFileChangeEventArgs e)
+    {
+        modalError = null;
+        var files = e.GetMultipleFiles(maximumFileCount: 10);
+        foreach (var file in files)
+        {
+            if (file.Size > 15 * 1024 * 1024)
+            {
+                modalError = $"File '{file.Name}' exceeds the maximum allowed size of 15MB.";
+                continue;
+            }
+
+            try
+            {
+                using var stream = file.OpenReadStream(15 * 1024 * 1024);
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                uploadedCertificates.Add(new CertificateUploadItem(file.Name, ms.ToArray(), file.ContentType));
+            }
+            catch (Exception ex)
+            {
+                modalError = $"Failed to read file '{file.Name}': {ex.Message}";
+            }
+        }
+    }
+
+    private void RemoveCertificate(int index)
+    {
+        if (index >= 0 && index < uploadedCertificates.Count)
+        {
+            uploadedCertificates.RemoveAt(index);
+        }
     }
 
     private async Task HandleFrontIdUpload(InputFileChangeEventArgs e)
@@ -840,6 +957,18 @@
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(inputLocation))
+        {
+            modalError = "Location is mandatory for verification.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(inputSkills))
+        {
+            modalError = "Skills & Competencies are mandatory for verification.";
+            return;
+        }
+
         if (frontIdBytes == null || string.IsNullOrWhiteSpace(frontIdFileName))
         {
             modalError = Loc["Upgrade_Error_FrontIdRequired"];
@@ -853,6 +982,10 @@
         }
 
         isSubmittingApplication = true;
+        var certPayload = uploadedCertificates
+            .Select(c => (c.Bytes, c.FileName, c.ContentType))
+            .ToList();
+
         var res = await UpgradeApi.ApplyForUpgradeAsync(
             planId: targetPlan.PlanId,
             fullLegalName: inputLegalName.Trim(),
@@ -862,7 +995,11 @@
             idCardFrontBytes: frontIdBytes,
             idCardFrontFileName: frontIdFileName,
             idCardBackBytes: backIdBytes,
-            idCardBackFileName: backIdFileName
+            idCardBackFileName: backIdFileName,
+            responseSlaText: selectedResponseSla,
+            skills: inputSkills.Trim(),
+            location: inputLocation.Trim(),
+            certificates: certPayload
         );
         isSubmittingApplication = false;
 

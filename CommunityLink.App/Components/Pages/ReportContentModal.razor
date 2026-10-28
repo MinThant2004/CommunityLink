@@ -15,8 +15,8 @@
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     </span>
                     <div>
-                        <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-white">@Loc["ReportContent_Title"]</h3>
-                        <p class="text-[11px] text-[#7A8CA6]">@Loc["ReportContent_Subtitle"]</p>
+                        <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-white">@(ContentType == "USER" ? Loc["ReportContent_UserTitle"] : Loc["ReportContent_Title"])</h3>
+                        <p class="text-[11px] text-[#7A8CA6]">@(ContentType == "USER" ? Loc["ReportContent_UserSubtitle"] : Loc["ReportContent_Subtitle"])</p>
                     </div>
                 </div>
                 <button type="button" @onclick="Close" aria-label="@Loc["Common_Cancel"]" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
@@ -28,7 +28,7 @@
             <div class="space-y-1.5">
                 <label class="text-[11px] font-bold text-[#557392] dark:text-[#C4D2E1] uppercase tracking-wider">@Loc["ReportContent_ReasonLabel"]</label>
                 <div class="space-y-1.5">
-                    @foreach (var reason in reasonPresets)
+                    @foreach (var reason in CurrentReasonPresets)
                     {
                         <label class="flex items-center gap-2.5 p-2.5 rounded-xl border transition cursor-pointer @(selectedReason == reason.Key ? "bg-rose-50/70 dark:bg-rose-950/40 border-rose-500 text-rose-700 dark:text-rose-300" : "bg-[#F8FAFC] dark:bg-[#0A1B2E]/60 border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] text-[#0A1B2E] dark:text-[#E1E8F0]")">
                             <input type="radio" name="reportReason" checked="@(selectedReason == reason.Key)"
@@ -70,7 +70,7 @@
 
 @code {
     [Parameter] public bool IsOpen { get; set; }
-    [Parameter] public string ContentType { get; set; } = "POST"; // "POST" or "POLL"
+    [Parameter] public string ContentType { get; set; } = "POST"; // "POST", "POLL", "GROUP", or "USER"
     [Parameter] public int ContentId { get; set; }
     [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
 
@@ -78,12 +78,35 @@
     private string details = "";
     private bool isSubmitting = false;
 
-    private readonly List<(string Key, string TitleKey, string DescriptionKey)> reasonPresets =
+    private IReadOnlyList<(string Key, string TitleKey, string DescriptionKey)> CurrentReasonPresets =>
+        ContentType == "USER" ? userReasonPresets : contentReasonPresets;
+
+    private readonly List<(string Key, string TitleKey, string DescriptionKey)> contentReasonPresets =
     [
         ("INAPPROPRIATE_CONTENT", "ReportContent_ReasonInappropriate_Title", "ReportContent_ReasonInappropriate_Desc"),
         ("MISINFORMATION", "ReportContent_ReasonMisinformation_Title", "ReportContent_ReasonMisinformation_Desc"),
         ("MISLEADING", "ReportContent_ReasonMisleading_Title", "ReportContent_ReasonMisleading_Desc")
     ];
+
+    private readonly List<(string Key, string TitleKey, string DescriptionKey)> userReasonPresets =
+    [
+        ("SLA_BREACH", "ReportContent_ReasonSlaBreach_Title", "ReportContent_ReasonSlaBreach_Desc"),
+        ("UNRESPONSIVE", "ReportContent_ReasonUnresponsive_Title", "ReportContent_ReasonUnresponsive_Desc"),
+        ("HARASSMENT", "ReportContent_ReasonHarassment_Title", "ReportContent_ReasonHarassment_Desc"),
+        ("SPAM_SCAM", "ReportContent_ReasonSpamScam_Title", "ReportContent_ReasonSpamScam_Desc")
+    ];
+
+    protected override void OnParametersSet()
+    {
+        if (ContentType == "USER" && (selectedReason == "INAPPROPRIATE_CONTENT" || string.IsNullOrEmpty(selectedReason)))
+        {
+            selectedReason = "SLA_BREACH";
+        }
+        else if (ContentType != "USER" && (selectedReason == "SLA_BREACH" || string.IsNullOrEmpty(selectedReason)))
+        {
+            selectedReason = "INAPPROPRIATE_CONTENT";
+        }
+    }
 
     private async Task Close()
     {

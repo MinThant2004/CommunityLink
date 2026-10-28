@@ -1497,20 +1497,6 @@ else if (dashboard != null)
                         </div>
                     </div>
 
-                    <!-- Guild Governance Charter Notice -->
-                    <div class="p-3 rounded-lg bg-surface-container-lowest text-on-surface-variant flex flex-col gap-1.5 border border-white/5">
-                        <div class="flex items-center gap-1.5 font-mono text-[10px] text-primary font-bold uppercase tracking-wider">
-                            <span class="material-symbols-outlined text-[14px]">verified</span>
-                            <span>@Loc["Home_Charter_Title"]</span>
-                        </div>
-                        <p class="text-[11px] leading-relaxed text-outline">
-                            @Loc["Home_Charter_Desc"]
-                        </p>
-                        <a class="text-[11px] text-primary hover:underline flex items-center gap-1 font-semibold" href="groups">
-                            <span>@Loc["Home_Charter_ReadGuidelines"]</span>
-                            <span class="material-symbols-outlined text-[12px]">open_in_new</span>
-                        </a>
-                    </div>
                 </aside>
             </div>
         }
@@ -1584,10 +1570,13 @@ else if (dashboard != null)
                                             <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                                             @GetRoleBadgeText(person).ToUpperInvariant()
                                         </span>
-                                        <div class="flex items-center gap-1.5 font-mono text-[10px] text-outline">
-                                            <span class="w-2 h-2 rounded-full @(person.AvailabilityStatus?.ToLower().Contains("busy") == true ? "bg-amber-400" : "bg-emerald-400")"></span>
-                                            <span class="truncate">@(string.IsNullOrWhiteSpace(person.AvailabilityStatus) ? Loc["Home_People_Availability_Default"] : person.AvailabilityStatus)</span>
-                                        </div>
+                                        @if (person.IsVerified && !string.IsNullOrWhiteSpace(person.AvailabilityStatus))
+                                        {
+                                            <div class="flex items-center gap-1.5 font-mono text-[10px] text-outline">
+                                                <span class="w-2 h-2 rounded-full @(person.AvailabilityStatus?.ToLower().Contains("busy") == true ? "bg-amber-400" : "bg-emerald-400")"></span>
+                                                <span class="truncate">@person.AvailabilityStatus</span>
+                                            </div>
+                                        }
                                     </div>
 
                                     <!-- Member Profile & Bio -->
