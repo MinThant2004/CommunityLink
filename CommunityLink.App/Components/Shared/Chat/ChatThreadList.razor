@@ -17,30 +17,19 @@
                 @Loc["Chat_Title"]
             </h1>
 
-            <div class="flex items-center gap-1.5">
-                @if (IsPremiumCreator)
-                {
-                    <button type="button"
-                            @onclick="OnNewGroup"
-                            title="@Loc["Chat_CreateChatGroup"]"
-                            aria-label="@Loc["Chat_CreateChatGroup"]"
-                            class="flex items-center gap-1.5 rounded-lg bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#E1E8F0] dark:hover:bg-white dark:text-[#0A1B2E] px-2.5 py-1.5 text-xs font-semibold transition active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:ring-offset-2">
-                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        <span class="hidden sm:inline">@Loc["Chat_NewGroup"]</span>
-                    </button>
-                }
+            @if (IsPremiumCreator)
+            {
                 <button type="button"
-                        @onclick="OnDiscover"
-                        title="@Loc["Chat_DiscoverChatGroups"]"
-                        aria-label="@Loc["Chat_DiscoverChatGroups"]"
-                        class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.08)] p-1.5 text-slate-600 dark:text-[#94A3B8] transition hover:bg-slate-50 dark:hover:bg-[#182030] hover:text-slate-900 dark:hover:text-[#E1E2EC] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:ring-offset-2">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607Z" />
+                        @onclick="OnNewGroup"
+                        title="@Loc["Chat_CreateChatGroup"]"
+                        aria-label="@Loc["Chat_CreateChatGroup"]"
+                        class="flex items-center gap-1.5 rounded-lg bg-[#0A1B2E] hover:bg-[#112A46] text-white dark:bg-[#E1E8F0] dark:hover:bg-white dark:text-[#0A1B2E] px-2.5 py-1.5 text-xs font-semibold transition active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:ring-offset-2">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
+                    <span class="hidden sm:inline">@Loc["Chat_NewGroup"]</span>
                 </button>
-            </div>
+            }
         </div>
 
         <div class="relative mt-3">
