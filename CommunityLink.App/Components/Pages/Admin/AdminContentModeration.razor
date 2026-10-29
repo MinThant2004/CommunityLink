@@ -1,4 +1,4 @@
-@page "/admin/content-moderation"
+﻿@page "/admin/content-moderation"
 @page "/admin/content"
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
 @using CommunityLink.App.Apis
@@ -10,7 +10,7 @@
 @inject NavigationManager Navigation
 @inject IStringLocalizer<AppResources> Loc
 
-<PageTitle>@(currentSection == "groups" ? Loc["Admin_Mod_PageTitleGroup"] : Loc["Admin_Mod_PageTitlePost"])</PageTitle>
+<PageTitle>@(currentSection == "groups" ? Loc["Admin_Mod_PageTitleGroup"] : (currentSection == "members" ? Loc["Admin_Mod_PageTitleMember"] : Loc["Admin_Mod_PageTitlePost"]))</PageTitle>
 
 <div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Header -->
@@ -22,6 +22,10 @@
                     {
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     }
+                    else if (currentSection == "members")
+                    {
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6m0 3h.01"/></svg>
+                    }
                     else
                     {
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/></svg>
@@ -29,12 +33,12 @@
                 </span>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-[#0A1B2E] dark:text-[#E1E8F0]" style="font-family:'Manrope',sans-serif">
-                        @(currentSection == "groups" ? Loc["Admin_Mod_HeadingGroups"] : Loc["Admin_Mod_HeadingPosts"])
+                        @(currentSection == "groups" ? Loc["Admin_Mod_HeadingGroups"] : (currentSection == "members" ? Loc["Admin_Mod_HeadingMembers"] : Loc["Admin_Mod_HeadingPosts"]))
                     </h1>
                     <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-0.5">
                         @(currentSection == "groups"
                             ? Loc["Admin_Mod_SubtitleGroups"]
-                            : Loc["Admin_Mod_SubtitlePosts"])
+                            : (currentSection == "members" ? Loc["Admin_Mod_SubtitleMembers"] : Loc["Admin_Mod_SubtitlePosts"]))
                     </p>
                 </div>
             </div>
@@ -50,39 +54,61 @@
     <!-- Sub-navigation & Controls for Current Section -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div class="flex items-center gap-2">
-            <button type="button" @onclick='() => subTab = "directory"'
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer @(subTab == "directory" ? "bg-[#0A1B2E]/10 dark:bg-white/10 text-[#0A1B2E] dark:text-white font-extrabold" : "text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
-                <span>@(currentSection == "posts" ? Loc["Admin_Mod_TabPostsPollsList"] : Loc["Admin_Mod_TabGroupsList"])</span>
-                @if (currentSection == "posts" && contentItems.Any(c => !c.IsActive))
-                {
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-                        @string.Format(Loc["Admin_Mod_CountBanned"], contentItems.Count(c => !c.IsActive))
-                    </span>
-                }
-                else if (currentSection == "groups" && groups.Any(g => !g.IsActive))
-                {
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-                        @string.Format(Loc["Admin_Mod_CountInactive"], groups.Count(g => !g.IsActive))
-                    </span>
-                }
-            </button>
+            @if (currentSection != "members")
+            {
+                <button type="button" @onclick='() => subTab = "directory"'
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer @(subTab == "directory" ? "bg-[#0A1B2E]/10 dark:bg-white/10 text-[#0A1B2E] dark:text-white font-extrabold" : "text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
+                    <span>@(currentSection == "posts" ? Loc["Admin_Mod_TabPostsPollsList"] : Loc["Admin_Mod_TabGroupsList"])</span>
+                    @if (currentSection == "posts" && contentItems.Any(c => !c.IsActive))
+                    {
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
+                            @string.Format(Loc["Admin_Mod_CountBanned"], contentItems.Count(c => !c.IsActive))
+                        </span>
+                    }
+                    else if (currentSection == "groups" && groups.Any(g => !g.IsActive))
+                    {
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                            @string.Format(Loc["Admin_Mod_CountInactive"], groups.Count(g => !g.IsActive))
+                        </span>
+                    }
+                </button>
 
-            <button type="button" @onclick='() => subTab = "reports"'
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer @(subTab == "reports" ? "bg-[#0A1B2E]/10 dark:bg-white/10 text-[#0A1B2E] dark:text-white font-extrabold" : "text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
-                <span>@Loc["Admin_Mod_TabPendingReports"]</span>
-                @{
-                    var count = currentSection == "posts" ? postPendingReportCount : groupPendingReportCount;
-                }
-                @if (count > 0)
-                {
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white">
-                        @count
-                    </span>
-                }
-            </button>
+                <button type="button" @onclick='() => subTab = "reports"'
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer @(subTab == "reports" ? "bg-[#0A1B2E]/10 dark:bg-white/10 text-[#0A1B2E] dark:text-white font-extrabold" : "text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
+                    <span>@Loc["Admin_Mod_TabPendingReports"]</span>
+                    @{
+                        var count = currentSection == "posts" ? postPendingReportCount : groupPendingReportCount;
+                    }
+                    @if (count > 0)
+                    {
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white">
+                            @count
+                        </span>
+                    }
+                </button>
+            }
+            else
+            {
+                <button type="button" @onclick='() => subTab = "reports"'
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-[#0A1B2E]/10 dark:bg-white/10 text-[#0A1B2E] dark:text-white font-extrabold">
+                    <svg class="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>@Loc["Admin_Mod_TabPendingReports"]</span>
+                    @if (memberPendingReportCount > 0)
+                    {
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white">
+                            @memberPendingReportCount
+                        </span>
+                    }
+                </button>
+                <a href="admin/users" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center gap-1.5 no-underline">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>@Loc["Nav_AdminUserDirectory"]</span>
+                    <svg class="w-3 h-3 text-[#7A8CA6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </a>
+            }
         </div>
 
-        @if (subTab == "directory")
+        @if (subTab == "directory" && currentSection != "members")
         {
             <!-- Active / Inactive Status Filter -->
             <div class="flex items-center gap-1 bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 p-1 rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] text-xs font-semibold">
@@ -115,9 +141,12 @@
     else if (subTab == "reports")
     {
         <!-- Pending Reports List (Scoped to currentSection) -->
-        var scopedReports = currentSection == "groups"
-            ? reports.Where(r => r.ContentType == "GROUP").ToList()
-            : reports.Where(r => r.ContentType == "POST" || r.ContentType == "POLL" || r.ContentType == "USER").ToList();
+        var scopedReports = currentSection switch
+        {
+            "groups" => reports.Where(r => r.ContentType == "GROUP").ToList(),
+            "members" => reports.Where(r => r.ContentType == "USER").ToList(),
+            _ => reports.Where(r => r.ContentType == "POST" || r.ContentType == "POLL").ToList()
+        };
 
         if (scopedReports.Count == 0)
         {
@@ -126,7 +155,7 @@
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <h3 class="text-base font-bold text-[#0A1B2E] dark:text-white">@Loc["Admin_Mod_QueueClearTitle"]</h3>
-                <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1 max-w-sm mx-auto">@(currentSection == "groups" ? Loc["Admin_Mod_QueueClearDescGroup"] : Loc["Admin_Mod_QueueClearDescPost"])</p>
+                <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1 max-w-sm mx-auto">@(currentSection == "groups" ? Loc["Admin_Mod_QueueClearDescGroup"] : (currentSection == "members" ? Loc["Admin_Mod_QueueClearDescMember"] : Loc["Admin_Mod_QueueClearDescPost"]))</p>
             </div>
         }
         else
@@ -793,8 +822,9 @@
     private List<ContentReportModel> reports = [];
     private List<ContentItemAdminModel> contentItems = [];
     private List<GroupItemAdminModel> groups = [];
-    private int postPendingReportCount => reports.Count(r => r.Status == "PENDING" && (r.ContentType == "POST" || r.ContentType == "POLL" || r.ContentType == "USER"));
+    private int postPendingReportCount => reports.Count(r => r.Status == "PENDING" && (r.ContentType == "POST" || r.ContentType == "POLL"));
     private int groupPendingReportCount => reports.Count(r => r.Status == "PENDING" && r.ContentType == "GROUP");
+    private int memberPendingReportCount => reports.Count(r => r.Status == "PENDING" && r.ContentType == "USER");
 
     // Detail modal state
     private bool showDetailModal = false;
@@ -846,11 +876,17 @@
         if (!string.IsNullOrWhiteSpace(TabQuery))
         {
             var tabStr = TabQuery.Trim().ToLowerInvariant();
-            var targetSection = (tabStr == "groups" || tabStr == "group") ? "groups" : "posts";
+            var targetSection = (tabStr == "groups" || tabStr == "group") ? "groups" 
+                              : (tabStr == "members" || tabStr == "member" || tabStr == "users" || tabStr == "user" || tabStr == "sla") ? "members" 
+                              : "posts";
             if (currentSection != targetSection)
             {
                 currentSection = targetSection;
                 sectionChanged = true;
+                if (currentSection == "members")
+                {
+                    subTab = "reports";
+                }
             }
         }
 
@@ -1039,3 +1075,24 @@
         }
     }
 }
+            }
+            else
+            {
+                <button type="button" @onclick='() => subTab = "reports"'
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-[#0A1B2E]/10 dark:bg-white/10 text-[#0A1B2E] dark:text-white font-extrabold">
+                    <svg class="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>@Loc["Admin_Mod_TabPendingReports"]</span>
+                    @if (memberPendingReportCount > 0)
+                    {
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white">
+                            @memberPendingReportCount
+                        </span>
+                    }
+                </button>
+                <a href="admin/users" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] transition flex items-center gap-1.5 no-underline">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>@Loc["Nav_AdminUserDirectory"]</span>
+                    <svg class="w-3 h-3 text-[#7A8CA6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </a>
+            }
+
