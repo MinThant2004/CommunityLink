@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @page "/home"
 @rendermode InteractiveServer
 @implements IDisposable
@@ -808,16 +808,13 @@ else if (dashboard != null)
                         <div id="quick-composer" class="bg-surface-container-low p-3.5 sm:p-4 rounded-xl shadow-xs flex flex-col gap-3 border border-white/5">
                             <div class="flex items-center gap-3">
                                 <div class="relative flex-shrink-0">
-                                    @if (!string.IsNullOrWhiteSpace(dashboard.Profile?.AvatarUrl))
-                                    {
-                                        <img src="@dashboard.Profile.AvatarUrl" alt="@Loc["Home_Composer_AvatarAlt"]" class="w-9 h-9 rounded-full object-cover ring-1 ring-white/10" />
-                                    }
-                                    else
-                                    {
-                                        <div class="w-9 h-9 rounded-full bg-surface-container-highest text-on-surface font-bold text-xs flex items-center justify-center shadow-xs">
-                                            @(string.IsNullOrWhiteSpace(dashboard.Profile?.DisplayName) ? "U" : dashboard.Profile.DisplayName[..1].ToUpperInvariant())
-                                        </div>
-                                    }
+                                    <UserAvatar Url="@dashboard.Profile?.AvatarUrl"
+                                                Name="@dashboard.Profile?.DisplayName"
+                                                Size="w-9 h-9"
+                                                RingClass="ring-1 ring-white/10"
+                                                BgClass="bg-surface-container-highest"
+                                                ColorClass="text-on-surface"
+                                                Alt="@Loc["Home_Composer_AvatarAlt"]" />
                                     <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-1 ring-surface-container-low flex items-center justify-center">
                                     </span>
                                 </div>
@@ -899,16 +896,12 @@ else if (dashboard != null)
                                     <div class="flex items-start justify-between">
                                         <div class="flex items-center gap-2.5">
                                             <div class="relative shrink-0">
-                                                @if (!string.IsNullOrWhiteSpace(post.AuthorAvatar))
-                                                {
-                                                    <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-9 h-9 rounded-full object-cover ring-1 ring-white/10" />
-                                                }
-                                                else
-                                                {
-                                                    <div class="w-9 h-9 rounded-full bg-surface-container text-on-surface font-bold text-xs flex items-center justify-center ring-1 ring-white/10">
-                                                        @(string.IsNullOrWhiteSpace(post.AuthorName) ? "U" : post.AuthorName[..1].ToUpperInvariant())
-                                                    </div>
-                                                }
+                                                <UserAvatar Url="@post.AuthorAvatar"
+                                                            Name="@post.AuthorName"
+                                                            Size="w-9 h-9"
+                                                            RingClass="ring-1 ring-white/10"
+                                                            BgClass="bg-surface-container"
+                                                            ColorClass="text-on-surface" />
                                             </div>
 
                                             <div class="flex flex-col">
@@ -1021,16 +1014,13 @@ else if (dashboard != null)
                                                 var origAuthorHandle = string.IsNullOrWhiteSpace(post.OriginalPost.AuthorUserName) ? post.OriginalPost.AuthorName : post.OriginalPost.AuthorUserName;
                                                 <div class="flex items-center gap-2 pb-1.5 border-b border-[#CBD5E1]/40 dark:border-white/5">
                                                     <a href="u/@origAuthorHandle" class="shrink-0 group">
-                                                        @if (!string.IsNullOrWhiteSpace(post.OriginalPost.AuthorAvatar))
-                                                        {
-                                                            <img src="@post.OriginalPost.AuthorAvatar" alt="@post.OriginalPost.AuthorName" class="w-7 h-7 rounded-full object-cover ring-1 ring-[#CBD5E1] dark:ring-white/10 group-hover:ring-primary transition" />
-                                                        }
-                                                        else
-                                                        {
-                                                            <div class="w-7 h-7 rounded-full bg-surface-container text-on-surface font-bold text-[11px] flex items-center justify-center ring-1 ring-[#CBD5E1] dark:ring-white/10 group-hover:ring-primary transition font-mono">
-                                                                @(string.IsNullOrWhiteSpace(post.OriginalPost.AuthorName) ? "U" : post.OriginalPost.AuthorName[..1].ToUpperInvariant())
-                                                            </div>
-                                                        }
+                                                        <UserAvatar Url="@post.OriginalPost.AuthorAvatar"
+                                                                    Name="@post.OriginalPost.AuthorName"
+                                                                    Size="w-7 h-7"
+                                                                    RingClass="ring-1 ring-[#CBD5E1] dark:ring-white/10 group-hover:ring-primary transition"
+                                                                    BgClass="bg-surface-container"
+                                                                    ColorClass="text-on-surface"
+                                                                    TextClass="text-[11px]" />
                                                     </a>
                                                     <div>
                                                         <div class="flex items-center gap-1.5 flex-wrap">
@@ -1287,16 +1277,12 @@ else if (dashboard != null)
                                         <div class="flex items-start justify-between">
                                             <div class="flex items-center gap-2.5">
                                                 <div class="relative shrink-0">
-                                                    @if (!string.IsNullOrWhiteSpace(poll.AuthorAvatar))
-                                                    {
-                                                        <img src="@poll.AuthorAvatar" alt="@poll.AuthorName" class="w-9 h-9 rounded-full object-cover ring-1 ring-white/10" />
-                                                    }
-                                                    else
-                                                    {
-                                                        <div class="w-9 h-9 rounded-full bg-surface-container text-on-surface font-bold text-xs flex items-center justify-center ring-1 ring-white/10">
-                                                            @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName[..1].ToUpperInvariant())
-                                                        </div>
-                                                    }
+                                                    <UserAvatar Url="@poll.AuthorAvatar"
+                                                                Name="@poll.AuthorName"
+                                                                Size="w-9 h-9"
+                                                                RingClass="ring-1 ring-white/10"
+                                                                BgClass="bg-surface-container"
+                                                                ColorClass="text-on-surface" />
                                                 </div>
 
                                                 <div class="flex flex-col">
@@ -1435,16 +1421,11 @@ else if (dashboard != null)
                                         <div class="flex items-start justify-between">
                                             <div class="flex items-center gap-2">
                                                 <div class="relative shrink-0">
-                                                    @if (!string.IsNullOrWhiteSpace(person.AvatarUrl))
-                                                    {
-                                                        <img src="@person.AvatarUrl" alt="@person.DisplayName" class="w-8 h-8 rounded-full object-cover" />
-                                                    }
-                                                    else
-                                                    {
-                                                        <div class="w-8 h-8 rounded-full bg-surface-container-lowest text-on-surface font-bold text-xs flex items-center justify-center">
-                                                            @GetPersonInitials(person)
-                                                        </div>
-                                                    }
+                                                    <UserAvatar Url="@person.AvatarUrl"
+                                                                Name="@(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)"
+                                                                Size="w-8 h-8"
+                                                                BgClass="bg-surface-container-lowest"
+                                                                ColorClass="text-on-surface" />
                                                     <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center text-[8px] ring-1 ring-surface-container">
                                                         ★
                                                     </span>
@@ -1576,18 +1557,14 @@ else if (dashboard != null)
                                     <div class="flex items-start gap-3.5 mb-3.5">
                                         <div class="relative shrink-0">
                                             <a href="u/@person.UserName" class="block">
-                                                @if (!string.IsNullOrWhiteSpace(person.AvatarUrl))
-                                                {
-                                                    <img class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover ring-1 ring-white/10 shadow-md group-hover:ring-white/20 transition-all"
-                                                         src="@person.AvatarUrl"
-                                                         alt="@person.DisplayName" />
-                                                }
-                                                else
-                                                {
-                                                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-surface-container-highest text-on-surface font-bold text-lg sm:text-xl flex items-center justify-center ring-1 ring-white/10 shadow-md">
-                                                        @GetPersonInitials(person)
-                                                    </div>
-                                                }
+                                                <UserAvatar Url="@person.AvatarUrl"
+                                                            Name="@(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)"
+                                                            Size="w-14 h-14 sm:w-16 sm:h-16"
+                                                            Shape="xl"
+                                                            RingClass="ring-1 ring-white/10 shadow-md group-hover:ring-white/20 transition-all"
+                                                            BgClass="bg-surface-container-highest"
+                                                            ColorClass="text-on-surface"
+                                                            TextClass="text-lg sm:text-xl" />
                                             </a>
                                             @if (person.IsVerified)
                                             {

@@ -15,9 +15,14 @@
         <div class="absolute -bottom-20 -left-20 w-72 h-72 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
         <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-white/15 dark:bg-white/10 text-white font-bold text-2xl flex items-center justify-center shadow-lg ring-4 ring-white/10">
-                    @(model?.Profile?.DisplayName?.Substring(0, 1).ToUpper() ?? "U")
-                </div>
+                <UserAvatar Url="@model?.Profile?.AvatarUrl"
+                            Name="@(model?.Profile?.DisplayName ?? "Member")"
+                            Size="w-14 h-14"
+                            Shape="xl"
+                            RingClass="shadow-lg ring-4 ring-white/10"
+                            BgClass="bg-white/15 dark:bg-white/10"
+                            ColorClass="text-white"
+                            TextClass="text-2xl font-bold" />
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-white" style="font-family:'Manrope',sans-serif">@string.Format(Loc["Dashboard_Welcome"], model?.Profile?.DisplayName ?? "Member")</h1>
                     <p class="text-white/60 dark:text-[#C4D2E1] text-sm mt-0.5">@Loc["Dashboard_WelcomeSubtitle"]</p>

@@ -1,4 +1,4 @@
-﻿@using CommunityLink.App.Components.Shared.Chat
+@using CommunityLink.App.Components.Shared.Chat
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<AppResources> Loc
 
@@ -128,15 +128,13 @@
                                             @onclick="() => OnStartChat.InvokeAsync(person)"
                                             aria-label="@(isExisting ? Loc["Chat_OpenChatWith", person.DisplayName] : Loc["Chat_StartChatWith", person.DisplayName])"
                                             class="group flex w-full items-center gap-3 rounded-lg border border-transparent px-2.5 py-2.5 text-left transition hover:border-[#0A1B2E]/20 dark:hover:border-[rgba(196,210,225,0.30)] hover:bg-[#0A1B2E]/5 dark:hover:bg-[#1D263B]/60 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:ring-offset-2">
-                                        @if (!string.IsNullOrWhiteSpace(person.AvatarUrl))
-                                        {
-                                            <img src="@person.AvatarUrl" alt="" class="h-10 w-10 shrink-0 rounded-full object-cover" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
-                                            <span class="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1D263B] text-sm font-semibold text-slate-600 dark:text-[#E1E2EC]">@Initial(person.DisplayName)</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1D263B] text-sm font-semibold text-slate-600 dark:text-[#E1E2EC]">@Initial(person.DisplayName)</span>
-                                        }
+                                        <UserAvatar Url="@person.AvatarUrl"
+                                                    Name="@person.DisplayName"
+                                                    Size="h-10 w-10"
+                                                    Class="shrink-0"
+                                                    BgClass="bg-slate-100 dark:bg-[#1D263B]"
+                                                    ColorClass="text-slate-600 dark:text-[#E1E2EC]"
+                                                    TextClass="text-sm font-semibold" />
 
                                         <span class="min-w-0 flex-1">
                                             <span class="flex items-center gap-1">
@@ -188,15 +186,12 @@
                                             ? "border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)] bg-[#0A1B2E]/5 dark:bg-[#112A46]"
                                             : "border-transparent hover:bg-slate-50 dark:hover:bg-[#1D263B]/60")">
                             <span class="relative shrink-0">
-                                @if (!string.IsNullOrWhiteSpace(thread.AvatarUrl))
-                                {
-                                    <img src="@thread.AvatarUrl" alt="" class="h-10 w-10 rounded-full object-cover" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
-                                    <span class="hidden h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1D263B] text-sm font-semibold text-slate-600 dark:text-[#E1E2EC]">@thread.Initials</span>
-                                }
-                                else
-                                {
-                                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1D263B] text-sm font-semibold text-slate-600 dark:text-[#E1E2EC]">@thread.Initials</span>
-                                }
+                                <UserAvatar Url="@thread.AvatarUrl"
+                                            Name="@thread.Title"
+                                            Size="h-10 w-10"
+                                            BgClass="bg-slate-100 dark:bg-[#1D263B]"
+                                            ColorClass="text-slate-600 dark:text-[#E1E2EC]"
+                                            TextClass="text-sm font-semibold" />
                                 @if (thread.IsDirect && thread.IsOnline)
                                 {
                                     <span class="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-[#111622] bg-emerald-500" title="@Loc["Chat_Online"]"></span>

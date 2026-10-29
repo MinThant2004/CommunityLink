@@ -67,16 +67,12 @@
                     <div class="p-5 pb-3">
                         <div class="flex items-start justify-between gap-3 mb-2">
                             <div class="flex items-center gap-3">
-                                @if (!string.IsNullOrEmpty(poll.AuthorAvatar))
-                                {
-                                    <img src="@poll.AuthorAvatar" alt="@poll.AuthorName" class="w-9 h-9 rounded-full object-cover border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)]" />
-                                }
-                                else
-                                {
-                                    <div class="w-9 h-9 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] flex items-center justify-center font-bold text-[#0A1B2E] dark:text-[#E1E8F0] text-xs">
-                                        @(string.IsNullOrWhiteSpace(poll.AuthorName) ? "U" : poll.AuthorName.Substring(0, 1).ToUpper())
-                                    </div>
-                                }
+                                <UserAvatar Url="@poll.AuthorAvatar"
+                                            Name="@poll.AuthorName"
+                                            Size="w-9 h-9"
+                                            RingClass="border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)]"
+                                            BgClass="bg-[#F1F5F9] dark:bg-[#1B3B5A]"
+                                            ColorClass="text-[#0A1B2E] dark:text-[#E1E8F0]" />
                                 <div>
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <h2 class="text-sm font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@poll.AuthorName</h2>

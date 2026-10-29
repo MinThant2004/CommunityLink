@@ -81,16 +81,12 @@
                              class="p-3.5 flex items-start gap-3 transition cursor-pointer hover:bg-slate-50/80 dark:hover:bg-[#1B3B5A]/40 @(!notif.IsRead ? "bg-indigo-50/40 dark:bg-indigo-950/20" : "")">
                             <!-- Icon / Avatar -->
                             <div class="relative shrink-0">
-                                @if (!string.IsNullOrEmpty(notif.ActorAvatar))
-                                {
-                                    <img src="@notif.ActorAvatar" alt="@notif.ActorName" class="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-[rgba(196,210,225,0.2)]" />
-                                }
-                                else
-                                {
-                                    <div class="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center justify-center">
-                                        @(string.IsNullOrWhiteSpace(notif.ActorName) ? "U" : notif.ActorName.Substring(0, 1).ToUpper())
-                                    </div>
-                                }
+                                <UserAvatar Url="@notif.ActorAvatar"
+                                            Name="@notif.ActorName"
+                                            Size="w-9 h-9"
+                                            RingClass="border border-slate-200 dark:border-[rgba(196,210,225,0.2)]"
+                                            BgClass="bg-indigo-100 dark:bg-indigo-900/50"
+                                            ColorClass="text-indigo-700 dark:text-indigo-300" />
                                 <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center bg-white dark:bg-[#112A46] shadow-xs border border-slate-200 dark:border-slate-700">
                                     @RenderNotificationBadgeIcon(notif.NotificationType)
                                 </span>

@@ -21,7 +21,7 @@
         <div class="mx-auto mb-2.5 flex max-w-3xl items-center justify-between rounded-xl border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.30)] bg-[#0A1B2E]/5 dark:bg-[#182030] px-3.5 py-2 text-xs">
             <div class="min-w-0 flex-1 border-l-2 border-[#0A1B2E] dark:border-[#E1E8F0] pl-2.5">
                 <span class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["Chat_ReplyingTo", ReplyToMessage.SenderName]</span>
-                <p class="truncate text-slate-600 dark:text-[#94A3B8]">@ReplyToMessage.Content</p>
+                <p class="truncate text-slate-600 dark:text-[#94A3B8]">@FormatReplyPreview(ReplyToMessage.Content)</p>
             </div>
             <button type="button"
                     @onclick="CancelReply"
@@ -81,7 +81,8 @@
 
             @if (showEmojiPicker)
             {
-                <div class="absolute bottom-12 left-0 z-20 flex gap-1 rounded-xl border border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] p-2 text-xl shadow-lg">
+                <div class="fixed inset-0 z-20" @onclick="ClosePickers"></div>
+                <div class="absolute bottom-12 left-0 z-30 flex gap-1 rounded-xl border border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] p-2 text-xl shadow-lg">
                     @foreach (var emoji in quickEmojis)
                     {
                         <button type="button" @onclick="() => AddEmoji(emoji)" class="cursor-pointer rounded-lg p-1.5 transition hover:bg-slate-100 dark:hover:bg-[#182030] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/30">
@@ -109,6 +110,7 @@
 
             @if (showStickerPicker)
             {
+                <div class="fixed inset-0 z-20" @onclick="ClosePickers"></div>
                 <div class="absolute bottom-12 left-8 z-30 flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#111622] p-2.5 shadow-xl animate-in fade-in zoom-in-95 duration-150">
                     <div class="text-[11px] font-semibold text-slate-400 dark:text-[#94A3B8] uppercase tracking-wider px-1">@Loc["Chat_Stickers"]</div>
                     @foreach (var s in availableStickers)
@@ -199,6 +201,23 @@
         new("Cool", "/stickers/cool.svg")
     ];
 
+    private void ClosePickers()
+    {
+        showStickerPicker = false;
+        showEmojiPicker = false;
+    }
+
+    private string FormatReplyPreview(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return string.Empty;
+        var trimmed = content.Trim();
+        if (trimmed.StartsWith("[sticker:", StringComparison.OrdinalIgnoreCase) && trimmed.EndsWith("]"))
+        {
+            return "🎨 " + Loc["Chat_Stickers"];
+        }
+        return content;
+    }
+
     private void ToggleEmojiPicker()
     {
         showEmojiPicker = !showEmojiPicker;
@@ -228,6 +247,7 @@
 
     private async Task OnInputChanged(ChangeEventArgs e)
     {
+        ClosePickers();
         messageText = e.Value?.ToString() ?? "";
         await NotifyTypingAsync(!string.IsNullOrWhiteSpace(messageText));
     }
@@ -307,6 +327,12 @@
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
+        if (e.Key == "Escape")
+        {
+            ClosePickers();
+            return;
+        }
+
         if (e.Key == "Enter" && !e.ShiftKey)
         {
             await SubmitMessage();

@@ -1,0 +1,127 @@
+@using System.Globalization
+@using System.Linq
+
+<div class="flex flex-col sm:flex-row items-center gap-5 @Class">
+    @if (HasData)
+    {
+        <div class="relative w-40 h-40 shrink-0">
+            <svg viewBox="0 0 120 120" class="w-full h-full" role="img" aria-label="@DisplayTitle">
+                <g transform="rotate(-90 60 60)">
+                    <circle cx="60" cy="60" r="@Radius" fill="none" stroke="currentColor" stroke-opacity="0.08" stroke-width="@StrokeWidth" />
+                    @foreach (var seg in segments)
+                    {
+                        <circle cx="60" cy="60" r="@Radius" fill="none" stroke="@seg.Color"
+                                stroke-width="@StrokeWidth" stroke-dasharray="@seg.DashArray"
+                                stroke-dashoffset="@seg.DashOffset" stroke-linecap="butt" />
+                    }
+                </g>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-3">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-[#7A8CA6] dark:text-[#8FA3BC]">@CenterLabel</span>
+                <span class="text-lg font-black text-[#0A1B2E] dark:text-white leading-tight">@CenterValue</span>
+            </div>
+        </div>
+
+        <div class="flex-1 w-full space-y-2">
+            @foreach (var seg in segments)
+            {
+                <div class="flex items-center justify-between gap-2 text-xs">
+                    <span class="flex items-center gap-2 text-[#557392] dark:text-[#C4D2E1]">
+                        <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" style="background:@seg.Color"></span>
+                        @seg.Label
+                    </span>
+                    <span class="font-mono font-bold text-[#0A1B2E] dark:text-white whitespace-nowrap">
+                        @FormatValue(seg.Value)
+                        <span class="text-[#7A8CA6] dark:text-[#8FA3BC] font-medium">(@FormatPercent(seg.Value))</span>
+                    </span>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="h-40 w-full flex items-center justify-center text-xs text-[#7A8CA6] dark:text-[#8FA3BC]">
+            @DisplayEmptyText
+        </div>
+    }
+</div>
+
+@code {
+    public sealed record DonutSegment(string Label, double Value, string Color);
+
+    private const double Radius = 44;
+    private const double StrokeWidth = 16;
+    private static readonly double Circumference = 2 * Math.PI * Radius;
+
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? EmptyText { get; set; }
+    [Parameter] public string? CenterLabel { get; set; }
+    [Parameter] public string? CenterValue { get; set; }
+    [Parameter] public IReadOnlyList<DonutSegment>? Segments { get; set; }
+    [Parameter] public string ValueSuffix { get; set; } = "";
+    [Parameter] public string? Class { get; set; }
+
+    private sealed record RenderedSegment(string Label, double Value, string Color, string DashArray, string DashOffset);
+
+    private List<RenderedSegment> segments = new();
+    private double total;
+
+    private bool HasData => segments.Count > 0 && total > 0;
+
+    private string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? "Donut chart" : Title;
+    private string DisplayEmptyText => string.IsNullOrWhiteSpace(EmptyText) ? "No data available." : EmptyText;
+
+    protected override void OnParametersSet()
+    {
+        Rebuild();
+    }
+
+    private void Rebuild()
+    {
+        segments = new List<RenderedSegment>();
+        total = 0;
+
+        if (Segments is null) return;
+
+        var sanitized = Segments
+            .Where(s => s is not null)
+            .Select(s => new DonutSegment(s.Label, Sanitize(s.Value), s.Color))
+            .ToList();
+
+        total = sanitized.Sum(s => s.Value);
+        if (total <= 0) return;
+
+        const double gap = 2;
+        var start = 0d;
+        foreach (var seg in sanitized)
+        {
+            if (seg.Value <= 0) continue;
+
+            var fraction = seg.Value / total;
+            var length = Math.Max(0, fraction * Circumference - gap);
+            var dashArray = $"{F(length)} {F(Circumference - length)}";
+            var dashOffset = F(-start);
+
+            segments.Add(new RenderedSegment(seg.Label, seg.Value, seg.Color, dashArray, dashOffset));
+            start += fraction * Circumference;
+        }
+    }
+
+    private static double Sanitize(double value) =>
+        double.IsNaN(value) || double.IsInfinity(value) || value < 0 ? 0 : value;
+
+    private string FormatValue(double value)
+    {
+        var abs = Math.Abs(value);
+        if (abs >= 1_000_000) return (value / 1_000_000d).ToString("0.#", CultureInfo.InvariantCulture) + "M" + ValueSuffix;
+        if (abs >= 1_000) return (value / 1_000d).ToString("0.#", CultureInfo.InvariantCulture) + "k" + ValueSuffix;
+        return value.ToString("0.##", CultureInfo.InvariantCulture) + ValueSuffix;
+    }
+
+    private string FormatPercent(double value) =>
+        total <= 0
+            ? "0%"
+            : (value / total * 100).ToString("0.#", CultureInfo.InvariantCulture) + "%";
+
+    private static string F(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+}
