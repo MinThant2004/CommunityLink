@@ -7,6 +7,21 @@ namespace CommunityLink.App.Apis;
 public sealed class PostApiService(IHttpClientFactory clientFactory, IHttpContextAccessor httpContextAccessor)
     : ApiService(clientFactory, httpContextAccessor)
 {
+    public Task<Result<IReadOnlyList<HomeFeedItemModel>>> GetHomeFeedAsync(int page = 1, int pageSize = 15, DateTime? sessionTime = null, CancellationToken cancellationToken = default)
+    {
+        var query = new List<string>
+        {
+            $"page={page}",
+            $"pageSize={pageSize}"
+        };
+        if (sessionTime.HasValue)
+        {
+            query.Add($"sessionTime={Uri.EscapeDataString(sessionTime.Value.ToString("o"))}");
+        }
+        var url = $"api/posts/home-feed?{string.Join("&", query)}";
+        return GetAsync<IReadOnlyList<HomeFeedItemModel>>(url, cancellationToken);
+    }
+
     public Task<Result<IReadOnlyList<PostModel>>> GetFeedAsync(int? communityId = null, int? groupId = null, int page = 1, int pageSize = 15, CancellationToken cancellationToken = default)
     {
         var query = new List<string>();

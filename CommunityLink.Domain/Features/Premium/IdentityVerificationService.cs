@@ -113,6 +113,12 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
         if (string.IsNullOrWhiteSpace(request.FullLegalName))
             return Result<IdentityVerificationDetailDto>.Failure("Legal Full Name matching your government-issued ID is required.", ResultStatus.ValidationError);
 
+        if (string.IsNullOrWhiteSpace(request.Skills))
+            return Result<IdentityVerificationDetailDto>.Failure("Skills / Competencies are required.", ResultStatus.ValidationError);
+
+        if (string.IsNullOrWhiteSpace(request.Location))
+            return Result<IdentityVerificationDetailDto>.Failure("Location is required.", ResultStatus.ValidationError);
+
         if (string.IsNullOrWhiteSpace(request.IdCardFrontUrl))
             return Result<IdentityVerificationDetailDto>.Failure("Front of Identity Card image is required.", ResultStatus.ValidationError);
 
@@ -182,6 +188,11 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
             FullLegalName = request.FullLegalName.Trim(),
             WorkEmail = string.IsNullOrWhiteSpace(request.WorkEmail) ? null : request.WorkEmail.Trim(),
             ProfessionalUrl = string.IsNullOrWhiteSpace(request.ProfessionalUrl) ? null : request.ProfessionalUrl.Trim(),
+            Skills = request.Skills?.Trim(),
+            Location = request.Location?.Trim(),
+            CertificateUrls = request.CertificateUrls != null && request.CertificateUrls.Count > 0
+                ? System.Text.Json.JsonSerializer.Serialize(request.CertificateUrls)
+                : null,
             IdCardFrontUrl = request.IdCardFrontUrl.Trim(),
             IdCardBackUrl = string.IsNullOrWhiteSpace(request.IdCardBackUrl) ? null : request.IdCardBackUrl.Trim(),
             PaymentMethod = request.PaymentMethod,
@@ -212,6 +223,13 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
             CreatedAtUtc = DateTime.UtcNow
         };
         dbContext.TblUserSubscriptions.Add(userSub);
+
+        // Update User Response SLA guarantee if provided
+        if (!string.IsNullOrWhiteSpace(request.ResponseSlaText))
+        {
+            user.ResponseSlaText = request.ResponseSlaText.Trim();
+            user.UpdatedAt = DateTime.UtcNow;
+        }
 
         // Notify user of submission
         dbContext.TblNotifications.Add(new TblNotification
@@ -351,7 +369,48 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
         verification.ReviewedAtUtc = DateTime.UtcNow;
 
         verification.User.IsVerified = true;
+        if (!string.IsNullOrWhiteSpace(verification.Location))
+        {
+            verification.User.Location = verification.Location.Trim();
+        }
         verification.User.UpdatedAt = DateTime.UtcNow;
+
+        // Sync verified skills to user skills
+        if (!string.IsNullOrWhiteSpace(verification.Skills))
+        {
+            var skillNames = verification.Skills
+                .Split(new[] { ',', ';', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+
+            var existingSkills = await dbContext.TblUserSkills
+                .Where(s => s.UserId == verification.UserId && !s.IsDeleted)
+                .ToListAsync(cancellationToken);
+
+            int order = existingSkills.Count > 0 ? existingSkills.Max(s => s.DisplayOrder) + 1 : 1;
+            foreach (var name in skillNames)
+            {
+                var existing = existingSkills.FirstOrDefault(s => string.Equals(s.SkillName, name, StringComparison.OrdinalIgnoreCase));
+                if (existing != null)
+                {
+                    existing.IsVerified = true;
+                }
+                else
+                {
+                    dbContext.TblUserSkills.Add(new TblUserSkill
+                    {
+                        UserId = verification.UserId,
+                        SkillName = name,
+                        EndorsementCount = 0,
+                        IsVerified = true,
+                        DisplayOrder = order++,
+                        CreatedAt = DateTime.UtcNow,
+                        IsDeleted = false
+                    });
+                }
+            }
+        }
 
         // Record UserVerificationAudit record if not already recorded
         var existingAudit = await dbContext.TblUserVerificationAudits
@@ -517,6 +576,16 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
         TblSubscriptionPlan plan,
         TblAdmin? admin)
     {
+        IReadOnlyList<string>? certList = null;
+        if (!string.IsNullOrWhiteSpace(v.CertificateUrls))
+        {
+            try
+            {
+                certList = System.Text.Json.JsonSerializer.Deserialize<List<string>>(v.CertificateUrls);
+            }
+            catch { }
+        }
+
         return new IdentityVerificationDetailDto(
             v.VerificationId,
             v.UserId,
@@ -540,7 +609,10 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
             v.ReviewNotes,
             admin?.Email,
             v.ReviewedAtUtc,
-            v.CreatedAtUtc
+            v.CreatedAtUtc,
+            v.Skills,
+            v.Location,
+            certList
         );
     }
 }

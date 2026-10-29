@@ -172,8 +172,75 @@ public class UserProfileService : IUserProfileService
         user.DisplayName = displayName;
         user.Headline = dto.Headline?.Trim();
         user.Pronouns = dto.Pronouns?.Trim();
-        user.Location = dto.Location?.Trim();
-        user.AvailabilityStatus = dto.AvailabilityStatus?.Trim();
+
+        if (user.IsVerified)
+        {
+            user.Location = dto.Location?.Trim();
+            user.AvailabilityStatus = dto.AvailabilityStatus?.Trim();
+
+            // Sync skills for premium user
+            var skillNamesList = dto.Skills;
+            if ((skillNamesList == null || skillNamesList.Count == 0) && !string.IsNullOrWhiteSpace(dto.SkillsText))
+            {
+                skillNamesList = dto.SkillsText
+                    .Split(new[] { ',', ';', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim())
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
+
+            if (skillNamesList != null)
+            {
+                var cleanedNames = skillNamesList
+                    .Select(s => s.Trim())
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                var existingSkills = await _dbContext.TblUserSkills
+                    .Where(s => s.UserId == currentUserId)
+                    .ToListAsync(cancellationToken);
+
+                foreach (var es in existingSkills)
+                {
+                    if (!cleanedNames.Any(c => string.Equals(c, es.SkillName, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        es.IsDeleted = true;
+                    }
+                }
+
+                int order = 1;
+                foreach (var name in cleanedNames)
+                {
+                    var existing = existingSkills.FirstOrDefault(s => string.Equals(s.SkillName, name, StringComparison.OrdinalIgnoreCase));
+                    if (existing != null)
+                    {
+                        existing.IsDeleted = false;
+                        existing.DisplayOrder = order++;
+                    }
+                    else
+                    {
+                        _dbContext.TblUserSkills.Add(new TblUserSkill
+                        {
+                            UserId = currentUserId,
+                            SkillName = name,
+                            EndorsementCount = 0,
+                            IsVerified = true,
+                            DisplayOrder = order++,
+                            CreatedAt = DateTime.UtcNow,
+                            IsDeleted = false
+                        });
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Normal users cannot have AvailabilityStatus
+            user.AvailabilityStatus = null;
+        }
+
         user.Bio = dto.Bio?.Trim();
         if (!string.IsNullOrWhiteSpace(dto.AvatarUrl))
         {
@@ -405,6 +472,7 @@ public class UserProfileService : IUserProfileService
                 .AsSplitQuery()
                 .Include(p => p.Author)
                 .Include(p => p.Community)
+                .Include(p => p.Group)
                 .Include(p => p.TblPostImages)
                 .Include(p => p.TblPostLikes)
                 .Include(p => p.TblComments)
@@ -459,7 +527,7 @@ public class UserProfileService : IUserProfileService
                         AuthorAvatarUrl = r.Author?.AvatarUrl,
                         Content = r.Content,
                         CreatedAt = r.CreatedAt,
-                        CommunityName = r.Community?.Name,
+                        CommunityName = r.Community != null && !string.Equals(r.Community.Name, "General", StringComparison.OrdinalIgnoreCase) ? r.Community.Name : string.Empty,
                         GroupName = r.Group?.Name,
                         ImageUrls = r.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
                         CodeSnippet = r.CodeSnippet,
@@ -535,7 +603,7 @@ public class UserProfileService : IUserProfileService
                     AuthorAvatarUrl = s.Post.Author?.AvatarUrl,
                     Content = s.Post.Content,
                     CreatedAt = s.Post.CreatedAt,
-                    CommunityName = s.Post.Community?.Name,
+                    CommunityName = s.Post.Community != null && !string.Equals(s.Post.Community.Name, "General", StringComparison.OrdinalIgnoreCase) ? s.Post.Community.Name : string.Empty,
                     GroupName = s.Post.Group?.Name,
                     ImageUrls = s.Post.TblPostImages.Where(i => !i.IsDeleted).OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList(),
                     CodeSnippet = s.Post.CodeSnippet,
@@ -573,6 +641,8 @@ public class UserProfileService : IUserProfileService
                     .ThenInclude(p => p.Author)
                 .Include(sp => sp.Post)
                     .ThenInclude(p => p.Community)
+                .Include(sp => sp.Post)
+                    .ThenInclude(p => p.Group)
                 .Include(sp => sp.Post)
                     .ThenInclude(p => p.TblPostImages)
                 .Include(sp => sp.Post)
@@ -624,6 +694,7 @@ public class UserProfileService : IUserProfileService
                 .AsSplitQuery()
                 .Include(p => p.Author)
                 .Include(p => p.Community)
+                .Include(p => p.Group)
                 .Include(p => p.TblPostImages)
                 .Include(p => p.TblPolls)
                     .ThenInclude(poll => poll.TblPollOptions)
@@ -730,6 +801,29 @@ public class UserProfileService : IUserProfileService
             .ToListAsync(cancellationToken);
 
         return Result<List<UserCommunityItemDto>>.Success(communities);
+    }
+
+    public async Task<Result<List<UserCreatedGroupItemDto>>> GetUserCreatedGroupsAsync(int targetUserId, CancellationToken cancellationToken = default)
+    {
+        var groups = await _dbContext.TblGroups
+            .Include(g => g.SubCommunity)
+            .Include(g => g.TblGroupMembers)
+            .Where(g => g.CreatorId == targetUserId && !g.IsDeleted)
+            .OrderByDescending(g => g.CreatedAt)
+            .Select(g => new UserCreatedGroupItemDto
+            {
+                GroupId = g.GroupId,
+                Name = g.Name,
+                Description = g.Description,
+                AvatarUrl = g.AvatarUrl,
+                SubCommunityName = g.SubCommunity != null ? g.SubCommunity.Name : null,
+                MemberCount = g.TblGroupMembers.Count(m => !m.IsDeleted),
+                Visibility = g.Visibility,
+                CreatedAt = g.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return Result<List<UserCreatedGroupItemDto>>.Success(groups);
     }
 
     public async Task<Result<List<UserRatingItemDto>>> GetUserReviewsAsync(int targetUserId, CancellationToken cancellationToken = default)
@@ -938,6 +1032,9 @@ public class UserProfileService : IUserProfileService
         int sharesCount = await _dbContext.TblPostShares
             .CountAsync(ps => ps.UserId == user.UserId && !ps.IsDeleted && ps.Post != null && !ps.Post.IsDeleted, cancellationToken);
 
+        int groupsOwnedCount = await _dbContext.TblGroups
+            .CountAsync(g => g.CreatorId == user.UserId && !g.IsDeleted, cancellationToken);
+
         // 3. Relationship
         bool isSelf = currentUserId.HasValue && currentUserId.Value == user.UserId;
         bool isSavedByMe = false;
@@ -1019,6 +1116,25 @@ public class UserProfileService : IUserProfileService
             })
             .FirstOrDefaultAsync(cancellationToken);
 
+        // 7. Created Groups
+        var createdGroups = await _dbContext.TblGroups
+            .Include(g => g.SubCommunity)
+            .Include(g => g.TblGroupMembers)
+            .Where(g => g.CreatorId == user.UserId && !g.IsDeleted)
+            .OrderByDescending(g => g.CreatedAt)
+            .Select(g => new UserCreatedGroupItemDto
+            {
+                GroupId = g.GroupId,
+                Name = g.Name,
+                Description = g.Description,
+                AvatarUrl = g.AvatarUrl,
+                SubCommunityName = g.SubCommunity != null ? g.SubCommunity.Name : null,
+                MemberCount = g.TblGroupMembers.Count(m => !m.IsDeleted),
+                Visibility = g.Visibility,
+                CreatedAt = g.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+
         return new UserProfileDto
         {
             UserId = user.UserId,
@@ -1028,7 +1144,7 @@ public class UserProfileService : IUserProfileService
             Headline = user.Headline,
             Pronouns = user.Pronouns,
             Location = user.Location,
-            AvailabilityStatus = user.AvailabilityStatus,
+            AvailabilityStatus = user.IsVerified ? user.AvailabilityStatus : null,
             ResponseSlaText = user.ResponseSlaText,
             PercentileBadgeText = user.PercentileBadgeText,
             IsOnline = user.LastActiveAt.HasValue && user.LastActiveAt.Value > DateTime.UtcNow.AddMinutes(-10),
@@ -1050,7 +1166,8 @@ public class UserProfileService : IUserProfileService
                 PostsCount = postsCount,
                 FollowersCount = followersCount,
                 FollowingCount = followingCount,
-                SharesCount = sharesCount
+                SharesCount = sharesCount,
+                GroupsOwnedCount = groupsOwnedCount
             },
             Relationship = new UserRelationshipInfoDto
             {
@@ -1065,6 +1182,7 @@ public class UserProfileService : IUserProfileService
             RatingDistribution = ratingDistribution,
             Skills = userSkills,
             VerificationAudit = audit,
+            CreatedGroups = createdGroups,
             CreatedAt = user.CreatedAt
         };
     }
@@ -1212,7 +1330,9 @@ public class UserProfileService : IUserProfileService
             HasPoll = p.HasPoll,
             Poll = pollDto,
             CommunityId = p.CommunityId ?? 0,
-            CommunityName = p.Community != null ? p.Community.Name : "General",
+            CommunityName = p.Community != null && !string.Equals(p.Community.Name, "General", StringComparison.OrdinalIgnoreCase) ? p.Community.Name : string.Empty,
+            GroupId = p.GroupId,
+            GroupName = p.Group != null ? p.Group.Name : null,
             AuthorUserId = p.AuthorId,
             AuthorUserName = p.Author != null ? p.Author.UserName : "unknown",
             AuthorDisplayName = p.Author != null ? (p.Author.DisplayName ?? p.Author.UserName) : "Unknown",

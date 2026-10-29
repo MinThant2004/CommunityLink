@@ -52,12 +52,26 @@ public class PremiumUpgradeController(
         [FromForm] string? workEmail,
         [FromForm] string? professionalUrl,
         [FromForm] string? paymentMethod,
+        [FromForm] string? responseSlaText,
+        [FromForm] string? skills,
+        [FromForm] string? location,
         [FromForm] IFormFile? idCardFront,
         [FromForm] IFormFile? idCardBack,
+        [FromForm] List<IFormFile>? certificates,
         CancellationToken cancellationToken)
     {
         var userId = CurrentUserId;
         if (userId == null) return Unauthorized(Result.Failure("Authentication required.", ResultStatus.Unauthorized));
+
+        if (string.IsNullOrWhiteSpace(skills))
+        {
+            return BadRequest(Result.Failure("Skills & Competencies are mandatory.", ResultStatus.ValidationError));
+        }
+
+        if (string.IsNullOrWhiteSpace(location))
+        {
+            return BadRequest(Result.Failure("Location is mandatory.", ResultStatus.ValidationError));
+        }
 
         if (idCardFront == null || idCardFront.Length == 0)
         {
@@ -95,6 +109,23 @@ public class PremiumUpgradeController(
             backUrl = publicUrlBuilder.Build($"/uploads/identities/{backFileName}");
         }
 
+        var certUrls = new List<string>();
+        if (certificates != null)
+        {
+            foreach (var cert in certificates)
+            {
+                if (cert.Length == 0) continue;
+                var certExt = Path.GetExtension(cert.FileName).ToLowerInvariant();
+                var certFileName = $"cert_{userId}_{Guid.NewGuid():N}{certExt}";
+                var certFilePath = Path.Combine(uploadDir, certFileName);
+                using (var stream = new FileStream(certFilePath, FileMode.Create))
+                {
+                    await cert.CopyToAsync(stream, cancellationToken);
+                }
+                certUrls.Add(publicUrlBuilder.Build($"/uploads/identities/{certFileName}"));
+            }
+        }
+
         var dto = new SubmitIdentityVerificationRequestDto(
             PlanId: planId,
             FullLegalName: fullLegalName,
@@ -102,7 +133,11 @@ public class PremiumUpgradeController(
             ProfessionalUrl: professionalUrl,
             IdCardFrontUrl: frontUrl,
             IdCardBackUrl: backUrl,
-            PaymentMethod: paymentMethod ?? "LinkDropPoints"
+            PaymentMethod: paymentMethod ?? "LinkDropPoints",
+            ResponseSlaText: responseSlaText,
+            Skills: skills.Trim(),
+            Location: location.Trim(),
+            CertificateUrls: certUrls
         );
 
         var result = await verificationService.SubmitVerificationAsync(userId.Value, dto, cancellationToken);

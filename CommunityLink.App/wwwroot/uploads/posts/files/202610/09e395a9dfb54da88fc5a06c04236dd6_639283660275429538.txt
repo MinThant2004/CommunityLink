@@ -1,0 +1,683 @@
+MSS Database query
+
+=> SELECT @@SERVERNAME
+(No column name)
+-- DESKTOP-GPD7ACH
+
+=> If forgot password, Click Security > Logins > rightclick to the acc/connection acc > Properties >
+Password and Confirm Password > after changing do Disconnect and Connect the connection.
+
+-------
+
+To Trace, BreakPoint
+
+=> F9 
+it's will show the bullet at the left of the line.
+=> F5 / click 'Debug' at the top > Start Debugging
+=> Click 'F10' from moving one line to another
+
+---
+
+Error/Exception can occur:
+=> System.Data.SqlClient.SqlException: 'Login failed for user 'sa'.'
+
+When user name or password didn't match or not exist.
+
+---
+
+// after typing 'SqlConnection' and hold_Ctrl + . then it's will show 'System.Data.SqlClient' to add at the top
+// Data Source = (Server name) => . , Initial Catalog = (Database name) , User ID = (User name) )
+
+=> string connectionString = "Data Source=.;Initial Catalog=DotNetTrainingBatch5;User ID=sa;Password=sasa@123;";
+Console.WriteLine("Connection String : " + connectionString);
+=> SqlConnection connection = new SqlConnection(connectionString);
+
+=> connection.Open();
+
+=> string query = @"SELECT [BlogId]
+      ,[BlogTitle]
+      ,[BlogAuthor]
+      ,[BlogContent]
+      ,[DeleteFlag]
+  FROM [dbo].[Tbl_Blog]";
+// Query or Command
+=> SqlCommand cmd = new SqlCommand(query, connection);
+// To run that command we need SqlDataAdapter
+=> SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+
+// When C# run the query and then it's need to accept the data from the sql
+=> DataTable dt = new DataTable();
+
+// When it's execute, the value from 'adapter' will went to 'dt'
+=> adapter.Fill(dt);
+
+connection.Close();
+
+-------
+
+
+=> System.InvalidOperationException: 'ADP_ConnectionRequired_Fill'
+
+
+----
+
+using System.Data;
+using System.Data.SqlClient;
+
+// after typing 'SqlConnection' and hold_Ctrl + . then it's will show 'System.Data.SqlClient' to add at the top
+// Data Source = (Server name) => . , Initial Catalog = (Database name) , User ID = (User name) )
+string connectionString = "Data Source=.;Initial Catalog=DotNetTrainingBatch5;User ID=sa;Password=sasa@123;";
+Console.WriteLine("Connection String : " + connectionString);
+SqlConnection connection = new SqlConnection(connectionString);
+
+connection.Open();
+
+string query = @"SELECT [BlogId]
+      ,[BlogTitle]
+      ,[BlogAuthor]
+      ,[BlogContent]
+      ,[DeleteFlag]
+  FROM [dbo].[Tbl_Blog] WHERE DeleteFlag = 0";
+// Query or Command
+SqlCommand cmd = new SqlCommand(query, connection);
+// To run that command we need SqlDataAdapter
+SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+
+// When C# run the query and then it's need to accept the data from the sql
+DataTable dt = new DataTable();
+
+// When it's execute, the value from 'adapter' will went to 'dt'. Fill the Data
+adapter.Fill(dt);
+
+connection.Close();
+
+// DataSet = Store multiple DataTable , in there:
+// DataTable
+// DataRow
+// DataColumn
+
+// looping the data can be exist before or after the connection closed
+// after opened: after  filling the data into table "adapter.Fill(dt);" so even after connection is closed then no need to worry about the data, because it's already in the memory. So we can loop the data after connection closed.
+// It's also necessary to exist before the connection closed, becuase if it's too big and looping multiple line. ( But it's take time when a lot of user enter )
+// after closed: when close the connection it's good for controlling the MAX connection limit, so when next user came then no need to worry about.
+foreach (DataRow dr in dt.Rows)
+{
+    Console.WriteLine(dr[columnName: "BlogId"]);
+    Console.WriteLine(dr[columnName: "BlogTitle"]);
+    Console.WriteLine(dr[columnName: "BlogAuthor"]);
+    Console.WriteLine(dr[columnName: "BlogContent"]);
+}
+
+
+----
+
+
+
+// Instead of this :
+//-----
+// To run that command we need SqlDataAdapter
+//  SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+
+//  When C# run the query and then it's need to accept the data from the sql
+//  DataTable dt = new DataTable();
+
+//  When it's execute, the value from 'adapter' will went to 'dt'. Fill the Data
+//  adapter.Fill(dt);
+//------
+// Can use this:
+SqlDataReader reader = cmd.ExecuteReader();
+while (reader.Read())
+{
+    Console.WriteLine(reader["BlogId"]);
+       Console.WriteLine(reader["BlogTitle"]);
+       Console.WriteLine(reader["BlogAuthor"]);
+       Console.WriteLine(reader["BlogContent"]);
+}
+
+------------------------------------------
+(Gemini AI explain )
+
+1. SqlDataAdapter + DataTable (The "Disconnected" Approach)
+
+
+SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+DataTable dt = new DataTable();
+adapter.Fill(dt); 
+
+
+How it works: adapter.Fill(dt) automatically opens the connection, fetches all the rows, pours them into the DataTable, and closes the connection.
+
+Pros: The data stays in memory. You can move backward and forward through the rows, edit them, and you don't have to worry about keeping the database connection open.
+
+Cons: If your query returns 100,000 rows, it will gobble up a massive amount of RAM because it loads everything at once.
+
+
+2. SqlDataReader (The "Streaming" Approach)
+Your second snippet creates a fast, forward-only stream directly from the database.
+
+C#
+SqlDataReader reader = cmd.ExecuteReader();
+while (reader.Read())
+{
+    Console.WriteLine(reader["BlogId"]);
+       Console.WriteLine(reader["BlogTitle"]);
+       Console.WriteLine(reader["BlogAuthor"]);
+       Console.WriteLine(reader["BlogContent"]);
+}
+
+reader.Close();
+
+
+How it works: It keeps the database connection wide open. It fetches only one row at a time as you call reader.Read().
+
+Pros: It is incredibly fast and uses almost no memory because it doesn't store the whole dataset in RAM.
+
+Cons: It is forward-only. You cannot go back to a previous row. Also, while the reader is open, the database connection is busy and cannot be used for anything else.
+
+Summary: Use SqlDataReader if you just need to quickly read through data from top to bottom. Use SqlDataAdapter if you need to pass the data around, bind it to a UI element like a GridView, or manipulate it later.
+
+
+---------------------------------------------------------------
+
+Full File:
+
+
+using System.Data;
+using System.Data.SqlClient;
+
+Console.WriteLine("Hello, World!");
+
+// md => mark down
+// ( a little similar to html )
+
+// ADO.NET
+// Dapper ( clean and ORM )
+// EFCore / Entity Framework ( ORM - Object Relational Mapping  )
+
+// C# => sql query =>
+// NuGet website 
+// pub.dev
+
+// after typing 'SqlConnection' and hold_Ctrl + . then it's will show 'System.Data.SqlClient' to add at the top
+// Data Source = (Server name) => . , Initial Catalog = (Database name) , User ID = (User name) )
+string connectionString = "Data Source=.;Initial Catalog=DotNetTrainingBatch5;User ID=sa;Password=sasa@123;";
+Console.WriteLine("Connection String : " + connectionString);
+SqlConnection connection = new SqlConnection(connectionString);
+
+Console.WriteLine("Connection Opening...");
+connection.Open();
+Console.WriteLine("Connection Opened");
+
+string query = @"SELECT [BlogId]
+      ,[BlogTitle]
+      ,[BlogAuthor]
+      ,[BlogContent]
+      ,[DeleteFlag]
+  FROM [dbo].[Tbl_Blog] WHERE DeleteFlag = 0";
+// Query or Command
+SqlCommand cmd = new SqlCommand(query, connection);
+
+// Instead of this :
+//-----
+// To run that command we need SqlDataAdapter
+//  SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+
+//  When C# run the query and then it's need to accept the data from the sql
+//  DataTable dt = new DataTable();
+
+//  When it's execute, the value from 'adapter' will went to 'dt'. Fill the Data
+//  adapter.Fill(dt);
+//------
+// Can use this:
+SqlDataReader reader = cmd.ExecuteReader();
+while (reader.Read())
+{
+    Console.WriteLine(reader["BlogId"]);
+       Console.WriteLine(reader["BlogTitle"]);
+       Console.WriteLine(reader["BlogAuthor"]);
+       Console.WriteLine(reader["BlogContent"]);
+}
+
+//foreach (DataRow dr in dt.Rows)
+//{
+//    Console.WriteLine(dr[columnName: "BlogId"]);
+//    Console.WriteLine(dr[columnName: "BlogTitle"]);
+//    Console.WriteLine(dr[columnName: "BlogAuthor"]);
+//    Console.WriteLine(dr[columnName: "BlogContent"]);
+//}
+
+
+
+Console.WriteLine("Connection Closing...");
+connection.Close();
+Console.WriteLine("Connection Closed.");
+
+// DataSet = Store multiple DataTable , in there:
+// DataTable
+// DataRow
+// DataColumn
+
+// looping the data can be exist before or after the connection closed
+// after opened: after  filling the data into table "adapter.Fill(dt);" so even after connection is closed then no need to worry about the data, because it's already in the memory. So we can loop the data after connection closed.
+// It's also necessary to exist before the connection closed, becuase if it's too big and looping multiple line. ( But it's take time when a lot of user enter )
+// after closed: when close the connection it's good for controlling the MAX connection limit, so when next user came then no need to worry about.
+//foreach (DataRow dr in dt.Rows)
+//{
+//    Console.WriteLine(dr[columnName: "BlogId"]);
+//    Console.WriteLine(dr[columnName: "BlogTitle"]);
+//    Console.WriteLine(dr[columnName: "BlogAuthor"]);
+//    Console.WriteLine(dr[columnName: "BlogContent"]);
+//}
+
+
+-----------------------------------------
+
+
+// --- INSERT QUERY PART:
+
+Console.WriteLine("Blog Title : ");
+string title = Console.ReadLine();
+
+Console.WriteLine("Blog Author : ");
+string author = Console.ReadLine();
+
+Console.WriteLine("Blog Content : ");
+string content = Console.ReadLine();
+
+
+string connectionString2 = "Data Source=.;Initial Catalog=DotNetTrainingBatch5;User Id=sa;Password=sasa@123;";
+SqlConnection connection2 = new SqlConnection(connectionString2);
+connection2.Open();
+
+string queryInsert = $@"INSERT INTO [dbo].[Tbl_Blog]
+           ([BlogTitle]
+           ,[BlogAuthor]
+           ,[BlogContent]
+           ,[DeleteFlag])
+     VALUES
+           ('{title}'
+           ,'{author}'
+           ,'{content}'
+           ,0)";
+==> This is kind of risk because of SQL Injection: where it's can receive the data even without the existing data
+eg: SELECT BlogTitle from Tbl_Blog where BlogId = 1 or 1 = 1(SQL Injection base on 1=1 ): . So use parameter.
+ //('{title}'
+ //,'{author}'
+ //,'{content}'
+ //,0)";
+
+
+SqlCommand cmd2 = new SqlCommand(queryInsert, connection2);
+SqlDataAdapter adapter = new SqlDataAdapter(cmd2);
+DataTable dt = new DataTable();
+adapter.Fill(dt);
+
+
+connection2.Close();
+
+-----
+
+=>
+   // id is an int but using 'string id' becuase the return from Console.ReadLine() is string
+   Console.WriteLine("Blog Id:");
+   string id = Console.ReadLine();
+
+----
+
+
+CRUD Full File:
+
+using KHNDotNetCoreTraining.ConsoleApp;
+using System.Data;
+using System.Data.SqlClient;
+
+Console.WriteLine("Hello, World!");
+
+// md => mark down
+// ( a little similar to html )
+
+// ADO.NET
+// Dapper ( clean and ORM )
+// EFCore / Entity Framework ( ORM - Object Relational Mapping  )
+
+// C# => sql query =>
+// NuGet website 
+// pub.dev
+
+// after typing 'SqlConnection' and hold_Ctrl + . then it's will show 'System.Data.SqlClient' to add at the top
+// Data Source = (Server name) => . , Initial Catalog = (Database name) , User ID = (User name) )
+//string connectionString = "Data Source=.;Initial Catalog=DotNetTrainingBatch5;User ID=sa;Password=sasa@123;";
+//Console.WriteLine("Connection String : " + connectionString);
+//SqlConnection connection = new SqlConnection(connectionString);
+
+//Console.WriteLine("Connection Opening...");
+//connection.Open();
+//Console.WriteLine("Connection Opened");
+
+//string query = @"SELECT [BlogId]
+//      ,[BlogTitle]
+//      ,[BlogAuthor]
+//      ,[BlogContent]
+//      ,[DeleteFlag]
+//  FROM [dbo].[Tbl_Blog] WHERE DeleteFlag = 0";
+// Query or Command
+//SqlCommand cmd = new SqlCommand(query, connection);
+
+// Instead of this :
+//-----
+// To run that command we need SqlDataAdapter
+//  SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+
+//  When C# run the query and then it's need to accept the data from the sql
+//  DataTable dt = new DataTable();
+
+//  When it's execute, the value from 'adapter' will went to 'dt'. Fill the Data
+//  adapter.Fill(dt);
+//------
+// Can use this:
+//SqlDataReader reader = cmd.ExecuteReader();
+//while (reader.Read())
+//{
+//    Console.WriteLine(reader["BlogId"]);
+//    Console.WriteLine(reader["BlogTitle"]);
+//    Console.WriteLine(reader["BlogAuthor"]);
+//    Console.WriteLine(reader["BlogContent"]);
+//}
+
+//foreach (DataRow dr in dt.Rows)
+//{
+//    Console.WriteLine(dr[columnName: "BlogId"]);
+//    Console.WriteLine(dr[columnName: "BlogTitle"]);
+//    Console.WriteLine(dr[columnName: "BlogAuthor"]);
+//    Console.WriteLine(dr[columnName: "BlogContent"]);
+//}
+
+
+
+//Console.WriteLine("Connection Closing...");
+//connection.Close();
+//Console.WriteLine("Connection Closed.");
+
+// DataSet = Store multiple DataTable , in there:
+// DataTable
+// DataRow
+// DataColumn
+
+// looping the data can be exist before or after the connection closed
+// after opened: after  filling the data into table "adapter.Fill(dt);" so even after connection is closed then no need to worry about the data, because it's already in the memory. So we can loop the data after connection closed.
+// It's also necessary to exist before the connection closed, becuase if it's too big and looping multiple line. ( But it's take time when a lot of user enter )
+// after closed: when close the connection it's good for controlling the MAX connection limit, so when next user came then no need to worry about.
+//foreach (DataRow dr in dt.Rows)
+//{
+//    Console.WriteLine(dr[columnName: "BlogId"]);
+//    Console.WriteLine(dr[columnName: "BlogTitle"]);
+//    Console.WriteLine(dr[columnName: "BlogAuthor"]);
+//    Console.WriteLine(dr[columnName: "BlogContent"]);
+//}
+
+AdoDotNetExample adoDotNetExample = new AdoDotNetExample();
+// adoDotNetExample.Read();
+// adoDotNetExample.Create();
+//adoDotNetExample.Edit();
+//adoDotNetExample.Update();
+adoDotNetExample.Delete();
+
+Console.ReadKey();
+
+---
+AdoDotNetExample.cs file:
+
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Text;
+
+namespace KHNDotNetCoreTraining.ConsoleApp
+{
+    public class AdoDotNetExample
+    {
+// If declare at inside the class and at the top then start with '_'
+// => 'readonly' cannot be modified
+        private readonly string _connectionString = "Data Source=.;Initial Catalog=DotNetTrainingBatch5;User ID=sa;Password=sasa@123;";
+
+        public void Read()
+        {
+         //   string connectionString = "Data Source=.;Initial Catalog=DotNetTrainingBatch5;User ID=sa;Password=sasa@123;";
+            Console.WriteLine("Connection String : " + _connectionString);
+            SqlConnection connection = new SqlConnection(_connectionString);
+
+            Console.WriteLine("Connection Opening...");
+            connection.Open();
+            Console.WriteLine("Connection Opened");
+
+            string query = @"SELECT [BlogId]
+                  ,[BlogTitle]
+                  ,[BlogAuthor]
+                  ,[BlogContent]
+                  ,[DeleteFlag]
+              FROM [dbo].[Tbl_Blog] WHERE DeleteFlag = 0";
+          //  Query or Command
+           SqlCommand cmd = new SqlCommand(query, connection);
+
+            //Instead of this :
+            //-----
+            // To run that command we need SqlDataAdapter
+            //  SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+
+            //When C# run the query and then it's need to accept the data from the sql
+            //  DataTable dt = new DataTable();
+
+            //When it's execute, the value from 'adapter' will went to 'dt'. Fill the Data
+            //  adapter.Fill(dt);
+            //------
+            // Can use this:
+            SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                Console.WriteLine(reader["BlogId"]);
+                Console.WriteLine(reader["BlogTitle"]);
+                Console.WriteLine(reader["BlogAuthor"]);
+                Console.WriteLine(reader["BlogContent"]);
+            }
+
+            //foreach (DataRow dr in dt.Rows)
+            //{
+            //    Console.WriteLine(dr[columnName: "BlogId"]);
+            //    Console.WriteLine(dr[columnName: "BlogTitle"]);
+            //    Console.WriteLine(dr[columnName: "BlogAuthor"]);
+            //    Console.WriteLine(dr[columnName: "BlogContent"]);
+            //}
+
+            Console.WriteLine("Connection Closing...");
+            connection.Close();
+            Console.WriteLine("Connection Closed.");
+        }
+
+        public void Create()
+        {
+            // --- INSERT QUERY PART:
+
+            Console.WriteLine("Blog Title : ");
+            string title = Console.ReadLine();
+
+            Console.WriteLine("Blog Author : ");
+            string author = Console.ReadLine();
+
+            Console.WriteLine("Blog Content : ");
+            string content = Console.ReadLine();
+
+            SqlConnection connection = new SqlConnection(_connectionString);
+            connection.Open();
+
+            //string queryInsert = $@"INSERT INTO [dbo].[Tbl_Blog]
+            //           ([BlogTitle]
+            //           ,[BlogAuthor]
+            //           ,[BlogContent]
+            //           ,[DeleteFlag])
+            //     VALUES
+            //           ('{title}'
+            //           ,'{author}'
+            //           ,'{content}'
+            //           ,0)";
+
+
+            string query = $@"INSERT INTO [dbo].[Tbl_Blog]
+           ([BlogTitle]
+           ,[BlogAuthor]
+           ,[BlogContent]
+           ,[DeleteFlag])
+     VALUES
+           (@BlogTitle
+           ,@BlogAuthor
+           ,@BlogContent
+           ,0)";
+
+
+            SqlCommand cmd = new SqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@BlogTitle", title);
+            cmd.Parameters.AddWithValue("@BlogAuthor", author);
+            cmd.Parameters.AddWithValue("@BlogContent", content);
+
+
+            // => Not selecting the data from the table, this one is insert, so no need to use SqlDataAdapter, DataTable, and adapter.Fill.
+            //SqlDataAdapter adapter = new SqlDataAdapter(cmd2);
+            //DataTable dt = new DataTable();
+            //adapter.Fill(dt);
+            // => Run the query and produce the integer. If two query run then it's return 2 depends on the query run.
+            // cmd2.ExecuteNonQuery();
+
+            int result = cmd.ExecuteNonQuery();
+
+            connection.Close();
+
+            //if(result == 1)
+            //{
+            //    Console.WriteLine("Saving successful");
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Saving fail");
+            //}
+
+            Console.WriteLine(result == 1 ? "Saving successful" : "Saving fail");
+
+        }
+
+        public void Edit()
+        {
+            Console.Write("Blog Id: ");
+            string id = Console.ReadLine();
+            SqlConnection connection = new SqlConnection(_connectionString);
+            connection.Open();
+
+            string query = @"
+SELECT [BlogId]
+      ,[BlogTitle]
+      ,[BlogAuthor]
+      ,[BlogContent]
+      ,[DeleteFlag]
+  FROM [dbo].[Tbl_Blog] WHERE BlogId = @BlogId";
+
+            SqlCommand cmd = new SqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@BlogId", id);
+            SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+            DataTable dt = new DataTable();
+            adapter.Fill(dt);
+
+
+
+            connection.Close();
+
+            if(dt.Rows.Count == 0)
+            {
+                Console.WriteLine("No Data Found");
+                return;
+            }
+
+            DataRow dr = dt.Rows[0];
+            Console.WriteLine(dr["BlogId"]);
+            Console.WriteLine(dr["BlogTitle"]);
+            Console.WriteLine(dr["BlogAuthor"]);
+            Console.WriteLine(dr["BlogContent"]);
+
+        }
+
+        public void Update()
+        {
+            // id is an int but using 'string id' becuase the return from Console.ReadLine() is string
+            Console.WriteLine("Blog Id:");
+            string id = Console.ReadLine();
+
+            Console.WriteLine("Blog Title : ");
+            string title = Console.ReadLine();
+
+            Console.WriteLine("Blog Author : ");
+            string author = Console.ReadLine();
+
+            Console.WriteLine("Blog Content : ");
+            string content = Console.ReadLine();
+
+            SqlConnection connection = new SqlConnection(_connectionString);
+
+            string query = $@"UPDATE [dbo].[Tbl_Blog]
+   SET [BlogTitle] = @BlogTitle
+      ,[BlogAuthor] = @BlogAuthor
+      ,[BlogContent] = @BlogContent
+      ,[DeleteFlag] =  0
+ WHERE BlogId = @BlogId";
+
+
+            SqlCommand cmd = new SqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@BlogId", id);
+            cmd.Parameters.AddWithValue("@BlogTitle", title);
+            cmd.Parameters.AddWithValue("@BlogAuthor", author);
+            cmd.Parameters.AddWithValue("@BlogContent", content);
+
+            int result = cmd.ExecuteNonQuery();
+
+            connection.Close();
+
+
+            Console.WriteLine(result == 1 ? "Update successful" : "Update fail");
+
+        }
+
+        public void Delete()
+        {
+
+            Console.WriteLine("Blog Id:");
+            string id = Console.ReadLine();
+
+            //   string connectionString = "Data Source=.;Initial Catalog=DotNetTrainingBatch5;User ID=sa;Password=sasa@123;";
+            Console.WriteLine("Connection String : " + _connectionString);
+            SqlConnection connection = new SqlConnection(_connectionString);
+
+            Console.WriteLine("Connection Opening...");
+            connection.Open();
+            Console.WriteLine("Connection Opened");
+
+            string query = $@"
+DELETE FROM [dbo].[Tbl_Blog]
+      WHERE BlogId = @BlogId";
+
+            SqlCommand cmd = new SqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@BlogId", id);
+
+            int result = cmd.ExecuteNonQuery();
+
+
+            connection.Close();
+
+            Console.WriteLine(result == 1 ? "Delete Successful" : "Delete Failed ( ID not found )");
+
+
+        }
+
+
+    }
+}
+
+
+
+

@@ -25,6 +25,7 @@ public class UserProfileDto
     public RatingDistributionDto RatingDistribution { get; set; } = new();
     public List<UserSkillDto> Skills { get; set; } = new();
     public UserVerificationAuditDto? VerificationAudit { get; set; }
+    public List<UserCreatedGroupItemDto> CreatedGroups { get; set; } = new();
     public DateTime CreatedAt { get; set; }
 }
 
@@ -45,6 +46,7 @@ public class UserProfileMetricsDto
     public int FollowersCount { get; set; }
     public int FollowingCount { get; set; }
     public int SharesCount { get; set; }
+    public int GroupsOwnedCount { get; set; }
 }
 
 public class RatingDistributionDto
@@ -102,6 +104,8 @@ public class UpdateUserProfileRequestDto
     public string? AvailabilityStatus { get; set; }
     public string? Bio { get; set; }
     public string? AvatarUrl { get; set; }
+    public List<string>? Skills { get; set; }
+    public string? SkillsText { get; set; }
 }
 
 public class RateUserRequestDto
@@ -131,6 +135,8 @@ public class UserPostItemDto
     public UserPollDetailDto? Poll { get; set; }
     public int CommunityId { get; set; }
     public string CommunityName { get; set; } = string.Empty;
+    public int? GroupId { get; set; }
+    public string? GroupName { get; set; }
     public int AuthorUserId { get; set; }
     public string AuthorUserName { get; set; } = string.Empty;
     public string AuthorDisplayName { get; set; } = string.Empty;
@@ -265,4 +271,16 @@ public class UserSharedPostItemDto
     public int CommentCount { get; set; }
     public List<string> ImageUrls { get; set; } = new();
     public DateTime PostCreatedAt { get; set; }
+}
+
+public class UserCreatedGroupItemDto
+{
+    public int GroupId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? SubCommunityName { get; set; }
+    public int MemberCount { get; set; }
+    public string Visibility { get; set; } = "PUBLIC";
+    public DateTime CreatedAt { get; set; }
 }

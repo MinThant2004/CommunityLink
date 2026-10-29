@@ -9,6 +9,11 @@ namespace CommunityLink.Domain.Features.Post;
 [Route("api/posts")]
 public sealed class PostController(IPostService postService) : BaseController
 {
+    [HttpGet("home-feed")]
+    [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PostView)]
+    public async Task<IActionResult> GetHomeFeed([FromQuery] int page = 1, [FromQuery] int pageSize = 15, [FromQuery] DateTime? sessionTime = null, CancellationToken cancellationToken = default) =>
+        ToActionResult(await postService.GetHomeFeedAsync(page, pageSize, sessionTime, cancellationToken));
+
     [HttpGet("feed")]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.PostView)]
     public async Task<IActionResult> GetFeed([FromQuery] int? communityId, [FromQuery] int? groupId, [FromQuery] int page = 1, [FromQuery] int pageSize = 15, CancellationToken cancellationToken = default) =>

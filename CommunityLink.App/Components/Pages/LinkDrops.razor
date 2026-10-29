@@ -1,4 +1,4 @@
-﻿@page "/link-drops"
+@page "/link-drops"
 @page "/linkdrops"
 @using CommunityLink.App.Apis
 @using CommunityLink.App.Services
@@ -27,7 +27,7 @@
             </div>
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container text-[#0A1B2E] dark:text-[#E1E8F0] font-label-sm text-xs border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] animate-pulse"></span>@Loc["LinkDrops_RateBadge"]
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] animate-pulse"></span>@string.Format(Loc["LinkDrops_RateBadge"], conversionRate.ToString("N0"))
                 </span>
             </div>
         </div>
@@ -44,9 +44,7 @@
                     <span class="text-[11px] font-extrabold uppercase tracking-wider text-on-surface-variant font-label-sm">
                         @Loc["LinkDrops_AvailableBalance"]
                     </span>
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-[#0A1B2E] dark:text-[#E1E8F0] font-label-sm text-[10px] font-bold border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
-                        @Loc["LinkDrops_RateBadge"]
-                    </span>
+
                 </div>
 
                 <div class="flex items-baseline gap-2.5">
@@ -55,24 +53,11 @@
                     </span>
                     <span class="text-base sm:text-lg font-black text-on-surface">@Loc["Creator_LinkDrops"]</span>
                     <span class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                        @string.Format(Loc["LinkDrops_ApproxMmk"], (((wallet?.Balance ?? 0) * 10).ToString("N0")))
+                        @string.Format(Loc["LinkDrops_ApproxMmk"], (((wallet?.Balance ?? 0) * conversionRate).ToString("N0")))
                     </span>
                 </div>
 
-                <!-- Balance Breakdown (Purchased & Earned) -->
-                <div class="flex flex-wrap items-center gap-3 text-xs text-on-surface-variant pt-0.5">
-                    <span class="inline-flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0]"></span>
-                        <span>@Loc["LinkDrops_PurchasedBalance"]</span>
-                        <strong class="text-on-surface font-mono font-bold">@(wallet?.PurchasedBalance.ToString("N0") ?? "0")</strong>
-                    </span>
-                    <span class="text-on-surface-variant/40 hidden sm:inline">&bull;</span>
-                    <span class="inline-flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span>@Loc["LinkDrops_EarnedBalance"]</span>
-                        <strong class="text-on-surface font-mono font-bold">@(wallet?.EarnedBalance.ToString("N0") ?? "0")</strong>
-                    </span>
-                </div>
+
             </div>
 
             <!-- Right: Prominent 3D Spinning Prism Showcase (Visible, Eye-Catching & Interactive) -->
@@ -189,7 +174,7 @@
                                 </div>
                                 <h2 class="font-title-sm font-bold text-on-surface text-sm">@Loc["LinkDrops_Step1Title"]</h2>
                             </div>
-                            <span class="text-xs text-on-surface-variant font-medium">@Loc["LinkDrops_RateBadge"]</span>
+                            <span class="text-xs text-on-surface-variant font-medium">@string.Format(Loc["LinkDrops_RateBadge"], conversionRate.ToString("N0"))</span>
                         </div>
 
                         <!-- Predefined Packages Grid -->
@@ -259,6 +244,7 @@
                                     <span class="text-xs font-bold text-on-surface-variant">MMK</span>
                                     <input type="number" min="10" step="100"
                                            @bind="customMmkAmount" @bind:after="OnCustomAmountChanged"
+                                           @onfocus="EnableCustomPurchase"
                                            class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-lowest border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs font-bold text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-[#0A1B2E] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:outline-none transition-colors"
                                            placeholder="@Loc["LinkDrops_CustomAmountPlaceholder"]" />
                                 </div>
@@ -349,12 +335,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        @if (!string.IsNullOrWhiteSpace(selectedPaymentMethod.Instructions))
-                                        {
-                                            <div class="text-[11px] text-on-surface-variant leading-relaxed">
-                                                @selectedPaymentMethod.Instructions
-                                            </div>
-                                        }
+
                                     </div>
 
                                     @if (!string.IsNullOrWhiteSpace(selectedPaymentMethod.QrCodeImageUrl))
@@ -391,10 +372,6 @@
                                 </div>
                                 <h2 class="font-bold text-[#0F172A] dark:text-[#E1E2EC] text-xs" style="font-family:'Plus Jakarta Sans',sans-serif">@Loc["LinkDrops_Step3Title"]</h2>
                             </div>
-                            <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-[#34D399] font-mono text-xs">
-                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                <span>@Loc["LinkDrops_EscrowProtected"]</span>
-                            </span>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -405,7 +382,7 @@
                                 <input type="text" @bind="transactionRefNo"
                                        class="w-full h-8 bg-[#F8FAFC] dark:bg-[#191B23] border border-[#CBD5E1] dark:border-[rgba(255,255,255,0.12)] rounded px-2.5 text-xs font-mono font-bold text-[#0F172A] dark:text-[#E1E2EC] placeholder:text-[#64748B] hover:border-slate-400 dark:hover:border-slate-600 focus:bg-white dark:focus:bg-[#111622] focus:border-[#0A1B2E] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:outline-none transition-colors"
                                        placeholder="@Loc["LinkDrops_FieldTxnRefPlaceholder"]" />
-                                <span class="text-[10px] text-[#64748B] dark:text-[#94A3B8] block">@Loc["LinkDrops_FieldTxnRefHelp"]</span>
+
                             </div>
 
                             <div class="space-y-1">
@@ -444,7 +421,7 @@
                             <input type="text" @bind="userNotes"
                                    class="w-full h-8 bg-[#F8FAFC] dark:bg-surface-container-low border border-[#E2E8F0] dark:border-surface-container-high/60 rounded-lg px-2.5 text-xs text-on-surface placeholder:text-slate-400 dark:placeholder:text-on-surface-variant/60 hover:border-slate-400 dark:hover:border-surface-container-high focus:bg-white dark:focus:bg-surface-container-low focus:border-[#0A1B2E] focus:ring-2 focus:ring-[#0A1B2E]/20 focus:outline-none transition-colors"
                                    placeholder="@Loc["LinkDrops_FieldAdminNotesPlaceholder"]" />
-                            <span class="text-[10px] text-slate-600 dark:text-on-surface-variant block">@Loc["LinkDrops_FieldAdminNotesHelp"]</span>
+
                         </div>
 
                         <!-- SUBMIT ACTION BAR (Integrated at bottom of form) -->
@@ -984,6 +961,7 @@
 
     private void OnCustomAmountChanged()
     {
+        isCustomPurchase = true;
         if (customMmkAmount < 10) customMmkAmount = 10;
         Recalculate();
     }

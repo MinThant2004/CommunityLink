@@ -85,6 +85,9 @@ public sealed class UserProfileApiService(IHttpClientFactory clientFactory, IHtt
     public Task<Result<List<UserCommunityItemDto>>> GetUserCommunitiesAsync(int targetUserId, CancellationToken cancellationToken = default) =>
         GetAsync<List<UserCommunityItemDto>>($"api/users/{targetUserId}/communities", cancellationToken);
 
+    public Task<Result<List<UserCreatedGroupItemDto>>> GetUserCreatedGroupsAsync(int targetUserId, CancellationToken cancellationToken = default) =>
+        GetAsync<List<UserCreatedGroupItemDto>>($"api/users/{targetUserId}/groups/created", cancellationToken);
+
     public Task<Result<List<UserRatingItemDto>>> GetUserReviewsAsync(int targetUserId, CancellationToken cancellationToken = default) =>
         GetAsync<List<UserRatingItemDto>>($"api/users/{targetUserId}/reviews", cancellationToken);
 

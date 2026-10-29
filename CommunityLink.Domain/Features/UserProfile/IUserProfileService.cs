@@ -23,6 +23,7 @@ public interface IUserProfileService
     Task<Result> PermanentlyDeletePostAsync(int currentUserId, int postId, CancellationToken cancellationToken = default);
     Task<Result<List<SavedAccountItemDto>>> GetSavedAccountsAsync(int currentUserId, CancellationToken cancellationToken = default);
     Task<Result<List<UserCommunityItemDto>>> GetUserCommunitiesAsync(int targetUserId, CancellationToken cancellationToken = default);
+    Task<Result<List<UserCreatedGroupItemDto>>> GetUserCreatedGroupsAsync(int targetUserId, CancellationToken cancellationToken = default);
     Task<Result<List<UserRatingItemDto>>> GetUserReviewsAsync(int targetUserId, CancellationToken cancellationToken = default);
     Task<Result<bool>> ToggleFollowUserAsync(int currentUserId, int targetUserId, CancellationToken cancellationToken = default);
     Task<Result<List<FollowUserItemDto>>> GetFollowersAsync(int targetUserId, CancellationToken cancellationToken = default);

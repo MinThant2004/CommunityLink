@@ -1,3 +1,5 @@
+using CommunityLink.Shared.Features.Poll;
+
 namespace CommunityLink.Shared.Features.Post;
 
 public sealed record OriginalPostSummaryModel(
@@ -79,3 +81,11 @@ public sealed record UpdatePostRequestModel(
     string? CodeFileName = null,
     string? CodeLanguage = null);
 public sealed record SharePostRequestModel(string? ShareNote, int? TargetCommunityId = null);
+
+public sealed record HomeFeedItemModel(
+    string UniqueKey,
+    PostModel? Post,
+    PollModel? Poll,
+    int Tier,
+    DateTime CreatedAt
+);

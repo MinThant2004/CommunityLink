@@ -1,0 +1,49 @@
+
+1. First Create Logger Configuration:
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
+
+---
+
+2. Add this line in trycatch:
+    Log.Information("Starting web application");
+ 
+var builder = WebApplication.CreateBuilder(args);
+    builder.Services.AddSerilog(); // <-- Add this line
+...
+after app.Run(); to catch exception, I think:
+app.Run();
+
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
+
+---
+
+3. Add this line in configuration:
+Reason: To create 'myapp.txt' file to record the log
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/myapp.txt", rollingInterval: RollingInterval.Day) <- This line!
+
+    .CreateLogger();
+
+
+---
+4. This one seems like default, ( can be seen in controller )
+
+        private readonly ILogger<WeatherForecastController> _logger;
+
+---
+
+5. 
+

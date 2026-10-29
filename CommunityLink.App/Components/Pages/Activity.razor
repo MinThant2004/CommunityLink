@@ -182,13 +182,6 @@
                                             <span class="text-[10px] uppercase font-mono font-bold text-[#557392] dark:text-[#C4D2E1]">
                                                 @act.ActivityType
                                             </span>
-                                            @if (!string.IsNullOrWhiteSpace(act.TargetEntityType))
-                                            {
-                                                <span class="text-[10px] text-[#7A8CA6]">&bull;</span>
-                                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F1F5F9] dark:bg-[#0A1B2E] text-[#7A8CA6] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
-                                                    @act.TargetEntityType
-                                                </span>
-                                            }
                                         </div>
                                     </div>
                                 </div>
@@ -341,7 +334,7 @@
         FilteredActivities
             .GroupBy(a => a.CreatedAt.Date == DateTime.UtcNow.Date ? "Today" :
                           a.CreatedAt.Date == DateTime.UtcNow.Date.AddDays(-1) ? "Yesterday" :
-                          a.CreatedAt.ToString("MMM dd, yyyy"))
+                          a.CreatedAt.ToString("dd-MM-yyyy"))
             .Select(g => new KeyValuePair<string, List<UserActivityModel>>(g.Key, g.ToList()));
 
     private void PromptDelete(UserActivityModel act)

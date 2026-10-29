@@ -238,8 +238,8 @@ public sealed class PollService(
             // 4. Self polls and other polls (placed last)
             int GetPollTier(PollModel item)
             {
-                // Self polls placed last (Tier 4)
-                if (currentUserId.HasValue && item.AuthorId == currentUserId.Value) return 4;
+                // Self polls ranked Tier 1 so current user's newly created polls appear at the top
+                if (currentUserId.HasValue && item.AuthorId == currentUserId.Value) return 1;
 
                 // Tier 1: Followed authors
                 if (followedAuthorIds.Contains(item.AuthorId)) return 1;

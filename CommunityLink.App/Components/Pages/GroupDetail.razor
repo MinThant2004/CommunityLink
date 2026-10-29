@@ -3,6 +3,8 @@
 @attribute [Authorize]
 @using System.Security.Claims
 @using System.Globalization
+@using System.IO
+@using System.Text.Json
 @inject GroupApiService GroupApi
 @inject PostApiService PostApi
 @inject PollApiService PollApi
@@ -12,6 +14,7 @@
 @inject NavigationManager NavManager
 @inject IWebHostEnvironment Environment
 @inject IStringLocalizer<AppResources> Loc
+@inject IJSRuntime JS
 
 <PageTitle>@(group?.Name ?? Loc["GroupDetail_PageTitleFallback"]) - CommunityLink</PageTitle>
 
@@ -383,7 +386,7 @@
                                                     </span>
                                                 }
                                             </div>
-                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@post.CreatedAt.ToLocalTime().ToString("g")</span>
+                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@post.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                         </div>
                                     </div>
 
@@ -441,54 +444,108 @@
                                     @post.Content
                                 </div>
 
-                                <!-- Post Images (Threads-style Single Image Carousel) -->
+                                <!-- Attached Files Component -->
+                                @if (!string.IsNullOrWhiteSpace(post.CodeSnippet))
+                                {
+                                    var textFiles = ParseGroupTextFiles(post.CodeSnippet, post.CodeFileName);
+                                    @foreach (var tf in textFiles)
+                                    {
+                                        <div class="px-5 pb-3">
+                                            <div class="prof-code-block p-2.5 space-y-1 text-xs rounded-xl border border-gray-800 bg-[#0d1117] text-gray-200">
+                                                <div class="flex items-center justify-between pb-1 border-b border-gray-800 text-[10px] text-gray-400">
+                                                    <div class="flex items-center gap-1.5 font-mono min-w-0">
+                                                        <span class="font-bold text-emerald-400 truncate">📄 @tf.FileName</span>
+                                                        @if (tf.FileSizeBytes.HasValue)
+                                                        {
+                                                            <span class="text-gray-500 shrink-0">(@FormatGroupFileSize(tf.FileSizeBytes.Value))</span>
+                                                        }
+                                                    </div>
+                                                    <div class="flex items-center gap-2 shrink-0 ml-2">
+                                                        @if (!string.IsNullOrWhiteSpace(tf.FileUrl))
+                                                        {
+                                                            <a href="@tf.FileUrl" download="@tf.FileName" target="_blank"
+                                                               class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                               title="Download file">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                                <span>Download</span>
+                                                            </a>
+                                                        }
+                                                        @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                                        {
+                                                            <button type="button" class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                                    @onclick="() => CopyGroupSnippetAsync(tf.Content)"
+                                                                    title="Copy content">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                                                <span>Copy</span>
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                </div>
+                                                @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                                {
+                                                    <div class="overflow-x-auto overflow-y-auto max-h-56 text-[11px] leading-relaxed select-text p-2">
+                                                        <pre class="whitespace-pre font-mono text-tertiary"><code>@tf.Content</code></pre>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                }
+
+                                <!-- Post Images (Carousel Style matching Home) -->
                                 @if (post.ImageUrls != null && post.ImageUrls.Count > 0)
                                 {
                                     var imgCount = post.ImageUrls.Count;
                                     var activeIdx = Math.Clamp(GetActiveImageIndex(post.PostId), 0, imgCount - 1);
                                     var currentImage = post.ImageUrls[activeIdx];
 
-                                    <div class="relative overflow-hidden border-t border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#0d1117] group select-none">
-                                        <!-- Active Display Image (Standard Fixed Height matching text snippet preview) -->
-                                        <div class="relative w-full h-72 sm:h-80 flex items-center justify-center bg-[#0d1117] overflow-hidden">
-                                            <img src="@currentImage" alt="@string.Format(Loc["GroupDetail_Post_ImgAlt"], activeIdx + 1, imgCount)"
-                                                 class="w-full h-full object-contain transition-all duration-200" />
+                                    <div class="relative w-full rounded-lg overflow-hidden bg-slate-950 group border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] select-none">
+                                        <!-- Carousel Images Track -->
+                                        <div class="w-full h-48 sm:h-60 flex transition-transform duration-500 ease-out">
+                                            <div class="w-full h-full flex-shrink-0 relative">
+                                                <img class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                                                     src="@currentImage"
+                                                     alt="@string.Format(Loc["GroupDetail_Post_ImgAlt"], activeIdx + 1, imgCount)"
+                                                     @onclick="() => OpenEnlargedImage(currentImage)" />
+                                                <div class="absolute bottom-2.5 left-3 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[11px] text-white pointer-events-none">
+                                                    @(activeIdx + 1) / @imgCount
+                                                </div>
+                                            </div>
                                         </div>
 
                                         @if (imgCount > 1)
                                         {
-                                            <!-- Previous Button -->
+                                            <!-- Pill Counter Badge -->
+                                            <div class="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] text-white font-mono shadow-xs">
+                                                @(activeIdx + 1) / @imgCount
+                                            </div>
+
+                                            <!-- Carousel Controls -->
                                             @if (activeIdx > 0)
                                             {
                                                 <button type="button" @onclick="() => PrevImage(post.PostId, imgCount)"
-                                                        class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/85 text-white/90 hover:text-white flex items-center justify-center transition shadow-lg backdrop-blur-xs cursor-pointer z-10"
+                                                        class="absolute left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-black/80 cursor-pointer z-10"
                                                         aria-label="@Loc["GroupDetail_Post_PrevImgAria"]">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                                                    <span class="material-symbols-outlined text-[16px]">chevron_left</span>
                                                 </button>
                                             }
 
-                                            <!-- Next Button -->
                                             @if (activeIdx < imgCount - 1)
                                             {
                                                 <button type="button" @onclick="() => NextImage(post.PostId, imgCount)"
-                                                        class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/85 text-white/90 hover:text-white flex items-center justify-center transition shadow-lg backdrop-blur-xs cursor-pointer z-10"
+                                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-black/80 cursor-pointer z-10"
                                                         aria-label="@Loc["GroupDetail_Post_NextImgAria"]">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
                                                 </button>
                                             }
 
-                                            <!-- Threads-style Badge Counter (Top Right) -->
-                                            <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md text-[11px] font-mono text-white/90 font-semibold shadow-xs z-10">
-                                                @(activeIdx + 1)/@imgCount
-                                            </div>
-
-                                            <!-- Threads-style Pagination Dots (Bottom Center) -->
-                                            <div class="absolute bottom-3 inset-x-0 flex items-center justify-center gap-1.5 z-10 pointer-events-auto">
+                                            <!-- Pagination Indicator Dots -->
+                                            <div class="absolute bottom-2.5 right-3 flex items-center gap-1 z-10">
                                                 @for (int dotIdx = 0; dotIdx < imgCount; dotIdx++)
                                                 {
                                                     var targetIdx = dotIdx;
                                                     <button type="button" @onclick="() => SetActiveImage(post.PostId, targetIdx)"
-                                                            class="transition-all duration-200 cursor-pointer @(dotIdx == activeIdx ? "w-5 h-1.5 rounded-full bg-white shadow-xs" : "w-1.5 h-1.5 rounded-full bg-white/50 hover:bg-white/80")"
+                                                            class="@(dotIdx == activeIdx ? "w-2 h-2 rounded-full bg-blue-500 transition-all" : "w-1.5 h-1.5 rounded-full bg-white/50 transition-all") cursor-pointer"
                                                             aria-label="@string.Format(Loc["GroupDetail_Post_GoToImgAria"], targetIdx + 1)">
                                                     </button>
                                                 }
@@ -497,37 +554,36 @@
                                     </div>
                                 }
 
-                                <!-- Actions: Like, Comment, Share -->
-                                <div class="px-4 py-2 flex items-center justify-between text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] bg-[#F8FAFC]/50 dark:bg-[#0A1B2E]/50 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                                    <!-- Like -->
-                                    <button type="button" @onclick="() => ToggleLike(post.PostId)"
-                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] @(post.IsLikedByCurrentUser ? "text-rose-500 font-semibold" : "")">
-                                        <svg class="w-4 h-4 @(post.IsLikedByCurrentUser ? "fill-rose-500 stroke-rose-500" : "fill-none stroke-current")" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                        </svg>
-                                        <span>@Loc["GroupDetail_Post_LikeBtn"]</span>
-                                        <span class="text-xs px-1.5 py-0.5 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] font-mono">@post.LikeCount</span>
-                                    </button>
+                                <!-- Engagement Strip (Home Style) -->
+                                <div class="px-4 py-2.5 flex items-center justify-between border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                                    <div class="flex items-center gap-4">
+                                        <!-- Like -->
+                                        <button type="button" @onclick="() => ToggleLike(post.PostId)"
+                                                class="flex items-center gap-1 text-xs @(post.IsLikedByCurrentUser ? "text-rose-500 font-semibold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-rose-500") transition-colors cursor-pointer"
+                                                title="@Loc["GroupDetail_Post_LikeBtn"]">
+                                            <span class="material-symbols-outlined text-[17px] @(post.IsLikedByCurrentUser ? "text-rose-500" : "")">favorite</span>
+                                            <span>@post.LikeCount</span>
+                                        </button>
 
-                                    <!-- Comment -->
-                                    <button type="button" @onclick="() => ToggleCommentBox(post.PostId)"
-                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] @(openCommentPostIds.Contains(post.PostId) ? "text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold" : "")">
-                                        <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                        </svg>
-                                        <span>@Loc["GroupDetail_Post_CommentBtn"]</span>
-                                        <span class="text-xs px-1.5 py-0.5 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] font-mono">@post.CommentCount</span>
-                                    </button>
+                                        <!-- Comment -->
+                                        <button type="button" @onclick="() => ToggleCommentBox(post.PostId)"
+                                                class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
+                                                title="@Loc["GroupDetail_Post_CommentBtn"]">
+                                            <span class="material-symbols-outlined text-[17px]">chat_bubble</span>
+                                            <span>@post.CommentCount</span>
+                                        </button>
 
-                                    <!-- Share -->
-                                    <button type="button" @onclick="() => OpenShareModal(post.PostId)"
-                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-xl transition hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]">
-                                        <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-                                        </svg>
-                                        <span>@Loc["GroupDetail_Post_ShareBtn"]</span>
-                                        <span class="text-xs px-1.5 py-0.5 rounded-full bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] font-mono">@post.ShareCount</span>
-                                    </button>
+                                        <!-- Share -->
+                                        <button type="button" @onclick="() => OpenShareModal(post.PostId)"
+                                                class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
+                                                title="@Loc["GroupDetail_Post_ShareBtn"]">
+                                            <svg class="w-4 h-4 fill-none stroke-current" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                <path d="M15 14l5-5-5-5" />
+                                                <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
+                                            </svg>
+                                            <span>@post.ShareCount</span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Comments Drawer -->
@@ -570,7 +626,7 @@
                                                             <div class="flex-1 bg-white dark:bg-[#112A46] p-2.5 rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                                                 <div class="flex items-center justify-between gap-2 mb-1">
                                                                     <a href="u/@comment.AuthorName" class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition">@comment.AuthorName</a>
-                                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">@comment.CreatedAt.ToLocalTime().ToString("g")</span>
+                                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">@comment.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                                                 </div>
                                                                 <p class="text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line">@comment.Content</p>
                                                             </div>
@@ -633,14 +689,14 @@
                                             <a href="u/@(poll.AuthorId > 0 ? poll.AuthorId.ToString() : poll.AuthorName)" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition block leading-tight" style="font-family:'Manrope',sans-serif">
                                                 @poll.AuthorName
                                             </a>
-                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@poll.CreatedAt.ToLocalTime().ToString("g")</span>
+                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@poll.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         @if (poll.ExpiresAt.HasValue)
                                         {
                                             <span class="text-xs px-2.5 py-1 rounded-full @(poll.IsExpired ? "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50" : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/50")">
-                                                @(poll.IsExpired ? Loc["GroupDetail_Poll_Closed"] : string.Format(Loc["GroupDetail_Poll_EndsAt"], poll.ExpiresAt.Value.ToLocalTime().ToString("g")))
+                                                @(poll.IsExpired ? Loc["GroupDetail_Poll_Closed"] : string.Format(Loc["GroupDetail_Poll_EndsAt"], poll.ExpiresAt.Value.ToLocalTime().ToString("dd-MM-yyyy")))
                                             </span>
                                         }
 
@@ -769,34 +825,33 @@
                                     }
                                 </div>
 
-                                <!-- Actions: Like, Comment, Share on Poll -->
-                                <div class="px-4 py-2 flex items-center justify-between text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] bg-white dark:bg-[#112A46] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
-                                    <button type="button" @onclick="() => ToggleLike(poll.PostId)"
-                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded transition hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] @(poll.IsLikedByCurrentUser ? "text-red-500 font-semibold" : "")">
-                                        <svg class="w-4 h-4 @(poll.IsLikedByCurrentUser ? "fill-red-500 stroke-red-500" : "fill-none stroke-current")" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                        </svg>
-                                        <span>@Loc["GroupDetail_Post_LikeBtn"]</span>
-                                        <span class="text-xs px-1.5 py-0.5 rounded bg-[#F1F5F9] dark:bg-[#0A1B2E] text-[#557392] dark:text-[#C4D2E1]">@poll.LikeCount</span>
-                                    </button>
+                                <!-- Actions: Like, Comment, Share on Poll (Home Style) -->
+                                <div class="px-4 py-2.5 flex items-center justify-between border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                                    <div class="flex items-center gap-4">
+                                        <button type="button" @onclick="() => ToggleLike(poll.PostId)"
+                                                class="flex items-center gap-1 text-xs @(poll.IsLikedByCurrentUser ? "text-rose-500 font-semibold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-rose-500") transition-colors cursor-pointer"
+                                                title="@Loc["GroupDetail_Post_LikeBtn"]">
+                                            <span class="material-symbols-outlined text-[17px] @(poll.IsLikedByCurrentUser ? "text-rose-500" : "")">favorite</span>
+                                            <span>@poll.LikeCount</span>
+                                        </button>
 
-                                    <button type="button" @onclick="() => ToggleCommentBox(poll.PostId)"
-                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded transition hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] @(openCommentPostIds.Contains(poll.PostId) ? "text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold" : "")">
-                                        <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                        </svg>
-                                        <span>@Loc["GroupDetail_Post_CommentBtn"]</span>
-                                        <span class="text-xs px-1.5 py-0.5 rounded bg-[#F1F5F9] dark:bg-[#0A1B2E] text-[#557392] dark:text-[#C4D2E1]">@poll.CommentCount</span>
-                                    </button>
+                                        <button type="button" @onclick="() => ToggleCommentBox(poll.PostId)"
+                                                class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
+                                                title="@Loc["GroupDetail_Post_CommentBtn"]">
+                                            <span class="material-symbols-outlined text-[17px]">chat_bubble</span>
+                                            <span>@poll.CommentCount</span>
+                                        </button>
 
-                                    <button type="button" @onclick="() => OpenShareModal(poll.PostId)"
-                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded transition hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]">
-                                        <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-                                        </svg>
-                                        <span>@Loc["GroupDetail_Post_ShareBtn"]</span>
-                                        <span class="text-xs px-1.5 py-0.5 rounded bg-[#F1F5F9] dark:bg-[#0A1B2E] text-[#557392] dark:text-[#C4D2E1]">@poll.ShareCount</span>
-                                    </button>
+                                        <button type="button" @onclick="() => OpenShareModal(poll.PostId)"
+                                                class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
+                                                title="@Loc["GroupDetail_Post_ShareBtn"]">
+                                            <svg class="w-4 h-4 fill-none stroke-current" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                <path d="M15 14l5-5-5-5" />
+                                                <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
+                                            </svg>
+                                            <span>@poll.ShareCount</span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Poll Comments Drawer -->
@@ -837,7 +892,7 @@
                                                             <div class="flex-1 bg-white dark:bg-[#112A46] p-2.5 rounded border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
                                                                 <div class="flex items-center justify-between gap-2 mb-1">
                                                                     <span class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@comment.AuthorName</span>
-                                                                    <span class="text-[10px] text-[#557392] dark:text-[#7A8CA6]">@comment.CreatedAt.ToLocalTime().ToString("g")</span>
+                                                                    <span class="text-[10px] text-[#557392] dark:text-[#7A8CA6]">@comment.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                                                 </div>
                                                                 <p class="text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line">@comment.Content</p>
                                                             </div>
@@ -1058,7 +1113,7 @@
                 <!-- Text File Attachment Section -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">@Loc["GroupDetail_Modal_AttachTextFileLabel"]</label>
+                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Attach Text Files (.txt - only one file allowed )</label>
                         @if (!string.IsNullOrEmpty(newPostCodeSnippet))
                         {
                             <button type="button" @onclick="RemovePostCodeFile" class="text-xs text-rose-500 hover:underline">@Loc["GroupDetail_Modal_RemoveFileBtn"]</button>
@@ -1069,20 +1124,25 @@
                     {
                         <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
                             <span class="text-base">📄</span>
-                            <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isReadingTextFile ? Loc["GroupDetail_Modal_ScanningTextFile"] : Loc["GroupDetail_Modal_SelectTextFile"])</span>
+                            <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isReadingTextFile ? Loc["GroupDetail_Modal_ScanningTextFile"] : "Attach files")</span>
                             <InputFile OnChange="HandlePostTextFileSelected" accept=".txt" class="hidden" disabled="@isReadingTextFile" />
                         </label>
                     }
                     else
                     {
+                        var previewFiles = ParseGroupTextFiles(newPostCodeSnippet, newPostCodeFileName);
+                        var firstFile = previewFiles.FirstOrDefault();
                         <div class="prof-code-block p-3 space-y-1.5 rounded-xl border border-gray-800 bg-[#0d1117] text-gray-200">
                             <div class="flex items-center justify-between pb-1.5 border-b border-gray-800 text-[10px] text-gray-400">
-                                <span class="font-bold text-emerald-400 font-mono">📄 @(string.IsNullOrWhiteSpace(newPostCodeFileName) ? "attachment.txt" : newPostCodeFileName)</span>
-                                <span class="font-mono text-gray-500">@Loc["GroupDetail_Modal_TextBadge"]</span>
+                                <span class="font-bold text-emerald-400 font-mono">📄 @(firstFile?.FileName ?? newPostCodeFileName ?? "attachment")</span>
+                                <span class="font-mono text-gray-500">@(firstFile?.FileSizeBytes.HasValue == true ? FormatGroupFileSize(firstFile.FileSizeBytes.Value) : Loc["GroupDetail_Modal_TextBadge"])</span>
                             </div>
-                            <div class="overflow-x-auto overflow-y-auto max-h-40 text-[11px] leading-relaxed">
-                                <pre class="whitespace-pre font-mono"><code>@newPostCodeSnippet</code></pre>
-                            </div>
+                            @if (!string.IsNullOrWhiteSpace(firstFile?.Content))
+                            {
+                                <div class="overflow-x-auto overflow-y-auto max-h-40 text-[11px] leading-relaxed">
+                                    <pre class="whitespace-pre font-mono"><code>@firstFile.Content</code></pre>
+                                </div>
+                            }
                         </div>
                     }
                 </div>
@@ -1090,13 +1150,13 @@
                 <!-- Multiple Images Attachment Section -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">@Loc["GroupDetail_Modal_AttachImagesLabel"]</label>
+                        <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Attach Images ( Only 10 Images )</label>
                         <span class="text-[10px] text-[#7A8CA6]">@Loc["GroupDetail_Modal_ImageFormatsHint"]</span>
                     </div>
 
                     <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
                         <span class="text-base">🖼️</span>
-                        <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isUploadingImage ? Loc["GroupDetail_Modal_UploadingImages"] : Loc["GroupDetail_Modal_ChooseImagesPrompt"])</span>
+                        <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isUploadingImage ? Loc["GroupDetail_Modal_UploadingImages"] : "Upload images")</span>
                         <InputFile OnChange="HandleMultipleImagesSelected" accept="image/*" multiple class="hidden" disabled="@isUploadingImage" />
                     </label>
 
@@ -1477,7 +1537,7 @@
                         <div class="p-4 rounded-2xl bg-[#F8FAFC] dark:bg-[#0A1B2E]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] space-y-2">
                             <div class="flex items-center justify-between gap-2">
                                 <span class="font-bold text-xs text-[#0A1B2E] dark:text-white truncate">@req.UserName</span>
-                                <span class="text-[10px] font-mono text-[#7A8CA6] shrink-0">@req.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy • hh:mm tt")</span>
+                                <span class="text-[10px] font-mono text-[#7A8CA6] shrink-0">@req.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                             </div>
                             <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">@req.UserEmail</p>
                             @if (!string.IsNullOrWhiteSpace(req.RequestNote))
@@ -1560,7 +1620,70 @@
                     ContentType="@reportContentType"
                     ContentId="@reportContentId" />
 
+@if (showTextModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn" @onclick="CloseTextFileModal">
+        <div class="bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl relative" @onclick:stopPropagation>
+            <div class="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">📄</span>
+                    <h3 class="font-mono text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@viewingFileName</h3>
+                </div>
+                <button type="button" @onclick="CloseTextFileModal" class="p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="max-h-96 overflow-y-auto bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <pre class="font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed select-text"><code>@viewingFileContent</code></pre>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" @onclick="CloseTextFileModal" class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] rounded-xl text-xs font-semibold hover:opacity-90 transition">
+                    @Loc["Common_Close"]
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ========================================================================= -->
+<!-- FULL-SIZE IMAGE LIGHTBOX MODAL                                            -->
+<!-- ========================================================================= -->
+@if (isLightboxOpen && !string.IsNullOrEmpty(lightboxImageUrl))
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+         @onclick="CloseLightbox">
+        <div class="relative max-w-4xl max-h-[90vh] bg-white dark:bg-[#111622] border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.12)] rounded-xl p-4 shadow-2xl overflow-hidden flex flex-col items-center"
+             @onclick:stopPropagation="true">
+            <div class="w-full flex items-center justify-between pb-2 mb-2 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] text-[#0F172A] dark:text-[#E1E2EC] px-1">
+                <span class="text-xs font-bold text-[#0F172A] dark:text-[#E1E2EC]">@(string.IsNullOrEmpty(lightboxTitle) ? Loc["LinkDrops_EnlargedImageView"] : lightboxTitle)</span>
+                <button type="button" @onclick="CloseLightbox" class="text-[#64748B] hover:text-[#0F172A] dark:hover:text-[#E1E2EC] text-xs font-bold p-1 cursor-pointer">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="overflow-auto max-h-[80vh] flex items-center justify-center w-full">
+                <img src="@lightboxImageUrl" alt="Full size image" class="max-w-full max-h-[78vh] object-contain rounded-lg" />
+            </div>
+        </div>
+    </div>
+}
+
 @code {
+    private bool isLightboxOpen = false;
+    private string? lightboxImageUrl;
+    private string? lightboxTitle;
+
+    private void OpenEnlargedImage(string url, string? title = null)
+    {
+        lightboxImageUrl = url;
+        lightboxTitle = title ?? Loc["LinkDrops_EnlargedImageView"];
+        isLightboxOpen = true;
+    }
+
+    private void CloseLightbox()
+    {
+        isLightboxOpen = false;
+    }
+
     [Parameter] public int groupId { get; set; }
 
     private GroupModel? group;
@@ -2024,7 +2147,14 @@
 
     private async Task HandleMultipleImagesSelected(InputFileChangeEventArgs e)
     {
-        var files = e.GetMultipleFiles(maximumFileCount: 10);
+        if (uploadedImageUrls.Count >= 10)
+        {
+            Toast.Error("You can only attach up to 10 images.");
+            return;
+        }
+
+        var availableSlots = 10 - uploadedImageUrls.Count;
+        var files = e.GetMultipleFiles(maximumFileCount: availableSlots);
         if (files == null || files.Count == 0) return;
 
         try
@@ -2077,18 +2207,46 @@
         var file = e.File;
         if (file == null) return;
 
-        if (!file.Name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+        var extension = Path.GetExtension(file.Name);
+        if (!string.Equals(extension, ".txt", StringComparison.OrdinalIgnoreCase))
         {
-            Toast.Error(Loc["GroupDetail_Toast_OnlyTxtAllowed"]);
+            Toast.Error("Only .txt files are allowed.");
             return;
         }
 
         try
         {
             isReadingTextFile = true;
-            using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
-            using var reader = new StreamReader(stream);
-            newPostCodeSnippet = await reader.ReadToEndAsync();
+            var subfolder = DateTime.UtcNow.ToString("yyyyMM");
+            var uploadsDir = Path.Combine(Environment.WebRootPath, "uploads", "posts", "files", subfolder);
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow.Ticks}{extension}";
+            var fullPath = Path.Combine(uploadsDir, uniqueFileName);
+
+            using (var stream = file.OpenReadStream(maxAllowedSize: 25 * 1024 * 1024))
+            using (var fileStream = new FileStream(fullPath, FileMode.Create))
+            {
+                await stream.CopyToAsync(fileStream);
+            }
+
+            var fileUrl = $"/uploads/posts/files/{subfolder}/{uniqueFileName}";
+            string content = string.Empty;
+
+            if (file.Size <= 2 * 1024 * 1024)
+            {
+                try
+                {
+                    content = await File.ReadAllTextAsync(fullPath);
+                }
+                catch { }
+            }
+
+            var item = new AttachedTextFileItem(file.Name, content, fileUrl, file.Size);
+            newPostCodeSnippet = JsonSerializer.Serialize(new List<AttachedTextFileItem> { item });
             newPostCodeFileName = file.Name;
             Toast.Success(string.Format(Loc["GroupDetail_Toast_TxtReadSuccess"], file.Name));
         }
@@ -2125,7 +2283,7 @@
             groupId,
             CodeSnippet: newPostCodeSnippet,
             CodeFileName: newPostCodeFileName,
-            CodeLanguage: !string.IsNullOrWhiteSpace(newPostCodeSnippet) ? "TEXT" : null
+            CodeLanguage: !string.IsNullOrWhiteSpace(newPostCodeSnippet) ? "FILE" : null
         );
 
         var res = await PostApi.CreatePostAsync(req);
@@ -2418,7 +2576,7 @@
         if (span.TotalMinutes < 60) return string.Format(Loc["GroupDetail_Time_MinutesAgo"], (int)span.TotalMinutes);
         if (span.TotalHours < 24) return string.Format(Loc["GroupDetail_Time_HoursAgo"], (int)span.TotalHours);
         if (span.TotalDays < 7) return string.Format(Loc["GroupDetail_Time_DaysAgo"], (int)span.TotalDays);
-        return utcDate.ToLocalTime().ToString("MMM d, yyyy");
+        return utcDate.ToLocalTime().ToString("dd-MM-yyyy");
     }
 
     private string GetMemberRoleLocalized(string? role)
@@ -2427,5 +2585,69 @@
         if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase)) return Loc["GroupDetail_Role_Admin"];
         if (string.Equals(role, "Member", StringComparison.OrdinalIgnoreCase)) return Loc["GroupDetail_Role_Member"];
         return role ?? string.Empty;
+    }
+
+    public sealed record AttachedTextFileItem(string FileName, string Content, string? FileUrl = null, long? FileSizeBytes = null);
+
+    private static List<AttachedTextFileItem> ParseGroupTextFiles(string codeSnippet, string? codeFileName)
+    {
+        var list = new List<AttachedTextFileItem>();
+        if (string.IsNullOrWhiteSpace(codeSnippet)) return list;
+
+        if (codeSnippet.TrimStart().StartsWith("[") && codeSnippet.Contains("\"FileName\""))
+        {
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<List<AttachedTextFileItem>>(codeSnippet, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (parsed != null && parsed.Count > 0)
+                {
+                    return parsed;
+                }
+            }
+            catch { }
+        }
+
+        list.Add(new AttachedTextFileItem(string.IsNullOrWhiteSpace(codeFileName) ? "attachment.txt" : codeFileName, codeSnippet));
+        return list;
+    }
+
+    private static string FormatGroupFileSize(long? bytes)
+    {
+        if (!bytes.HasValue || bytes <= 0) return string.Empty;
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes.Value / 1024.0:F1} KB";
+        return $"{bytes.Value / (1024.0 * 1024.0):F1} MB";
+    }
+
+    private async Task CopyGroupSnippetAsync(string? code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return;
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", code);
+            Toast.Success("Copied to clipboard!");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Failed to copy: {ex.Message}");
+        }
+    }
+
+    private bool showTextModal = false;
+    private string viewingFileName = "";
+    private string viewingFileContent = "";
+
+    private void OpenTextFileModal(string fileName, string content)
+    {
+        viewingFileName = fileName;
+        viewingFileContent = content;
+        showTextModal = true;
+    }
+
+    private void CloseTextFileModal()
+    {
+        showTextModal = false;
+        viewingFileName = "";
+        viewingFileContent = "";
     }
 }
