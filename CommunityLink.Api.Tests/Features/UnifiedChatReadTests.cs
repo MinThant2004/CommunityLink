@@ -343,5 +343,7 @@ public class UnifiedChatReadTests : IClassFixture<CommunityApiFactory>
         Assert.False(result.Data.IsPaidChat);
         Assert.True(result.Data.IsUnlocked);
         Assert.Equal(0, result.Data.FeeLinkDrops);
+        Assert.Equal("status_bob", result.Data.DisplayName);
+        Assert.Equal("status_bob", result.Data.UserName);
     }
 }

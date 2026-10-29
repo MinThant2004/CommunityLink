@@ -83,7 +83,10 @@ public sealed record PrivateChatStatusModel(
     int CreatorUserId,
     bool IsPaidChat,
     bool IsUnlocked,
-    long FeeLinkDrops);
+    long FeeLinkDrops,
+    string? DisplayName = null,
+    string? UserName = null,
+    string? AvatarUrl = null);
 
 public sealed record UserBlockStatusModel(
     int TargetUserId,

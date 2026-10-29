@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @implements IDisposable
+@implements IAsyncDisposable
 @using System.Security.Claims
 @using Microsoft.Extensions.Localization
 @using CommunityLink.App.Services
@@ -133,8 +134,8 @@
 
                             <NotificationBell />
 
-                            <div class="relative">
-                                <button type="button" @onclick="ToggleProfileMenu" @onclick:stopPropagation
+                            <div id="profile-menu-container" class="relative">
+                                <button type="button" @onclick="ToggleProfileMenu"
                                         class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E2EC] hover:text-[#557392] dark:hover:text-white transition flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#F1F5F9] dark:hover:bg-[#182030] cursor-pointer"
                                         title="@Loc["Shell_AccountMenu"]" aria-label="@Loc["Shell_AccountMenu"]" aria-expanded="@(isProfileMenuOpen ? "true" : "false")">
                                     <svg class="w-3.5 h-3.5 text-[#557392] dark:text-[#94A3B8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -143,8 +144,6 @@
 
                                 @if (isProfileMenuOpen)
                                 {
-                                    <div class="fixed inset-0 z-[90] cursor-default bg-transparent" @onclick="CloseProfileMenu"></div>
-
                                     <div class="absolute right-0 mt-2 w-64 rounded-xl bg-white dark:bg-[#111622] shadow-2xl border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.15)] z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                                         <div class="p-3.5 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] bg-[#F8FAFC] dark:bg-[#0A0D14] flex items-center gap-3">
                                             <div class="w-9 h-9 rounded bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-xs flex items-center justify-center shrink-0 shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">
@@ -474,14 +473,49 @@
         isSidebarOpen = !isSidebarOpen;
     }
 
-    private void ToggleProfileMenu()
+    private DotNetObjectReference<MainLayout>? profileDotNetRef;
+
+    private async Task ToggleProfileMenu()
     {
         isProfileMenuOpen = !isProfileMenuOpen;
+        if (isProfileMenuOpen)
+        {
+            profileDotNetRef ??= DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("clickOutsideHandler.register", "profile-menu-container", profileDotNetRef, nameof(CloseProfileMenuFromOutside));
+        }
+        else
+        {
+            await CleanupProfileClickOutsideAsync();
+        }
+    }
+
+    [JSInvokable]
+    public async Task CloseProfileMenuFromOutside()
+    {
+        if (isProfileMenuOpen)
+        {
+            isProfileMenuOpen = false;
+            await CleanupProfileClickOutsideAsync();
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private void CloseProfileMenu()
     {
         isProfileMenuOpen = false;
+        _ = CleanupProfileClickOutsideAsync();
+    }
+
+    private async Task CleanupProfileClickOutsideAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("clickOutsideHandler.unregister", "profile-menu-container");
+        }
+        catch
+        {
+            // Ignore JS disconnect during disposal or navigation
+        }
     }
 
     private void OpenChangePasswordModal()
@@ -573,5 +607,12 @@
     {
         Culture.OnCultureChanged -= HandleCultureChanged;
         Navigation.LocationChanged -= OnLocationChanged;
+        profileDotNetRef?.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await CleanupProfileClickOutsideAsync();
+        Dispose();
     }
 }

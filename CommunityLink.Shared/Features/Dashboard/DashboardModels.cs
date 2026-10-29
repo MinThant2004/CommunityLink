@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CommunityLink.Shared.Features.Authentication;
 using CommunityLink.Shared.Features.Community;
 using CommunityLink.Shared.Features.Group;
@@ -36,4 +36,7 @@ public sealed record DirectoryPersonModel(
     string? ResponseSlaText = null,
     string? PercentileBadgeText = null,
     int RatingCount = 0,
-    IReadOnlyList<string>? Skills = null);
+    IReadOnlyList<string>? Skills = null,
+    bool IsPrivateChatEnabled = false,
+    long PrivateChatFeeLinkDrops = 0,
+    bool IsPrivateChatUnlocked = false);

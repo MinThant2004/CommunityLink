@@ -746,14 +746,32 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         var isPaid = statusRes.IsSuccess && statusRes.Data is not null && statusRes.Data.IsPaidChat;
         var isUnlocked = !isPaid || (statusRes.Data?.IsUnlocked ?? false);
 
+        var title = !string.IsNullOrWhiteSpace(displayTitle)
+            ? displayTitle
+            : (!string.IsNullOrWhiteSpace(statusRes.Data?.DisplayName)
+                ? statusRes.Data.DisplayName
+                : (!string.IsNullOrWhiteSpace(statusRes.Data?.UserName)
+                    ? statusRes.Data.UserName
+                    : $"User #{targetUserId}"));
+
+        var subtitle = !string.IsNullOrWhiteSpace(displaySubtitle)
+            ? displaySubtitle
+            : (!string.IsNullOrWhiteSpace(statusRes.Data?.UserName)
+                ? $"@{statusRes.Data.UserName}"
+                : $"User #{targetUserId}");
+
+        var avatarUrl = !string.IsNullOrWhiteSpace(displayAvatarUrl)
+            ? displayAvatarUrl
+            : statusRes.Data?.AvatarUrl;
+
         var placeholder = new ChatThreadViewModel
         {
             Type = ChatThreadType.Private,
             Id = 0,
             DirectUserId = targetUserId,
-            Title = string.IsNullOrWhiteSpace(displayTitle) ? "New conversation" : displayTitle,
-            Subtitle = string.IsNullOrWhiteSpace(displaySubtitle) ? $"User #{targetUserId}" : displaySubtitle,
-            AvatarUrl = displayAvatarUrl,
+            Title = title,
+            Subtitle = subtitle,
+            AvatarUrl = avatarUrl,
             RequiresPayment = isPaid,
             FeeLinkDrops = statusRes.Data?.FeeLinkDrops ?? 0,
             IsUnlocked = isUnlocked,
@@ -765,6 +783,18 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (known is not null)
         {
+            if (string.IsNullOrWhiteSpace(known.Title) || known.Title == "New conversation")
+            {
+                known.Title = title;
+            }
+            if (string.IsNullOrWhiteSpace(known.Subtitle) || known.Subtitle == $"User #{targetUserId}")
+            {
+                known.Subtitle = subtitle;
+            }
+            if (string.IsNullOrWhiteSpace(known.AvatarUrl) && !string.IsNullOrWhiteSpace(avatarUrl))
+            {
+                known.AvatarUrl = avatarUrl;
+            }
             known.RequiresPayment = isPaid;
             known.FeeLinkDrops = statusRes.Data?.FeeLinkDrops ?? 0;
             known.IsUnlocked = isUnlocked;
@@ -856,6 +886,31 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             activeThread.FeeLinkDrops = res.Data.FeeLinkDrops;
             activeThread.IsUnlocked = !res.Data.IsPaidChat || res.Data.IsUnlocked;
             activeThread.Badge = res.Data.IsPaidChat ? "Paid" : null;
+
+            if (string.IsNullOrWhiteSpace(activeThread.Title) || activeThread.Title == "New conversation")
+            {
+                if (!string.IsNullOrWhiteSpace(res.Data.DisplayName))
+                {
+                    activeThread.Title = res.Data.DisplayName;
+                }
+                else if (!string.IsNullOrWhiteSpace(res.Data.UserName))
+                {
+                    activeThread.Title = res.Data.UserName;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(activeThread.Subtitle) || activeThread.Subtitle.StartsWith("User #"))
+            {
+                if (!string.IsNullOrWhiteSpace(res.Data.UserName))
+                {
+                    activeThread.Subtitle = $"@{res.Data.UserName}";
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(activeThread.AvatarUrl) && !string.IsNullOrWhiteSpace(res.Data.AvatarUrl))
+            {
+                activeThread.AvatarUrl = res.Data.AvatarUrl;
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -89,7 +89,10 @@ public sealed class DashboardService(
                     u.ResponseSlaText,
                     u.PercentileBadgeText,
                     u.RatingCount,
-                    null))
+                    null,
+                    u.TblCreatorChatSetting != null && u.TblCreatorChatSetting.IsPrivateChatEnabled,
+                    u.TblCreatorChatSetting != null ? u.TblCreatorChatSetting.PrivateChatFeeLinkDrops : 0,
+                    false))
                 .ToListAsync(cancellationToken);
 
             // Followed people first, then other users by rating / verification
@@ -101,18 +104,38 @@ public sealed class DashboardService(
                 .ToList();
 
             var topPersonIds = topPeople.Select(p => p.UserId).ToList();
-            var rawSkills = await dbContext.TblUserSkills
-                .Where(s => topPersonIds.Contains(s.UserId) && !s.IsDeleted)
-                .OrderBy(s => s.DisplayOrder)
-                .Select(s => new { s.UserId, s.SkillName })
-                .ToListAsync(cancellationToken);
+            var skillsMap = new Dictionary<int, IReadOnlyList<string>>();
+            var unlockedUserIds = new List<int>();
 
-            var skillsMap = rawSkills
-                .GroupBy(s => s.UserId)
-                .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(s => s.SkillName).Take(4).ToList());
+            if (topPersonIds.Count > 0)
+            {
+                var rawSkills = await dbContext.TblUserSkills
+                    .AsNoTracking()
+                    .Where(s => topPersonIds.Contains(s.UserId) && !s.IsDeleted)
+                    .OrderBy(s => s.DisplayOrder)
+                    .Select(s => new { s.UserId, s.SkillName })
+                    .ToListAsync(cancellationToken);
+
+                skillsMap = rawSkills
+                    .GroupBy(s => s.UserId)
+                    .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(s => s.SkillName).Take(4).ToList());
+
+                unlockedUserIds = await dbContext.TblPrivateChatPaymentTransactions
+                    .AsNoTracking()
+                    .Where(t => ((t.BuyerUserId == userId && topPersonIds.Contains(t.CreatorUserId)) ||
+                                 (t.CreatorUserId == userId && topPersonIds.Contains(t.BuyerUserId))) &&
+                                t.Status == "COMPLETED")
+                    .Select(t => t.BuyerUserId == userId ? t.CreatorUserId : t.BuyerUserId)
+                    .Distinct()
+                    .ToListAsync(cancellationToken);
+            }
 
             var people = topPeople
-                .Select(p => p with { Skills = skillsMap.TryGetValue(p.UserId, out var sk) ? sk : [] })
+                .Select(p => p with
+                {
+                    Skills = skillsMap.TryGetValue(p.UserId, out var sk) ? sk : [],
+                    IsPrivateChatUnlocked = unlockedUserIds.Contains(p.UserId)
+                })
                 .ToList();
 
             // Groups: Joined first, then pending/not joined
@@ -137,7 +160,9 @@ public sealed class DashboardService(
 
             return Result<UserDashboardModel>.Success(model);
         }
-        catch (OperationCanceledException)
+        catch (Exception ex) when (ex is OperationCanceledException ||
+                                   cancellationToken.IsCancellationRequested ||
+                                   (ex is Microsoft.Data.SqlClient.SqlException sqlEx && (sqlEx.Number == 0 || sqlEx.Message.Contains("cancelled", StringComparison.OrdinalIgnoreCase) || sqlEx.Message.Contains("canceled", StringComparison.OrdinalIgnoreCase))))
         {
             return Result<UserDashboardModel>.Failure("Request was canceled.", ResultStatus.SystemError);
         }
