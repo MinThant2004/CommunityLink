@@ -11,10 +11,10 @@
 
 <div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Page Header -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
             <div class="flex items-center gap-2.5">
-                <span class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-500/30 text-amber-500">
+                <span class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-500/30 text-amber-500 shrink-0">
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </span>
                 <div>
@@ -25,26 +25,52 @@
                 </div>
             </div>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
             @if (lastUpdated.HasValue)
             {
-                <span class="text-[11px] font-mono text-[#7A8CA6] dark:text-[#8FA3BC] mr-1">
+                <span class="text-[11px] font-mono text-[#7A8CA6] dark:text-[#8FA3BC] mr-1 hidden sm:inline whitespace-nowrap">
                     @string.Format(Loc["Admin_Dashboard_LastUpdated"].Value, lastUpdated.Value.ToString("HH:mm:ss"))
                 </span>
             }
-            <div class="inline-flex rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] overflow-hidden">
-                @foreach (var days in new[] { 7, 30 })
-                {
-                    var selected = rangeDays == days;
-                    <button type="button" @onclick="() => rangeDays = days"
-                            class="px-3 py-2 text-[11px] font-semibold transition cursor-pointer @(selected ? "bg-[#0A1B2E] text-white dark:bg-[#D4AF37] dark:text-[#0A0D14]" : "bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
-                        @(days == 7 ? Loc["Admin_Dashboard_Range7"].Value : Loc["Admin_Dashboard_Range30"].Value)
-                    </button>
-                }
+            <!-- Presets (7 Days default, 30 Days) -->
+            <div class="inline-flex rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] overflow-hidden shrink-0">
+                <button type="button" @onclick="() => SetPresetRange(7)"
+                        class="px-3 py-1.5 text-[11px] font-semibold transition cursor-pointer @(rangeDays == 7 ? "bg-[#0A1B2E] text-white dark:bg-[#D4AF37] dark:text-[#0A0D14]" : "bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
+                    @Loc["Admin_Dashboard_Range7"]
+                </button>
+                <button type="button" @onclick="() => SetPresetRange(30)"
+                        class="px-3 py-1.5 text-[11px] font-semibold transition cursor-pointer @(rangeDays == 30 ? "bg-[#0A1B2E] text-white dark:bg-[#D4AF37] dark:text-[#0A0D14]" : "bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A]")">
+                    @Loc["Admin_Dashboard_Range30"]
+                </button>
             </div>
-            <button @onclick="() => LoadDashboardAsync(true)" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] hover:border-[#0A1B2E] dark:hover:border-[#E1E8F0] hover:text-[#0A1B2E] dark:hover:text-white transition shadow-xs cursor-pointer">
+
+            <!-- Manual Date Range Picker (Between 7 and 30 days) -->
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] bg-white dark:bg-[#112A46] text-xs shadow-2xs shrink-0 whitespace-nowrap">
+                <svg class="w-3.5 h-3.5 text-[#557392] dark:text-[#C4D2E1] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span class="text-[10px] font-bold text-[#7A8CA6] dark:text-[#8FA3BC] uppercase">From</span>
+                <input type="date"
+                       value="@manualStartDate.ToString("yyyy-MM-dd")"
+                       min="@minDate.ToString("yyyy-MM-dd")"
+                       max="@maxDate.ToString("yyyy-MM-dd")"
+                       @onchange="OnStartDateChanged"
+                       class="bg-transparent border-0 text-[11px] font-mono text-[#0A1B2E] dark:text-white focus:outline-none cursor-pointer dark:[color-scheme:dark] w-[100px]" />
+                <span class="text-[10px] font-bold text-[#7A8CA6] dark:text-[#8FA3BC] uppercase">To</span>
+                <input type="date"
+                       value="@manualEndDate.ToString("yyyy-MM-dd")"
+                       min="@minDate.ToString("yyyy-MM-dd")"
+                       max="@maxDate.ToString("yyyy-MM-dd")"
+                       @onchange="OnEndDateChanged"
+                       class="bg-transparent border-0 text-[11px] font-mono text-[#0A1B2E] dark:text-white focus:outline-none cursor-pointer dark:[color-scheme:dark] w-[100px]" />
+                <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded @(rangeDays == 0 ? "bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800" : "bg-slate-100 dark:bg-slate-800 text-[#557392] dark:text-[#C4D2E1]")">
+                    @((manualEndDate - manualStartDate).Days + 1)d
+                </span>
+            </div>
+
+            <!-- Refresh button inline with name "Refresh" -->
+            <button type="button" @onclick="() => LoadDashboardAsync(true)"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-[#112A46] text-[#557392] dark:text-[#C4D2E1] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] hover:border-[#0A1B2E] dark:hover:border-[#E1E8F0] hover:text-[#0A1B2E] dark:hover:text-white transition shadow-xs cursor-pointer shrink-0 whitespace-nowrap">
                 <svg class="w-3.5 h-3.5 @(isLoading ? "animate-spin" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                <span>@Loc["Admin_Dashboard_RefreshTelemetry"]</span>
+                <span>@Loc["Common_Refresh"]</span>
             </button>
         </div>
     </div>
@@ -143,7 +169,7 @@
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
                             <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] font-display">
-                                @Loc["Admin_Dashboard_UserGrowthTitle"]
+                                @UserGrowthDisplayTitle
                             </h2>
                         </div>
                         <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1.5">@Loc["Admin_Dashboard_UserGrowthDesc"]</p>
@@ -153,7 +179,7 @@
                     </span>
                 </div>
 
-                <GroupedBarChart Title="@Loc["Admin_Dashboard_UserGrowthTitle"].Value"
+                <GroupedBarChart Title="@UserGrowthDisplayTitle"
                                  Labels="GrowthLabels"
                                  Series="GrowthSeries"
                                  EmptyText="@Loc["Admin_Dashboard_NoTrendData"].Value"
@@ -303,10 +329,19 @@
     private AdminDashboardModel? model;
     private IReadOnlyList<ContentReportModel>? pendingReports;
     private DateTime? lastUpdated;
-    private int rangeDays = 30;
+    private int rangeDays = 7;
+    private DateTime minDate = DateTime.UtcNow.Date.AddDays(-29);
+    private DateTime maxDate = DateTime.UtcNow.Date;
+    private DateTime manualStartDate = DateTime.UtcNow.Date.AddDays(-6);
+    private DateTime manualEndDate = DateTime.UtcNow.Date;
 
     protected override async Task OnInitializedAsync()
     {
+        maxDate = DateTime.UtcNow.Date;
+        minDate = maxDate.AddDays(-29);
+        manualEndDate = maxDate;
+        manualStartDate = maxDate.AddDays(-6);
+        rangeDays = 7;
         await LoadDashboardAsync();
     }
 
@@ -342,12 +377,115 @@
         }
     }
 
-    private IReadOnlyList<TrendPointModel> TrendWindow =>
-        model is null
-            ? Array.Empty<TrendPointModel>()
-            : rangeDays == 7
-                ? model.Trends.Skip(Math.Max(0, model.Trends.Count - 7)).ToList()
-                : model.Trends;
+    private void SetPresetRange(int days)
+    {
+        rangeDays = days;
+        manualEndDate = maxDate;
+        manualStartDate = maxDate.AddDays(-(days - 1));
+    }
+
+    private void OnStartDateChanged(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out var parsed))
+        {
+            parsed = parsed.Date;
+            if (parsed < minDate) parsed = minDate;
+            if (parsed > maxDate.AddDays(-6)) parsed = maxDate.AddDays(-6);
+
+            manualStartDate = parsed;
+
+            var days = (manualEndDate - manualStartDate).Days + 1;
+            if (days < 7)
+            {
+                manualEndDate = manualStartDate.AddDays(6);
+                if (manualEndDate > maxDate)
+                {
+                    manualEndDate = maxDate;
+                    manualStartDate = manualEndDate.AddDays(-6);
+                }
+            }
+            else if (days > 30)
+            {
+                manualEndDate = manualStartDate.AddDays(29);
+                if (manualEndDate > maxDate)
+                {
+                    manualEndDate = maxDate;
+                    manualStartDate = manualEndDate.AddDays(-29);
+                }
+            }
+
+            UpdateRangeDaysFromDates();
+        }
+    }
+
+    private void OnEndDateChanged(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out var parsed))
+        {
+            parsed = parsed.Date;
+            if (parsed > maxDate) parsed = maxDate;
+            if (parsed < minDate.AddDays(6)) parsed = minDate.AddDays(6);
+
+            manualEndDate = parsed;
+
+            var days = (manualEndDate - manualStartDate).Days + 1;
+            if (days < 7)
+            {
+                manualStartDate = manualEndDate.AddDays(-6);
+                if (manualStartDate < minDate)
+                {
+                    manualStartDate = minDate;
+                    manualEndDate = manualStartDate.AddDays(6);
+                }
+            }
+            else if (days > 30)
+            {
+                manualStartDate = manualEndDate.AddDays(-29);
+                if (manualStartDate < minDate)
+                {
+                    manualStartDate = minDate;
+                    manualEndDate = manualStartDate.AddDays(29);
+                }
+            }
+
+            UpdateRangeDaysFromDates();
+        }
+    }
+
+    private void UpdateRangeDaysFromDates()
+    {
+        var days = (manualEndDate - manualStartDate).Days + 1;
+        if (manualEndDate == maxDate && days == 7) rangeDays = 7;
+        else if (manualEndDate == maxDate && days == 30) rangeDays = 30;
+        else rangeDays = 0;
+    }
+
+    private IReadOnlyList<TrendPointModel> TrendWindow
+    {
+        get
+        {
+            if (model == null || model.Trends.Count == 0) return Array.Empty<TrendPointModel>();
+
+            var start = manualStartDate.Date;
+            var end = manualEndDate.Date;
+
+            return model.Trends
+                .Where(t => t.Date.Date >= start && t.Date.Date <= end)
+                .ToList();
+        }
+    }
+
+    private string UserGrowthDisplayTitle
+    {
+        get
+        {
+            var baseTitle = Loc["Admin_Dashboard_UserGrowthTitle"].Value;
+            var days = (manualEndDate - manualStartDate).Days + 1;
+            if (baseTitle.Contains("(30 Days)")) return baseTitle.Replace("(30 Days)", $"({days} Days)");
+            if (baseTitle.Contains("(ရက် 30)")) return baseTitle.Replace("(ရက် 30)", $"(ရက် {days})");
+            return $"{baseTitle} ({days} Days)";
+        }
+    }
 
     private List<string> GrowthLabels =>
         TrendWindow.Select(t => t.Date.ToString("MMM dd")).ToList();
