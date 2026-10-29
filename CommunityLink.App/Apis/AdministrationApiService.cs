@@ -14,11 +14,27 @@ namespace CommunityLink.App.Apis;
 public sealed class AdministrationApiService(IHttpClientFactory clientFactory, IHttpContextAccessor httpContextAccessor)
     : ApiService(clientFactory, httpContextAccessor)
 {
-    public Task<Result<AdminDashboardStatsModel>> GetStatsAsync(CancellationToken cancellationToken = default) =>
-        GetAsync<AdminDashboardStatsModel>("api/admin/stats", cancellationToken);
+    public Task<Result<AdminDashboardStatsModel>> GetStatsAsync(DateTime? fromDate = null, DateTime? toDate = null, int? year = null, int? month = null, CancellationToken cancellationToken = default)
+    {
+        var queryParams = new List<string>();
+        if (fromDate.HasValue) queryParams.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
+        if (toDate.HasValue) queryParams.Add($"toDate={toDate.Value:yyyy-MM-dd}");
+        if (year.HasValue) queryParams.Add($"year={year.Value}");
+        if (month.HasValue) queryParams.Add($"month={month.Value}");
+        var url = "api/admin/stats" + (queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "");
+        return GetAsync<AdminDashboardStatsModel>(url, cancellationToken);
+    }
 
-    public Task<Result<AdminDashboardModel>> GetDashboardAsync(CancellationToken cancellationToken = default) =>
-        GetAsync<AdminDashboardModel>("api/admin/dashboard", cancellationToken);
+    public Task<Result<AdminDashboardModel>> GetDashboardAsync(DateTime? fromDate = null, DateTime? toDate = null, int? year = null, int? month = null, CancellationToken cancellationToken = default)
+    {
+        var queryParams = new List<string>();
+        if (fromDate.HasValue) queryParams.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
+        if (toDate.HasValue) queryParams.Add($"toDate={toDate.Value:yyyy-MM-dd}");
+        if (year.HasValue) queryParams.Add($"year={year.Value}");
+        if (month.HasValue) queryParams.Add($"month={month.Value}");
+        var url = "api/admin/dashboard" + (queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "");
+        return GetAsync<AdminDashboardModel>(url, cancellationToken);
+    }
 
     public Task<Result<IReadOnlyList<UserInfoModel>>> GetUsersAsync(CancellationToken cancellationToken = default) =>
         GetAsync<IReadOnlyList<UserInfoModel>>("api/admin/users", cancellationToken);

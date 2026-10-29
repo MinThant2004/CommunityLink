@@ -1,4 +1,4 @@
-﻿@page "/admin"
+@page "/admin"
 @page "/admin/dashboard"
 @attribute [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
 @inject AdministrationApiService AdminApi
@@ -136,145 +136,421 @@
             </div>
         </div>
 
-        <!-- Telemetry Graphs Section (User Growth & LinkDrop Volume) -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Chart 1: Platform User Acquisition Velocity -->
-            <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-xs">
-                <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
-                            <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] font-display">
-                                @Loc["Admin_Dashboard_UserGrowthTitle"]
-                            </h2>
-                        </div>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1.5">@Loc["Admin_Dashboard_UserGrowthDesc"]</p>
-                    </div>
-                    <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                        @string.Format(Loc["Admin_Dashboard_NewMembersCount"], model.Trends.Sum(t => t.NewUsers))
+        <!-- Telemetry Graphs Filter Bar: Day-Month-Year Date Range Selector (Under WORKING ROOMS box) -->
+        <div class="bg-white dark:bg-[#112A46] p-4 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-xs space-y-3">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="flex items-center gap-2.5">
+                    <span class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-[#0A1B2E] dark:text-[#CBD5E1]">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                            <line x1="16" x2="16" y1="2" y2="6"/>
+                            <line x1="8" x2="8" y1="2" y2="6"/>
+                            <line x1="3" x2="21" y1="10" y2="10"/>
+                        </svg>
                     </span>
+                    <div>
+                        <div class="text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">
+                            @Loc["Admin_Dashboard_FilterPeriodTitle"]
+                        </div>
+                        <div class="text-[11px] text-[#557392] dark:text-[#C4D2E1] flex items-center gap-1.5 mt-0.5">
+                            <span>@string.Format(Loc["Admin_Dashboard_ShowingRange"], (filterEndDate - filterStartDate).Days + 1, filterStartDate.ToString("dd-MM-yyyy"), filterEndDate.ToString("dd-MM-yyyy"))</span>
+                            @if (isDefault7Days)
+                            {
+                                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50">@Loc["Admin_Dashboard_Default7Days"]</span>
+                            }
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Custom SVG Area Sparkline Chart -->
-                <div class="relative w-full h-48">
-                    @if (model.Trends.Any())
+                <!-- Date Range Selection Controls -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="inline-flex items-center bg-[#F8FAFC] dark:bg-[#0A1B2E] px-3 py-1.5 rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] shadow-2xs gap-2 text-xs font-semibold font-mono text-[#0A1B2E] dark:text-[#E1E8F0]">
+                        <span class="text-[#7A8CA6] font-bold text-[11px]">@Loc["Admin_Dashboard_StartDate"]:</span>
+                        <input type="date"
+                               min="@minAllowedDateStr"
+                               max="@maxAllowedDateStr"
+                               @bind="tempStartDate"
+                               class="bg-transparent border-0 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer text-xs font-mono font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" />
+
+                        <span class="text-[#7A8CA6] font-bold">-</span>
+
+                        <span class="text-[#7A8CA6] font-bold text-[11px]">@Loc["Admin_Dashboard_EndDate"]:</span>
+                        <input type="date"
+                               min="@minAllowedDateStr"
+                               max="@maxAllowedDateStr"
+                               @bind="tempEndDate"
+                               class="bg-transparent border-0 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer text-xs font-mono font-bold text-[#0A1B2E] dark:text-[#E1E8F0]" />
+                    </div>
+
+                    <button @onclick="ApplyDateRangeAsync"
+                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-amber-600 hover:bg-amber-500 transition cursor-pointer shadow-xs">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                        <span>@Loc["Admin_Dashboard_ApplyRange"]</span>
+                    </button>
+
+                    <div class="flex items-center gap-1 bg-[#F1F5F9] dark:bg-[#0A1B2E] p-1 rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                        <button @onclick="() => SetPresetDaysAsync(7)"
+                                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer @(isDefault7Days ? "bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-white shadow-2xs font-bold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white")">
+                            7 @Loc["Admin_Dashboard_Days"]
+                        </button>
+                        <button @onclick="() => SetPresetDaysAsync(14)"
+                                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer @((filterEndDate - filterStartDate).Days + 1 == 14 ? "bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-white shadow-2xs font-bold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white")">
+                            14 @Loc["Admin_Dashboard_Days"]
+                        </button>
+                        <button @onclick="() => SetPresetDaysAsync(30)"
+                                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer @((filterEndDate - filterStartDate).Days + 1 == 30 ? "bg-white dark:bg-[#112A46] text-[#0A1B2E] dark:text-white shadow-2xs font-bold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white")">
+                            30 @Loc["Admin_Dashboard_Days"]
+                        </button>
+                    </div>
+
+                    @if (!isDefault7Days)
                     {
-                        <svg class="w-full h-full overflow-visible" viewBox="0 0 500 150" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="userGrowthGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#6366F1" stop-opacity="0.45" />
-                                    <stop offset="100%" stop-color="#6366F1" stop-opacity="0.0" />
-                                </linearGradient>
-                            </defs>
-
-                            <!-- Horizontal Grid lines -->
-                            <line x1="0" y1="30" x2="500" y2="30" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
-                            <line x1="0" y1="75" x2="500" y2="75" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
-                            <line x1="0" y1="120" x2="500" y2="120" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
-
-                            <!-- Area fill -->
-                            <path d="@BuildSvgAreaPath(model.Trends.Select(t => (double)t.NewUsers).ToList(), 500, 140, 10)" fill="url(#userGrowthGrad)" />
-                            
-                            <!-- Stroke line -->
-                            <path d="@BuildSvgLinePath(model.Trends.Select(t => (double)t.NewUsers).ToList(), 500, 140, 10)" fill="none" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-
-                            <!-- Interactive/Highlight dots for peak days -->
-                            @for (int i = 0; i < model.Trends.Count; i++)
-                            {
-                                var val = (double)model.Trends[i].NewUsers;
-                                var max = Math.Max(1.0, model.Trends.Max(t => (double)t.NewUsers));
-                                var x = (500.0 / Math.Max(1, model.Trends.Count - 1)) * i;
-                                var y = 140.0 - (val / max) * 120.0;
-                                if (i == model.Trends.Count - 1 || val == max)
-                                {
-                                    <circle cx="@x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
-                                            cy="@y.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
-                                            r="4" fill="#6366F1" stroke="#ffffff" stroke-width="2" />
-                                }
-                            }
-                        </svg>
-
-                        <!-- Chart Dates Axis -->
-                        <div class="flex items-center justify-between text-[10px] font-mono text-[#7A8CA6] mt-2">
-                            <span>@model.Trends.First().Date.ToString("MMM dd")</span>
-                            <span>@model.Trends[model.Trends.Count / 2].Date.ToString("MMM dd")</span>
-                            <span>@string.Format(Loc["Admin_Dashboard_Today"], model.Trends.Last().Date.ToString("MMM dd"))</span>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="h-full flex items-center justify-center text-xs text-[#7A8CA6]">@Loc["Admin_Dashboard_NoTrendData"]</div>
+                        <button @onclick="ResetToDefault7DaysAsync"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition cursor-pointer shadow-2xs">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                            <span>@Loc["Admin_Dashboard_ResetDefault"]</span>
+                        </button>
                     }
                 </div>
             </div>
 
-            <!-- Chart 2: LinkDrop Economy Transaction Velocity -->
-            <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-xs">
-                <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                    <div>
+            @if (!string.IsNullOrEmpty(rangeValidationError))
+            {
+                <div class="px-3.5 py-2 rounded-xl bg-red-50 dark:bg-rose-950/40 border border-red-200 dark:border-rose-900/60 text-red-700 dark:text-rose-300 text-xs flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>@rangeValidationError</span>
+                </div>
+            }
+        </div>
+
+        <!-- Telemetry Graphs Section: User Onboarding Frequency (Bar Chart) & LinkDrop Transaction Volume (Line Chart) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Chart 1 (User Part): Intraday Onboarding & Verification Frequency Style (Bar Chart) -->
+            <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-xs flex flex-col justify-between">
+                <div>
+                    <!-- Header -->
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="p-1 rounded-md bg-[#0A1B2E]/10 dark:bg-[#CBD5E1]/15 text-[#0A1B2E] dark:text-[#CBD5E1]">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <line x1="18" y1="20" x2="18" y2="10"/>
+                                        <line x1="12" y1="20" x2="12" y2="4"/>
+                                        <line x1="6" y1="20" x2="6" y2="14"/>
+                                    </svg>
+                                </span>
+                                <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] font-display">
+                                    @Loc["Admin_Dashboard_UserGrowthTitle"]
+                                </h2>
+                            </div>
+                            <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1.5">@Loc["Admin_Dashboard_UserGrowthDesc"]</p>
+                        </div>
+                        <!-- Legend Indicator matching Intraday style from image -->
+                        <div class="flex items-center gap-3 text-[11px] font-medium">
+                            <span class="flex items-center gap-1.5 text-[#0A1B2E] dark:text-[#CBD5E1]">
+                                <span class="w-2.5 h-2.5 rounded-xs bg-[#0A1B2E] dark:bg-[#CBD5E1] inline-block"></span>
+                                <span>@Loc["Admin_Dashboard_NewUsers"]</span>
+                            </span>
+                            <span class="flex items-center gap-1.5 text-[#557392] dark:text-[#7A8CA6]">
+                                <span class="w-2.5 h-2.5 rounded-xs bg-[#0A1B2E]/40 dark:bg-[#CBD5E1]/40 inline-block"></span>
+                                <span>@Loc["Admin_Dashboard_ActiveUsers"]</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Custom SVG Bar / Column Chart -->
+                    <div class="relative w-full h-48 select-none" @onmouseleave="() => hoveredUserIndex = null">
+                        @if (model.Trends.Any())
+                        {
+                            <!-- Floating Tooltip Card (Date ONLY, no 'Show Date') -->
+                            @if (hoveredUserIndex.HasValue && hoveredUserIndex.Value >= 0 && hoveredUserIndex.Value < model.Trends.Count)
+                            {
+                                var p = model.Trends[hoveredUserIndex.Value];
+                                var slotW = 500.0 / model.Trends.Count;
+                                var xPercent = ((hoveredUserIndex.Value + 0.5) / (double)model.Trends.Count) * 100.0;
+                                var transformStyle = xPercent > 65 ? "transform: translateX(-105%);" : "transform: translateX(12px);";
+                                <div class="absolute top-1 z-30 pointer-events-none p-3 rounded-xl bg-white/95 dark:bg-[#112A46]/95 backdrop-blur-md border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.25)] shadow-xl text-xs min-w-[200px] transition-all duration-75"
+                                     style="left: @(xPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%; @transformStyle">
+                                    <div class="text-[11px] font-bold text-[#557392] dark:text-[#C4D2E1] font-mono pb-1 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)]">
+                                        @p.Date.ToString("dd-MM-yyyy")
+                                    </div>
+                                    <div class="mt-2 space-y-1">
+                                        <div class="flex items-center justify-between gap-3 text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                            <span class="flex items-center gap-1.5 text-xs text-[#557392] dark:text-[#C4D2E1]">
+                                                <span class="w-2 h-2 rounded-full bg-[#0A1B2E] dark:bg-[#CBD5E1] inline-block border border-slate-300 dark:border-slate-600"></span>
+                                                <span>New Users :</span>
+                                            </span>
+                                            <span class="font-bold font-mono text-[#0A1B2E] dark:text-white">@p.NewUsers.ToString("N0")</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3 text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                            <span class="flex items-center gap-1.5 text-xs text-[#557392] dark:text-[#C4D2E1]">
+                                                <span class="w-2 h-2 rounded-full bg-[#0A1B2E]/40 dark:bg-[#CBD5E1]/40 inline-block border border-slate-300 dark:border-slate-600"></span>
+                                                <span>Current Active User :</span>
+                                            </span>
+                                            <span class="font-bold font-mono text-[#0A1B2E] dark:text-white">@p.ActiveUsers.ToString("N0")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <svg class="w-full h-full overflow-visible" viewBox="0 0 500 150" preserveAspectRatio="none">
+                                <!-- Horizontal Grid lines -->
+                                <line x1="0" y1="30" x2="500" y2="30" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
+                                <line x1="0" y1="75" x2="500" y2="75" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
+                                <line x1="0" y1="120" x2="500" y2="120" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
+
+                                @{
+                                    var trendCount = model.Trends.Count;
+                                    var slotWidth = 500.0 / Math.Max(1, trendCount);
+                                    var colWidth = Math.Max(3.0, slotWidth * 0.65);
+                                    var maxUsers = Math.Max(1.0, model.Trends.Max(t => (double)Math.Max(t.NewUsers, t.ActiveUsers)));
+                                }
+
+                                <!-- Secondary / Active User stacked bars (upper/backdrop) -->
+                                @for (int i = 0; i < trendCount; i++)
+                                {
+                                    var activeVal = (double)model.Trends[i].ActiveUsers;
+                                    var barHeight = activeVal > 0 ? Math.Max(4.0, (activeVal / maxUsers) * 120.0) : 0;
+                                    var x = i * slotWidth + (slotWidth - colWidth) / 2.0;
+                                    var y = 140.0 - barHeight;
+
+                                    if (barHeight > 0)
+                                    {
+                                        <rect x="@x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                              y="@y.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                              width="@colWidth.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                              height="@barHeight.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                              rx="2.5"
+                                              class="fill-[#0A1B2E]/25 dark:fill-[#CBD5E1]/30 pointer-events-none" />
+                                    }
+                                }
+
+                                <!-- Primary / New Users Bar (front): Silver in dark theme, Black in white theme -->
+                                @for (int i = 0; i < trendCount; i++)
+                                {
+                                    var val = (double)model.Trends[i].NewUsers;
+                                    var barHeight = val > 0 ? Math.Max(4.0, (val / maxUsers) * 120.0) : 0;
+                                    var x = i * slotWidth + (slotWidth - colWidth) / 2.0;
+                                    var y = 140.0 - barHeight;
+                                    var isHovered = hoveredUserIndex == i;
+
+                                    <rect x="@x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          y="@y.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          width="@colWidth.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          height="@barHeight.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          rx="2.5"
+                                          class="fill-[#0A1B2E] dark:fill-[#CBD5E1] pointer-events-none transition-opacity @(isHovered ? "opacity-100" : "opacity-85")" />
+                                }
+
+                                <!-- Hover guideline and small bullet point at mouse reach (NO outer ring/shadow) -->
+                                @if (hoveredUserIndex.HasValue)
+                                {
+                                    var hIdx = hoveredUserIndex.Value;
+                                    var val = (double)model.Trends[hIdx].NewUsers;
+                                    var barHeight = val > 0 ? Math.Max(4.0, (val / maxUsers) * 120.0) : 0;
+                                    var hBulletX = hIdx * slotWidth + slotWidth / 2.0;
+                                    var hBulletY = 140.0 - barHeight;
+
+                                    <!-- Vertical guideline -->
+                                    <line x1="@hBulletX.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          y1="0"
+                                          x2="@hBulletX.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          y2="140"
+                                          stroke="currentColor"
+                                          stroke-width="1.5"
+                                          stroke-dasharray="3 3"
+                                          class="text-[#0A1B2E] dark:text-[#CBD5E1] opacity-70 pointer-events-none" />
+
+                                    <!-- Bullet point at mouse reach: Small r=2.8, NO outer ring, NO light or shadow around it -->
+                                    <circle cx="@hBulletX.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                            cy="@hBulletY.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                            r="2.8"
+                                            class="fill-[#0A1B2E] dark:fill-[#CBD5E1] stroke-white dark:stroke-[#112A46] pointer-events-none"
+                                            stroke-width="1.5" />
+                                }
+
+                                <!-- Transparent Hit Zones for smooth hover detection -->
+                                @for (int i = 0; i < trendCount; i++)
+                                {
+                                    var stripX = i * slotWidth;
+                                    var localIndex = i;
+                                    <rect x="@stripX.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          y="0"
+                                          width="@slotWidth.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          height="150"
+                                          fill="transparent"
+                                          class="cursor-pointer"
+                                          @onmouseenter="() => hoveredUserIndex = localIndex" />
+                                }
+                            </svg>
+
+                            <!-- Chart Dates Axis -->
+                            <div class="flex items-center justify-between text-[10px] font-mono text-[#7A8CA6] mt-2">
+                                <span>@model.Trends.First().Date.ToString("dd-MM-yyyy")</span>
+                                <span>@model.Trends[model.Trends.Count / 2].Date.ToString("dd-MM-yyyy")</span>
+                                <span>@model.Trends.Last().Date.ToString("dd-MM-yyyy")</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="h-full flex items-center justify-center text-xs text-[#7A8CA6]">@Loc["Admin_Dashboard_NoTrendData"]</div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Footer Summary Strip matching 'Intraday Onboarding & Verification Frequency' -->
+                @if (model.Trends.Any())
+                {
+                    <div class="mt-4 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between text-[11px] font-mono">
+                        <div class="flex items-center gap-1.5 text-[#557392] dark:text-[#C4D2E1]">
+                            <span>@Loc["Admin_Dashboard_MonthlyNewUsers"]:</span>
+                            <span class="font-bold text-[#0A1B2E] dark:text-white">@model.Trends.Sum(t => t.NewUsers).ToString("N0")</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Chart 2 (Link Drop Part): User Growth Velocity Style (Line Chart) -->
+            <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-xs flex flex-col justify-between">
+                <div>
+                    <!-- Header: Subtitle and LD Moved badge removed per user request -->
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                            <span class="p-1 rounded-md bg-[#0A1B2E]/10 dark:bg-[#CBD5E1]/15 text-[#0A1B2E] dark:text-[#CBD5E1]">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M3 17l6-6 4 4 8-8"/>
+                                </svg>
+                            </span>
                             <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] font-display">
                                 @Loc["Admin_Dashboard_LdVolumeTitle"]
                             </h2>
                         </div>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1.5">@Loc["Admin_Dashboard_LdVolumeDesc"]</p>
                     </div>
-                    <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                        @string.Format(Loc["Admin_Dashboard_LdMoved"], FormatCompact(model.Trends.Sum(t => t.LinkDropVolume)))
-                    </span>
-                </div>
 
-                <!-- Custom SVG Bar / Area Sparkline Chart -->
-                <div class="relative w-full h-48">
-                    @if (model.Trends.Any())
-                    {
-                        <svg class="w-full h-full overflow-visible" viewBox="0 0 500 150" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="ldVolumeGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.45" />
-                                    <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.0" />
-                                </linearGradient>
-                            </defs>
-
-                            <!-- Horizontal Grid lines -->
-                            <line x1="0" y1="30" x2="500" y2="30" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
-                            <line x1="0" y1="75" x2="500" y2="75" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
-                            <line x1="0" y1="120" x2="500" y2="120" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
-
-                            <!-- Area fill -->
-                            <path d="@BuildSvgAreaPath(model.Trends.Select(t => (double)t.LinkDropVolume).ToList(), 500, 140, 10)" fill="url(#ldVolumeGrad)" />
-                            
-                            <!-- Stroke line -->
-                            <path d="@BuildSvgLinePath(model.Trends.Select(t => (double)t.LinkDropVolume).ToList(), 500, 140, 10)" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-
-                            @for (int i = 0; i < model.Trends.Count; i++)
+                    <!-- Custom SVG Smooth Line & Area Chart -->
+                    <div class="relative w-full h-48 select-none" @onmouseleave="() => hoveredLdIndex = null">
+                        @if (model.Trends.Any())
+                        {
+                            <!-- Floating Tooltip Card (Date ONLY, no 'Show Date') -->
+                            @if (hoveredLdIndex.HasValue && hoveredLdIndex.Value >= 0 && hoveredLdIndex.Value < model.Trends.Count)
                             {
-                                var val = (double)model.Trends[i].LinkDropVolume;
-                                var max = Math.Max(1.0, model.Trends.Max(t => (double)t.LinkDropVolume));
-                                var x = (500.0 / Math.Max(1, model.Trends.Count - 1)) * i;
-                                var y = 140.0 - (val / max) * 120.0;
-                                if (i == model.Trends.Count - 1 || (val == max && val > 0))
-                                {
-                                    <circle cx="@x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
-                                            cy="@y.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
-                                            r="4" fill="#F59E0B" stroke="#ffffff" stroke-width="2" />
-                                }
+                                var p = model.Trends[hoveredLdIndex.Value];
+                                var xPercent = (hoveredLdIndex.Value / (double)Math.Max(1, model.Trends.Count - 1)) * 100.0;
+                                var transformStyle = xPercent > 65 ? "transform: translateX(-105%);" : "transform: translateX(12px);";
+                                <div class="absolute top-1 z-30 pointer-events-none p-3 rounded-xl bg-white/95 dark:bg-[#112A46]/95 backdrop-blur-md border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.25)] shadow-xl text-xs min-w-[210px] transition-all duration-75"
+                                     style="left: @(xPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%; @transformStyle">
+                                    <div class="text-[11px] font-bold text-[#557392] dark:text-[#C4D2E1] font-mono pb-1 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)]">
+                                        @p.Date.ToString("dd-MM-yyyy")
+                                    </div>
+                                    <div class="mt-2 space-y-1">
+                                        <div class="flex items-center justify-between gap-3 text-[#0A1B2E] dark:text-[#E1E8F0]">
+                                            <span class="flex items-center gap-1.5 text-xs text-[#557392] dark:text-[#C4D2E1]">
+                                                <span class="w-2 h-2 rounded-full bg-[#0A1B2E] dark:bg-[#CBD5E1] inline-block border border-slate-300 dark:border-slate-600"></span>
+                                                <span>Link Drop Purchase Amount :</span>
+                                            </span>
+                                            <span class="font-bold font-mono text-[#0A1B2E] dark:text-white">@p.LinkDropVolume.ToString() LD</span>
+                                        </div>
+                                    </div>
+                                </div>
                             }
-                        </svg>
 
-                        <!-- Chart Dates Axis -->
-                        <div class="flex items-center justify-between text-[10px] font-mono text-[#7A8CA6] mt-2">
-                            <span>@model.Trends.First().Date.ToString("MMM dd")</span>
-                            <span>@model.Trends[model.Trends.Count / 2].Date.ToString("MMM dd")</span>
-                            <span>@string.Format(Loc["Admin_Dashboard_Today"], model.Trends.Last().Date.ToString("MMM dd"))</span>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="h-full flex items-center justify-center text-xs text-[#7A8CA6]">@Loc["Admin_Dashboard_NoLdTrendData"]</div>
-                    }
+                            <svg class="w-full h-full overflow-visible" viewBox="0 0 500 150" preserveAspectRatio="none">
+                                <defs>
+                                    <!-- Light theme: Black area gradient -->
+                                    <linearGradient id="ldVolumeGradLight" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#0A1B2E" stop-opacity="0.16" />
+                                        <stop offset="100%" stop-color="#0A1B2E" stop-opacity="0.0" />
+                                    </linearGradient>
+                                    <!-- Dark theme: Silver area gradient -->
+                                    <linearGradient id="ldVolumeGradDark" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#E2E8F0" stop-opacity="0.20" />
+                                        <stop offset="100%" stop-color="#E2E8F0" stop-opacity="0.0" />
+                                    </linearGradient>
+                                </defs>
+
+                                <!-- Horizontal Grid lines -->
+                                <line x1="0" y1="30" x2="500" y2="30" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
+                                <line x1="0" y1="75" x2="500" y2="75" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
+                                <line x1="0" y1="120" x2="500" y2="120" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="4 4" />
+
+                                <!-- Area fill: Black in light mode, Silver in dark mode -->
+                                <path class="block dark:hidden" d="@BuildSvgSmoothAreaPath(model.Trends.Select(t => (double)t.LinkDropVolume).ToList(), 500, 140, 10)" fill="url(#ldVolumeGradLight)" />
+                                <path class="hidden dark:block" d="@BuildSvgSmoothAreaPath(model.Trends.Select(t => (double)t.LinkDropVolume).ToList(), 500, 140, 10)" fill="url(#ldVolumeGradDark)" />
+
+                                <!-- Smooth Line: Thinned to 1.5, Neon-silver in dark mode, Black in light mode, NO glow/shadow -->
+                                <path d="@BuildSvgSmoothLinePath(model.Trends.Select(t => (double)t.LinkDropVolume).ToList(), 500, 140, 10)"
+                                      fill="none"
+                                      class="stroke-[#0A1B2E] dark:stroke-[#E2E8F0]"
+                                      stroke-width="1.5"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round" />
+
+                                <!-- Hover guideline and bullet point: Only rendered when mouse hovers over a point -->
+                                @if (hoveredLdIndex.HasValue)
+                                {
+                                    var hIdx = hoveredLdIndex.Value;
+                                    var hX = (500.0 / Math.Max(1, model.Trends.Count - 1)) * hIdx;
+                                    var val = (double)model.Trends[hIdx].LinkDropVolume;
+                                    var max = Math.Max(1.0, model.Trends.Max(t => (double)t.LinkDropVolume));
+                                    var hY = 140.0 - (val / max) * 120.0;
+
+                                    <line x1="@hX.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          y1="0"
+                                          x2="@hX.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          y2="140"
+                                          stroke="currentColor"
+                                          stroke-width="1.5"
+                                          stroke-dasharray="3 3"
+                                          class="text-[#0A1B2E] dark:text-[#CBD5E1] opacity-70 pointer-events-none" />
+
+                                    <!-- Bullet point at mouse reach: Small r=2.8, NO outer ring, NO light or shadow around it -->
+                                    <circle cx="@hX.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                            cy="@hY.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                            r="2.8"
+                                            class="fill-[#0A1B2E] dark:fill-[#FFFFFF] stroke-white dark:stroke-[#0A1B2E] pointer-events-none"
+                                            stroke-width="1.5" />
+                                }
+
+                                <!-- Transparent Hit Zones for smooth hover detection -->
+                                @for (int i = 0; i < model.Trends.Count; i++)
+                                {
+                                    var stripWidth = 500.0 / Math.Max(1, model.Trends.Count);
+                                    var stripX = i * stripWidth;
+                                    var localIndex = i;
+                                    <rect x="@stripX.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          y="0"
+                                          width="@stripWidth.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                          height="150"
+                                          fill="transparent"
+                                          class="cursor-pointer"
+                                          @onmouseenter="() => hoveredLdIndex = localIndex" />
+                                }
+                            </svg>
+
+                            <!-- Chart Dates Axis -->
+                            <div class="flex items-center justify-between text-[10px] font-mono text-[#7A8CA6] mt-2">
+                                <span>@model.Trends.First().Date.ToString("dd-MM-yyyy")</span>
+                                <span>@model.Trends[model.Trends.Count / 2].Date.ToString("dd-MM-yyyy")</span>
+                                <span>@model.Trends.Last().Date.ToString("dd-MM-yyyy")</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="h-full flex items-center justify-center text-xs text-[#7A8CA6]">@Loc["Admin_Dashboard_NoLdTrendData"]</div>
+                        }
+                    </div>
                 </div>
+
+                <!-- Footer Summary Strip: Exact integer LD volume (e.g. 285200 LD), Daily Average removed per user request -->
+                @if (model.Trends.Any())
+                {
+                    <div class="mt-4 pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between text-[11px] font-mono">
+                        <div class="flex items-center gap-1.5 text-[#557392] dark:text-[#C4D2E1]">
+                            <span>@Loc["Admin_Dashboard_MonthlyTotalVolume"]:</span>
+                            <span class="font-bold text-[#0A1B2E] dark:text-white">@model.Trends.Sum(t => t.LinkDropVolume) LD</span>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
 
@@ -406,16 +682,96 @@
 @code {
     private bool isLoading = true;
     private AdminDashboardModel? model;
+    private int? hoveredUserIndex;
+    private int? hoveredLdIndex;
+
+    private DateTime filterStartDate = DateTime.UtcNow.Date.AddDays(-6);
+    private DateTime filterEndDate = DateTime.UtcNow.Date;
+    private DateTime tempStartDate = DateTime.UtcNow.Date.AddDays(-6);
+    private DateTime tempEndDate = DateTime.UtcNow.Date;
+    private string? rangeValidationError = null;
+
+    private int currentYear => DateTime.UtcNow.Year;
+    private string minAllowedDateStr => $"{currentYear}-01-01";
+    private string maxAllowedDateStr => DateTime.UtcNow.ToString("yyyy-MM-dd");
+
+    private bool isDefault7Days =>
+        filterEndDate.Date == DateTime.UtcNow.Date &&
+        filterStartDate.Date == DateTime.UtcNow.Date.AddDays(-6);
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDashboardAsync();
     }
 
+    private async Task ApplyDateRangeAsync()
+    {
+        var today = DateTime.UtcNow.Date;
+        if (tempStartDate.Year != currentYear || tempEndDate.Year != currentYear)
+        {
+            rangeValidationError = string.Format(Loc["Admin_Dashboard_YearWarning"], currentYear);
+            return;
+        }
+
+        if (tempEndDate.Date > today)
+        {
+            rangeValidationError = "End date cannot be in the future.";
+            return;
+        }
+
+        if (tempStartDate.Date > tempEndDate.Date)
+        {
+            rangeValidationError = "Start date must be before or equal to End date.";
+            return;
+        }
+
+        var daySpan = (tempEndDate.Date - tempStartDate.Date).Days + 1;
+        if (daySpan < 7)
+        {
+            rangeValidationError = Loc["Admin_Dashboard_MinRangeWarning"].Value;
+            return;
+        }
+
+        if (daySpan > 30)
+        {
+            rangeValidationError = Loc["Admin_Dashboard_MaxRangeWarning"].Value;
+            return;
+        }
+
+        rangeValidationError = null;
+        filterStartDate = tempStartDate.Date;
+        filterEndDate = tempEndDate.Date;
+        await LoadDashboardAsync();
+    }
+
+    private async Task ResetToDefault7DaysAsync()
+    {
+        var today = DateTime.UtcNow.Date;
+        tempStartDate = today.AddDays(-6);
+        tempEndDate = today;
+        filterStartDate = tempStartDate;
+        filterEndDate = tempEndDate;
+        rangeValidationError = null;
+        await LoadDashboardAsync();
+    }
+
+    private async Task SetPresetDaysAsync(int days)
+    {
+        var today = DateTime.UtcNow.Date;
+        tempStartDate = today.AddDays(-(days - 1));
+        tempEndDate = today;
+        filterStartDate = tempStartDate;
+        filterEndDate = tempEndDate;
+        rangeValidationError = null;
+        await LoadDashboardAsync();
+    }
+
     private async Task LoadDashboardAsync()
     {
         isLoading = true;
-        var res = await AdminApi.GetDashboardAsync();
+        hoveredUserIndex = null;
+        hoveredLdIndex = null;
+        var res = await AdminApi.GetDashboardAsync(fromDate: filterStartDate, toDate: filterEndDate);
         if (res.IsSuccess) model = res.Data;
         isLoading = false;
     }
@@ -462,33 +818,69 @@
         return $"{val:N0} MMK";
     }
 
-    private static string BuildSvgLinePath(IReadOnlyList<double> values, double width, double height, double topMargin)
+    private static (List<double> X, List<double> Y) GetSvgPoints(IReadOnlyList<double> values, double width, double height, double topMargin)
+    {
+        var xs = new List<double>();
+        var ys = new List<double>();
+        if (values == null || values.Count == 0) return (xs, ys);
+
+        var max = Math.Max(1.0, values.Max());
+        var count = values.Count;
+        var stepX = count <= 1 ? 0.0 : width / (count - 1);
+
+        for (int i = 0; i < count; i++)
+        {
+            var x = count <= 1 ? width / 2.0 : i * stepX;
+            var y = height - (values[i] / max) * (height - topMargin);
+            xs.Add(x);
+            ys.Add(y);
+        }
+
+        return (xs, ys);
+    }
+
+    private static string BuildSvgSmoothLinePath(IReadOnlyList<double> values, double width, double height, double topMargin)
     {
         if (values == null || values.Count == 0) return string.Empty;
-        var max = Math.Max(1.0, values.Max());
-        var stepX = width / Math.Max(1, values.Count - 1);
+        var (xs, ys) = GetSvgPoints(values, width, height, topMargin);
+        var n = xs.Count;
+        if (n == 1) return $"M {xs[0]:F1} {ys[0]:F1}";
+        if (n == 2) return $"M {xs[0]:F1} {ys[0]:F1} L {xs[1]:F1} {ys[1]:F1}";
+
         var sb = new System.Text.StringBuilder();
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"M {xs[0]:F1} {ys[0]:F1}");
 
-        for (int i = 0; i < values.Count; i++)
+        const double tension = 0.2;
+        for (int i = 0; i < n - 1; i++)
         {
-            var x = i * stepX;
-            var y = height - (values[i] / max) * (height - topMargin);
-            var xStr = x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
-            var yStr = y.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+            var p0X = xs[i];
+            var p0Y = ys[i];
+            var p1X = xs[i + 1];
+            var p1Y = ys[i + 1];
 
-            if (i == 0)
-                sb.Append($"M {xStr} {yStr}");
-            else
-                sb.Append($" L {xStr} {yStr}");
+            var prevX = i > 0 ? xs[i - 1] : p0X;
+            var prevY = i > 0 ? ys[i - 1] : p0Y;
+
+            var nextX = i + 2 < n ? xs[i + 2] : p1X;
+            var nextY = i + 2 < n ? ys[i + 2] : p1Y;
+
+            var cp1X = p0X + (p1X - prevX) * tension;
+            var cp1Y = Math.Clamp(p0Y + (p1Y - prevY) * tension, topMargin, height);
+
+            var cp2X = p1X - (nextX - p0X) * tension;
+            var cp2Y = Math.Clamp(p1Y - (nextY - p0Y) * tension, topMargin, height);
+
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture,
+                $" C {cp1X:F1} {cp1Y:F1}, {cp2X:F1} {cp2Y:F1}, {p1X:F1} {p1Y:F1}");
         }
 
         return sb.ToString();
     }
 
-    private static string BuildSvgAreaPath(IReadOnlyList<double> values, double width, double height, double topMargin)
+    private static string BuildSvgSmoothAreaPath(IReadOnlyList<double> values, double width, double height, double topMargin)
     {
         if (values == null || values.Count == 0) return string.Empty;
-        var line = BuildSvgLinePath(values, width, height, topMargin);
+        var line = BuildSvgSmoothLinePath(values, width, height, topMargin);
         var widthStr = width.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
         var heightStr = height.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
         return $"{line} L {widthStr} {heightStr} L 0 {heightStr} Z";

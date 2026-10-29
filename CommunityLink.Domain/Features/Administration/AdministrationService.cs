@@ -18,8 +18,8 @@ namespace CommunityLink.Domain.Features.Administration;
 
 public interface IAdministrationService
 {
-    Task<Result<AdminDashboardStatsModel>> GetDashboardStatsAsync(CancellationToken cancellationToken = default);
-    Task<Result<AdminDashboardModel>> GetDashboardAsync(CancellationToken cancellationToken = default);
+    Task<Result<AdminDashboardStatsModel>> GetDashboardStatsAsync(DateTime? fromDate = null, DateTime? toDate = null, int? year = null, int? month = null, CancellationToken cancellationToken = default);
+    Task<Result<AdminDashboardModel>> GetDashboardAsync(DateTime? fromDate = null, DateTime? toDate = null, int? year = null, int? month = null, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<UserInfoModel>>> GetUsersAsync(CancellationToken cancellationToken = default);
     Task<Result<PagedResult<UserInfoModel>>> GetUsersPageAsync(int page = 1, int pageSize = 10, string? search = null, bool? isActive = null, string? roleFilter = null, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<AuditLogModel>>> GetAuditLogsAsync(CancellationToken cancellationToken = default);
@@ -127,7 +127,12 @@ public sealed class AdministrationService(
         return Result.Success($"User '{user.DisplayName}' has been {status} successfully.");
     }
 
-    public async Task<Result<AdminDashboardStatsModel>> GetDashboardStatsAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<AdminDashboardStatsModel>> GetDashboardStatsAsync(
+        DateTime? fromDate = null, 
+        DateTime? toDate = null, 
+        int? year = null, 
+        int? month = null, 
+        CancellationToken cancellationToken = default)
     {
         var totalUsers = await dbContext.TblUsers.CountAsync(u => !u.IsDeleted, cancellationToken);
         var totalCommunities = await dbContext.TblCommunities.CountAsync(c => !c.IsDeleted && c.ParentCommunityId == null, cancellationToken);
@@ -142,12 +147,42 @@ public sealed class AdministrationService(
         var totalPurchasesCount = await approvedPurchases.CountAsync(cancellationToken);
         var totalRevenueMmk = await approvedPurchases.SumAsync(p => (decimal?)p.SnapshotRealMoneyAmount, cancellationToken) ?? 0m;
 
-        // Current month LinkDrop sold
-        var nowUtc = DateTime.UtcNow;
-        var currentMonthStart = new DateTime(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var currentMonthName = nowUtc.ToString("MMMM");
+        DateTime rangeStart;
+        DateTime rangeEnd;
+        string rangeName;
+
+        var nowUtc = DateTime.UtcNow.Date;
+        if (fromDate.HasValue && toDate.HasValue)
+        {
+            var s = fromDate.Value.Date;
+            var e = toDate.Value.Date;
+            if (s > e) (s, e) = (e, s);
+            var span = (e - s).Days + 1;
+            if (span < 7) s = e.AddDays(-6);
+            else if (span > 31) s = e.AddDays(-30);
+
+            rangeStart = s;
+            rangeEnd = e.AddDays(1);
+            rangeName = $"{s:dd-MM-yyyy} - {e:dd-MM-yyyy}";
+        }
+        else if (year.HasValue && month.HasValue)
+        {
+            var targetYear = year.Value >= 2000 && year.Value <= 2100 ? year.Value : nowUtc.Year;
+            var targetMonth = month.Value >= 1 && month.Value <= 12 ? month.Value : nowUtc.Month;
+            rangeStart = new DateTime(targetYear, targetMonth, 1, 0, 0, 0, DateTimeKind.Utc);
+            rangeEnd = rangeStart.AddMonths(1);
+            rangeName = rangeStart.ToString("MMMM yyyy");
+        }
+        else
+        {
+            // Default: current date + past 6 days (7 days total)
+            rangeStart = nowUtc.AddDays(-6);
+            rangeEnd = nowUtc.AddDays(1);
+            rangeName = $"{rangeStart:dd-MM-yyyy} - {nowUtc:dd-MM-yyyy}";
+        }
+
         var currentMonthLinkDropSold = await approvedPurchases
-            .Where(p => p.CreatedAt >= currentMonthStart)
+            .Where(p => p.CreatedAt >= rangeStart && p.CreatedAt < rangeEnd)
             .SumAsync(p => (long?)p.SnapshotLinkDropAmount, cancellationToken) ?? 0L;
 
         var totalGroups = await dbContext.TblGroups.CountAsync(g => !g.IsDeleted, cancellationToken);
@@ -170,40 +205,78 @@ public sealed class AdministrationService(
             totalVerificationsPending,
             totalChatGroups,
             currentMonthLinkDropSold,
-            currentMonthName);
+            rangeName);
 
         return Result<AdminDashboardStatsModel>.Success(model);
     }
 
-    public async Task<Result<AdminDashboardModel>> GetDashboardAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<AdminDashboardModel>> GetDashboardAsync(
+        DateTime? fromDate = null, 
+        DateTime? toDate = null, 
+        int? year = null, 
+        int? month = null, 
+        CancellationToken cancellationToken = default)
     {
-        var statsRes = await GetDashboardStatsAsync(cancellationToken);
+        var statsRes = await GetDashboardStatsAsync(fromDate, toDate, year, month, cancellationToken);
         var stats = statsRes.Data!;
 
-        var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
+        DateTime rangeStart;
+        DateTime rangeEnd;
+        var nowUtc = DateTime.UtcNow.Date;
+
+        if (fromDate.HasValue && toDate.HasValue)
+        {
+            var s = fromDate.Value.Date;
+            var e = toDate.Value.Date;
+            if (s > e) (s, e) = (e, s);
+            var span = (e - s).Days + 1;
+            if (span < 7) s = e.AddDays(-6);
+            else if (span > 31) s = e.AddDays(-30);
+
+            rangeStart = s;
+            rangeEnd = e;
+        }
+        else if (year.HasValue && month.HasValue)
+        {
+            var targetYear = year.Value >= 2000 && year.Value <= 2100 ? year.Value : nowUtc.Year;
+            var targetMonth = month.Value >= 1 && month.Value <= 12 ? month.Value : nowUtc.Month;
+            rangeStart = new DateTime(targetYear, targetMonth, 1, 0, 0, 0, DateTimeKind.Utc);
+            var daysInMonth = DateTime.DaysInMonth(targetYear, targetMonth);
+            var isCurrentMonth = targetYear == nowUtc.Year && targetMonth == nowUtc.Month;
+            var maxDay = isCurrentMonth ? Math.Max(1, nowUtc.Day) : daysInMonth;
+            rangeEnd = new DateTime(targetYear, targetMonth, maxDay, 0, 0, 0, DateTimeKind.Utc);
+        }
+        else
+        {
+            // Default 7 days: current day + past 6 days
+            rangeStart = nowUtc.AddDays(-6);
+            rangeEnd = nowUtc;
+        }
+
+        var nextAfterEnd = rangeEnd.AddDays(1);
 
         var newUsersGrouped = await dbContext.TblUsers
-            .Where(u => !u.IsDeleted && u.CreatedAt >= thirtyDaysAgo)
+            .Where(u => !u.IsDeleted && u.CreatedAt >= rangeStart && u.CreatedAt < nextAfterEnd)
             .GroupBy(u => u.CreatedAt.Date)
             .Select(g => new { Date = g.Key, Count = g.Count() })
             .ToListAsync(cancellationToken);
 
         var newPostsGrouped = await dbContext.TblPosts
-            .Where(p => !p.IsDeleted && p.CreatedAt >= thirtyDaysAgo)
+            .Where(p => !p.IsDeleted && p.CreatedAt >= rangeStart && p.CreatedAt < nextAfterEnd)
             .GroupBy(p => p.CreatedAt.Date)
             .Select(g => new { Date = g.Key, Count = g.Count() })
             .ToListAsync(cancellationToken);
 
         var linkDropTxGrouped = await dbContext.TblLinkDropTransactions
-            .Where(tx => tx.CreatedAt >= thirtyDaysAgo)
+            .Where(tx => tx.CreatedAt >= rangeStart && tx.CreatedAt < nextAfterEnd)
             .GroupBy(tx => tx.CreatedAt.Date)
             .Select(g => new { Date = g.Key, Volume = g.Sum(tx => (long)tx.Amount) })
             .ToListAsync(cancellationToken);
 
         var trends = new List<TrendPointModel>();
-        for (int i = 29; i >= 0; i--)
+        for (var d = rangeStart; d <= rangeEnd; d = d.AddDays(1))
         {
-            var date = DateTime.UtcNow.Date.AddDays(-i);
+            var date = d;
             var usersCount = newUsersGrouped.FirstOrDefault(x => x.Date == date)?.Count ?? 0;
             var postsCount = newPostsGrouped.FirstOrDefault(x => x.Date == date)?.Count ?? 0;
             var txVolume = linkDropTxGrouped.FirstOrDefault(x => x.Date == date)?.Volume ?? 0L;

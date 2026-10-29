@@ -26,17 +26,17 @@ public class AdministrationController : ControllerBase
 
     [HttpGet("stats")]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
-    public async Task<IActionResult> GetStats(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetStats([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate, [FromQuery] int? year, [FromQuery] int? month, CancellationToken cancellationToken)
     {
-        var result = await _adminService.GetDashboardStatsAsync(cancellationToken);
+        var result = await _adminService.GetDashboardStatsAsync(fromDate, toDate, year, month, cancellationToken);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
 
     [HttpGet("dashboard")]
     [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.AdminUserView)]
-    public async Task<IActionResult> GetDashboard(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetDashboard([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate, [FromQuery] int? year, [FromQuery] int? month, CancellationToken cancellationToken)
     {
-        var result = await _adminService.GetDashboardAsync(cancellationToken);
+        var result = await _adminService.GetDashboardAsync(fromDate, toDate, year, month, cancellationToken);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
 
