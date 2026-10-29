@@ -14,7 +14,7 @@
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
             <div class="flex items-center gap-2.5">
-                <span class="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/30 text-amber-500">
+                <span class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-500/30 text-amber-500">
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </span>
                 <div>
@@ -70,7 +70,6 @@
             <!-- 1. Total Users (Clickable -> User Report) -->
             <button type="button" @onclick='() => Go("/reports/users")'
                     class="group relative w-full text-left bg-white dark:bg-[#112A46] p-6 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] hover:border-indigo-500/60 dark:hover:border-indigo-400/60 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden">
-                <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-xl group-hover:scale-125 transition-transform duration-300 pointer-events-none"></div>
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-mono">@Loc["Admin_Dashboard_PlatformMembers"]</span>
                     <span class="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-200">
@@ -93,7 +92,6 @@
             <!-- 2. Communities (Clickable -> Community Report) -->
             <button type="button" @onclick='() => Go("/reports/communities")'
                     class="group relative w-full text-left bg-white dark:bg-[#112A46] p-6 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] hover:border-emerald-500/60 dark:hover:border-emerald-400/60 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden">
-                <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-xl group-hover:scale-125 transition-transform duration-300 pointer-events-none"></div>
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider font-mono">@Loc["Admin_Dashboard_HubsSyndicates"]</span>
                     <span class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-200">
@@ -116,7 +114,6 @@
             <!-- 3. LinkDrop Economy (Current Month Sold -> Platform Finance) -->
             <button type="button" @onclick='() => Go("/admin/finance")'
                     class="group relative w-full text-left bg-white dark:bg-[#112A46] p-6 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] hover:border-amber-500/60 dark:hover:border-amber-400/60 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden">
-                <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-amber-500/10 dark:bg-amber-500/15 rounded-full blur-xl group-hover:scale-125 transition-transform duration-300 pointer-events-none"></div>
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider font-mono">@Loc["Admin_Dashboard_LinkDropEconomy"]</span>
                     <span class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white transition-colors duration-200">
@@ -135,6 +132,59 @@
                     </div>
                 </div>
             </button>
+        </div>
+
+        <!-- Telemetry Graphs Section: User Growth & LinkDrop Volume Inline (Above Queues) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Chart 1: Platform User & Post Acquisition -->
+            <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-xs">
+                <div class="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                            <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] font-display">
+                                @Loc["Admin_Dashboard_UserGrowthTitle"]
+                            </h2>
+                        </div>
+                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1.5">@Loc["Admin_Dashboard_UserGrowthDesc"]</p>
+                    </div>
+                    <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 whitespace-nowrap">
+                        @string.Format(Loc["Admin_Dashboard_NewMembersCount"].Value, TrendWindow.Sum(t => t.NewUsers))
+                    </span>
+                </div>
+
+                <GroupedBarChart Title="@Loc["Admin_Dashboard_UserGrowthTitle"].Value"
+                                 Labels="GrowthLabels"
+                                 Series="GrowthSeries"
+                                 EmptyText="@Loc["Admin_Dashboard_NoTrendData"].Value"
+                                 ValueSuffix="" />
+            </div>
+
+            <!-- Chart 2: LinkDrop Volume Area Chart (Inline with User Growth Chart) -->
+            <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-xs">
+                <div class="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] font-display">
+                                @Loc["Admin_Dashboard_LdVolumeTitle"]
+                            </h2>
+                        </div>
+                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1.5">@Loc["Admin_Dashboard_LdVolumeDesc"]</p>
+                    </div>
+                    <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 whitespace-nowrap">
+                        @string.Format(Loc["Admin_Dashboard_LdMoved"].Value, FormatCompact(TrendWindow.Sum(t => t.LinkDropVolume)))
+                    </span>
+                </div>
+
+                <AreaTrendChart Title="@Loc["Admin_Dashboard_LdVolumeTitle"].Value"
+                                Labels="GrowthLabels"
+                                Values="LdValues"
+                                SeriesName="@Loc["Admin_Dashboard_LdVolumeSeries"].Value"
+                                EmptyText="@Loc["Admin_Dashboard_NoLdTrendData"].Value"
+                                Color="#F59E0B"
+                                ValueSuffix=" LD" />
+            </div>
         </div>
 
         <!-- Moderation Queue & Pending Reviews -->
@@ -245,57 +295,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Telemetry Graphs Section: User Growth & LinkDrop Volume Inline -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Chart 1: Platform User & Post Acquisition -->
-            <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-xs">
-                <div class="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
-                            <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] font-display">
-                                @Loc["Admin_Dashboard_UserGrowthTitle"]
-                            </h2>
-                        </div>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1.5">@Loc["Admin_Dashboard_UserGrowthDesc"]</p>
-                    </div>
-                    <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 whitespace-nowrap">
-                        @string.Format(Loc["Admin_Dashboard_NewMembersCount"].Value, TrendWindow.Sum(t => t.NewUsers))
-                    </span>
-                </div>
-
-                <GroupedBarChart Title="@Loc["Admin_Dashboard_UserGrowthTitle"].Value"
-                                 Labels="GrowthLabels"
-                                 Series="GrowthSeries"
-                                 EmptyText="@Loc["Admin_Dashboard_NoTrendData"].Value"
-                                 ValueSuffix="" />
-            </div>
-
-            <!-- Chart 2: LinkDrop Volume (Inline with User Growth Chart) -->
-            <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-6 shadow-xs">
-                <div class="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                            <h2 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] font-display">
-                                @Loc["Admin_Dashboard_LdVolumeTitle"]
-                            </h2>
-                        </div>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] mt-1.5">@Loc["Admin_Dashboard_LdVolumeDesc"]</p>
-                    </div>
-                    <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 whitespace-nowrap">
-                        @string.Format(Loc["Admin_Dashboard_LdMoved"].Value, FormatCompact(TrendWindow.Sum(t => t.LinkDropVolume)))
-                    </span>
-                </div>
-
-                <GroupedBarChart Title="@Loc["Admin_Dashboard_LdVolumeTitle"].Value"
-                                 Labels="GrowthLabels"
-                                 Series="LdSeries"
-                                 EmptyText="@Loc["Admin_Dashboard_NoLdTrendData"].Value"
-                                 ValueSuffix=" LD" />
-            </div>
-        </div>
     }
 </div>
 
@@ -358,6 +357,9 @@
         new(Loc["Admin_Dashboard_NewUsersLabel"].Value, TrendWindow.Select(t => (double)t.NewUsers).ToList(), "#6366F1"),
         new(Loc["Admin_Dashboard_NewPostsLabel"].Value, TrendWindow.Select(t => (double)t.NewPosts).ToList(), "#10B981")
     };
+
+    private IReadOnlyList<double> LdValues =>
+        TrendWindow.Select(t => (double)t.LinkDropVolume).ToList();
 
     private List<GroupedBarChart.BarSeries> LdSeries => new()
     {
