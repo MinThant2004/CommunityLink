@@ -232,8 +232,7 @@ public sealed class PollService(
                     p.IsActive,
                     p.IsPrivate,
                     p.ModerationReason,
-                    p.AuthorIsVerified,
-                    p.AuthorRoleCode
+                    p.AuthorIsVerified || (p.AuthorRoleCode == "DOMAIN_PRO" || p.AuthorRoleCode == "PUBLIC_FIGURE")
                 );
             }).ToList();
 

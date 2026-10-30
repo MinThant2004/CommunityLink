@@ -313,12 +313,12 @@
 
     private async Task LoadRolesAsync()
     {
-        var res = await RoleApi.GetRolesAsync();
+        var res = await RoleApi.GetRolesAsync(roleType: 0);
         if (res.IsSuccess && res.Data != null)
         {
-            // Allow default 'USER' role switch (exclude only 'MEMBER' legacy role if applicable)
+            // Only include user role types (RoleType == 0); exclude admin role types
             availableRoles = res.Data
-                .Where(r => !r.Code.Equals("MEMBER", StringComparison.OrdinalIgnoreCase))
+                .Where(r => r.RoleType == 0 && !r.Code.Equals("MEMBER", StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
     }

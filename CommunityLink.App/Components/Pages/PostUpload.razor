@@ -118,7 +118,7 @@
                                         </span>
                                     }
                                 </div>
-                                <span class="text-xs text-[#7A8CA6]">@post.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                <span class="text-xs text-[#7A8CA6]">@FormatTimeAgo(post.CreatedAt)</span>
                             </div>
                         </div>
 
@@ -333,7 +333,7 @@
                                                 <div class="flex-1 bg-white dark:bg-[#112A46] p-2.5 rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-2xs">
                                                     <div class="flex items-center justify-between gap-2 mb-1">
                                                         <span class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@comment.AuthorName</span>
-                                                        <span class="text-[10px] text-[#7A8CA6] font-mono">@comment.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                                        <span class="text-[10px] text-[#7A8CA6] font-mono">@FormatTimeAgo(comment.CreatedAt)</span>
                                                     </div>
                                                     <p class="text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line">@comment.Content</p>
                                                 </div>
@@ -762,6 +762,22 @@
 }
 
 @code {
+    private string FormatTimeAgo(DateTime dt)
+    {
+        var utcDt = dt.Kind == DateTimeKind.Utc 
+            ? dt 
+            : (dt.Kind == DateTimeKind.Local
+                ? dt.ToUniversalTime()
+                : DateTime.SpecifyKind(dt, DateTimeKind.Utc));
+        var span = DateTime.UtcNow - utcDt;
+        if (span < TimeSpan.Zero) span = TimeSpan.Zero;
+
+        if (span.TotalSeconds < 60) return Loc["GroupDetail_Time_JustNow"];
+        if (span.TotalMinutes < 60) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_MinutesAgo"], Math.Max(1, (int)span.TotalMinutes));
+        if (span.TotalHours < 24) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_HoursAgo"], Math.Max(1, (int)span.TotalHours));
+        return utcDt.ToLocalTime().ToString("dd-MM-yyyy");
+    }
+
     private IReadOnlyList<PostModel>? posts;
     private List<CommunityModel> allCommunities = [];
     private List<CommunityModel> mainCommunities = [];

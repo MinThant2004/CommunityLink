@@ -827,6 +827,33 @@ else if (dashboard != null)
                             <span class="hidden sm:inline">@Loc["Home_Posts_SearchBtn"]</span>
                         </button>
                     </div>
+                    
+                    <!-- POSTS SEARCH BAR -->
+                    <div class="bg-surface-container-low p-2.5 sm:p-3 rounded-xl shadow-xs border border-white/5 flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+                            <input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs pl-9 pr-8 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-white/20 transition-all border border-white/5"
+                                   id="post-feed-search"
+                                   placeholder="@Loc["Home_Posts_SearchPlaceholder"]"
+                                   type="text"
+                                   @bind="postSearchQuery"
+                                   @bind:event="oninput"
+                                   @onkeydown="HandlePostSearchKeyDown" />
+                            @if (!string.IsNullOrWhiteSpace(postSearchQuery))
+                            {
+                                <button type="button" @onclick="ClearPostSearchAsync"
+                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface text-base cursor-pointer leading-none"
+                                        title="Clear search">
+                                    &times;
+                                </button>
+                            }
+                        </div>
+                        <button type="button" @onclick="ExecutePostSearchAsync"
+                                class="px-3.5 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-white/10 shrink-0">
+                            <span class="material-symbols-outlined text-[15px]">search</span>
+                            <span class="hidden sm:inline">@Loc["Home_Posts_SearchBtn"]</span>
+                        </button>
+                    </div>
                     <!-- 2. QUICK DISPATCH & POLL COMPOSER -->
                     @if (canPostStandalone || currentUserIsAdmin)
                     {
@@ -1076,7 +1103,7 @@ else if (dashboard != null)
                                                             }
                                                         </div>
                                                         <div class="text-[10px] text-[#7A8CA6] font-mono">
-                                                            @post.OriginalPost.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")
+                                                            @GetRelativeTime(post.OriginalPost.CreatedAt)
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1241,6 +1268,8 @@ else if (dashboard != null)
                                         </div>
                                     }
 
+                                    @if (!post.HasPoll)
+                                    {
                                     <!-- Engagement Strip -->
                                     <div class="flex items-center justify-between pt-1 border-t border-white/5">
                                         <div class="flex items-center gap-4">
@@ -1305,6 +1334,7 @@ else if (dashboard != null)
                                                 }
                                             }
                                         </div>
+                                    }
                                     }
                                     </article>
                                 }
@@ -3286,7 +3316,7 @@ else if (dashboard != null)
             {
                 Toast.Success(Loc["Home_Share_Toast_Success"]);
                 CloseHomeShareModal();
-                await LoadDashboardAsync();
+                await LoadHomeFeedAsync(page: 1);
             }
             else
             {
@@ -3336,12 +3366,18 @@ else if (dashboard != null)
 
     private string GetRelativeTime(DateTime dt)
     {
-        var span = DateTime.UtcNow - dt.ToUniversalTime();
+        var utcDt = dt.Kind == DateTimeKind.Utc 
+            ? dt 
+            : (dt.Kind == DateTimeKind.Local
+                ? dt.ToUniversalTime()
+                : DateTime.SpecifyKind(dt, DateTimeKind.Utc));
+        var span = DateTime.UtcNow - utcDt;
+        if (span < TimeSpan.Zero) span = TimeSpan.Zero;
+
         if (span.TotalSeconds < 60) return Loc["GroupDetail_Time_JustNow"];
-        if (span.TotalMinutes < 60) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_MinutesAgo"], (int)span.TotalMinutes);
-        if (span.TotalHours < 24) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_HoursAgo"], (int)span.TotalHours);
-        if (span.TotalDays < 7) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_DaysAgo"], (int)span.TotalDays);
-        return dt.ToLocalTime().ToString("dd-MM-yyyy");
+        if (span.TotalMinutes < 60) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_MinutesAgo"], Math.Max(1, (int)span.TotalMinutes));
+        if (span.TotalHours < 24) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_HoursAgo"], Math.Max(1, (int)span.TotalHours));
+        return utcDt.ToLocalTime().ToString("dd-MM-yyyy");
     }
 
     private async Task CopyCodeSnippetAsync(string? code)
