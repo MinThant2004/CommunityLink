@@ -99,12 +99,6 @@
                     <span>@Loc["LinkDrops_TabLedger"]</span>
                 </button>
             </div>
-
-            <!-- Protocol Badge -->
-            <div class="flex items-center justify-between sm:justify-end gap-2 px-3 py-1 rounded-lg bg-surface-container border border-slate-200 dark:border-surface-container-high/30">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-on-surface-variant font-label-sm text-xs font-medium">@Loc["LinkDrops_SettlementRailsActive"]</span>
-            </div>
         </div>
 
         <!-- ============================================================= -->
@@ -268,7 +262,6 @@
                                 </div>
                                 <h2 class="font-title-sm font-bold text-on-surface text-sm">@Loc["LinkDrops_Step2Title"]</h2>
                             </div>
-                            <span class="text-xs text-on-surface-variant">@string.Format(Loc["LinkDrops_RailsActiveCount"], activeMethods.Count)</span>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -424,11 +417,7 @@
                         </div>
 
                         <!-- SUBMIT ACTION BAR (Integrated at bottom of form) -->
-                        <div class="border-t border-slate-200 dark:border-surface-container-high/30 pt-3 flex flex-col sm:flex-row items-center justify-between gap-3">
-                            <div class="text-xs text-on-surface-variant flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-sm text-emerald-500">verified</span>
-                                <span>@Loc["LinkDrops_VerificationNotice"]</span>
-                            </div>
+                        <div class="border-t border-slate-200 dark:border-surface-container-high/30 pt-3 flex flex-col sm:flex-row items-center justify-end gap-3">
                             <div class="flex items-center gap-2.5 w-full sm:w-auto">
                                 <button type="button" @onclick="ResetForm"
                                         class="px-4 py-2 rounded-lg bg-white dark:bg-surface-container hover:bg-slate-50 dark:hover:bg-surface-container-high text-on-surface font-bold text-xs border border-slate-200 dark:border-surface-container-high/50 hover:border-slate-300 dark:hover:border-surface-container-high transition cursor-pointer">
@@ -525,7 +514,7 @@
                                 @foreach (var item in FilteredPurchases)
                                 {
                                     <tr class="hover:bg-[#0A1B2E]/5 dark:hover:bg-surface-container/50 transition-colors">
-                                        <td class="p-2.5 font-mono text-on-surface-variant">@item.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                                        <td class="p-2.5 font-mono text-on-surface-variant">@item.CreatedAt.ToString("dd-MM-yyyy HH:mm")</td>
                                         <td class="p-2.5 font-mono font-bold text-on-surface">@item.PurchaseNumber</td>
                                         <td class="p-2.5 font-mono text-[#0A1B2E] dark:text-[#E1E8F0] font-bold">@item.TransactionReferenceNo</td>
                                         <td class="p-2.5 text-on-surface">@(item.IsCustomPurchase ? Loc["LinkDrops_CustomAllocation"] : item.SnapshotPackageName)</td>
@@ -636,7 +625,7 @@
                                     @foreach (var tx in userTransactions)
                                     {
                                         <tr class="hover:bg-[#0A1B2E]/5 dark:hover:bg-surface-container/50 transition-colors">
-                                            <td class="p-2.5 font-mono text-on-surface-variant">@tx.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                                            <td class="p-2.5 font-mono text-on-surface-variant">@tx.CreatedAt.ToString("dd-MM-yyyy HH:mm")</td>
                                             <td class="p-2.5 font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@tx.TransactionType</td>
                                             <td class="p-2.5 font-black @(tx.Amount >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")">
                                                 @((tx.Amount >= 0 ? "+" : string.Empty))@string.Format(Loc["LinkDrops_DropsCount"], tx.Amount.ToString("N0"))

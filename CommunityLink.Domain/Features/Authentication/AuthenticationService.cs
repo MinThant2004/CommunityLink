@@ -182,8 +182,15 @@ public class AuthenticationService : IAuthenticationService
         if (!user.IsActive)
             return Result<LoginResponseModel>.Failure("Your account has been deactivated. Please contact support or an administrator for assistance.", ResultStatus.Unauthorized);
 
-        user.LastLoginAt = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            user.LastLoginAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
+        }
+        catch
+        {
+            // Non-critical telemetry: do not block legitimate login if a transient DB lock or timeout occurs
+        }
 
         var roleMapping = user.TblUserRoles.FirstOrDefault(ur => !ur.IsDeleted);
         var (roleCode, roleId) = roleMapping?.Role != null
@@ -222,8 +229,15 @@ public class AuthenticationService : IAuthenticationService
             ? (roleMapping?.RoleId ?? (await ResolveAdminRoleAsync(true)).RoleId)
             : (roleMapping?.RoleId ?? (await ResolveAdminRoleAsync(false)).RoleId);
 
-        admin.LastLoginAt = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            admin.LastLoginAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
+        }
+        catch
+        {
+            // Non-critical telemetry: do not block legitimate login if a transient DB lock or timeout occurs
+        }
 
         var response = await BuildLoginResponseAsync(admin.AdminId, admin.Email, admin.FullName, roleCode, roleId, request.RememberMe);
         return Result<LoginResponseModel>.Success(response, "Admin login successful.");

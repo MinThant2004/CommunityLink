@@ -1491,9 +1491,9 @@ else if (dashboard != null)
                             {
                                 @foreach (var person in sidebarPeople)
                                 {
-                                    <div class="p-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high transition-all flex flex-col gap-2 shadow-xs group border border-white/5">
-                                        <div class="flex items-start justify-between">
-                                            <div class="flex items-center gap-2">
+                                    <div class="p-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high transition-all flex flex-col gap-2 shadow-xs group border border-white/5 overflow-hidden">
+                                        <div class="flex items-start justify-between gap-2 min-w-0">
+                                            <div class="flex items-center gap-2 min-w-0 flex-1">
                                                 <div class="relative shrink-0">
                                                     <UserAvatar Url="@person.AvatarUrl"
                                                                 Name="@(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)"
@@ -1504,23 +1504,26 @@ else if (dashboard != null)
                                                         ★
                                                     </span>
                                                 </div>
-                                                <div class="flex flex-col min-w-0">
-                                                    <a href="u/@person.UserName" class="text-xs font-bold text-on-surface group-hover:text-secondary transition-colors truncate inline-flex items-center gap-1">
+                                                <div class="flex flex-col min-w-0 flex-1">
+                                                    <a href="u/@person.UserName" class="text-xs font-bold text-on-surface group-hover:text-secondary transition-colors truncate block" title="@(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)">
                                                         <span class="truncate">@(string.IsNullOrWhiteSpace(person.DisplayName) ? person.UserName : person.DisplayName)</span>
                                                         @if (person.IsVerified)
                                                         {
-                                                            <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
+                                                            <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0 inline-block align-middle ml-0.5" />
                                                         }
                                                     </a>
-                                                    <span class="text-[11px] text-outline truncate">
+                                                    <p class="text-[11px] text-outline truncate block" title="@(string.IsNullOrWhiteSpace(person.Headline) ? GetRoleBadgeText(person) : person.Headline)">
                                                         @(string.IsNullOrWhiteSpace(person.Headline) ? GetRoleBadgeText(person) : person.Headline)
-                                                    </span>
+                                                    </p>
                                                 </div>
                                             </div>
 
-                                            <div class="flex items-center text-on-surface-variant text-[10px] font-bold bg-surface-container-highest px-1.5 py-0.2 rounded shrink-0">
-                                                ★ @(person.AverageRating.HasValue && person.AverageRating.Value > 0 ? person.AverageRating.Value.ToString("F1") : Loc["Home_Sidebar_RatingNew"])
-                                            </div>
+                                            @if (person.AverageRating.HasValue && person.AverageRating.Value > 0)
+                                            {
+                                                <div class="flex items-center text-on-surface-variant text-[10px] font-bold bg-surface-container-highest px-1.5 py-0.2 rounded shrink-0">
+                                                    ★ @person.AverageRating.Value.ToString("F1")
+                                                </div>
+                                            }
                                         </div>
 
                                         <!-- Skill Pills -->
@@ -1645,7 +1648,7 @@ else if (dashboard != null)
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="directory-grid-container">
                         @foreach (var person in directoryPeople)
                         {
-                            <div class="bg-surface-container-low hover:bg-surface-container rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between border border-white/5 shadow-xs hover:shadow-md transition-all group">
+                            <div class="bg-surface-container-low hover:bg-surface-container rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between border border-white/5 shadow-xs hover:shadow-md transition-all group overflow-hidden">
                                 <div>
                                     <!-- Top Availability Ribbon -->
                                     @if (person.IsVerified && !string.IsNullOrWhiteSpace(person.AvailabilityStatus))

@@ -15,9 +15,7 @@
 @inject IWebHostEnvironment Environment
 @inject IStringLocalizer<AppResources> Loc
 @inject IJSRuntime JS
-
 <PageTitle>@(group?.Name ?? Loc["GroupDetail_PageTitleFallback"]) - CommunityLink</PageTitle>
-
 <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Back to Groups Link -->
     <div class="flex items-center justify-between">
@@ -26,7 +24,6 @@
             <span>@Loc["GroupDetail_BackToGroups"]</span>
         </a>
     </div>
-
     @if (isLoadingGroup)
     {
         <div class="flex justify-center items-center py-20">
@@ -58,7 +55,6 @@
                 <img src="@heroPhoto" alt="@group.Name" class="w-full h-full object-cover" />
                 <div class="absolute inset-0 bg-gradient-to-t from-[#0A1B2E] via-[#0A1B2E]/60 to-transparent"></div>
             </div>
-
             <div class="p-6 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div>
@@ -79,7 +75,6 @@
                                 </span>
                             }
                         </div>
-
                         @if (!string.IsNullOrEmpty(group.SubCommunityName))
                         {
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.20)] mt-1.5">
@@ -87,10 +82,8 @@
                                 @(string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_PartOfSubCommunity"], group.SubCommunityName))
                             </span>
                         }
-
                         <p class="text-xs sm:text-sm text-[#557392] dark:text-[#C4D2E1] mt-2 leading-relaxed">@group.Description</p>
                     </div>
-
                     <div class="flex items-center gap-2 shrink-0">
                         <button type="button" @onclick="OpenReportGroupModal"
                                 class="p-2 rounded-xl border border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
@@ -98,10 +91,9 @@
                             <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
                             <span class="hidden sm:inline">@Loc["GroupDetail_Action_Report"]</span>
                         </button>
-
                         @if (group.IsJoined)
                         {
-                            <button type="button" @onclick="LeaveGroup"
+                            <button type="button" @onclick="OpenLeaveModal"
                                     class="px-4 py-2 bg-white dark:bg-[#1B3B5A] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[#557392] dark:text-[#C4D2E1] hover:text-rose-600 dark:hover:text-rose-400 font-semibold text-xs rounded-xl transition border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)]">
                                 @Loc["GroupDetail_Action_LeaveGroup"]
                             </button>
@@ -122,7 +114,6 @@
                         }
                     </div>
                 </div>
-
                 <!-- Stats Bar & Actions -->
                 <div class="pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-4 text-xs font-medium text-[#557392] dark:text-[#C4D2E1]">
@@ -130,15 +121,12 @@
                         <span>•</span>
                         <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Stats_Posts"], group.PostCount)</span>
                         <span>•</span>
-                        <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                            <svg class="w-3.5 h-3.5 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                        <span class="inline-flex items-center gap-1 text-slate-600 dark:text-[#C4D2E1]">
+                            <svg class="w-3.5 h-3.5 fill-blue-500 text-blue-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                             <span>@(group.AverageRating.HasValue ? group.AverageRating.Value.ToString("0.0") : Loc["GroupDetail_Stats_NoRatings"])</span>
                             <span class="text-slate-400">(@(group.RatingCount))</span>
                         </span>
-                        <span>•</span>
-                        <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Stats_CreatedBy"], group.CreatorName)</span>
                     </div>
-
                     @if (!group.IsActive)
                     {
                         <!-- INACTIVE GROUP BANNER -->
@@ -154,14 +142,13 @@
                             </div>
                         </div>
                     }
-
                     @if (group.IsJoined)
                     {
                         <div class="flex items-center gap-2 flex-wrap">
                             @if (group.IsActive)
                             {
                                 <button type="button" @onclick="OpenCreatePostModal"
-                                        class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs rounded-xl shadow-sm transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                                        class="px-4 py-2 bg-white dark:bg-[#1B3B5A] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold text-xs rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] shadow-sm transition inline-flex items-center gap-1.5 active:scale-95 cursor-pointer">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                     <span>@Loc["GroupDetail_Btn_UploadPost"]</span>
                                 </button>
@@ -171,7 +158,6 @@
                                     <span>@Loc["GroupDetail_Btn_UploadPoll"]</span>
                                 </button>
                             }
-
                             @if (isGroupManager)
                             {
                                 <button type="button" @onclick="OpenRequestsModal"
@@ -191,7 +177,6 @@
                 </div>
             </div>
         </div>
-
         @if (group.Visibility == "PRIVATE" && !group.IsJoined)
         {
             <!-- PRIVATE GROUP LOCK BANNER -->
@@ -226,78 +211,26 @@
             <!-- Navigation Tabs: Feed, Polls, Members -->
             <div class="bg-white dark:bg-[#112A46] rounded-2xl shadow-sm border border-slate-200 dark:border-[rgba(196,210,225,0.12)] p-2 flex items-center gap-2">
                 <button type="button" @onclick='() => SetActiveTab("feed")'
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "feed" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "feed" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] shadow-sm border border-[#0A1B2E] dark:border-white" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Tab_Feed"], posts?.Count ?? 0)</span>
                 </button>
                 <button type="button" @onclick='() => SetActiveTab("polls")'
-                        style="@(activeTab == "polls" ? "background-color: #7c3aed; color: #ffffff !important;" : "")"
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "polls" ? "bg-purple-600 text-white shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "polls" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] shadow-sm border border-[#0A1B2E] dark:border-white" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Tab_Polls"], polls?.Count ?? 0)</span>
                 </button>
                 <button type="button" @onclick='() => SetActiveTab("members")'
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "members" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "members" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] shadow-sm border border-[#0A1B2E] dark:border-white" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Tab_Members"], members?.Count ?? 0)</span>
                 </button>
                 <button type="button" @onclick='() => SetActiveTab("ratings")'
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "ratings" ? "bg-amber-500 text-slate-950 shadow-sm" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
-                    <svg class="w-4 h-4 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "ratings" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] shadow-sm border border-[#0A1B2E] dark:border-white" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
+                    <svg class="w-4 h-4 fill-current text-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                     <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Tab_Ratings"], ratingSummary?.TotalRatings ?? group?.RatingCount ?? 0)</span>
                 </button>
             </div>
-
-            <!-- Contextual Quick Action Header for Active Tab -->
-            @if (activeTab == "polls")
-            {
-                <div class="flex items-center justify-between bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-4 shadow-sm">
-                    <div>
-                        <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["GroupDetail_Polls_HeaderTitle"]</h3>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">@Loc["GroupDetail_Polls_HeaderDesc"]</p>
-                    </div>
-                    @if (group?.IsJoined == true)
-                    {
-                        <button type="button" @onclick="OpenCreatePollModal"
-                                class="inline-flex items-center gap-2 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95 cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                            <span>@Loc["GroupDetail_Btn_UploadPoll"]</span>
-                        </button>
-                    }
-                    else
-                    {
-                        <button type="button" @onclick="JoinGroup"
-                                class="inline-flex items-center gap-2 px-4 py-2 bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold text-xs rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] transition">
-                            <span>@Loc["GroupDetail_Polls_JoinToCreate"]</span>
-                        </button>
-                    }
-                </div>
-            }
-            else if (activeTab == "feed")
-            {
-                <div class="flex items-center justify-between bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] p-4 shadow-sm">
-                    <div>
-                        <h3 class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["GroupDetail_Feed_HeaderTitle"]</h3>
-                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1]">@Loc["GroupDetail_Feed_HeaderDesc"]</p>
-                    </div>
-                    @if (group?.IsJoined == true && canCreatePost)
-                    {
-                        <button type="button" @onclick="OpenCreatePostModal"
-                                class="inline-flex items-center gap-2 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                            <span>@Loc["GroupDetail_Feed_CreatePostBtn"]</span>
-                        </button>
-                    }
-                    else if (group?.IsJoined != true)
-                    {
-                        <button type="button" @onclick="JoinGroup"
-                                class="inline-flex items-center gap-2 px-4 py-2 bg-[#F1F5F9] dark:bg-[#1B3B5A] hover:bg-[#E2E8F0] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold text-xs rounded-xl border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] transition">
-                            <span>@Loc["GroupDetail_Feed_JoinToPost"]</span>
-                        </button>
-                    }
-                </div>
-            }
-
             <!-- TAB 1: GROUP FEED -->
             @if (activeTab == "feed")
             {
@@ -346,7 +279,6 @@
                                         </span>
                                     </div>
                                 }
-
                                 <!-- Post Author Header -->
                                 <div class="p-4 sm:p-5 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                     <div class="flex items-center gap-3">
@@ -378,7 +310,7 @@
                                                 else if (post.AuthorRoleCode == "DOMAIN_PRO" || post.IsAuthorVerified)
                                                 {
                                                     <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="@Loc["GroupDetail_Post_ProTooltip"]">
-                                                        <svg class="w-3 h-3 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                                                        <svg class="w-3 h-3 fill-blue-500 text-blue-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                                                         <span class="hidden sm:inline">@Loc["GroupDetail_Post_ProBadge"]</span>
                                                     </span>
                                                 }
@@ -386,7 +318,6 @@
                                             <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@FormatTimeAgo(post.CreatedAt)</span>
                                         </div>
                                     </div>
-
                                     <div class="relative">
                                         <button type="button" @onclick="() => TogglePostMenu(post.PostId)"
                                                 class="p-1.5 text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition cursor-pointer" title="@Loc["GroupDetail_Post_OptionsTooltip"]">
@@ -394,7 +325,6 @@
                                                 <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                                             </svg>
                                         </button>
-
                                         @if (activeMenuPostId == post.PostId)
                                         {
                                             <div class="absolute right-0 mt-1 w-44 bg-white dark:bg-[#112A46] rounded-xl shadow-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
@@ -403,14 +333,12 @@
                                                     <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
                                                     <span>@Loc["GroupDetail_Post_ReportBtn"]</span>
                                                 </button>
-
                                                 <!-- Save Button (For all users) -->
                                                 <button type="button" @onclick="() => ToggleSavePost(post.PostId)"
                                                         class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                                                     <span>@(post.IsSavedByCurrentUser ? Loc["GroupDetail_Post_UnsaveBtn"] : Loc["GroupDetail_Post_SaveBtn"])</span>
                                                 </button>
-
                                                 <!-- Privacy, Edit & Delete (Author only) -->
                                                 @if (currentUserId.HasValue && post.AuthorId == currentUserId.Value)
                                                 {
@@ -435,12 +363,10 @@
                                         }
                                     </div>
                                 </div>
-
                                 <!-- Post Text Content -->
                                 <div class="px-5 py-4 text-sm text-[#0A1B2E] dark:text-[#E1E8F0] leading-relaxed whitespace-pre-line">
                                     @post.Content
                                 </div>
-
                                 <!-- Attached Files Component -->
                                 @if (!string.IsNullOrWhiteSpace(post.CodeSnippet))
                                 {
@@ -488,14 +414,12 @@
                                         </div>
                                     }
                                 }
-
                                 <!-- Post Images (Carousel Style matching Home) -->
                                 @if (post.ImageUrls != null && post.ImageUrls.Count > 0)
                                 {
                                     var imgCount = post.ImageUrls.Count;
                                     var activeIdx = Math.Clamp(GetActiveImageIndex(post.PostId), 0, imgCount - 1);
                                     var currentImage = post.ImageUrls[activeIdx];
-
                                     <div class="relative w-full rounded-lg overflow-hidden bg-slate-950 group border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] select-none">
                                         <!-- Carousel Images Track -->
                                         <div class="w-full h-48 sm:h-60 flex transition-transform duration-500 ease-out">
@@ -509,14 +433,12 @@
                                                 </div>
                                             </div>
                                         </div>
-
                                         @if (imgCount > 1)
                                         {
                                             <!-- Pill Counter Badge -->
                                             <div class="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] text-white font-mono shadow-xs">
                                                 @(activeIdx + 1) / @imgCount
                                             </div>
-
                                             <!-- Carousel Controls -->
                                             @if (activeIdx > 0)
                                             {
@@ -526,7 +448,6 @@
                                                     <span class="material-symbols-outlined text-[16px]">chevron_left</span>
                                                 </button>
                                             }
-
                                             @if (activeIdx < imgCount - 1)
                                             {
                                                 <button type="button" @onclick="() => NextImage(post.PostId, imgCount)"
@@ -535,7 +456,6 @@
                                                     <span class="material-symbols-outlined text-[16px]">chevron_right</span>
                                                 </button>
                                             }
-
                                             <!-- Pagination Indicator Dots -->
                                             <div class="absolute bottom-2.5 right-3 flex items-center gap-1 z-10">
                                                 @for (int dotIdx = 0; dotIdx < imgCount; dotIdx++)
@@ -550,7 +470,6 @@
                                         }
                                     </div>
                                 }
-
                                 <!-- Engagement Strip (Home Style) -->
                                 <div class="px-4 py-2.5 flex items-center justify-between border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                     <div class="flex items-center gap-4">
@@ -561,7 +480,6 @@
                                             <span class="material-symbols-outlined text-[17px] @(post.IsLikedByCurrentUser ? "text-rose-500" : "")">favorite</span>
                                             <span>@post.LikeCount</span>
                                         </button>
-
                                         <!-- Comment -->
                                         <button type="button" @onclick="() => ToggleCommentBox(post.PostId)"
                                                 class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
@@ -569,7 +487,6 @@
                                             <span class="material-symbols-outlined text-[17px]">chat_bubble</span>
                                             <span>@post.CommentCount</span>
                                         </button>
-
                                         <!-- Share -->
                                         <button type="button" @onclick="() => OpenShareModal(post.PostId)"
                                                 class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
@@ -582,7 +499,6 @@
                                         </button>
                                     </div>
                                 </div>
-
                                 <!-- Comments Drawer -->
                                 @if (openCommentPostIds.Contains(post.PostId))
                                 {
@@ -603,7 +519,6 @@
                                                 </button>
                                             </div>
                                         </div>
-
                                         <!-- Comments List -->
                                         @if (commentsByPost.TryGetValue(post.PostId, out var commentList) && commentList != null)
                                         {
@@ -697,7 +612,6 @@
                                                 @(poll.IsExpired ? Loc["GroupDetail_Poll_Closed"] : string.Format(Loc["GroupDetail_Poll_EndsAt"], poll.ExpiresAt.Value.ToLocalTime().ToString("dd-MM-yyyy")))
                                             </span>
                                         }
-
                                         <!-- Three-Dots Action Menu for Poll -->
                                         <div class="relative">
                                             <button type="button" @onclick="() => TogglePollMenu(poll.PollId)"
@@ -706,7 +620,6 @@
                                                     <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                                                 </svg>
                                             </button>
-
                                             @if (activeMenuPollId == poll.PollId)
                                             {
                                                 <div class="absolute right-0 mt-1 w-44 bg-white dark:bg-[#112A46] rounded-xl shadow-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
@@ -715,14 +628,12 @@
                                                         <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
                                                         <span>@Loc["GroupDetail_Poll_ReportBtn"]</span>
                                                     </button>
-
                                                     <!-- Save Button (All users) -->
                                                     <button type="button" @onclick="() => ToggleSavePoll(poll.PostId)"
                                                             class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                                                         <span>@Loc["GroupDetail_Poll_SaveBtn"]</span>
                                                     </button>
-
                                                     <!-- Edit, Privacy & Delete (Author only) -->
                                                     @if (currentUserId.HasValue && poll.AuthorId == currentUserId.Value)
                                                     {
@@ -748,7 +659,6 @@
                                         </div>
                                     </div>
                                 </div>
-
                                 <!-- Poll Content & Question -->
                                 <div class="px-5 pt-4 pb-2 space-y-2">
                                     <h3 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] leading-snug">@poll.Question</h3>
@@ -757,7 +667,6 @@
                                         <p class="text-xs text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line leading-relaxed">@poll.Content</p>
                                     }
                                 </div>
-
                                 <!-- Poll Options & Voting -->
                                 <div class="px-5 py-4 space-y-3">
                                     @foreach (var opt in poll.Options)
@@ -767,7 +676,6 @@
                                             <!-- Progress bar background -->
                                             <div class="absolute inset-y-0 left-0 bg-[#E2E8F0] dark:bg-[#1B3B5A] transition-all duration-500"
                                                  style="width: @(opt.Percentage)%"></div>
-
                                             <div class="relative flex items-center justify-between gap-3 text-xs sm:text-sm">
                                                 <div class="flex items-center gap-2.5 flex-1">
                                                     @if (!poll.HasVoted && !poll.IsExpired)
@@ -799,7 +707,6 @@
                                         </div>
                                     }
                                 </div>
-
                                 <!-- Poll Summary Footer -->
                                 <div class="px-5 py-2.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between text-xs text-[#557392] dark:text-[#7A8CA6]">
                                     <div class="flex items-center gap-2">
@@ -822,13 +729,85 @@
                                         <span class="text-[#557392] dark:text-[#C4D2E1] font-medium">@Loc["GroupDetail_Poll_ClickToVote"]</span>
                                     }
                                 </div>
-
+                                <!-- Actions: Like, Comment, Share on Poll (Home Style) -->
+                                <div class="px-4 py-2.5 flex items-center justify-between border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                                    <div class="flex items-center gap-4">
+                                        <button type="button" @onclick="() => ToggleLike(poll.PostId)"
+                                                class="flex items-center gap-1 text-xs @(poll.IsLikedByCurrentUser ? "text-rose-500 font-semibold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-rose-500") transition-colors cursor-pointer"
+                                                title="@Loc["GroupDetail_Post_LikeBtn"]">
+                                            <span class="material-symbols-outlined text-[17px] @(poll.IsLikedByCurrentUser ? "text-rose-500" : "")">favorite</span>
+                                            <span>@poll.LikeCount</span>
+                                        </button>
+                                        <button type="button" @onclick="() => ToggleCommentBox(poll.PostId)"
+                                                class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
+                                                title="@Loc["GroupDetail_Post_CommentBtn"]">
+                                            <span class="material-symbols-outlined text-[17px]">chat_bubble</span>
+                                            <span>@poll.CommentCount</span>
+                                        </button>
+                                        <button type="button" @onclick="() => OpenShareModal(poll.PostId)"
+                                                class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
+                                                title="@Loc["GroupDetail_Post_ShareBtn"]">
+                                            <svg class="w-4 h-4 fill-none stroke-current" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                <path d="M15 14l5-5-5-5" />
+                                                <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
+                                            </svg>
+                                            <span>@poll.ShareCount</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- Poll Comments Drawer -->
+                                @if (openCommentPostIds.Contains(poll.PostId))
+                                {
+                                    <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] p-4 sm:p-5 bg-[#F8FAFC] dark:bg-[#0A1B2E] space-y-4">
+                                        <div class="flex items-start gap-2.5">
+                                            <div class="w-8 h-8 rounded-full bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] flex items-center justify-center shrink-0 mt-0.5">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                            </div>
+                                            <div class="flex-1 flex gap-2">
+                                                <input type="text" @bind="commentInputs[poll.PostId]"
+                                                       @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitComment(poll.PostId); })"
+                                                       placeholder="@Loc["GroupDetail_Poll_CommentPlaceholder"]"
+                                                       class="w-full text-sm bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded px-3 py-2 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]" />
+                                                <button type="button" @onclick="() => SubmitComment(poll.PostId)"
+                                                        class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded text-xs font-semibold shadow-sm transition">
+                                                    @Loc["GroupDetail_Post_CommentSubmitBtn"]
+                                                </button>
+                                            </div>
+                                        </div>
+                                        @if (commentsByPost.TryGetValue(poll.PostId, out var commentList) && commentList != null)
+                                        {
+                                            if (commentList.Count == 0)
+                                            {
+                                                <p class="text-xs text-[#557392] dark:text-[#7A8CA6] text-center py-2">@Loc["GroupDetail_Poll_NoComments"]</p>
+                                            }
+                                            else
+                                            {
+                                                <div class="space-y-3 pt-2">
+                                                    @foreach (var comment in commentList)
+                                                    {
+                                                        <div class="flex items-start gap-2.5 text-xs">
+                                                            <div class="w-7 h-7 rounded-full bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center font-bold shrink-0">
+                                                                @(string.IsNullOrWhiteSpace(comment.AuthorName) ? "U" : comment.AuthorName.Substring(0, 1).ToUpper())
+                                                            </div>
+                                                            <div class="flex-1 bg-white dark:bg-[#112A46] p-2.5 rounded border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
+                                                                <div class="flex items-center justify-between gap-2 mb-1">
+                                                                    <span class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@comment.AuthorName</span>
+                                                                    <span class="text-[10px] text-[#557392] dark:text-[#7A8CA6]">@comment.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                                                </div>
+                                                                <p class="text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line">@comment.Content</p>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                }
                             </div>
                         }
                     </div>
                 }
             }
-
             <!-- TAB 3: MEMBERS -->
             @if (activeTab == "members")
             {
@@ -866,14 +845,14 @@
             {
                 <div class="space-y-6">
                     <!-- Rating Header Card -->
-                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] p-6 shadow-sm">
                         <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
                             <div class="flex items-center gap-5">
-                                <div class="w-20 h-20 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col items-center justify-center text-amber-500 shadow-xs">
-                                    <span class="text-3xl font-black text-amber-600">
+                                <div class="w-20 h-20 rounded-2xl bg-slate-50 dark:bg-[#0A1B2E] border border-slate-200 dark:border-[rgba(196,210,225,0.15)] flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 shadow-xs">
+                                    <span class="text-3xl font-black text-blue-600 dark:text-blue-400">
                                         @(ratingSummary != null && ratingSummary.TotalRatings > 0 ? ratingSummary.AverageScore.ToString("0.0") : "—")
                                     </span>
-                                    <div class="flex text-xs text-amber-400 mt-0.5">
+                                    <div class="flex text-xs text-blue-500 dark:text-blue-400 mt-0.5">
                                         @for (int i = 1; i <= 5; i++)
                                         {
                                             <span>@(ratingSummary != null && ratingSummary.TotalRatings > 0 && i <= Math.Round(ratingSummary.AverageScore) ? "★" : "☆")</span>
@@ -881,59 +860,56 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 class="text-base font-bold text-slate-900">@Loc["GroupDetail_Ratings_HeaderTitle"]</h3>
-                                    <p class="text-xs text-slate-500 mt-0.5">
+                                    <h3 class="text-base font-bold text-slate-900 dark:text-[#E1E8F0]">@Loc["GroupDetail_Ratings_HeaderTitle"]</h3>
+                                    <p class="text-xs text-slate-500 dark:text-[#C4D2E1] mt-0.5">
                                         @(ratingSummary != null && ratingSummary.TotalRatings > 0 
                                             ? string.Format(Loc["GroupDetail_Ratings_BasedOn"], ratingSummary.TotalRatings)
                                             : Loc["GroupDetail_Ratings_NoRatingsSubtitle"])
                                     </p>
                                 </div>
                             </div>
-
                             @if (group?.IsJoined == true)
                             {
                                 <button type="button" @onclick="OpenRatingModal"
-                                        class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-amber-500/20 transition active:scale-95 inline-flex items-center gap-2 cursor-pointer">
-                                    <svg class="w-4 h-4 fill-slate-950 text-slate-950" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                                        class="px-5 py-2.5 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95 inline-flex items-center gap-2 cursor-pointer border border-[#0A1B2E] dark:border-white">
+                                    <svg class="w-4 h-4 fill-current text-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                                     <span>@(ratingSummary?.UserRating != null ? Loc["GroupDetail_Ratings_EditYourReview"] : Loc["GroupDetail_Ratings_RateThisGroup"])</span>
                                 </button>
                             }
                         </div>
-
                         @if (group?.IsJoined != true)
                         {
-                            <div class="mt-4 p-3.5 bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl flex items-center justify-between gap-3 text-xs text-amber-800 dark:text-amber-300">
+                            <div class="mt-4 p-3.5 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 rounded-xl flex items-center justify-between gap-3 text-xs text-blue-800 dark:text-blue-300">
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                     <span>@Loc["GroupDetail_Ratings_NonMemberNotice"]</span>
                                 </div>
-                                <button type="button" @onclick="JoinGroup" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shrink-0 transition">
+                                <button type="button" @onclick="JoinGroup" class="px-3.5 py-1.5 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs rounded-lg shrink-0 transition border border-[#0A1B2E] dark:border-white">
                                     @Loc["GroupDetail_Action_JoinGroup"]
                                 </button>
                             </div>
                         }
                     </div>
-
                     <!-- Reviews List -->
                     @if (isLoadingRatings)
                     {
                         <div class="flex justify-center py-12">
-                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                         </div>
                     }
                     else if (ratingSummary == null || ratingSummary.Ratings.Count == 0)
                     {
                         <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-dashed border-slate-300 dark:border-[rgba(196,210,225,0.20)] p-12 text-center text-slate-500 dark:text-[#7A8CA6]">
-                            <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mx-auto mb-3 text-amber-500">
-                                <svg class="w-7 h-7 fill-amber-500 text-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                            <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[#0A1B2E] flex items-center justify-center mx-auto mb-3 text-blue-600 dark:text-blue-400">
+                                <svg class="w-7 h-7 fill-blue-500 text-blue-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                             </div>
-                            <h4 class="font-semibold text-slate-800 text-base">@Loc["GroupDetail_Ratings_EmptyTitle"]</h4>
-                            <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+                            <h4 class="font-semibold text-slate-900 dark:text-[#E1E8F0] text-base">@Loc["GroupDetail_Ratings_EmptyTitle"]</h4>
+                            <p class="text-xs text-slate-500 dark:text-[#C4D2E1] max-w-sm mx-auto mt-1">
                                 @(group?.IsJoined == true ? Loc["GroupDetail_Ratings_EmptyJoinedSubtitle"] : Loc["GroupDetail_Ratings_EmptyNotJoinedSubtitle"])
                             </p>
                             @if (group?.IsJoined == true)
                             {
-                                <button type="button" @onclick="OpenRatingModal" class="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow transition">
+                                <button type="button" @onclick="OpenRatingModal" class="mt-4 px-5 py-2.5 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95 inline-flex items-center gap-2 cursor-pointer border border-[#0A1B2E] dark:border-white">
                                     @Loc["GroupDetail_Ratings_WriteFirstReview"]
                                 </button>
                             }
@@ -945,7 +921,7 @@
                             @foreach (var review in ratingSummary.Ratings)
                             {
                                 var isMyReview = currentUserId.HasValue && review.UserId == currentUserId.Value;
-                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs transition hover:border-slate-300 @(isMyReview ? "ring-2 ring-amber-400/40" : "")">
+                                <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-slate-200 dark:border-[rgba(196,210,225,0.12)] p-5 shadow-xs transition hover:border-slate-300 dark:hover:border-white/20 @(isMyReview ? "ring-2 ring-blue-500/40" : "")">
                                     <div class="flex items-start justify-between gap-4">
                                         <!-- Reviewer Profile Info (Clickable link to user profile) -->
                                         <div class="flex items-center gap-3">
@@ -961,30 +937,29 @@
                                             </a>
                                             <div>
                                                 <div class="flex items-center gap-2">
-                                                    <a href="u/@review.UserName" class="font-bold text-sm text-slate-900 hover:text-indigo-600 transition">
+                                                    <a href="u/@review.UserName" class="font-bold text-sm text-slate-900 dark:text-[#E1E8F0] hover:text-blue-600 dark:hover:text-blue-400 transition">
                                                         @review.DisplayName
                                                     </a>
                                                     @if (isMyReview)
                                                     {
-                                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50">
                                                             @Loc["GroupDetail_Ratings_YourReviewBadge"]
                                                         </span>
                                                     }
                                                 </div>
-                                                <a href="u/@review.UserName" class="text-[11px] text-slate-400 hover:text-slate-600 transition block">
+                                                <a href="u/@review.UserName" class="text-[11px] text-slate-400 dark:text-[#7A8CA6] hover:text-slate-600 dark:hover:text-white transition block">
                                                     @@@review.UserName
                                                 </a>
                                             </div>
                                         </div>
-
                                         <!-- Stars and Date -->
                                         <div class="text-right">
-                                            <div class="flex items-center justify-end text-amber-400 text-sm">
+                                            <div class="flex items-center justify-end text-blue-500 dark:text-blue-400 text-sm">
                                                 @for (int s = 1; s <= 5; s++)
                                                 {
-                                                    <span class="@(s <= review.Score ? "text-amber-400" : "text-slate-200")">★</span>
+                                                    <span class="@(s <= review.Score ? "text-blue-500 dark:text-blue-400" : "text-slate-200 dark:text-slate-700")">★</span>
                                                 }
-                                                <span class="ml-1 text-xs font-black text-slate-800">@review.Score.0</span>
+                                                <span class="ml-1 text-xs font-black text-slate-800 dark:text-[#E1E8F0]">@review.Score.0</span>
                                             </div>
                                             <span class="text-[11px] text-slate-400 block mt-0.5">
                                                 @FormatTimeAgo(review.CreatedAt)
@@ -992,10 +967,9 @@
                                             </span>
                                         </div>
                                     </div>
-
                                     @if (!string.IsNullOrWhiteSpace(review.ReviewText))
                                     {
-                                        <p class="text-sm text-slate-700 mt-3 pl-13 leading-relaxed whitespace-pre-line">
+                                        <p class="text-sm text-slate-700 dark:text-[#C4D2E1] mt-3 pl-13 leading-relaxed whitespace-pre-line">
                                             @review.ReviewText
                                         </p>
                                     }
@@ -1008,7 +982,6 @@
         }
     }
 </div>
-
 <!-- ================= MODAL: CREATE GROUP POST ================= -->
 @if (showPostModal)
 {
@@ -1027,7 +1000,6 @@
                     <textarea @bind="newPostText" rows="4" placeholder="@Loc["GroupDetail_Modal_PostPlaceholder"]"
                               class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded-xl p-3 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]"></textarea>
                 </div>
-
                 <!-- Text File Attachment Section -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
@@ -1037,7 +1009,6 @@
                             <button type="button" @onclick="RemovePostCodeFile" class="text-xs text-rose-500 hover:underline">@Loc["GroupDetail_Modal_RemoveFileBtn"]</button>
                         }
                     </div>
-
                     @if (string.IsNullOrEmpty(newPostCodeSnippet))
                     {
                         <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
@@ -1064,20 +1035,17 @@
                         </div>
                     }
                 </div>
-
                 <!-- Multiple Images Attachment Section -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1]">Attach Images ( Only 10 Images )</label>
                         <span class="text-[10px] text-[#7A8CA6]">@Loc["GroupDetail_Modal_ImageFormatsHint"]</span>
                     </div>
-
                     <label class="cursor-pointer border-2 border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] rounded-xl p-3 text-center hover:border-[#0A1B2E] dark:hover:border-[rgba(196,210,225,0.35)] transition bg-[#F8FAFC] dark:bg-[#0A1B2E] flex items-center justify-center gap-2">
                         <span class="text-base">🖼️</span>
                         <span class="text-xs font-medium text-[#1B3B5A] dark:text-[#E1E8F0]">@(isUploadingImage ? Loc["GroupDetail_Modal_UploadingImages"] : "Upload images")</span>
                         <InputFile OnChange="HandleMultipleImagesSelected" accept="image/*" multiple class="hidden" disabled="@isUploadingImage" />
                     </label>
-
                     @if (uploadedImageUrls.Count > 0)
                     {
                         <div class="grid grid-cols-3 gap-2 mt-2.5">
@@ -1116,7 +1084,6 @@
         </div>
     </div>
 }
-
 <!-- ================= MODAL: CREATE GROUP POLL ================= -->
 @if (showPollModal)
 {
@@ -1135,13 +1102,11 @@
                     <input type="text" @bind="newPollQuestion" placeholder="@Loc["GroupDetail_Modal_PollQuestionPlaceholder"]"
                            class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded px-3 py-2 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]" />
                 </div>
-
                 <div>
                     <label class="block text-xs font-semibold text-[#557392] dark:text-[#C4D2E1] mb-1">@Loc["GroupDetail_Modal_PollContextLabel"]</label>
                     <textarea @bind="newPollDescription" rows="2" placeholder="@Loc["GroupDetail_Modal_PollContextPlaceholder"]"
                               class="w-full text-sm bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded p-2.5 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]"></textarea>
                 </div>
-
                 <!-- Custom Duration Picker -->
                 <div class="p-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] rounded border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] space-y-2">
                     <span class="block text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@Loc["GroupDetail_Modal_PollDurationTitle"]</span>
@@ -1163,7 +1128,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Dynamic Poll Options -->
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
@@ -1175,7 +1139,6 @@
                             </button>
                         }
                     </div>
-
                     <div class="space-y-2">
                         @for (int i = 0; i < pollOptionsList.Count; i++)
                         {
@@ -1200,7 +1163,6 @@
                         }
                     </div>
                 </div>
-
                 <!-- Multiple Choice Toggle -->
                 <div class="flex items-center gap-2 pt-1">
                     <input type="checkbox" id="grpMultiChoice" @bind="pollIsMultipleChoice" class="rounded text-[#0A1B2E] dark:text-[#E1E8F0] focus:ring-[#0A1B2E] bg-white dark:bg-[#0A1B2E] border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)]" />
@@ -1228,7 +1190,6 @@
         </div>
     </div>
 }
-
 <!-- ================= MODAL: SHARE POST / POLL ================= -->
 @if (showShareModal)
 {
@@ -1258,7 +1219,6 @@
         </div>
     </div>
 }
-
 <!-- ================= MODAL: EDIT POST ================= -->
 @if (showEditPostModal)
 {
@@ -1271,13 +1231,11 @@
                 </h3>
                 <button type="button" @onclick="() => showEditPostModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg">&times;</button>
             </div>
-
             <div class="space-y-1">
                 <label class="text-xs font-semibold text-slate-500 dark:text-[#C4D2E1]">@Loc["GroupDetail_Modal_EditPostDescLabel"]</label>
                 <textarea @bind="editingPostContent" rows="5" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none resize-none transition" placeholder="@Loc["GroupDetail_Modal_EditPostPlaceholder"]"></textarea>
                 <p class="text-[11px] text-slate-400 dark:text-[#7A8CA6]">@Loc["GroupDetail_Modal_EditPostNote"]</p>
             </div>
-
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button type="button" @onclick="() => showEditPostModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
                     @Loc["Common_Cancel"]
@@ -1297,7 +1255,6 @@
         </div>
     </div>
 }
-
 <!-- ================= MODAL: EDIT POLL ================= -->
 @if (showEditPollModal)
 {
@@ -1310,7 +1267,6 @@
                 </h3>
                 <button type="button" @onclick="() => showEditPollModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg">&times;</button>
             </div>
-
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-[#C4D2E1] mb-1">@Loc["GroupDetail_Modal_EditPollQuestionLabel"] <span class="text-rose-500">*</span></label>
@@ -1325,7 +1281,6 @@
                     <span>@Loc["GroupDetail_Modal_EditPollIntegrityNotice"]</span>
                 </div>
             </div>
-
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button type="button" @onclick="() => showEditPollModal = false" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
                     @Loc["Common_Cancel"]
@@ -1345,22 +1300,20 @@
         </div>
     </div>
 }
-
 <!-- ================= MODAL: RATE / REVIEW GROUP ================= -->
 @if (showRatingModal)
 {
     <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150 p-6 space-y-5">
+        <div class="bg-white dark:bg-[#112A46] rounded-3xl shadow-2xl border border-slate-200 dark:border-[rgba(196,210,225,0.15)] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150 p-6 space-y-5 text-[#0A1B2E] dark:text-[#E1E8F0]">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-amber-500 fill-amber-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 fill-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                     <h3 class="font-bold text-base text-slate-900 dark:text-[#E1E8F0]">
                         @(ratingSummary?.UserRating != null ? Loc["GroupDetail_Ratings_EditYourReview"] : Loc["GroupDetail_Ratings_RateThisGroup"])
                     </h3>
                 </div>
                 <button type="button" @onclick="CloseRatingModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
             </div>
-
             <div class="text-center space-y-3">
                 <p class="text-xs text-slate-500 dark:text-[#C4D2E1]">@string.Format(Loc["GroupDetail_Modal_RatePrompt"], group?.Name)</p>
                 
@@ -1370,33 +1323,30 @@
                     {
                         var starScore = i;
                         <button type="button" @onclick="() => selectedRatingScore = starScore" class="transition-transform hover:scale-125 cursor-pointer focus:outline-none">
-                            <span class="@(starScore <= selectedRatingScore ? "text-amber-400" : "text-slate-200 dark:text-slate-700")">★</span>
+                            <span class="@(starScore <= selectedRatingScore ? "text-blue-500 dark:text-blue-400" : "text-slate-200 dark:text-slate-700")">★</span>
                         </button>
                     }
                 </div>
-                <div class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                <div class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                     @string.Format(Loc["GroupDetail_Modal_StarCount"], selectedRatingScore)
                 </div>
-
                 <div class="text-left mt-2">
                     <label class="block text-xs font-bold text-slate-700 dark:text-[#C4D2E1] uppercase tracking-wider mb-1">@Loc["GroupDetail_Modal_ReviewCommentsLabel"]</label>
-                    <textarea @bind="ratingReviewText" rows="3" maxlength="1000" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition" placeholder="@Loc["GroupDetail_Modal_ReviewPlaceholder"]"></textarea>
+                    <textarea @bind="ratingReviewText" rows="3" maxlength="1000" class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0A1B2E] text-slate-900 dark:text-[#E1E8F0] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="@Loc["GroupDetail_Modal_ReviewPlaceholder"]"></textarea>
                     <div class="text-[11px] text-slate-400 text-right mt-0.5">@(ratingReviewText?.Length ?? 0)/1000</div>
                 </div>
             </div>
-
             @if (!string.IsNullOrEmpty(ratingErrorMessage))
             {
                 <div class="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs rounded-xl font-medium">
                     @ratingErrorMessage
                 </div>
             }
-
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-                <button type="button" @onclick="CloseRatingModal" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+                <button type="button" @onclick="CloseRatingModal" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition cursor-pointer">
                     @Loc["Common_Cancel"]
                 </button>
-                <button type="button" @onclick="SubmitRatingAsync" disabled="@isSubmittingRating" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition shadow-md shadow-amber-500/30 flex items-center gap-2 cursor-pointer">
+                <button type="button" @onclick="SubmitRatingAsync" disabled="@isSubmittingRating" class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] transition shadow-sm border border-[#0A1B2E] dark:border-white flex items-center gap-2 cursor-pointer">
                     @if (isSubmittingRating)
                     {
                         <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -1411,7 +1361,6 @@
         </div>
     </div>
 }
-
 <!-- ================= UPCOMING REQUESTS MODAL (For Group Owner/Admins) ================= -->
 @if (showRequestsModal)
 {
@@ -1429,7 +1378,6 @@
                 </div>
                 <button type="button" @onclick="CloseRequestsModal" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
             </div>
-
             <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
                 @if (isLoadingRequests)
                 {
@@ -1478,7 +1426,6 @@
                     }
                 }
             </div>
-
             <div class="pt-3 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex justify-end">
                 <button type="button" @onclick="CloseRequestsModal"
                         class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[#0A1B2E] dark:text-[#E1E8F0] text-xs font-semibold rounded-xl cursor-pointer">
@@ -1488,7 +1435,6 @@
         </div>
     </div>
 }
-
 <!-- ================= POST BANNED REASON MODAL ================= -->
 @if (showBannedReasonModal && bannedPostTarget != null)
 {
@@ -1505,24 +1451,20 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-
             <div class="space-y-3">
                 <p class="text-xs text-[#557392] dark:text-[#C4D2E1] leading-relaxed">
                     @Loc["GroupDetail_Banned_Desc"]
                 </p>
-
                 <div class="bg-red-50 dark:bg-red-950/30 p-3.5 rounded-xl border border-red-200 dark:border-red-900/40 space-y-1">
                     <span class="text-[10px] uppercase font-bold tracking-wider text-red-700 dark:text-red-300 font-mono">@Loc["GroupDetail_Banned_ReasonHeader"]</span>
                     <p class="text-xs text-red-900 dark:text-red-200 font-medium">
                         @(string.IsNullOrWhiteSpace(bannedPostTarget.ModerationReason) ? Loc["GroupDetail_Banned_DefaultReason"] : bannedPostTarget.ModerationReason)
                     </p>
                 </div>
-
                 <p class="text-[11px] text-[#7A8CA6]">
                     @Loc["GroupDetail_Banned_AudienceNotice"]
                 </p>
             </div>
-
             <div class="flex justify-end pt-2 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                 <button type="button" @onclick="CloseBannedReasonModal"
                         class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] hover:opacity-90 transition cursor-pointer">
@@ -1532,12 +1474,10 @@
         </div>
     </div>
 }
-
 <ReportContentModal IsOpen="@showReportModal"
                     IsOpenChanged="@((bool val) => showReportModal = val)"
                     ContentType="@reportContentType"
                     ContentId="@reportContentId" />
-
 @if (showTextModal)
 {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn" @onclick="CloseTextFileModal">
@@ -1562,7 +1502,6 @@
         </div>
     </div>
 }
-
 <!-- ========================================================================= -->
 <!-- FULL-SIZE IMAGE LIGHTBOX MODAL                                            -->
 <!-- ========================================================================= -->
@@ -1585,51 +1524,114 @@
     </div>
 }
 
+<!-- ================= MODAL: LEAVE GROUP CONFIRMATION ================= -->
+@if (showLeaveModal)
+{
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-[#112A46] rounded-3xl shadow-2xl border border-slate-200 dark:border-[rgba(196,210,225,0.15)] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150 p-6 space-y-4 text-[#0A1B2E] dark:text-[#E1E8F0]">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div class="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-[#E1E8F0]">
+                        @Loc["GroupDetail_Action_LeaveGroup"]
+                    </h3>
+                </div>
+                <button type="button" @onclick="CloseLeaveModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer transition">✕</button>
+            </div>
+
+            <div class="space-y-3">
+                <p class="text-sm text-slate-700 dark:text-slate-200">
+                    @Loc["Chat_ConfirmLeaveGroupPrompt"]
+                </p>
+
+                @if (group != null)
+                {
+                    <div class="p-3 rounded-2xl bg-slate-50 dark:bg-[#0A1B2E] border border-slate-200 dark:border-[rgba(196,210,225,0.12)] flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center">
+                            @if (!string.IsNullOrEmpty(group.AvatarUrl))
+                            {
+                                <img src="@group.AvatarUrl" alt="@group.Name" class="w-full h-full object-cover" />
+                            }
+                            else
+                            {
+                                <span class="font-black text-sm text-[#0A1B2E] dark:text-[#E1E8F0]">@group.Name.FirstOrDefault()</span>
+                            }
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0] truncate">@group.Name</div>
+                            <div class="text-[11px] text-[#557392] dark:text-[#C4D2E1]">
+                                @string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Stats_Members"], group.MemberCount)
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <p class="text-xs text-slate-500 dark:text-[#C4D2E1]">
+                    @Loc["Chat_LeaveGroupDisclaimer"]
+                </p>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button type="button" @onclick="CloseLeaveModal" disabled="@isLeavingGroup"
+                        class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition cursor-pointer">
+                    @Loc["Common_Cancel"]
+                </button>
+                <button type="button" @onclick="ConfirmLeaveGroupAsync" disabled="@isLeavingGroup"
+                        class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition shadow-sm inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
+                    @if (isLeavingGroup)
+                    {
+                        <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span>@Loc["Communities_Leave_Leaving"]</span>
+                    }
+                    else
+                    {
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        <span>@Loc["GroupDetail_Action_LeaveGroup"]</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
 @code {
     private bool isLightboxOpen = false;
     private string? lightboxImageUrl;
     private string? lightboxTitle;
-
     private void OpenEnlargedImage(string url, string? title = null)
     {
         lightboxImageUrl = url;
         lightboxTitle = title ?? Loc["LinkDrops_EnlargedImageView"];
         isLightboxOpen = true;
     }
-
     private void CloseLightbox()
     {
         isLightboxOpen = false;
     }
-
     [Parameter] public int groupId { get; set; }
-
     private GroupModel? group;
     private IReadOnlyList<PostModel>? posts;
     private IReadOnlyList<PollModel>? polls;
     private IReadOnlyList<GroupMemberModel>? members;
     private GroupRatingSummaryDto? ratingSummary;
-
     private int? currentUserId;
     private bool isLoadingGroup = true;
     private bool isLoadingFeed = true;
     private bool isLoadingRatings = false;
     private bool isSubmitting;
     private string activeTab = "feed";
-
     // Ratings Modal State
     private bool showRatingModal = false;
     private int selectedRatingScore = 5;
     private string? ratingReviewText = "";
     private bool isSubmittingRating = false;
     private string? ratingErrorMessage = null;
-
     // Social Interactions
     private HashSet<int> openCommentPostIds = [];
     private Dictionary<int, string> commentInputs = [];
     private Dictionary<int, IReadOnlyList<CommentModel>> commentsByPost = [];
     private readonly Dictionary<int, int> postActiveImageIndex = new();
-
     private int GetActiveImageIndex(int postId) => postActiveImageIndex.TryGetValue(postId, out var idx) ? idx : 0;
     private void PrevImage(int postId, int count)
     {
@@ -1645,19 +1647,16 @@
     {
         postActiveImageIndex[postId] = index;
     }
-
     // Share Modal
     private bool showShareModal;
     private int sharingPostId;
     private string shareNoteText = "";
-
     // Post Options & Edit Post State
     private int? activeMenuPostId = null;
     private bool showEditPostModal = false;
     private int? editingPostId = null;
     private string editingPostContent = string.Empty;
     private bool isSavingEditPost = false;
-
     // Poll Options & Edit Poll State
     private int? activeMenuPollId = null;
     private bool showEditPollModal = false;
@@ -1665,7 +1664,6 @@
     private string editingPollQuestion = string.Empty;
     private string editingPollContent = string.Empty;
     private bool isSavingEditPoll = false;
-
     // Create Post Modal State
     private bool showPostModal;
     private string newPostText = "";
@@ -1674,7 +1672,6 @@
     private string? newPostCodeSnippet;
     private string? newPostCodeFileName;
     private bool isReadingTextFile = false;
-
     // Create Poll Modal State
     private bool showPollModal;
     private string newPollQuestion = "";
@@ -1684,36 +1681,29 @@
     private int pollDurationMinutes = 0;
     private bool pollIsMultipleChoice;
     private List<string> pollOptionsList = ["", ""];
-
     private bool canCreatePost;
-
     // Upcoming Join Requests Modal State
     private bool showRequestsModal = false;
     private bool isLoadingRequests = false;
     private IReadOnlyList<GroupJoinRequestModel>? pendingJoinRequests = [];
     private int pendingRequestsCount = 0;
-
     // Report modal state
     private bool showReportModal = false;
     private string reportContentType = "GROUP";
     private int reportContentId = 0;
-
     // Banned post modal state
     private bool showBannedReasonModal = false;
     private PostModel? bannedPostTarget = null;
-
     private void OpenBannedReasonModal(PostModel post)
     {
         bannedPostTarget = post;
         showBannedReasonModal = true;
     }
-
     private void CloseBannedReasonModal()
     {
         showBannedReasonModal = false;
         bannedPostTarget = null;
     }
-
     private void OpenReportGroupModal()
     {
         if (group == null) return;
@@ -1721,7 +1711,6 @@
         reportContentId = group.GroupId;
         showReportModal = true;
     }
-
     private void OpenReportContentModal(int contentId, string type)
     {
         activeMenuPostId = null;
@@ -1730,7 +1719,6 @@
         reportContentId = contentId;
         showReportModal = true;
     }
-
     private async Task OpenRequestsModal()
     {
         showRequestsModal = true;
@@ -1753,12 +1741,10 @@
             isLoadingRequests = false;
         }
     }
-
     private void CloseRequestsModal()
     {
         showRequestsModal = false;
     }
-
     private async Task ReviewRequestAsync(int requestId, bool approve)
     {
         var res = approve ? await GroupApi.ApproveJoinRequestAsync(requestId) : await GroupApi.RejectJoinRequestAsync(requestId);
@@ -1773,7 +1759,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_ReviewFailed"]);
         }
     }
-
     private async Task TogglePostPrivacyAsync(PostModel post)
     {
         activeMenuPostId = null;
@@ -1789,7 +1774,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PostPrivacyFailed"]);
         }
     }
-
     private async Task TogglePollPrivacyAsync(PollModel poll)
     {
         activeMenuPollId = null;
@@ -1805,7 +1789,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PollPrivacyFailed"]);
         }
     }
-
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -1815,7 +1798,6 @@
         {
             currentUserId = uid;
         }
-
         var isAdmin = user.IsInRole("ADMIN") || user.HasClaim("permission", PermissionCatalog.AdminUserView);
         if (isAdmin)
         {
@@ -1833,7 +1815,6 @@
             }
             catch { }
         }
-
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
         if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("tab", out var tabVal))
         {
@@ -1843,10 +1824,8 @@
                 activeTab = tabStr;
             }
         }
-
         await LoadGroupData();
     }
-
     private async Task SetActiveTab(string tab)
     {
         activeTab = tab;
@@ -1867,13 +1846,11 @@
             await LoadGroupPosts();
         }
     }
-
     private bool isGroupManager =>
         currentUserId.HasValue &&
         group != null &&
         (group.CreatorId == currentUserId.Value ||
          members?.Any(m => m.UserId == currentUserId.Value && (string.Equals(m.Role, "Owner", StringComparison.OrdinalIgnoreCase) || string.Equals(m.Role, "Admin", StringComparison.OrdinalIgnoreCase))) == true);
-
     private async Task LoadGroupData()
     {
         isLoadingGroup = true;
@@ -1903,7 +1880,6 @@
         }
         isLoadingGroup = false;
     }
-
     private async Task LoadGroupPosts()
     {
         isLoadingFeed = true;
@@ -1918,7 +1894,6 @@
         }
         isLoadingFeed = false;
     }
-
     private async Task LoadGroupPolls()
     {
         var res = await PollApi.GetPollsAsync(groupId: groupId);
@@ -1931,13 +1906,11 @@
             }
         }
     }
-
     private async Task LoadGroupMembers()
     {
         var res = await GroupApi.GetGroupMembersAsync(groupId);
         if (res.IsSuccess) members = res.Data;
     }
-
     private async Task LoadGroupRatings()
     {
         isLoadingRatings = true;
@@ -1948,7 +1921,6 @@
         }
         isLoadingRatings = false;
     }
-
     private void OpenRatingModal()
     {
         ratingErrorMessage = null;
@@ -1964,13 +1936,11 @@
         }
         showRatingModal = true;
     }
-
     private void CloseRatingModal()
     {
         showRatingModal = false;
         ratingErrorMessage = null;
     }
-
     private async Task SubmitRatingAsync()
     {
         if (selectedRatingScore < 1 || selectedRatingScore > 5)
@@ -1978,14 +1948,11 @@
             ratingErrorMessage = Loc["GroupDetail_Val_RatingRange"];
             return;
         }
-
         isSubmittingRating = true;
         ratingErrorMessage = null;
-
         var req = new SubmitGroupRatingRequestModel(selectedRatingScore, ratingReviewText);
         var res = await GroupApi.RateGroupAsync(groupId, req);
         isSubmittingRating = false;
-
         if (res.IsSuccess)
         {
             Toast.Success(res.Message ?? Loc["GroupDetail_Toast_RatingSaved"]);
@@ -1997,7 +1964,6 @@
             ratingErrorMessage = res.Message ?? Loc["GroupDetail_Toast_RatingFailed"];
         }
     }
-
     private async Task JoinGroup()
     {
         var res = await GroupApi.JoinGroupAsync(groupId);
@@ -2011,21 +1977,51 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_JoinFailed"]);
         }
     }
+    private bool showLeaveModal = false;
+    private bool isLeavingGroup = false;
 
-    private async Task LeaveGroup()
+    private void OpenLeaveModal()
     {
-        var res = await GroupApi.LeaveGroupAsync(groupId);
-        if (res.IsSuccess)
-        {
-            Toast.Success(Loc["GroupDetail_Toast_LeftSuccess"]);
-            await LoadGroupData();
-        }
-        else
-        {
-            Toast.Error(res.Message ?? Loc["GroupDetail_Toast_LeaveFailed"]);
-        }
+        showLeaveModal = true;
     }
 
+    private void CloseLeaveModal()
+    {
+        showLeaveModal = false;
+    }
+
+    private void LeaveGroup()
+    {
+        OpenLeaveModal();
+    }
+
+    private async Task ConfirmLeaveGroupAsync()
+    {
+        if (isLeavingGroup) return;
+        isLeavingGroup = true;
+        try
+        {
+            var res = await GroupApi.LeaveGroupAsync(groupId);
+            if (res.IsSuccess)
+            {
+                showLeaveModal = false;
+                Toast.Success(Loc["GroupDetail_Toast_LeftSuccess"]);
+                await LoadGroupData();
+            }
+            else
+            {
+                Toast.Error(res.Message ?? Loc["GroupDetail_Toast_LeaveFailed"]);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+        finally
+        {
+            isLeavingGroup = false;
+        }
+    }
     private void OpenCreatePostModal()
     {
         newPostText = "";
@@ -2034,7 +2030,6 @@
         newPostCodeFileName = null;
         showPostModal = true;
     }
-
     private void OpenCreatePollModal()
     {
         newPollQuestion = "";
@@ -2046,7 +2041,6 @@
         pollOptionsList = ["", ""];
         showPollModal = true;
     }
-
     private void AddPollOption()
     {
         if (pollOptionsList.Count < 10)
@@ -2054,7 +2048,6 @@
             pollOptionsList.Add("");
         }
     }
-
     private void RemovePollOption(int index)
     {
         if (pollOptionsList.Count > 2 && index >= 0 && index < pollOptionsList.Count)
@@ -2062,7 +2055,6 @@
             pollOptionsList.RemoveAt(index);
         }
     }
-
     private async Task HandleMultipleImagesSelected(InputFileChangeEventArgs e)
     {
         if (uploadedImageUrls.Count >= 10)
@@ -2070,11 +2062,9 @@
             Toast.Error("You can only attach up to 10 images.");
             return;
         }
-
         var availableSlots = 10 - uploadedImageUrls.Count;
         var files = e.GetMultipleFiles(maximumFileCount: availableSlots);
         if (files == null || files.Count == 0) return;
-
         try
         {
             isUploadingImage = true;
@@ -2084,22 +2074,17 @@
             {
                 Directory.CreateDirectory(uploadsDir);
             }
-
             foreach (var file in files)
             {
                 var extension = Path.GetExtension(file.Name);
                 if (string.IsNullOrEmpty(extension)) extension = ".jpg";
-
                 var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow.Ticks}{extension}";
                 var fullPath = Path.Combine(uploadsDir, uniqueFileName);
-
                 using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
                 using var fileStream = new FileStream(fullPath, FileMode.Create);
                 await stream.CopyToAsync(fileStream);
-
                 uploadedImageUrls.Add($"/uploads/posts/{subfolder}/{uniqueFileName}");
             }
-
             Toast.Success(string.Format(Loc["GroupDetail_Toast_ImagesAttached"], files.Count));
         }
         catch (Exception ex)
@@ -2111,7 +2096,6 @@
             isUploadingImage = false;
         }
     }
-
     private void RemoveUploadedImage(int index)
     {
         if (index >= 0 && index < uploadedImageUrls.Count)
@@ -2119,19 +2103,16 @@
             uploadedImageUrls.RemoveAt(index);
         }
     }
-
     private async Task HandlePostTextFileSelected(InputFileChangeEventArgs e)
     {
         var file = e.File;
         if (file == null) return;
-
         var extension = Path.GetExtension(file.Name);
         if (!string.Equals(extension, ".txt", StringComparison.OrdinalIgnoreCase))
         {
             Toast.Error("Only .txt files are allowed.");
             return;
         }
-
         try
         {
             isReadingTextFile = true;
@@ -2141,19 +2122,15 @@
             {
                 Directory.CreateDirectory(uploadsDir);
             }
-
             var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow.Ticks}{extension}";
             var fullPath = Path.Combine(uploadsDir, uniqueFileName);
-
             using (var stream = file.OpenReadStream(maxAllowedSize: 25 * 1024 * 1024))
             using (var fileStream = new FileStream(fullPath, FileMode.Create))
             {
                 await stream.CopyToAsync(fileStream);
             }
-
             var fileUrl = $"/uploads/posts/files/{subfolder}/{uniqueFileName}";
             string content = string.Empty;
-
             if (file.Size <= 2 * 1024 * 1024)
             {
                 try
@@ -2162,7 +2139,6 @@
                 }
                 catch { }
             }
-
             var item = new AttachedTextFileItem(file.Name, content, fileUrl, file.Size);
             newPostCodeSnippet = JsonSerializer.Serialize(new List<AttachedTextFileItem> { item });
             newPostCodeFileName = file.Name;
@@ -2177,13 +2153,11 @@
             isReadingTextFile = false;
         }
     }
-
     private void RemovePostCodeFile()
     {
         newPostCodeSnippet = null;
         newPostCodeFileName = null;
     }
-
     private async Task SubmitGroupPost()
     {
         if (string.IsNullOrWhiteSpace(newPostText) && string.IsNullOrWhiteSpace(newPostCodeSnippet) && uploadedImageUrls.Count == 0)
@@ -2191,7 +2165,6 @@
             Toast.Warning(Loc["GroupDetail_Val_PostContentRequired"]);
             return;
         }
-
         isSubmitting = true;
         var images = uploadedImageUrls.Count > 0 ? uploadedImageUrls.ToList() : null;
         var req = new CreatePostRequestModel(
@@ -2203,10 +2176,8 @@
             CodeFileName: newPostCodeFileName,
             CodeLanguage: !string.IsNullOrWhiteSpace(newPostCodeSnippet) ? "FILE" : null
         );
-
         var res = await PostApi.CreatePostAsync(req);
         isSubmitting = false;
-
         if (res.IsSuccess)
         {
             Toast.Success(Loc["GroupDetail_Toast_PostPublished"]);
@@ -2223,7 +2194,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PostCreateFailed"]);
         }
     }
-
     private async Task SubmitGroupPoll()
     {
         if (string.IsNullOrWhiteSpace(newPollQuestion))
@@ -2231,28 +2201,23 @@
             Toast.Warning(Loc["GroupDetail_Val_PollQuestionRequired"]);
             return;
         }
-
         var validOptions = pollOptionsList.Where(o => !string.IsNullOrWhiteSpace(o)).Select(o => o.Trim()).ToList();
         if (validOptions.Count < 2)
         {
             Toast.Warning(Loc["GroupDetail_Val_PollOptionsMin"]);
             return;
         }
-
         DateTime? expiresAt = null;
         var totalMinutes = (pollDurationDays * 24 * 60) + (pollDurationHours * 60) + pollDurationMinutes;
         if (totalMinutes > 0)
         {
             expiresAt = DateTime.UtcNow.AddMinutes(totalMinutes);
         }
-
         isSubmitting = true;
         var desc = string.IsNullOrWhiteSpace(newPollDescription) ? newPollQuestion : newPollDescription;
         var req = new CreatePollRequestModel(null, desc, newPollQuestion, pollIsMultipleChoice, expiresAt, validOptions, groupId);
-
         var res = await PollApi.CreatePollAsync(req);
         isSubmitting = false;
-
         if (res.IsSuccess)
         {
             Toast.Success(Loc["GroupDetail_Toast_PollCreated"]);
@@ -2265,7 +2230,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PollCreateFailed"]);
         }
     }
-
     // Social Interactions
     private async Task ToggleLike(int postId)
     {
@@ -2279,7 +2243,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_LikeFailed"]);
         }
     }
-
     private async Task ToggleCommentBox(int postId)
     {
         if (openCommentPostIds.Contains(postId))
@@ -2292,7 +2255,6 @@
             await LoadComments(postId);
         }
     }
-
     private async Task LoadComments(int postId)
     {
         var res = await PostApi.GetCommentsAsync(postId);
@@ -2301,14 +2263,12 @@
             commentsByPost[postId] = res.Data;
         }
     }
-
     private async Task SubmitComment(int postId)
     {
         if (!commentInputs.TryGetValue(postId, out var content) || string.IsNullOrWhiteSpace(content))
         {
             return;
         }
-
         var res = await PostApi.AddCommentAsync(new CreateCommentRequestModel(postId, content));
         if (res.IsSuccess)
         {
@@ -2321,20 +2281,17 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_CommentFailed"]);
         }
     }
-
     private void OpenShareModal(int postId)
     {
         sharingPostId = postId;
         shareNoteText = "";
         showShareModal = true;
     }
-
     private async Task SubmitShare()
     {
         isSubmitting = true;
         var res = await PostApi.SharePostAsync(sharingPostId, new SharePostRequestModel(shareNoteText));
         isSubmitting = false;
-
         if (res.IsSuccess)
         {
             Toast.Success(Loc["GroupDetail_Toast_ShareSuccess"]);
@@ -2346,7 +2303,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_ShareFailed"]);
         }
     }
-
     private async Task Vote(int pollId, int optionId)
     {
         var res = await PollApi.VoteAsync(new VoteRequestModel(pollId, [optionId]));
@@ -2360,7 +2316,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_VoteFailed"]);
         }
     }
-
     private async Task ConfirmDeletePost(int postId)
     {
         activeMenuPostId = null;
@@ -2375,12 +2330,10 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PostDeleteFailed"]);
         }
     }
-
     private void TogglePostMenu(int postId)
     {
         activeMenuPostId = (activeMenuPostId == postId) ? null : postId;
     }
-
     private async Task ToggleSavePost(int postId)
     {
         activeMenuPostId = null;
@@ -2395,7 +2348,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PostSaveFailed"]);
         }
     }
-
     private void OpenEditPost(PostModel post)
     {
         activeMenuPostId = null;
@@ -2403,15 +2355,12 @@
         editingPostContent = post.Content;
         showEditPostModal = true;
     }
-
     private async Task SaveEditPostAsync()
     {
         if (!editingPostId.HasValue || string.IsNullOrWhiteSpace(editingPostContent)) return;
-
         isSavingEditPost = true;
         var res = await PostApi.UpdatePostAsync(editingPostId.Value, new UpdatePostRequestModel(editingPostContent.Trim(), null));
         isSavingEditPost = false;
-
         if (res.IsSuccess)
         {
             Toast.Success(Loc["GroupDetail_Toast_PostUpdated"]);
@@ -2423,12 +2372,10 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PostUpdateFailed"]);
         }
     }
-
     private void TogglePollMenu(int pollId)
     {
         activeMenuPollId = (activeMenuPollId == pollId) ? null : pollId;
     }
-
     private async Task ToggleSavePoll(int postId)
     {
         activeMenuPollId = null;
@@ -2442,7 +2389,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PollSaveFailed"]);
         }
     }
-
     private void OpenEditPoll(PollModel poll)
     {
         activeMenuPollId = null;
@@ -2451,15 +2397,12 @@
         editingPollContent = (poll.Content != poll.Question) ? (poll.Content ?? "") : "";
         showEditPollModal = true;
     }
-
     private async Task SaveEditPollAsync()
     {
         if (!editingPollId.HasValue || string.IsNullOrWhiteSpace(editingPollQuestion)) return;
-
         isSavingEditPoll = true;
         var res = await PollApi.UpdatePollAsync(editingPollId.Value, new UpdatePollRequestModel(editingPollQuestion.Trim(), string.IsNullOrWhiteSpace(editingPollContent) ? null : editingPollContent.Trim()));
         isSavingEditPoll = false;
-
         if (res.IsSuccess)
         {
             Toast.Success(Loc["GroupDetail_Toast_PollUpdated"]);
@@ -2471,7 +2414,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_PollUpdateFailed"]);
         }
     }
-
     private async Task DeletePoll(int pollId)
     {
         activeMenuPollId = null;
@@ -2486,7 +2428,6 @@
             Toast.Error(res.Message ?? Loc["GroupDetail_Toast_DeletePollFailed"]);
         }
     }
-
     private string FormatTimeAgo(DateTime utcDate)
     {
         var utc = utcDate.Kind == DateTimeKind.Utc 
@@ -2501,7 +2442,6 @@
         if (span.TotalHours < 24) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_HoursAgo"], Math.Max(1, (int)span.TotalHours));
         return utc.ToLocalTime().ToString("dd-MM-yyyy");
     }
-
     private string GetMemberRoleLocalized(string? role)
     {
         if (string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase)) return Loc["GroupDetail_Role_Owner"];
@@ -2509,14 +2449,11 @@
         if (string.Equals(role, "Member", StringComparison.OrdinalIgnoreCase)) return Loc["GroupDetail_Role_Member"];
         return role ?? string.Empty;
     }
-
     public sealed record AttachedTextFileItem(string FileName, string Content, string? FileUrl = null, long? FileSizeBytes = null);
-
     private static List<AttachedTextFileItem> ParseGroupTextFiles(string codeSnippet, string? codeFileName)
     {
         var list = new List<AttachedTextFileItem>();
         if (string.IsNullOrWhiteSpace(codeSnippet)) return list;
-
         if (codeSnippet.TrimStart().StartsWith("[") && codeSnippet.Contains("\"FileName\""))
         {
             try
@@ -2529,11 +2466,9 @@
             }
             catch { }
         }
-
         list.Add(new AttachedTextFileItem(string.IsNullOrWhiteSpace(codeFileName) ? "attachment.txt" : codeFileName, codeSnippet));
         return list;
     }
-
     private static string FormatGroupFileSize(long? bytes)
     {
         if (!bytes.HasValue || bytes <= 0) return string.Empty;
@@ -2541,7 +2476,6 @@
         if (bytes < 1024 * 1024) return $"{bytes.Value / 1024.0:F1} KB";
         return $"{bytes.Value / (1024.0 * 1024.0):F1} MB";
     }
-
     private async Task CopyGroupSnippetAsync(string? code)
     {
         if (string.IsNullOrWhiteSpace(code)) return;
@@ -2555,18 +2489,15 @@
             Toast.Error($"Failed to copy: {ex.Message}");
         }
     }
-
     private bool showTextModal = false;
     private string viewingFileName = "";
     private string viewingFileContent = "";
-
     private void OpenTextFileModal(string fileName, string content)
     {
         viewingFileName = fileName;
         viewingFileContent = content;
         showTextModal = true;
     }
-
     private void CloseTextFileModal()
     {
         showTextModal = false;
