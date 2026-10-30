@@ -24,6 +24,13 @@ public class CultureService
     public string CurrentCultureName => _currentUICulture.TwoLetterISOLanguageName;
     public bool IsMyanmar => string.Equals(CurrentCultureName, "my", StringComparison.OrdinalIgnoreCase);
 
+        private static CultureInfo CreateCulture(string name)
+    {
+        var ci = new CultureInfo(name);
+        ci.DateTimeFormat.ShortDatePattern = "dd-MM-yyyy";
+        return ci;
+    }
+
     public CultureService(IJSRuntime? js = null)
     {
         _js = js;
@@ -34,8 +41,8 @@ public class CultureService
             ? norm
             : CultureEndpoints.DefaultCulture;
 
-        _currentCulture = new CultureInfo(canonical);
-        _currentUICulture = new CultureInfo(canonical);
+        _currentCulture = CreateCulture(canonical);
+        _currentUICulture = CreateCulture(canonical);
     }
 
     /// <summary>
@@ -51,7 +58,7 @@ public class CultureService
         if (string.Equals(CurrentCultureName, canonical, StringComparison.OrdinalIgnoreCase))
             return;
 
-        var newCulture = new CultureInfo(canonical);
+        var newCulture = CreateCulture(canonical);
         _currentCulture = newCulture;
         _currentUICulture = newCulture;
 
@@ -88,7 +95,7 @@ public class CultureService
         if (!CultureEndpoints.TryNormalizeCulture(cultureCode, out var canonical))
             return;
 
-        var newCulture = new CultureInfo(canonical);
+        var newCulture = CreateCulture(canonical);
         _currentCulture = newCulture;
         _currentUICulture = newCulture;
 

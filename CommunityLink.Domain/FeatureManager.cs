@@ -34,7 +34,14 @@ public static class FeatureManager
         {
             var options = new DbContextOptionsBuilder<AppDbContext>();
             if (!string.IsNullOrWhiteSpace(customSetting.ConnectionStrings.DefaultConnection))
-                options.UseSqlServer(customSetting.ConnectionStrings.DefaultConnection);
+                options.UseSqlServer(customSetting.ConnectionStrings.DefaultConnection, sqlOptions =>
+                {
+                    sqlOptions.CommandTimeout(60);
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromSeconds(5),
+                        errorNumbersToAdd: null);
+                });
             else
                 options.UseInMemoryDatabase("CommunityLinkInMemoryDb");
 

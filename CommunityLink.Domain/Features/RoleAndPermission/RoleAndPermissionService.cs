@@ -21,28 +21,38 @@ public sealed class RoleAndPermissionService(AppDbContext dbContext, ICurrentUse
 {
     public async Task<Result<IReadOnlyList<string>>> GetCurrentUserPermissionsAsync(CancellationToken cancellationToken = default)
     {
-        if (currentUser.RoleId is null)
-            return Result<IReadOnlyList<string>>.Success([]);
-
-        if (string.Equals(currentUser.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(currentUser.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase))
+        try
         {
-            var adminPerms = await dbContext.TblPermissions
-                .Where(p => !p.IsDeleted && p.Type == 1)
-                .Select(p => p.PermissionCode)
+            if (currentUser.RoleId is null)
+                return Result<IReadOnlyList<string>>.Success([]);
+
+            if (string.Equals(currentUser.RoleCode, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(currentUser.RoleCode, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase))
+            {
+                var adminPerms = await dbContext.TblPermissions
+                    .Where(p => !p.IsDeleted && p.Type == 1)
+                    .Select(p => p.PermissionCode)
+                    .ToListAsync(cancellationToken);
+                return Result<IReadOnlyList<string>>.Success(adminPerms);
+            }
+
+            var perms = await dbContext.TblRolePermissions
+                .AsNoTracking()
+                .Where(rp => rp.RoleId == currentUser.RoleId.Value && !rp.IsDeleted)
+                .Select(rp => rp.Permission.PermissionCode)
                 .ToListAsync(cancellationToken);
-            return Result<IReadOnlyList<string>>.Success(adminPerms);
+
+            return Result<IReadOnlyList<string>>.Success(perms);
         }
-
-        var perms = await dbContext.TblRolePermissions
-            .AsNoTracking()
-            .Where(rp => rp.RoleId == currentUser.RoleId.Value && !rp.IsDeleted)
-            .Select(rp => rp.Permission.PermissionCode)
-            .ToListAsync(cancellationToken);
-
-        return Result<IReadOnlyList<string>>.Success(perms);
+        catch (OperationCanceledException)
+        {
+            return Result<IReadOnlyList<string>>.Success([]);
+        }
+        catch (Microsoft.Data.SqlClient.SqlException ex) when (cancellationToken.IsCancellationRequested || ex.Message.Contains("Operation cancelled by user", StringComparison.OrdinalIgnoreCase))
+        {
+            return Result<IReadOnlyList<string>>.Success([]);
+        }
     }
-
     public async Task<Result<IReadOnlyList<RoleModel>>> GetRolesAsync(int? roleType = null, CancellationToken cancellationToken = default)
     {
         var query = dbContext.TblRoles

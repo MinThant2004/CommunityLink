@@ -12,12 +12,13 @@ public static class AuthFlowEndpoints
         endpoints.MapPost("/account/login",
             async ([FromForm] string email,
                    [FromForm] string password,
-                   [FromForm] bool? rememberMe,
+                   [FromForm] string? rememberMe,
                    [FromForm] string? returnUrl,
                    AuthenticationApiService authApi,
                    AuthSessionService sessions) =>
         {
-            return await HandleLoginAsync(authApi, sessions, "/login", email, password, rememberMe == true, returnUrl);
+            var isRemembered = ParseRememberMe(rememberMe);
+            return await HandleLoginAsync(authApi, sessions, "/login", email, password, isRemembered, returnUrl);
         }).DisableAntiforgery();
 
         endpoints.MapPost("/account/register",
@@ -51,11 +52,12 @@ public static class AuthFlowEndpoints
         endpoints.MapPost("/account/admin/login",
             async ([FromForm] string email,
                    [FromForm] string password,
-                   [FromForm] bool? rememberMe,
+                   [FromForm] string? rememberMe,
                    AuthenticationApiService authApi,
                    AuthSessionService sessions) =>
         {
-            var result = await authApi.LoginAdminAsync(new LoginRequestModel(email, password, rememberMe == true, IsAdmin: true));
+            var isRemembered = ParseRememberMe(rememberMe);
+            var result = await authApi.LoginAdminAsync(new LoginRequestModel(email, password, isRemembered, IsAdmin: true));
             if (!result.IsSuccess || result.Data is null)
             {
                 var qs = new Dictionary<string, string?>
@@ -66,7 +68,7 @@ public static class AuthFlowEndpoints
                 return RedirectWithQuery("/admin/portal-entry/login", qs);
             }
 
-            await sessions.SignInAsync(result.Data, rememberMe == true);
+            await sessions.SignInAsync(result.Data, isRemembered);
             return Results.Redirect("/admin/dashboard");
         }).DisableAntiforgery();
 
@@ -119,6 +121,11 @@ public static class AuthFlowEndpoints
         var target = IsLocalUrl(returnUrl) ? returnUrl! : defaultTarget;
         return Results.Redirect(target);
     }
+
+    private static bool ParseRememberMe(string? rememberMe) =>
+        rememberMe != null &&
+        (rememberMe.Contains("true", StringComparison.OrdinalIgnoreCase) ||
+         string.Equals(rememberMe, "on", StringComparison.OrdinalIgnoreCase));
 
     private static bool IsLocalUrl(string? url) =>
         url != null && url.StartsWith("/") && !url.StartsWith("//") && !url.StartsWith("/\\");

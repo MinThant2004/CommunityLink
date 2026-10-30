@@ -81,7 +81,7 @@ public static class ChatThreadMapper
         }
 
         return loc is not null
-            ? loc["Chat_Presence_Date", localTime.ToString("MMM d, yyyy")]
+            ? loc["Chat_Presence_Date", localTime.ToString("dd-MM-yyyy")]
             : $"last seen {localTime:MMM d, yyyy}";
     }
 
@@ -238,7 +238,7 @@ public static class ChatThreadMapper
 
         return local.Date.Year == today.Year
             ? local.ToString("MMM d")
-            : local.ToString("MMM d, yyyy");
+            : local.ToString("dd-MM-yyyy");
     }
 
     public static string FormatDateSeparator(DateTime localDate) =>
@@ -260,7 +260,7 @@ public static class ChatThreadMapper
 
         return localDate.Year == today.Year
             ? localDate.ToString("MMMM d")
-            : localDate.ToString("MMMM d, yyyy");
+            : localDate.ToString("dd-MM-yyyy");
     }
 
     public static string FormatPreview(string? preview) =>
