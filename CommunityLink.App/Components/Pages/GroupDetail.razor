@@ -680,8 +680,12 @@
                                                         TextClass="text-sm" />
                                         </a>
                                         <div>
-                                            <a href="u/@(poll.AuthorId > 0 ? poll.AuthorId.ToString() : poll.AuthorName)" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition block leading-tight" style="font-family:'Manrope',sans-serif">
-                                                @poll.AuthorName
+                                            <a href="u/@(poll.AuthorId > 0 ? poll.AuthorId.ToString() : poll.AuthorName)" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition inline-flex items-center gap-1 leading-tight" style="font-family:'Manrope',sans-serif">
+                                                <span>@poll.AuthorName</span>
+                                                @if (poll.IsAuthorVerified)
+                                                {
+                                                    <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
+                                                }
                                             </a>
                                             <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@poll.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
                                         </div>

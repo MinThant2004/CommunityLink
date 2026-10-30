@@ -75,7 +75,13 @@
                                             ColorClass="text-[#0A1B2E] dark:text-[#E1E8F0]" />
                                 <div>
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <h2 class="text-sm font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@poll.AuthorName</h2>
+                                        <h2 class="text-sm font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] inline-flex items-center gap-1">
+                                            <span>@poll.AuthorName</span>
+                                            @if (poll.IsAuthorVerified)
+                                            {
+                                                <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
+                                            }
+                                        </h2>
                                         @if (!string.IsNullOrEmpty(poll.CommunityName))
                                         {
                                             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-[#F1F5F9] dark:bg-[#1B3B5A] text-[#557392] dark:text-[#C4D2E1] border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)]">

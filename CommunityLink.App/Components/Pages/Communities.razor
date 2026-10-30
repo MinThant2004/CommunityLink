@@ -731,17 +731,20 @@
                           user.HasClaim("permission", PermissionCatalog.AdminUserView);
                 if (isAdmin)
                 {
-                    canCreateCommunity = true;
-                }
-                else
-                {
                     var permRes = await RoleApi.GetMyPermissionsAsync();
                     if (permRes.IsSuccess && permRes.Data != null)
                     {
                         canCreateCommunity = permRes.Data.Any(p =>
-                            p.Equals("COMMUNITY.CREATE", StringComparison.OrdinalIgnoreCase) ||
-                            p.Equals("SUBCOMMUNITY.CREATE", StringComparison.OrdinalIgnoreCase));
+                            p.Equals(PermissionCatalog.CommunityCreate, StringComparison.OrdinalIgnoreCase));
                     }
+                    else
+                    {
+                        canCreateCommunity = false;
+                    }
+                }
+                else
+                {
+                    canCreateCommunity = false;
                 }
             }
         }
@@ -879,6 +882,11 @@
 
     private async Task SubmitCreateAsync()
     {
+        if (!isAdmin || !canCreateCommunity)
+        {
+            modalError = "You do not have permission to create communities.";
+            return;
+        }
         modalError = null;
         if (string.IsNullOrWhiteSpace(communityName))
         {

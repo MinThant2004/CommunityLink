@@ -801,7 +801,32 @@ else if (dashboard != null)
                 
                 <!-- PRIMARY CONTENT COLUMN (Span 8) -->
                 <div class="lg:col-span-8 flex flex-col gap-space-md">
-                    
+                    <!-- POSTS SEARCH BAR -->
+                    <div class="bg-surface-container-low p-2.5 sm:p-3 rounded-xl shadow-xs border border-white/5 flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+                            <input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs pl-9 pr-8 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-white/20 transition-all border border-white/5"
+                                   id="post-feed-search"
+                                   placeholder="@Loc["Home_Posts_SearchPlaceholder"]"
+                                   type="text"
+                                   @bind="postSearchQuery"
+                                   @bind:event="oninput"
+                                   @onkeydown="HandlePostSearchKeyDown" />
+                            @if (!string.IsNullOrWhiteSpace(postSearchQuery))
+                            {
+                                <button type="button" @onclick="ClearPostSearchAsync"
+                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface text-base cursor-pointer leading-none"
+                                        title="Clear search">
+                                    &times;
+                                </button>
+                            }
+                        </div>
+                        <button type="button" @onclick="ExecutePostSearchAsync"
+                                class="px-3.5 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-white/10 shrink-0">
+                            <span class="material-symbols-outlined text-[15px]">search</span>
+                            <span class="hidden sm:inline">@Loc["Home_Posts_SearchBtn"]</span>
+                        </button>
+                    </div>
                     <!-- 2. QUICK DISPATCH & POLL COMPOSER -->
                     @if (canPostStandalone || currentUserIsAdmin)
                     {
@@ -846,32 +871,6 @@ else if (dashboard != null)
                             </div>
                         </div>
                     }
-                    <!-- POSTS SEARCH BAR -->
-                    <div class="bg-surface-container-low p-2.5 sm:p-3 rounded-xl shadow-xs border border-white/5 flex items-center gap-2">
-                        <div class="relative flex-1">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
-                            <input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs pl-9 pr-8 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-white/20 transition-all border border-white/5"
-                                   id="post-feed-search"
-                                   placeholder="@Loc["Home_Posts_SearchPlaceholder"]"
-                                   type="text"
-                                   @bind="postSearchQuery"
-                                   @bind:event="oninput"
-                                   @onkeydown="HandlePostSearchKeyDown" />
-                            @if (!string.IsNullOrWhiteSpace(postSearchQuery))
-                            {
-                                <button type="button" @onclick="ClearPostSearchAsync"
-                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface text-base cursor-pointer leading-none"
-                                        title="Clear search">
-                                    &times;
-                                </button>
-                            }
-                        </div>
-                        <button type="button" @onclick="ExecutePostSearchAsync"
-                                class="px-3.5 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-white/10 shrink-0">
-                            <span class="material-symbols-outlined text-[15px]">search</span>
-                            <span class="hidden sm:inline">@Loc["Home_Posts_SearchBtn"]</span>
-                        </button>
-                    </div>
 
                     <!-- EXECUTIVE BROADCAST STREAM (POSTS FEED) -->
                     <div class="flex flex-col gap-3.5" id="feed-stream">
@@ -1327,8 +1326,12 @@ else if (dashboard != null)
 
                                                 <div class="flex flex-col">
                                                     <div class="flex items-center gap-1.5 flex-wrap">
-                                                        <a href="u/@(!string.IsNullOrWhiteSpace(poll.AuthorUserName) ? poll.AuthorUserName : poll.AuthorName)" class="text-xs sm:text-sm font-bold text-on-surface hover:text-secondary transition-colors">
-                                                            @poll.AuthorName
+                                                        <a href="u/@(!string.IsNullOrWhiteSpace(poll.AuthorUserName) ? poll.AuthorUserName : poll.AuthorName)" class="text-xs sm:text-sm font-bold text-on-surface hover:text-secondary transition-colors inline-flex items-center gap-1">
+                                                            <span>@poll.AuthorName</span>
+                                                            @if (poll.IsAuthorVerified)
+                                                            {
+                                                                <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
+                                                            }
                                                         </a>
                                                         @if (!string.IsNullOrWhiteSpace(poll.GroupName))
                                                         {
@@ -1405,10 +1408,7 @@ else if (dashboard != null)
                                                     <span>• Multiple choices</span>
                                                 }
                                             </div>
-                                            <a href="polls" class="text-secondary hover:underline font-semibold flex items-center gap-0.5">
-                                                <span>Audit ballot</span>
-                                                <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
-                                            </a>
+
                                         </div>
                                     </article>
                                 }

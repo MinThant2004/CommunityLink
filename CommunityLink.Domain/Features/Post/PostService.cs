@@ -324,7 +324,9 @@ public sealed class PostService(
                             p.AuthorUserName,
                             pl.IsActive,
                             pl.IsPrivate,
-                            pl.ModerationReason);
+                            pl.ModerationReason,
+                            p.AuthorIsVerified,
+                            p.AuthorRoleCode);
                     }
                 }
             }

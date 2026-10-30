@@ -26,11 +26,17 @@ public sealed class PermissionEvaluator(AppDbContext dbContext, ICurrentUserCont
                             !rp.IsDeleted, cancellationToken);
         if (hasPerm) return true;
 
-        // Fallback to catalog defaults if role permissions haven't been seeded in DB (e.g. dynamic test roles)
+        // Fallback to catalog defaults only if role permissions haven't been seeded in DB (e.g. dynamic test roles)
         if (!string.IsNullOrEmpty(currentUser.RoleCode))
         {
-            var defaultCodes = PermissionCatalog.DefaultForRole(currentUser.RoleCode);
-            return defaultCodes.Contains(permissionCode);
+            var roleHasAnyPerms = await dbContext.TblRolePermissions
+                .AsNoTracking()
+                .AnyAsync(rp => rp.RoleId == currentUser.RoleId, cancellationToken);
+            if (!roleHasAnyPerms)
+            {
+                var defaultCodes = PermissionCatalog.DefaultForRole(currentUser.RoleCode);
+                return defaultCodes.Contains(permissionCode);
+            }
         }
 
         return false;

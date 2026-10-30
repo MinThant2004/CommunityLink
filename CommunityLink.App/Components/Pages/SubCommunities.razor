@@ -470,23 +470,39 @@
             var user = authState.User;
             if (user.Identity?.IsAuthenticated == true)
             {
-                isAdmin = user.IsInRole("ADMIN") ||
-                          string.Equals(user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                           ?? user.FindFirst("role")?.Value
+                           ?? string.Empty;
+
+                isAdmin = user.HasClaim("is_admin", "true") ||
+                          user.HasClaim("role_type", "1") ||
+                          user.IsInRole("ADMIN") ||
+                          user.IsInRole("SYSTEM_ADMIN") ||
+                          user.IsInRole("SYSTEMADMIN") ||
+                          user.IsInRole("SUPERADMIN") ||
+                          string.Equals(role, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                          string.Equals(role, "SYSTEM_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                          string.Equals(role, "SYSTEMADMIN", StringComparison.OrdinalIgnoreCase) ||
+                          string.Equals(role, "SUPERADMIN", StringComparison.OrdinalIgnoreCase) ||
                           user.HasClaim("permission", PermissionCatalog.AdminUserView);
 
                 if (isAdmin)
-                {
-                    canCreateSubCommunity = true;
-                }
-                else
                 {
                     var permRes = await RoleApi.GetMyPermissionsAsync();
                     if (permRes.IsSuccess && permRes.Data != null)
                     {
                         canCreateSubCommunity = permRes.Data.Any(p =>
-                            p.Equals(PermissionCatalog.SubCommunityCreate, StringComparison.OrdinalIgnoreCase) ||
-                            p.Equals(PermissionCatalog.CommunityCreate, StringComparison.OrdinalIgnoreCase));
+                            p.Equals(PermissionCatalog.CommunityCreate, StringComparison.OrdinalIgnoreCase) ||
+                            p.Equals(PermissionCatalog.SubCommunityCreate, StringComparison.OrdinalIgnoreCase));
                     }
+                    else
+                    {
+                        canCreateSubCommunity = false;
+                    }
+                }
+                else
+                {
+                    canCreateSubCommunity = false;
                 }
             }
         }
@@ -772,6 +788,11 @@
 
     private async Task SubmitCreateSubCommunity()
     {
+        if (!isAdmin || !canCreateSubCommunity)
+        {
+            Toast.Error("You do not have permission to create sub-communities.");
+            return;
+        }
         if (string.IsNullOrWhiteSpace(newSubName))
         {
             Toast.Error(Loc["SubCommunities_Val_NameRequired"]);
