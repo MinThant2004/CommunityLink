@@ -28,7 +28,8 @@ public sealed record PollModel(
     string? AuthorUserName = null,
     bool IsActive = true,
     bool IsPrivate = false,
-    string? ModerationReason = null)
+    string? ModerationReason = null,
+    bool IsAuthorVerified = false)
 {
     public bool IsPrivate { get; set; } = IsPrivate;
     public bool IsActive { get; set; } = IsActive;

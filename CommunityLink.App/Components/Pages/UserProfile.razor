@@ -1,3 +1,4 @@
+@using System.Globalization
 @page "/profile"
 @page "/u/{UserNameOrId}"
 @attribute [Authorize]
@@ -629,7 +630,7 @@
                                                 @((MarkupString)string.Format(Loc["Profile_Post_SharedBy"], $"<span class=\"font-bold text-[#0A1B2E] dark:text-[#E1E8F0]\">{(post.SharedByDisplayName ?? post.SharedByUserName)}</span>"))
                                                 @if (post.SharedAt.HasValue)
                                                 {
-                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.SharedAt.Value.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @GetRelativeTime(post.SharedAt.Value)</span>
                                                 }
                                             </div>
                                         }
@@ -671,7 +672,7 @@
                                                         {
                                                             <span>@post.CommunityName • </span>
                                                         }
-                                                        <span>@post.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                                        <span>@GetRelativeTime(post.CreatedAt)</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -863,7 +864,7 @@
                                                                     <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.OriginalPost.CommunityName</span>
                                                                 }
                                                             </div>
-                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@post.OriginalPost.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@GetRelativeTime(post.OriginalPost.CreatedAt)</span>
                                                         </div>
                                                     </div>
 
@@ -1001,6 +1002,8 @@
                                             </div>
                                         }
 
+                                        @if (!post.HasPoll)
+                                        {
                                         <!-- Engagement Strip (Home Style) -->
                                         <div class="flex items-center justify-between pt-1 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
                                             <div class="flex items-center gap-4">
@@ -1039,7 +1042,7 @@
                                                            class="flex-1 text-xs bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20" />
                                                     <button type="button" @onclick="() => SubmitProfileCommentAsync(post.PostId)"
                                                             class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] rounded-xl text-xs font-semibold hover:opacity-90 transition cursor-pointer">
-                                                        Post
+                                                        @Loc["Profile_Post_SubmitCommentBtn"]
                                                     </button>
                                                 </div>
 
@@ -1061,7 +1064,7 @@
                                                                     <div class="flex-1 min-w-0">
                                                                         <div class="flex items-center justify-between mb-0.5">
                                                                             <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@c.AuthorName</span>
-                                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@c.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@GetRelativeTime(c.CreatedAt)</span>
                                                                         </div>
                                                                         <p class="text-[#557392] dark:text-[#C4D2E1] leading-relaxed whitespace-pre-wrap">@c.Content</p>
                                                                     </div>
@@ -1071,6 +1074,7 @@
                                                     }
                                                 }
                                             </div>
+                                        }
                                         }
                                     </article>
                                 }
@@ -1232,7 +1236,7 @@
                                                 @((MarkupString)string.Format(Loc["Profile_Post_SharedBy"], $"<span class=\"font-bold text-[#0A1B2E] dark:text-[#E1E8F0]\">{(post.SharedByDisplayName ?? post.SharedByUserName)}</span>"))
                                                 @if (post.SharedAt.HasValue)
                                                 {
-                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @post.SharedAt.Value.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">• @GetRelativeTime(post.SharedAt.Value)</span>
                                                 }
                                             </div>
                                         }
@@ -1260,7 +1264,7 @@
                                                         {
                                                             <span>@post.CommunityName • </span>
                                                         }
-                                                        <span>@post.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                                        <span>@GetRelativeTime(post.CreatedAt)</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1425,6 +1429,8 @@
                                             </div>
                                         }
 
+                                        @if (!post.HasPoll)
+                                        {
                                         <!-- Engagement Strip (Home Style) -->
                                         <div class="flex items-center justify-between pt-1 border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
                                             <div class="flex items-center gap-4">
@@ -1463,7 +1469,7 @@
                                                            class="flex-1 text-xs bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-[#0A1B2E] dark:text-[#E1E8F0] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20" />
                                                     <button type="button" @onclick="() => SubmitProfileCommentAsync(post.PostId)"
                                                             class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] rounded-xl text-xs font-semibold hover:opacity-90 transition cursor-pointer">
-                                                        Post
+                                                        @Loc["Profile_Post_SubmitCommentBtn"]
                                                     </button>
                                                 </div>
 
@@ -1485,7 +1491,7 @@
                                                                     <div class="flex-1 min-w-0">
                                                                         <div class="flex items-center justify-between mb-0.5">
                                                                             <span class="font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@c.AuthorName</span>
-                                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@c.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                                                            <span class="text-[10px] text-[#7A8CA6] font-mono">@GetRelativeTime(c.CreatedAt)</span>
                                                                         </div>
                                                                         <p class="text-[#557392] dark:text-[#C4D2E1] leading-relaxed whitespace-pre-wrap">@c.Content</p>
                                                                     </div>
@@ -1495,6 +1501,7 @@
                                                     }
                                                 }
                                             </div>
+                                        }
                                         }
                                     </article>
                                 }
@@ -2132,6 +2139,22 @@
 }
 
 @code {
+    private string GetRelativeTime(DateTime dt)
+    {
+        var utcDt = dt.Kind == DateTimeKind.Utc 
+            ? dt 
+            : (dt.Kind == DateTimeKind.Local
+                ? dt.ToUniversalTime()
+                : DateTime.SpecifyKind(dt, DateTimeKind.Utc));
+        var span = DateTime.UtcNow - utcDt;
+        if (span < TimeSpan.Zero) span = TimeSpan.Zero;
+
+        if (span.TotalSeconds < 60) return Loc["GroupDetail_Time_JustNow"];
+        if (span.TotalMinutes < 60) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_MinutesAgo"], Math.Max(1, (int)span.TotalMinutes));
+        if (span.TotalHours < 24) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_HoursAgo"], Math.Max(1, (int)span.TotalHours));
+        return utcDt.ToLocalTime().ToString("dd-MM-yyyy");
+    }
+
     private readonly Dictionary<int, int> postActiveImageIndex = new();
 
     private int GetActiveImageIndex(int postId)

@@ -110,18 +110,11 @@ public sealed class PostService(
                 query = query.Where(p => p.GroupId == null && p.CommunityId == null);
             }
 
-            bool hasFollowed = followedAuthorIds.Count > 0;
-            bool hasGroups = joinedGroupIds.Count > 0;
-            bool hasCommunities = joinedCommunityIds.Count > 0;
-            bool hasUser = currentUserId.HasValue;
-            int uid = currentUserId ?? 0;
-
             query = query
                 .OrderBy(p =>
-                    (hasFollowed && followedAuthorIds.Contains(p.AuthorId)) ? 1 :
-                    (hasGroups && p.GroupId.HasValue && joinedGroupIds.Contains(p.GroupId.Value)) ? 2 :
-                    (hasCommunities && p.CommunityId.HasValue && joinedCommunityIds.Contains(p.CommunityId.Value)) ? 3 :
-                    (hasUser && p.AuthorId == uid) ? 4 : 5)
+                    p.Author != null && p.Author.TblUserRoles.Any(ur => !ur.IsDeleted && ur.Role.RoleCode == "PUBLIC_FIGURE") ? 1 :
+                    p.Author != null && p.Author.TblUserRoles.Any(ur => !ur.IsDeleted && (ur.Role.RoleCode == "DOMAIN_PROFESSIONAL" || ur.Role.RoleCode == "DOMAIN_PRO")) ? 2 :
+                    3)
                 .ThenByDescending(p => p.CreatedAt)
                 .ThenByDescending(p => p.PostId);
 
@@ -141,7 +134,11 @@ public sealed class PostService(
                     AuthorAvatar = p.Author != null ? p.Author.AvatarUrl : null,
                     AuthorIsVerified = p.Author != null && p.Author.IsVerified,
                     AuthorRoleCode = p.Author != null
-                        ? p.Author.TblUserRoles.Where(ur => !ur.IsDeleted).Select(ur => ur.Role.RoleCode).FirstOrDefault()
+                        ? p.Author.TblUserRoles
+                            .Where(ur => !ur.IsDeleted)
+                            .OrderBy(ur => ur.Role.RoleCode == "PUBLIC_FIGURE" ? 1 : (ur.Role.RoleCode == "DOMAIN_PROFESSIONAL" || ur.Role.RoleCode == "DOMAIN_PRO") ? 2 : 3)
+                            .Select(ur => ur.Role.RoleCode)
+                            .FirstOrDefault()
                         : null,
                     p.Content,
                     p.HasPoll,
@@ -324,24 +321,24 @@ public sealed class PostService(
                             p.AuthorUserName,
                             pl.IsActive,
                             pl.IsPrivate,
-                            pl.ModerationReason);
+                            pl.ModerationReason,
+                            p.AuthorIsVerified || (p.AuthorRoleCode == "DOMAIN_PRO" || p.AuthorRoleCode == "PUBLIC_FIGURE"));
                     }
                 }
             }
 
-            int CalculateTier(int authorId, int? gId, int? cId)
+            int CalculateTier(string? roleCode)
             {
-                if (hasFollowed && followedAuthorIds.Contains(authorId)) return 1;
-                if (hasGroups && gId.HasValue && joinedGroupIds.Contains(gId.Value)) return 2;
-                if (hasCommunities && cId.HasValue && joinedCommunityIds.Contains(cId.Value)) return 3;
-                if (hasUser && authorId == uid) return 4;
-                return 5;
+                if (roleCode == "PUBLIC_FIGURE") return 1;
+                if (roleCode == "DOMAIN_PROFESSIONAL" || roleCode == "DOMAIN_PRO") return 2;
+                return 3;
             }
 
             var items = new List<HomeFeedItemModel>(rawPosts.Count);
             foreach (var p in rawPosts)
             {
-                var tier = CalculateTier(p.AuthorId, p.GroupId, p.CommunityId);
+                var roleCode = p.AuthorRoleCode;
+                var tier = CalculateTier(roleCode);
                 if (p.HasPoll && pollsByPostId.TryGetValue(p.PostId, out var pollModel))
                 {
                     items.Add(new HomeFeedItemModel(
@@ -354,8 +351,7 @@ public sealed class PostService(
                 }
                 else
                 {
-                    var roleCode = p.AuthorRoleCode;
-                    var isVerified = p.AuthorIsVerified || (roleCode == "DOMAIN_PRO" || roleCode == "PUBLIC_FIGURE");
+                    var isVerified = p.AuthorIsVerified || (roleCode == "DOMAIN_PRO" || roleCode == "DOMAIN_PROFESSIONAL" || roleCode == "PUBLIC_FIGURE");
                     var authorName = !string.IsNullOrWhiteSpace(p.AuthorDisplayName)
                         ? p.AuthorDisplayName
                         : (!string.IsNullOrWhiteSpace(p.AuthorUserName) ? p.AuthorUserName : "Unknown");

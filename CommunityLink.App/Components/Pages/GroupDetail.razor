@@ -383,7 +383,7 @@
                                                     </span>
                                                 }
                                             </div>
-                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@post.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@FormatTimeAgo(post.CreatedAt)</span>
                                         </div>
                                     </div>
 
@@ -623,7 +623,7 @@
                                                             <div class="flex-1 bg-white dark:bg-[#112A46] p-2.5 rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
                                                                 <div class="flex items-center justify-between gap-2 mb-1">
                                                                     <a href="u/@comment.AuthorName" class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition">@comment.AuthorName</a>
-                                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">@comment.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                                                    <span class="text-[10px] text-[#7A8CA6] font-mono">@FormatTimeAgo(comment.CreatedAt)</span>
                                                                 </div>
                                                                 <p class="text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line">@comment.Content</p>
                                                             </div>
@@ -680,10 +680,14 @@
                                                         TextClass="text-sm" />
                                         </a>
                                         <div>
-                                            <a href="u/@(poll.AuthorId > 0 ? poll.AuthorId.ToString() : poll.AuthorName)" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition block leading-tight" style="font-family:'Manrope',sans-serif">
-                                                @poll.AuthorName
+                                            <a href="u/@(poll.AuthorId > 0 ? poll.AuthorId.ToString() : poll.AuthorName)" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition inline-flex items-center gap-1 leading-tight" style="font-family:'Manrope',sans-serif">
+                                                <span>@poll.AuthorName</span>
+                                                @if (poll.IsAuthorVerified)
+                                                {
+                                                    <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
+                                                }
                                             </a>
-                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@poll.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
+                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@FormatTimeAgo(poll.CreatedAt)</span>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
@@ -819,84 +823,6 @@
                                     }
                                 </div>
 
-                                <!-- Actions: Like, Comment, Share on Poll (Home Style) -->
-                                <div class="px-4 py-2.5 flex items-center justify-between border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                                    <div class="flex items-center gap-4">
-                                        <button type="button" @onclick="() => ToggleLike(poll.PostId)"
-                                                class="flex items-center gap-1 text-xs @(poll.IsLikedByCurrentUser ? "text-rose-500 font-semibold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-rose-500") transition-colors cursor-pointer"
-                                                title="@Loc["GroupDetail_Post_LikeBtn"]">
-                                            <span class="material-symbols-outlined text-[17px] @(poll.IsLikedByCurrentUser ? "text-rose-500" : "")">favorite</span>
-                                            <span>@poll.LikeCount</span>
-                                        </button>
-
-                                        <button type="button" @onclick="() => ToggleCommentBox(poll.PostId)"
-                                                class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
-                                                title="@Loc["GroupDetail_Post_CommentBtn"]">
-                                            <span class="material-symbols-outlined text-[17px]">chat_bubble</span>
-                                            <span>@poll.CommentCount</span>
-                                        </button>
-
-                                        <button type="button" @onclick="() => OpenShareModal(poll.PostId)"
-                                                class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
-                                                title="@Loc["GroupDetail_Post_ShareBtn"]">
-                                            <svg class="w-4 h-4 fill-none stroke-current" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                                                <path d="M15 14l5-5-5-5" />
-                                                <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
-                                            </svg>
-                                            <span>@poll.ShareCount</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Poll Comments Drawer -->
-                                @if (openCommentPostIds.Contains(poll.PostId))
-                                {
-                                    <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] p-4 sm:p-5 bg-[#F8FAFC] dark:bg-[#0A1B2E] space-y-4">
-                                        <div class="flex items-start gap-2.5">
-                                            <div class="w-8 h-8 rounded-full bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] flex items-center justify-center shrink-0 mt-0.5">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                                            </div>
-                                            <div class="flex-1 flex gap-2">
-                                                <input type="text" @bind="commentInputs[poll.PostId]"
-                                                       @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitComment(poll.PostId); })"
-                                                       placeholder="@Loc["GroupDetail_Poll_CommentPlaceholder"]"
-                                                       class="w-full text-sm bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded px-3 py-2 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]" />
-                                                <button type="button" @onclick="() => SubmitComment(poll.PostId)"
-                                                        class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded text-xs font-semibold shadow-sm transition">
-                                                    @Loc["GroupDetail_Post_CommentSubmitBtn"]
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        @if (commentsByPost.TryGetValue(poll.PostId, out var commentList) && commentList != null)
-                                        {
-                                            if (commentList.Count == 0)
-                                            {
-                                                <p class="text-xs text-[#557392] dark:text-[#7A8CA6] text-center py-2">@Loc["GroupDetail_Poll_NoComments"]</p>
-                                            }
-                                            else
-                                            {
-                                                <div class="space-y-3 pt-2">
-                                                    @foreach (var comment in commentList)
-                                                    {
-                                                        <div class="flex items-start gap-2.5 text-xs">
-                                                            <div class="w-7 h-7 rounded-full bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center font-bold shrink-0">
-                                                                @(string.IsNullOrWhiteSpace(comment.AuthorName) ? "U" : comment.AuthorName.Substring(0, 1).ToUpper())
-                                                            </div>
-                                                            <div class="flex-1 bg-white dark:bg-[#112A46] p-2.5 rounded border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
-                                                                <div class="flex items-center justify-between gap-2 mb-1">
-                                                                    <span class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@comment.AuthorName</span>
-                                                                    <span class="text-[10px] text-[#557392] dark:text-[#7A8CA6]">@comment.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
-                                                                </div>
-                                                                <p class="text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line">@comment.Content</p>
-                                                            </div>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            }
-                                        }
-                                    </div>
-                                }
                             </div>
                         }
                     </div>
@@ -2563,12 +2489,17 @@
 
     private string FormatTimeAgo(DateTime utcDate)
     {
-        var span = DateTime.UtcNow - utcDate;
-        if (span.TotalMinutes < 1) return Loc["GroupDetail_Time_JustNow"];
-        if (span.TotalMinutes < 60) return string.Format(Loc["GroupDetail_Time_MinutesAgo"], (int)span.TotalMinutes);
-        if (span.TotalHours < 24) return string.Format(Loc["GroupDetail_Time_HoursAgo"], (int)span.TotalHours);
-        if (span.TotalDays < 7) return string.Format(Loc["GroupDetail_Time_DaysAgo"], (int)span.TotalDays);
-        return utcDate.ToLocalTime().ToString("dd-MM-yyyy");
+        var utc = utcDate.Kind == DateTimeKind.Utc 
+            ? utcDate 
+            : (utcDate.Kind == DateTimeKind.Local
+                ? utcDate.ToUniversalTime()
+                : DateTime.SpecifyKind(utcDate, DateTimeKind.Utc));
+        var span = DateTime.UtcNow - utc;
+        if (span < TimeSpan.Zero) span = TimeSpan.Zero;
+        if (span.TotalSeconds < 60) return Loc["GroupDetail_Time_JustNow"];
+        if (span.TotalMinutes < 60) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_MinutesAgo"], Math.Max(1, (int)span.TotalMinutes));
+        if (span.TotalHours < 24) return string.Format(CultureInfo.CurrentCulture, Loc["GroupDetail_Time_HoursAgo"], Math.Max(1, (int)span.TotalHours));
+        return utc.ToLocalTime().ToString("dd-MM-yyyy");
     }
 
     private string GetMemberRoleLocalized(string? role)
