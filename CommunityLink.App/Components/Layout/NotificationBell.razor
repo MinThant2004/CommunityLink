@@ -3,9 +3,11 @@
 @inject NotificationApiService NotificationApi
 @inject NavigationManager Navigation
 @inject IStringLocalizer<AppResources> Loc
+@inject IJSRuntime JS
 @implements IDisposable
+@implements IAsyncDisposable
 
-<div class="relative inline-block text-left" @onclick:stopPropagation>
+<div id="notification-bell-container" class="relative inline-block text-left">
     <!-- Bell Button with Unread Badge -->
     <button type="button" @onclick="ToggleDropdown"
             class="relative p-1.5 rounded text-[#557392] hover:text-[#0A1B2E] hover:bg-[#F1F5F9] dark:text-[#C4D2E1] dark:hover:text-white dark:hover:bg-[#1B3B5A] transition focus:outline-none cursor-pointer"
@@ -26,8 +28,6 @@
     <!-- Dropdown Panel -->
     @if (isOpen)
     {
-        <div class="fixed inset-0 z-40" @onclick="CloseDropdown"></div>
-
         <div class="notification-dropdown-panel absolute right-0 mt-2 rounded-xl bg-white dark:bg-[#112A46] shadow-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.15)] z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
              style="width: min(32rem, calc(100vw - 2rem));">
             <!-- Header -->
@@ -81,16 +81,12 @@
                              class="p-3.5 flex items-start gap-3 transition cursor-pointer hover:bg-slate-50/80 dark:hover:bg-[#1B3B5A]/40 @(!notif.IsRead ? "bg-indigo-50/40 dark:bg-indigo-950/20" : "")">
                             <!-- Icon / Avatar -->
                             <div class="relative shrink-0">
-                                @if (!string.IsNullOrEmpty(notif.ActorAvatar))
-                                {
-                                    <img src="@notif.ActorAvatar" alt="@notif.ActorName" class="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-[rgba(196,210,225,0.2)]" />
-                                }
-                                else
-                                {
-                                    <div class="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center justify-center">
-                                        @(string.IsNullOrWhiteSpace(notif.ActorName) ? "U" : notif.ActorName.Substring(0, 1).ToUpper())
-                                    </div>
-                                }
+                                <UserAvatar Url="@notif.ActorAvatar"
+                                            Name="@notif.ActorName"
+                                            Size="w-9 h-9"
+                                            RingClass="border border-slate-200 dark:border-[rgba(196,210,225,0.2)]"
+                                            BgClass="bg-indigo-100 dark:bg-indigo-900/50"
+                                            ColorClass="text-indigo-700 dark:text-indigo-300" />
                                 <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center bg-white dark:bg-[#112A46] shadow-xs border border-slate-200 dark:border-slate-700">
                                     @RenderNotificationBadgeIcon(notif.NotificationType)
                                 </span>
@@ -168,20 +164,55 @@
         }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
     }
 
+    private DotNetObjectReference<NotificationBell>? dotNetRef;
+
     private async Task ToggleDropdown()
     {
         isOpen = !isOpen;
         if (isOpen)
         {
+            dotNetRef ??= DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("clickOutsideHandler.register", "notification-bell-container", dotNetRef, nameof(CloseDropdownFromOutside));
             currentSkip = 0;
             notifications.Clear();
             await FetchNotifications();
         }
+        else
+        {
+            await CleanupClickOutsideAsync();
+        }
     }
 
-    private void CloseDropdown()
+    [JSInvokable]
+    public async Task CloseDropdownFromOutside()
     {
-        isOpen = false;
+        if (isOpen)
+        {
+            isOpen = false;
+            await CleanupClickOutsideAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task CloseDropdown()
+    {
+        if (isOpen)
+        {
+            isOpen = false;
+            await CleanupClickOutsideAsync();
+        }
+    }
+
+    private async Task CleanupClickOutsideAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("clickOutsideHandler.unregister", "notification-bell-container");
+        }
+        catch
+        {
+            // Ignore JS disconnect during disposal or navigation
+        }
     }
 
     private async Task LoadUnreadCount()
@@ -251,6 +282,7 @@
         }
 
         isOpen = false;
+        await CleanupClickOutsideAsync();
 
         if (!string.IsNullOrWhiteSpace(notif.TargetUrl))
         {
@@ -320,5 +352,12 @@
     public void Dispose()
     {
         pollTimer?.Dispose();
+        dotNetRef?.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await CleanupClickOutsideAsync();
+        Dispose();
     }
 }

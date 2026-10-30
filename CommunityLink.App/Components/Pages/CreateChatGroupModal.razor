@@ -12,96 +12,117 @@
     <div class="space-y-4 px-4 py-4">
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <div class="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3" role="alert">
-                <svg class="mt-0.5 h-4 w-4 shrink-0 text-rose-500" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <div class="flex items-start gap-2.5 rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 p-3" role="alert">
+                <svg class="mt-0.5 h-4 w-4 shrink-0 text-rose-500 dark:text-rose-400" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                 </svg>
-                <span class="text-sm font-medium text-rose-800">@errorMessage</span>
+                <span class="text-sm font-medium text-rose-800 dark:text-rose-200">@errorMessage</span>
             </div>
         }
 
         <div>
-            <label for="cg-name" class="mb-1 block text-xs font-semibold text-slate-700">@Loc["Chat_GroupName"] <span class="text-rose-500" aria-hidden="true">*</span></label>
+            <label for="cg-name" class="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-[#CBD5E1]">@Loc["Chat_GroupName"] <span class="text-rose-500" aria-hidden="true">*</span></label>
             <input id="cg-name" type="text" @bind="name" placeholder="@Loc["Chat_GroupNamePlaceholder"]"
-                   class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
+                   class="w-full rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3.5 py-2.5 text-sm text-slate-900 dark:text-[#E1E2EC] placeholder-slate-400 dark:placeholder-[#64748B] transition focus:border-indigo-600 dark:focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-600 dark:focus:ring-indigo-500" />
         </div>
 
         <div>
-            <label for="cg-description" class="mb-1 block text-xs font-semibold text-slate-700">@Loc["Chat_GroupDescription"]</label>
+            <label for="cg-description" class="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-[#CBD5E1]">@Loc["Chat_GroupDescription"]</label>
             <textarea id="cg-description" @bind="description" rows="3" placeholder="@Loc["Chat_GroupDescriptionPlaceholder"]"
-                      class="w-full resize-none rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"></textarea>
+                      class="w-full resize-none rounded-lg border border-slate-300 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3.5 py-2.5 text-sm text-slate-900 dark:text-[#E1E2EC] placeholder-slate-400 dark:placeholder-[#64748B] transition focus:border-indigo-600 dark:focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-600 dark:focus:ring-indigo-500"></textarea>
         </div>
 
         <div>
-            <label for="cg-avatar" class="mb-1 block text-xs font-semibold text-slate-700">@Loc["Chat_GroupImage"] <span class="text-slate-400">@Loc["Common_Optional"]</span></label>
+            <label for="cg-avatar" class="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-[#CBD5E1]">@Loc["Chat_GroupImage"] <span class="font-normal text-slate-400 dark:text-[#64748B]">@Loc["Common_Optional"]</span></label>
             @if (previewUrl is not null)
             {
                 <div class="flex items-center gap-3">
-                    <img src="@previewUrl" alt="Selected group image preview" class="h-16 w-16 rounded-lg object-cover" />
+                    <img src="@previewUrl" alt="Selected group image preview" class="h-16 w-16 rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.1)] object-cover shadow-sm" />
                     <button type="button" @onclick="ClearImageAsync" disabled="@isSubmitting"
-                            class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-slate-300">
+                            class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#CBD5E1] transition hover:bg-slate-100 dark:hover:bg-[#1F2633] hover:text-slate-900 dark:hover:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                         @Loc["Common_Remove"]
                     </button>
                 </div>
             }
             else
             {
-                <InputFile id="cg-avatar" OnChange="OnImageSelected" accept="@ChatGroupImagePolicy.AcceptAttribute" />
-                <p class="mt-1.5 text-xs text-slate-500">
+                <InputFile id="cg-avatar" OnChange="OnImageSelected" accept="@ChatGroupImagePolicy.AcceptAttribute"
+                           class="block w-full text-xs text-slate-500 dark:text-[#94A3B8] file:mr-3 file:cursor-pointer file:rounded-lg file:border file:border-slate-300 dark:file:border-[rgba(255,255,255,0.12)] file:bg-slate-100 dark:file:bg-[#1D263B] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-700 dark:file:text-[#E1E2EC] hover:file:bg-slate-200 dark:hover:file:bg-[#25324d] focus:outline-none" />
+                <p class="mt-1.5 text-xs text-slate-500 dark:text-[#94A3B8]">
                     @Loc["Chat_GroupImageHint"]
                 </p>
             }
         </div>
 
         <fieldset class="mt-3">
-            <legend class="mb-2 text-xs font-semibold text-slate-700">@Loc["Chat_AccessMode"]</legend>
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <legend class="mb-2 text-xs font-semibold text-slate-700 dark:text-[#CBD5E1]">@Loc["Chat_AccessMode"]</legend>
+            <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 <button type="button" @onclick='() => accessMode = "PUBLIC"' aria-pressed="@(accessMode == "PUBLIC")"
-                        class="flex items-center gap-3 rounded-lg border p-3.5 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500
-                               @(accessMode == "PUBLIC" ? "border-indigo-300 bg-indigo-50" : "border-slate-200 bg-slate-50 hover:border-slate-300")">
-                    <span class="text-lg">🌐</span>
-                    <span>
-                        <span class="block text-xs font-semibold text-slate-900">@Loc["Chat_PublicGroup"]</span>
-                        <span class="block text-xs text-slate-500">@Loc["Chat_PublicGroupDesc"]</span>
+                        class="flex items-center gap-3 rounded-xl border p-3 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500/40
+                               @(accessMode == "PUBLIC"
+                                   ? "border-indigo-500 dark:border-indigo-500/70 bg-indigo-50/70 dark:bg-indigo-950/30 ring-1 ring-indigo-500/30 dark:ring-indigo-500/40"
+                                   : "border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-slate-50/70 dark:bg-[#161B26] hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)] hover:bg-slate-100/60 dark:hover:bg-[#1B2230]")">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg @(accessMode == "PUBLIC" ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400" : "bg-slate-200/60 dark:bg-[#1F2633] text-slate-500 dark:text-[#94A3B8]")">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+                        </svg>
+                    </span>
+                    <span class="min-w-0">
+                        <span class="block truncate text-xs font-semibold @(accessMode == "PUBLIC" ? "text-indigo-950 dark:text-indigo-200" : "text-slate-800 dark:text-[#CBD5E1]")">@Loc["Chat_PublicGroup"]</span>
+                        <span class="block truncate text-[11px] @(accessMode == "PUBLIC" ? "text-indigo-700/80 dark:text-indigo-300/80" : "text-slate-500 dark:text-[#94A3B8]")">@Loc["Chat_PublicGroupDesc"]</span>
                     </span>
                 </button>
 
                 <button type="button" @onclick='() => accessMode = "PRIVATE"' aria-pressed="@(accessMode == "PRIVATE")"
-                        class="flex items-center gap-3 rounded-lg border p-3.5 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500
-                               @(accessMode == "PRIVATE" ? "border-indigo-300 bg-indigo-50" : "border-slate-200 bg-slate-50 hover:border-slate-300")">
-                    <span class="text-lg">🔒</span>
-                    <span>
-                        <span class="block text-xs font-semibold text-slate-900">@Loc["Chat_PrivateGroup"]</span>
-                        <span class="block text-xs text-slate-500">@Loc["Chat_PrivateGroupDesc"]</span>
+                        class="flex items-center gap-3 rounded-xl border p-3 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500/40
+                               @(accessMode == "PRIVATE"
+                                   ? "border-indigo-500 dark:border-indigo-500/70 bg-indigo-50/70 dark:bg-indigo-950/30 ring-1 ring-indigo-500/30 dark:ring-indigo-500/40"
+                                   : "border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-slate-50/70 dark:bg-[#161B26] hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)] hover:bg-slate-100/60 dark:hover:bg-[#1B2230]")">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg @(accessMode == "PRIVATE" ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400" : "bg-slate-200/60 dark:bg-[#1F2633] text-slate-500 dark:text-[#94A3B8]")">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                        </svg>
+                    </span>
+                    <span class="min-w-0">
+                        <span class="block truncate text-xs font-semibold @(accessMode == "PRIVATE" ? "text-indigo-950 dark:text-indigo-200" : "text-slate-800 dark:text-[#CBD5E1]")">@Loc["Chat_PrivateGroup"]</span>
+                        <span class="block truncate text-[11px] @(accessMode == "PRIVATE" ? "text-indigo-700/80 dark:text-indigo-300/80" : "text-slate-500 dark:text-[#94A3B8]")">@Loc["Chat_PrivateGroupDesc"]</span>
                     </span>
                 </button>
             </div>
         </fieldset>
 
         <fieldset>
-            <legend class="mb-2 text-xs font-semibold text-slate-700">@Loc["Chat_GroupType"]</legend>
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <legend class="mb-2 text-xs font-semibold text-slate-700 dark:text-[#CBD5E1]">@Loc["Chat_GroupType"]</legend>
+            <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 <button type="button" @onclick="SelectFreeType" aria-pressed="@(chatType == "FREE")"
-                        class="flex items-center gap-3 rounded-lg border p-3.5 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500
-                               @(chatType == "FREE" ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-slate-50 hover:border-slate-300")">
-                    <svg class="h-5 w-5 shrink-0 @(chatType == "FREE" ? "text-emerald-600" : "text-slate-400")" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                    <span>
-                        <span class="block text-xs font-semibold text-slate-900">@Loc["Chat_FreeGroup"]</span>
-                        <span class="block text-xs text-slate-500">@Loc["Chat_FreeGroupDesc"]</span>
+                        class="flex items-center gap-3 rounded-xl border p-3 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500/40
+                               @(chatType == "FREE"
+                                   ? "border-emerald-500 dark:border-emerald-500/70 bg-emerald-50/70 dark:bg-emerald-950/30 ring-1 ring-emerald-500/30 dark:ring-emerald-500/40"
+                                   : "border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-slate-50/70 dark:bg-[#161B26] hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)] hover:bg-slate-100/60 dark:hover:bg-[#1B2230]")">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg @(chatType == "FREE" ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400" : "bg-slate-200/60 dark:bg-[#1F2633] text-slate-500 dark:text-[#94A3B8]")">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                    </span>
+                    <span class="min-w-0">
+                        <span class="block truncate text-xs font-semibold @(chatType == "FREE" ? "text-emerald-950 dark:text-emerald-200" : "text-slate-800 dark:text-[#CBD5E1]")">@Loc["Chat_FreeGroup"]</span>
+                        <span class="block truncate text-[11px] @(chatType == "FREE" ? "text-emerald-700/80 dark:text-emerald-300/80" : "text-slate-500 dark:text-[#94A3B8]")">@Loc["Chat_FreeGroupDesc"]</span>
                     </span>
                 </button>
 
                 <button type="button" @onclick="SelectPaidType" aria-pressed="@(chatType == "PAID")"
-                        class="flex items-center gap-3 rounded-lg border p-3.5 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500
-                               @(chatType == "PAID" ? "border-amber-300 bg-amber-50" : "border-slate-200 bg-slate-50 hover:border-slate-300")">
-                    <svg class="h-5 w-5 shrink-0 @(chatType == "PAID" ? "text-amber-600" : "text-slate-400")" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
-                    <span>
-                        <span class="block text-xs font-semibold text-slate-900">@Loc["Chat_PaidGroup"]</span>
-                        <span class="block text-xs text-slate-500">@Loc["Chat_PaidGroupDesc"]</span>
+                        class="flex items-center gap-3 rounded-xl border p-3 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500/40
+                               @(chatType == "PAID"
+                                   ? "border-amber-500 dark:border-amber-500/70 bg-amber-50/70 dark:bg-amber-950/30 ring-1 ring-amber-500/30 dark:ring-amber-500/40"
+                                   : "border-slate-200 dark:border-[rgba(255,255,255,0.08)] bg-slate-50/70 dark:bg-[#161B26] hover:border-slate-300 dark:hover:border-[rgba(255,255,255,0.16)] hover:bg-slate-100/60 dark:hover:bg-[#1B2230]")">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg @(chatType == "PAID" ? "bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400" : "bg-slate-200/60 dark:bg-[#1F2633] text-slate-500 dark:text-[#94A3B8]")">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                    </span>
+                    <span class="min-w-0">
+                        <span class="block truncate text-xs font-semibold @(chatType == "PAID" ? "text-amber-950 dark:text-amber-200" : "text-slate-800 dark:text-[#CBD5E1]")">@Loc["Chat_PaidGroup"]</span>
+                        <span class="block truncate text-[11px] @(chatType == "PAID" ? "text-amber-700/80 dark:text-amber-300/80" : "text-slate-500 dark:text-[#94A3B8]")">@Loc["Chat_PaidGroupDesc"]</span>
                     </span>
                 </button>
             </div>
@@ -109,11 +130,11 @@
 
         @if (chatType == "PAID")
         {
-            <div class="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-4">
-                <label for="cg-fee" class="block text-xs font-semibold text-amber-900">@Loc["Chat_JoinFee"]</label>
+            <div class="space-y-2 rounded-xl border border-amber-200 dark:border-amber-800/40 bg-amber-50/60 dark:bg-amber-950/20 p-4">
+                <label for="cg-fee" class="block text-xs font-semibold text-amber-900 dark:text-amber-300">@Loc["Chat_JoinFee"]</label>
                 <input id="cg-fee" type="number" min="1" @bind="joinFeeLinkDrops" placeholder="e.g. 50"
-                       class="w-full rounded-lg border border-amber-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-900 transition focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" />
-                <p class="text-xs text-amber-800">
+                       class="w-full rounded-lg border border-amber-300 dark:border-amber-700/50 bg-white dark:bg-[#191B23] px-3.5 py-2 text-sm font-semibold text-slate-900 dark:text-[#E1E2EC] placeholder-slate-400 dark:placeholder-[#64748B] transition focus:border-amber-500 dark:focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:focus:ring-amber-400" />
+                <p class="text-xs text-amber-800 dark:text-amber-300/80">
                     @Loc["Chat_JoinFeeHint"]
                 </p>
             </div>
@@ -123,11 +144,11 @@
 
     <FooterContent>
         <button type="button" @onclick="OnClose" disabled="@isSubmitting"
-                class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-slate-300">
+                class="rounded-lg border border-slate-200 dark:border-[rgba(255,255,255,0.12)] bg-white dark:bg-[#191B23] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-[#CBD5E1] transition hover:bg-slate-100 dark:hover:bg-[#1F2633] hover:text-slate-900 dark:hover:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
             @Loc["Common_Cancel"]
         </button>
         <button type="button" @onclick="HandleSubmit" disabled="@isSubmitting"
-                class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-500 active:scale-[0.98] disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-[#191B23]">
             @if (isSubmitting)
             {
                 <span class="h-3.5 w-3.5 animate-spin rounded-full border-b-2 border-white"></span>

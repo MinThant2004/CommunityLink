@@ -506,13 +506,13 @@ public static class RbacSeeder
                     ELSE 0
                 END;
 
-                -- Sync Permission Type: exactly 10 Admin Domain permissions have Type = 1, all others have Type = 0
+                -- Sync Permission Type: exactly 11 Admin Domain permissions have Type = 1, all others have Type = 0
                 UPDATE dbo.TblPermission
-                SET [Type] = 1
+                SET [Type] = 1, [Module] = 'Administration'
                 WHERE UPPER(PermissionCode) IN (
                     'ADMIN.RBAC.MANAGE', 'ADMIN.USER.MANAGE', 'ADMIN.USER.VIEW', 'SYSTEMAUDIT.VIEW',
                     'COMMUNITY.MODERATE', 'COMMUNITY.CREATE', 'COMMUNITY.MANAGE',
-                    'GROUP.MANAGEMENT', 'GROUP.MANAGE', 'POST.MANAGEMENT'
+                    'GROUP.MANAGEMENT', 'GROUP.MANAGE', 'POST.MANAGEMENT', 'REPORT.VIEW'
                 );
 
                 UPDATE dbo.TblPermission
@@ -520,8 +520,27 @@ public static class RbacSeeder
                 WHERE UPPER(PermissionCode) NOT IN (
                     'ADMIN.RBAC.MANAGE', 'ADMIN.USER.MANAGE', 'ADMIN.USER.VIEW', 'SYSTEMAUDIT.VIEW',
                     'COMMUNITY.MODERATE', 'COMMUNITY.CREATE', 'COMMUNITY.MANAGE',
-                    'GROUP.MANAGEMENT', 'GROUP.MANAGE', 'POST.MANAGEMENT'
-                );");
+                    'GROUP.MANAGEMENT', 'GROUP.MANAGE', 'POST.MANAGEMENT', 'REPORT.VIEW'
+                );
+
+                -- Ensure REPORT.VIEW is assigned to Admin roles and revoked from non-admin roles
+                DELETE FROM dbo.TblRolePermission 
+                WHERE PermissionId IN (SELECT PermissionId FROM dbo.TblPermission WHERE UPPER(PermissionCode) = 'REPORT.VIEW')
+                AND RoleId NOT IN (SELECT RoleId FROM dbo.TblRole WHERE UPPER(RoleCode) IN ('SYSTEM_ADMIN', 'ADMIN', 'SYSTEMADMIN', 'SUPERADMIN'));
+
+                DECLARE @ReportPermId INT = (SELECT PermissionId FROM dbo.TblPermission WHERE UPPER(PermissionCode) = 'REPORT.VIEW');
+                IF @ReportPermId IS NOT NULL AND @AdminId IS NOT NULL
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM dbo.TblRolePermission WHERE RoleId = @AdminId AND PermissionId = @ReportPermId)
+                    BEGIN
+                        INSERT INTO dbo.TblRolePermission (RoleId, PermissionId, IsDeleted, CreatedAt)
+                        VALUES (@AdminId, @ReportPermId, 0, SYSUTCDATETIME());
+                    END
+                    ELSE
+                    BEGIN
+                        UPDATE dbo.TblRolePermission SET IsDeleted = 0 WHERE RoleId = @AdminId AND PermissionId = @ReportPermId;
+                    END
+                END;");
         }
 
         // 3. Seed Default Admin & Demo Users

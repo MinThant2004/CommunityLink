@@ -43,16 +43,13 @@
             <div class="flex flex-col items-center text-center space-y-5">
                 <!-- Group Avatar -->
                 <div class="relative">
-                    @if (!string.IsNullOrWhiteSpace(preview.GroupAvatar))
-                    {
-                        <img src="@preview.GroupAvatar" alt="@preview.GroupName" class="h-24 w-24 rounded-full object-cover shadow-lg ring-4 ring-slate-800" />
-                    }
-                    else
-                    {
-                        <div class="flex h-24 w-24 items-center justify-center rounded-full bg-indigo-600 text-3xl font-bold text-white shadow-lg ring-4 ring-slate-800">
-                            @(string.IsNullOrWhiteSpace(preview.GroupName) ? "?" : preview.GroupName[0].ToString().ToUpper())
-                        </div>
-                    }
+                    <UserAvatar Url="@preview.GroupAvatar"
+                                Name="@preview.GroupName"
+                                Size="h-24 w-24"
+                                RingClass="shadow-lg ring-4 ring-slate-800"
+                                BgClass="bg-indigo-600"
+                                ColorClass="text-white"
+                                TextClass="text-3xl font-bold" />
                 </div>
 
                 <!-- Group Info -->

@@ -341,19 +341,28 @@ public sealed class CommunityService(
             return Result<CommunityModel>.Failure(errorMessage, ResultStatus.Conflict);
         }
 
-        // Check permissions: COMMUNITY.CREATE for top-level, SUBCOMMUNITY.CREATE for nested
-        if (currentUser.UserId.HasValue)
+        // Check permissions: Creating communities and sub-communities is strictly for admins holding the creation permission
+        if (!currentUser.IsAdmin)
         {
-            var requiredPermission = request.ParentCommunityId.HasValue
-                ? PermissionCatalog.SubCommunityCreate
-                : PermissionCatalog.CommunityCreate;
+            var actionType = request.ParentCommunityId.HasValue ? "sub-communities" : "communities";
+            return Result<CommunityModel>.Failure($"Only administrators can create {actionType}.", ResultStatus.Forbidden);
+        }
 
-            var hasPermission = await permissionEvaluator.HasPermissionAsync(requiredPermission, cancellationToken);
-            if (!hasPermission && !currentUser.IsAdmin)
-            {
-                var actionType = request.ParentCommunityId.HasValue ? "sub-communities" : "communities";
-                return Result<CommunityModel>.Failure($"You do not have permission to create {actionType}.", ResultStatus.Forbidden);
-            }
+        var requiredPermission = request.ParentCommunityId.HasValue
+            ? PermissionCatalog.SubCommunityCreate
+            : PermissionCatalog.CommunityCreate;
+
+        var hasPermission = await permissionEvaluator.HasPermissionAsync(requiredPermission, cancellationToken);
+        if (!hasPermission && request.ParentCommunityId.HasValue)
+        {
+            // Allow if admin holds top-level CommunityCreate permission
+            hasPermission = await permissionEvaluator.HasPermissionAsync(PermissionCatalog.CommunityCreate, cancellationToken);
+        }
+
+        if (!hasPermission)
+        {
+            var actionType = request.ParentCommunityId.HasValue ? "sub-communities" : "communities";
+            return Result<CommunityModel>.Failure($"You do not have permission to create {actionType}.", ResultStatus.Forbidden);
         }
 
         // Validate parent community if sub-community

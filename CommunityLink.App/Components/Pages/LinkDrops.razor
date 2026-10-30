@@ -278,16 +278,15 @@
                                 <div @onclick="() => SelectPaymentMethod(method)"
                                      class="p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer flex items-center justify-between shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] @(isSelected ? "bg-[#0A1B2E]/5 dark:bg-[#112A46]/50 border-[#0A1B2E] dark:border-[#E1E8F0] ring-1 ring-inset ring-[#0A1B2E]/30" : "bg-white dark:bg-surface-container-low border-[#E2E8F0] dark:border-surface-container-high/40 hover:border-[#0A1B2E]/40 dark:hover:border-[rgba(196,210,225,0.40)]")">
                                     <div class="flex items-center gap-3">
-                                        @if (!string.IsNullOrWhiteSpace(method.PaymentLogoUrl))
-                                        {
-                                            <img src="@method.PaymentLogoUrl" alt="@method.MethodName" class="w-9 h-9 object-contain rounded-lg bg-white border border-surface-container-high/50 p-1 shrink-0 shadow-2xs" />
-                                        }
-                                        else
-                                        {
-                                            <div class="w-9 h-9 rounded-lg bg-[#0A1B2E]/10 text-[#0A1B2E] dark:bg-[#112A46] dark:text-[#E1E8F0] font-black flex items-center justify-center text-xs shrink-0 border border-[#0A1B2E]/20 dark:border-[rgba(196,210,225,0.20)]">
-                                                @(string.IsNullOrWhiteSpace(method.MethodName) ? "PAY" : method.MethodName.Substring(0, Math.Min(2, method.MethodName.Length)).ToUpper())
-                                            </div>
-                                        }
+                                        <UserAvatar Url="@method.PaymentLogoUrl"
+                                                    Name="@method.MethodName"
+                                                    Size="w-9 h-9"
+                                                    Shape="lg"
+                                                    Class="p-1 shrink-0 shadow-2xs"
+                                                    RingClass="border border-surface-container-high/50"
+                                                    BgClass="bg-white dark:bg-[#112A46]"
+                                                    ColorClass="text-[#0A1B2E] dark:text-[#E1E8F0]"
+                                                    TextClass="text-xs font-black" />
                                         <div class="space-y-0.5">
                                             <div class="text-xs font-black text-on-surface flex items-center gap-1.5">
                                                 <span>@method.MethodName</span>

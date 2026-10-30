@@ -204,9 +204,9 @@ public sealed class AdministrationService(
         for (int i = 29; i >= 0; i--)
         {
             var date = DateTime.UtcNow.Date.AddDays(-i);
-            var usersCount = newUsersGrouped.FirstOrDefault(x => x.Date == date)?.Count ?? 0;
-            var postsCount = newPostsGrouped.FirstOrDefault(x => x.Date == date)?.Count ?? 0;
-            var txVolume = linkDropTxGrouped.FirstOrDefault(x => x.Date == date)?.Volume ?? 0L;
+            var usersCount = newUsersGrouped.FirstOrDefault(x => x.Date.Date == date.Date)?.Count ?? 0;
+            var postsCount = newPostsGrouped.FirstOrDefault(x => x.Date.Date == date.Date)?.Count ?? 0;
+            var txVolume = linkDropTxGrouped.FirstOrDefault(x => x.Date.Date == date.Date)?.Volume ?? 0L;
             trends.Add(new TrendPointModel(date, usersCount, postsCount, usersCount + postsCount, txVolume));
         }
 

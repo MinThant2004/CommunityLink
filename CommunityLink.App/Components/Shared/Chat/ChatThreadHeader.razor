@@ -26,15 +26,11 @@
                 @onclick="OnToggleInfo"
                 class="flex min-w-0 items-center gap-2.5 rounded-lg px-1 py-1 text-left transition hover:bg-slate-50 dark:hover:bg-[#182030] focus:outline-none focus:ring-2 focus:ring-[#0A1B2E]/20 dark:focus:ring-[#E1E8F0]/20 focus:ring-offset-2">
             <span class="shrink-0">
-                @if (!string.IsNullOrWhiteSpace(Thread.AvatarUrl))
-                {
-                    <img src="@Thread.AvatarUrl" alt="" class="h-10 w-10 rounded-full object-cover" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
-                    <span class="hidden h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1D263B] text-sm font-semibold text-slate-600 dark:text-[#E1E2EC]">@Thread.Initials</span>
-                }
-                else
-                {
-                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1D263B] text-sm font-semibold text-slate-600 dark:text-[#E1E2EC]">@Thread.Initials</span>
-                }
+                <UserAvatar Url="@Thread.AvatarUrl"
+                            Name="@Thread.Title"
+                            Size="h-10 w-10"
+                            TextClass="text-sm font-semibold"
+                            BgClass="bg-slate-100 dark:bg-[#1D263B]" />
             </span>
 
             <span class="min-w-0">

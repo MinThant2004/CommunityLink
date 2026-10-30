@@ -141,6 +141,10 @@ public sealed class PollService(
                     AuthorDisplayName = p.Post != null && p.Post.Author != null ? p.Post.Author.DisplayName : null,
                     AuthorUserName = p.Post != null && p.Post.Author != null ? p.Post.Author.UserName : null,
                     AuthorAvatar = p.Post != null && p.Post.Author != null ? p.Post.Author.AvatarUrl : null,
+                    AuthorIsVerified = p.Post != null && p.Post.Author != null && p.Post.Author.IsVerified,
+                    AuthorRoleCode = p.Post != null && p.Post.Author != null
+                        ? p.Post.Author.TblUserRoles.Where(ur => !ur.IsDeleted).Select(ur => ur.Role.RoleCode).FirstOrDefault()
+                        : null,
                     p.Question,
                     Content = p.Post != null ? p.Post.Content : null,
                     p.IsMultipleChoice,
@@ -227,7 +231,9 @@ public sealed class PollService(
                     p.AuthorUserName,
                     p.IsActive,
                     p.IsPrivate,
-                    p.ModerationReason
+                    p.ModerationReason,
+                    p.AuthorIsVerified,
+                    p.AuthorRoleCode
                 );
             }).ToList();
 

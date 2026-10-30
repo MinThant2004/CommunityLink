@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using CommunityLink.Api.Tests.Infrastructure;
@@ -43,5 +43,14 @@ public class UserDashboardEndpointTests(CommunityApiFactory factory) : IClassFix
         Assert.NotNull(result.Data.RecommendedCommunities);
         Assert.NotNull(result.Data.RecentPosts);
         Assert.NotNull(result.Data.ActivePolls);
+        Assert.NotNull(result.Data.People);
+        Assert.NotEmpty(result.Data.People);
+
+        var aungLa = result.Data.People.FirstOrDefault(p => p.UserName == "aunglansang");
+        if (aungLa != null)
+        {
+            Assert.True(aungLa.IsPrivateChatEnabled);
+            Assert.Equal(50, aungLa.PrivateChatFeeLinkDrops);
+        }
     }
 }

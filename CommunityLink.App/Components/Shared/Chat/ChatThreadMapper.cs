@@ -112,7 +112,8 @@ public static class ChatThreadMapper
             : model.JoinFeeLinkDrops,
         IsUnlocked = model.IsJoined && !model.IsBanned,
         AccessMode = model.AccessMode ?? "PUBLIC",
-        Badge = model.IsBanned ? "Banned" : (string.Equals(model.ChatType, "PAID", StringComparison.OrdinalIgnoreCase) ? "Paid" : "Free")
+        Badge = model.IsBanned ? "Banned" : (string.Equals(model.ChatType, "PAID", StringComparison.OrdinalIgnoreCase) ? "Paid" : "Free"),
+        LastActivityAt = model.CreatedAt != default ? model.CreatedAt.ToLocalTime() : DateTime.Now
     };
 
     public static ChatThreadViewModel WithPreview(
@@ -125,7 +126,10 @@ public static class ChatThreadMapper
         }
 
         thread.LastMessagePreview = preview.LastMessagePreview;
-        thread.LastActivityAt = preview.LastMessageAt?.ToLocalTime() ?? preview.LastMessageAt;
+        if (preview.LastMessageAt.HasValue)
+        {
+            thread.LastActivityAt = preview.LastMessageAt.Value.ToLocalTime();
+        }
         return thread;
     }
 
@@ -267,6 +271,12 @@ public static class ChatThreadMapper
         if (string.IsNullOrWhiteSpace(preview))
         {
             return loc is not null ? loc["Chat_NoMessagesYet"] : "No messages yet";
+        }
+
+        var trimmed = preview.Trim();
+        if (trimmed.StartsWith("[sticker:", StringComparison.OrdinalIgnoreCase) && trimmed.EndsWith("]"))
+        {
+            return loc is not null ? ("🎨 " + loc["Chat_Stickers"]) : "🎨 Stickers";
         }
 
         var single = preview.ReplaceLineEndings(" ").Trim();

@@ -792,6 +792,7 @@ public class UserProfileService : IUserProfileService
             .Select(cm => new UserCommunityItemDto
             {
                 CommunityId = cm.CommunityId,
+                ParentCommunityId = cm.Community.ParentCommunityId,
                 Name = cm.Community.Name,
                 Description = cm.Community.Description ?? string.Empty,
                 RoleName = cm.Role ?? "Member",

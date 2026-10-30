@@ -693,16 +693,12 @@
 
             <!-- Author & Metadata header -->
             <div class="flex items-center gap-3 p-3 rounded-xl bg-[#F8FAFC] dark:bg-[#0A1B2E]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.10)]">
-                @if (!string.IsNullOrWhiteSpace(selectedDetailItem.AuthorAvatar))
-                {
-                    <img src="@selectedDetailItem.AuthorAvatar" alt="@selectedDetailItem.AuthorName" class="w-10 h-10 rounded-full object-cover" />
-                }
-                else
-                {
-                    <div class="w-10 h-10 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] font-bold text-sm flex items-center justify-center font-mono">
-                        @(string.IsNullOrWhiteSpace(selectedDetailItem.AuthorName) ? "U" : selectedDetailItem.AuthorName.Substring(0, 1).ToUpper())
-                    </div>
-                }
+                <UserAvatar Url="@selectedDetailItem.AuthorAvatar"
+                            Name="@selectedDetailItem.AuthorName"
+                            Size="w-10 h-10"
+                            BgClass="bg-[#0A1B2E] dark:bg-[#E1E8F0]"
+                            ColorClass="text-white dark:text-[#0A1B2E]"
+                            TextClass="text-sm font-mono font-bold" />
                 <div class="flex-1 min-w-0">
                     <h4 class="text-sm font-bold text-[#0A1B2E] dark:text-white">@selectedDetailItem.AuthorName</h4>
                     <p class="text-[11px] text-[#7A8CA6]">

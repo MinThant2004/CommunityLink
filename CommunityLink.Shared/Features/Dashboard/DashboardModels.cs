@@ -17,7 +17,10 @@ public sealed record UserDashboardModel(
     IReadOnlyList<PostModel> RecentPosts,
     IReadOnlyList<PollModel> ActivePolls,
     int UnreadMessageCount,
-    IReadOnlyList<GroupModel>? Groups = null);
+    IReadOnlyList<GroupModel>? Groups = null,
+    int TotalPeopleCount = 0,
+    int TotalDomainProCount = 0,
+    int TotalPublicFigureCount = 0);
 
 public sealed record DirectoryPersonModel(
     int UserId,
@@ -36,4 +39,8 @@ public sealed record DirectoryPersonModel(
     string? ResponseSlaText = null,
     string? PercentileBadgeText = null,
     int RatingCount = 0,
-    IReadOnlyList<string>? Skills = null);
+    IReadOnlyList<string>? Skills = null,
+    bool IsPrivateChatEnabled = false,
+    long PrivateChatFeeLinkDrops = 0,
+    bool IsPrivateChatUnlocked = false,
+    bool IsPremium = false);

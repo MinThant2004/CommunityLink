@@ -200,6 +200,7 @@ public class UserPollOptionDto
 public class UserCommunityItemDto
 {
     public int CommunityId { get; set; }
+    public int? ParentCommunityId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string RoleName { get; set; } = "Member";

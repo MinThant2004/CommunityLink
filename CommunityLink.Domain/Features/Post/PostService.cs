@@ -13,7 +13,7 @@ namespace CommunityLink.Domain.Features.Post;
 
 public interface IPostService
 {
-    Task<Result<IReadOnlyList<HomeFeedItemModel>>> GetHomeFeedAsync(int page = 1, int pageSize = 15, DateTime? sessionTime = null, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<HomeFeedItemModel>>> GetHomeFeedAsync(int page = 1, int pageSize = 15, DateTime? sessionTime = null, string? search = null, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<PostModel>>> GetFeedPostsAsync(int? communityId, int? groupId = null, int page = 1, int pageSize = 15, CancellationToken cancellationToken = default);
     Task<Result<PostModel>> CreatePostAsync(CreatePostRequestModel request, CancellationToken cancellationToken = default);
     Task<Result> LikePostAsync(int postId, CancellationToken cancellationToken = default);
@@ -33,7 +33,7 @@ public sealed class PostService(
     IPermissionEvaluator permissionEvaluator,
     IUserActivityService userActivityService) : IPostService
 {
-    public async Task<Result<IReadOnlyList<HomeFeedItemModel>>> GetHomeFeedAsync(int page = 1, int pageSize = 15, DateTime? sessionTime = null, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<HomeFeedItemModel>>> GetHomeFeedAsync(int page = 1, int pageSize = 15, DateTime? sessionTime = null, string? search = null, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -66,6 +66,16 @@ public sealed class PostService(
             var query = dbContext.TblPosts
                 .Where(p => !p.IsDeleted && p.CreatedAt <= effectiveSessionTime)
                 .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim();
+                query = query.Where(p =>
+                    p.Content.Contains(s) ||
+                    (p.Author != null && (p.Author.DisplayName.Contains(s) || p.Author.UserName.Contains(s))) ||
+                    (p.Community != null && p.Community.Name.Contains(s)) ||
+                    (p.Group != null && p.Group.Name.Contains(s)));
+            }
 
             // Privacy & Ban Filter
             if (currentUser.IsAdmin)
@@ -314,7 +324,9 @@ public sealed class PostService(
                             p.AuthorUserName,
                             pl.IsActive,
                             pl.IsPrivate,
-                            pl.ModerationReason);
+                            pl.ModerationReason,
+                            p.AuthorIsVerified,
+                            p.AuthorRoleCode);
                     }
                 }
             }

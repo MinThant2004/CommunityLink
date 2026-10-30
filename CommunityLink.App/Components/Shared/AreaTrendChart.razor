@@ -1,0 +1,312 @@
+@using System.Globalization
+@using System.Linq
+@using System.Text
+
+<div class="flex flex-col gap-3 @Class">
+    @if (HasData)
+    {
+        <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
+            <span class="flex items-center gap-1.5 text-[11px] font-semibold text-[#557392] dark:text-[#C4D2E1]">
+                <span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:@Color"></span>
+                @SeriesName
+                <span class="font-mono text-[#0A1B2E] dark:text-white font-bold">@FormatValue(ActiveValue)</span>
+                @if (hoverIndex is int hi && hi >= 0 && hi < labels.Count)
+                {
+                    <span class="text-[10px] text-[#7A8CA6] font-mono">(@labels[hi])</span>
+                }
+            </span>
+        </div>
+
+        <div class="relative w-full">
+            <svg viewBox="0 0 @ViewWidth @ViewHeight" class="w-full h-auto overflow-visible" role="img" aria-label="@DisplayTitle">
+                @* Horizontal Grid lines *@
+                @foreach (var tick in ticks)
+                {
+                    <line x1="@F(PlotLeft)" y1="@F(tick.Y)" x2="@F(PlotRight)" y2="@F(tick.Y)"
+                          stroke="currentColor" stroke-opacity="0.10" stroke-dasharray="4 4"
+                          vector-effect="non-scaling-stroke" />
+                }
+
+                @* Flat Solid Area Fill (No Gradient) *@
+                @if (!string.IsNullOrEmpty(areaPath))
+                {
+                    <path d="@areaPath" fill="@Color" fill-opacity="0.10" />
+                }
+
+                @* Spline Line Stroke *@
+                @if (!string.IsNullOrEmpty(linePath))
+                {
+                    <path d="@linePath" fill="none" stroke="@Color" stroke-width="2.5"
+                          stroke-linecap="round" stroke-linejoin="round"
+                          vector-effect="non-scaling-stroke" />
+                }
+
+                @* Hover Crosshair Guide *@
+                @if (hoverIndex is int idx && idx >= 0 && idx < points.Count)
+                {
+                    var pt = points[idx];
+                    <line x1="@F(pt.X)" y1="@F(PlotTop)" x2="@F(pt.X)" y2="@F(PlotBottom)"
+                          stroke="currentColor" stroke-opacity="0.25" stroke-dasharray="3 3"
+                          vector-effect="non-scaling-stroke" />
+                    <circle cx="@F(pt.X)" cy="@F(pt.Y)" r="4.5"
+                            fill="@Color" stroke="#FFFFFF" stroke-width="2"
+                            vector-effect="non-scaling-stroke" />
+                }
+
+                @* Latest Value Indicator (when not hovering or when hovering on last point) *@
+                @if (points.Count > 0 && (hoverIndex == null || hoverIndex == points.Count - 1))
+                {
+                    var last = points[^1];
+                    <circle cx="@F(last.X)" cy="@F(last.Y)" r="4" fill="@Color" stroke="#FFFFFF" stroke-width="2" vector-effect="non-scaling-stroke">
+                        <animate attributeName="r" values="3.5;7" dur="2.4s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.7;0" dur="2.4s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="@F(last.X)" cy="@F(last.Y)" r="3.5" fill="@Color" stroke="#FFFFFF" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+                }
+
+                @* Hit Areas for interactive hovering *@
+                @for (var i = 0; i < points.Count; i++)
+                {
+                    var hitIdx = i;
+                    var colLeft = points[i].X - columnWidth / 2.0;
+                    <rect x="@F(colLeft)" y="@F(PlotTop)" width="@F(columnWidth)"
+                          height="@F(PlotBottom - PlotTop + 8)" fill="transparent" style="cursor: crosshair"
+                          @onmouseover="() => hoverIndex = hitIdx"
+                          @onmouseleave="ClearHover" />
+                }
+            </svg>
+
+            @* Y-axis overlay labels *@
+            @foreach (var tick in ticks)
+            {
+                <span class="absolute left-0 -translate-y-1/2 font-mono text-[9px] leading-none text-[#7A8CA6] dark:text-[#8FA3BC] pointer-events-none opacity-90"
+                      style="top:@PctY(tick.Y)">@tick.Label</span>
+            }
+
+            @* X-axis overlay labels *@
+            @foreach (var index in xLabelIndexes.OrderBy(i => i))
+            {
+                <span class="absolute -translate-x-1/2 font-mono text-[9px] leading-none text-[#7A8CA6] dark:text-[#8FA3BC] pointer-events-none whitespace-nowrap opacity-85"
+                      style="left:@PctX(PointX(index)); top:@PctY(LabelBaseline)">@LabelAt(index)</span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="h-40 flex items-center justify-center text-xs text-[#7A8CA6] dark:text-[#8FA3BC]">
+            @DisplayEmptyText
+        </div>
+    }
+</div>
+
+@code {
+    private const int ViewWidth = 640;
+    private const int ViewHeight = 240;
+    private const int PlotLeft = 52;
+    private const int PlotRight = 632;
+    private const int PlotTop = 16;
+    private const int PlotBottom = 196;
+    private const int LabelBaseline = 224;
+    private const int TickCount = 4;
+
+    private readonly record struct Point(double X, double Y);
+    private readonly record struct Tick(double Y, string Label);
+
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? EmptyText { get; set; }
+    [Parameter] public string ValueSuffix { get; set; } = " LD";
+    [Parameter] public string SeriesName { get; set; } = "Volume";
+    [Parameter] public string Color { get; set; } = "#F59E0B";
+    [Parameter] public IReadOnlyList<double>? Values { get; set; }
+    [Parameter] public IReadOnlyList<string>? Labels { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private List<double> cleanValues = new();
+    private List<string> labels = new();
+    private List<Point> points = new();
+    private List<Tick> ticks = new();
+    private HashSet<int> xLabelIndexes = new();
+    private string linePath = "";
+    private string areaPath = "";
+    private double columnWidth = 20;
+    private double min;
+    private double span = 1;
+    private int? hoverIndex;
+
+    private bool HasData => cleanValues.Count > 0;
+    private string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? "Area chart" : Title;
+    private string DisplayEmptyText => string.IsNullOrWhiteSpace(EmptyText) ? "No trend data available." : EmptyText;
+
+    private double ActiveValue
+    {
+        get
+        {
+            if (cleanValues.Count == 0) return 0;
+            var idx = hoverIndex ?? cleanValues.Count - 1;
+            return cleanValues[Math.Clamp(idx, 0, cleanValues.Count - 1)];
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        Rebuild();
+    }
+
+    private void Rebuild()
+    {
+        hoverIndex = null;
+        labels = Labels?.ToList() ?? new List<string>();
+        var rawValues = Values?.Select(Sanitize).ToList() ?? new List<double>();
+
+        var n = Math.Max(labels.Count, rawValues.Count);
+        if (n == 0)
+        {
+            cleanValues = new List<double>();
+            points = new List<Point>();
+            ticks = new List<Tick>();
+            xLabelIndexes = new HashSet<int>();
+            linePath = "";
+            areaPath = "";
+            return;
+        }
+
+        while (rawValues.Count < n) rawValues.Add(0);
+        while (labels.Count < n) labels.Add(string.Empty);
+        cleanValues = rawValues;
+
+        var rawMin = cleanValues.Min();
+        var rawMax = cleanValues.Max();
+
+        if (rawMin > 0) rawMin = 0;
+        if (Math.Abs(rawMax - rawMin) < 1e-9)
+        {
+            rawMax = rawMin + 10;
+        }
+
+        var (minValue, maxValue, step) = NiceScale(rawMin, rawMax, TickCount);
+        min = minValue;
+        span = Math.Max(1e-9, maxValue - minValue);
+
+        ticks = new List<Tick>();
+        for (var v = minValue; v <= maxValue + step * 0.5; v += step)
+        {
+            var y = PlotBottom - ((v - min) / span) * (PlotBottom - PlotTop);
+            ticks.Add(new Tick(y, FormatTick(v)));
+        }
+
+        columnWidth = (PlotRight - PlotLeft) / (double)Math.Max(1, n);
+
+        points = new List<Point>();
+        for (var i = 0; i < n; i++)
+        {
+            var x = n == 1
+                ? PlotLeft + (PlotRight - PlotLeft) / 2.0
+                : PlotLeft + (PlotRight - PlotLeft) * (i / (double)(n - 1));
+            var y = PlotBottom - ((cleanValues[i] - min) / span) * (PlotBottom - PlotTop);
+            y = Math.Clamp(y, PlotTop - 2, PlotBottom);
+            points.Add(new Point(x, y));
+        }
+
+        linePath = SmoothPath(points);
+        if (points.Count > 0)
+        {
+            areaPath = $"{linePath} L {F(points[^1].X)},{F(PlotBottom)} L {F(points[0].X)},{F(PlotBottom)} Z";
+        }
+        else
+        {
+            areaPath = "";
+        }
+
+        var labelStep = Math.Max(1, (int)Math.Ceiling(n / 8.0));
+        xLabelIndexes = new HashSet<int>();
+        for (var i = 0; i < n; i += labelStep)
+        {
+            xLabelIndexes.Add(i);
+        }
+        xLabelIndexes.Add(n - 1);
+    }
+
+    private static double Sanitize(double value) =>
+        double.IsNaN(value) || double.IsInfinity(value) ? 0 : value;
+
+    private static (double Min, double Max, double Step) NiceScale(double rawMin, double rawMax, int divisions)
+    {
+        var range = rawMax - rawMin;
+        if (range <= 0) range = Math.Max(1, Math.Abs(rawMax) * 0.2);
+
+        var rough = range / divisions;
+        var magnitude = Math.Pow(10, Math.Floor(Math.Log10(rough)));
+        var normalized = rough / magnitude;
+        var nice = normalized switch
+        {
+            <= 1 => 1d,
+            <= 2 => 2d,
+            <= 2.5 => 2.5d,
+            <= 5 => 5d,
+            _ => 10d
+        };
+        var step = nice * magnitude;
+
+        var min = Math.Floor(rawMin / step) * step;
+        var max = Math.Ceiling(rawMax / step) * step;
+        if (max - min < step) max = min + step;
+        return (min, max, step);
+    }
+
+    private static string SmoothPath(IReadOnlyList<Point> pts)
+    {
+        if (pts.Count == 0) return "";
+        if (pts.Count == 1) return $"M {F(pts[0].X)},{F(pts[0].Y)}";
+
+        var sb = new StringBuilder();
+        sb.Append("M ").Append(F(pts[0].X)).Append(',').Append(F(pts[0].Y));
+
+        for (var i = 0; i < pts.Count - 1; i++)
+        {
+            var p0 = pts[Math.Max(0, i - 1)];
+            var p1 = pts[i];
+            var p2 = pts[i + 1];
+            var p3 = pts[Math.Min(pts.Count - 1, i + 2)];
+
+            var c1x = p1.X + (p2.X - p0.X) / 6.0;
+            var c1y = Math.Clamp(p1.Y + (p2.Y - p0.Y) / 6.0, PlotTop - 3, PlotBottom + 3);
+            var c2x = p2.X - (p3.X - p1.X) / 6.0;
+            var c2y = Math.Clamp(p2.Y - (p3.Y - p1.Y) / 6.0, PlotTop - 3, PlotBottom + 3);
+
+            sb.Append(" C ").Append(F(c1x)).Append(',').Append(F(c1y))
+              .Append(' ').Append(F(c2x)).Append(',').Append(F(c2y))
+              .Append(' ').Append(F(p2.X)).Append(',').Append(F(p2.Y));
+        }
+
+        return sb.ToString();
+    }
+
+    private double PointX(int index) =>
+        index >= 0 && index < points.Count ? points[index].X : PlotLeft;
+
+    private string LabelAt(int index) =>
+        index >= 0 && index < labels.Count ? labels[index] : string.Empty;
+
+    private string FormatValue(double value)
+    {
+        var abs = Math.Abs(value);
+        if (abs >= 1_000_000) return (value / 1_000_000d).ToString("0.#", CultureInfo.InvariantCulture) + "M" + ValueSuffix;
+        if (abs >= 1_000) return (value / 1_000d).ToString("0.#", CultureInfo.InvariantCulture) + "k" + ValueSuffix;
+        return value.ToString("0.##", CultureInfo.InvariantCulture) + ValueSuffix;
+    }
+
+    private static string FormatTick(double value) =>
+        Math.Abs(value) >= 1_000
+            ? (value / 1_000d).ToString("0.#", CultureInfo.InvariantCulture) + "k"
+            : value.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private void ClearHover() => hoverIndex = null;
+
+    private static string F(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private static string PctX(double x) =>
+        (x / ViewWidth * 100).ToString("0.##", CultureInfo.InvariantCulture) + "%";
+
+    private static string PctY(double y) =>
+        (y / ViewHeight * 100).ToString("0.##", CultureInfo.InvariantCulture) + "%";
+}

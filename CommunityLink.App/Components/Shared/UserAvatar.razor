@@ -1,0 +1,92 @@
+@*
+    UserAvatar — universal fallback-safe avatar / logo component.
+
+    Parameters
+    ----------
+    Url         : string?  — Image URL (null / empty → shows initials fallback)
+    Name        : string?  — Display name used to compute the initials letter
+    Size        : string   — Tailwind size classes, default "w-9 h-9"
+    Class       : string   — Extra CSS classes appended to root element
+    RingClass   : string   — Optional ring/border classes (e.g. "ring-1 ring-white/10")
+    Shape       : string   — "full" (rounded-full, default) | "xl" | "lg" | "md" | "none"
+    Alt         : string?  — img alt text override; defaults to Name
+    BgClass     : string   — Background color class for initials fallback
+    ColorClass  : string   — Text color class for initials fallback
+    TextClass   : string   — Font size class for initials fallback
+*@
+
+@{
+    var shapeClass = Shape switch
+    {
+        "xl" => "rounded-xl",
+        "lg" => "rounded-lg",
+        "md" => "rounded-md",
+        "none" => "",
+        _    => "rounded-full"
+    };
+
+    var trimmed = Name?.Trim();
+    if (!string.IsNullOrEmpty(trimmed) && trimmed.StartsWith('@') && trimmed.Length > 1)
+    {
+        trimmed = trimmed[1..].Trim();
+    }
+
+    var initial = string.IsNullOrWhiteSpace(trimmed)
+        ? "?"
+        : trimmed[..1].ToUpperInvariant();
+
+    var altText = Alt ?? Name ?? string.Empty;
+
+    var baseClass = $"{Size} {shapeClass} {RingClass} {Class}".Trim();
+}
+
+@if (!string.IsNullOrWhiteSpace(Url))
+{
+    <img src="@Url"
+         alt="@altText"
+         class="@baseClass object-cover shrink-0"
+         onerror="this.onerror=null;this.style.display='none';var fb=this.nextElementSibling;if(fb){fb.style.display='flex';}" />
+    <span class="@baseClass hidden items-center justify-center @BgClass @ColorClass @TextClass font-semibold select-none shrink-0"
+          aria-label="@altText">
+        @initial
+    </span>
+}
+else
+{
+    <span class="@baseClass flex items-center justify-center @BgClass @ColorClass @TextClass font-semibold select-none shrink-0"
+          aria-label="@altText">
+        @initial
+    </span>
+}
+
+@code {
+    /// <summary>Image URL. When null, empty, or fails to load, the initials fallback is shown.</summary>
+    [Parameter] public string? Url { get; set; }
+
+    /// <summary>Display name — used to generate the fallback initial letter.</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>Tailwind width/height classes (default: "w-9 h-9").</summary>
+    [Parameter] public string Size { get; set; } = "w-9 h-9";
+
+    /// <summary>Additional CSS classes applied to both the img and the fallback span.</summary>
+    [Parameter] public string Class { get; set; } = string.Empty;
+
+    /// <summary>Optional ring / border classes (e.g. "ring-1 ring-white/10").</summary>
+    [Parameter] public string RingClass { get; set; } = string.Empty;
+
+    /// <summary>"full" | "xl" | "lg" | "md" | "none" — controls border-radius. Default is "full".</summary>
+    [Parameter] public string Shape { get; set; } = "full";
+
+    /// <summary>Override the img alt attribute. Defaults to Name when not set.</summary>
+    [Parameter] public string? Alt { get; set; }
+
+    /// <summary>Background CSS class for the fallback container (default: "bg-slate-200 dark:bg-[#1D263B]").</summary>
+    [Parameter] public string BgClass { get; set; } = "bg-slate-200 dark:bg-[#1D263B]";
+
+    /// <summary>Text color CSS class for the fallback container (default: "text-slate-600 dark:text-[#E1E2EC]").</summary>
+    [Parameter] public string ColorClass { get; set; } = "text-slate-600 dark:text-[#E1E2EC]";
+
+    /// <summary>Text size CSS class for the fallback initial (default: "text-xs").</summary>
+    [Parameter] public string TextClass { get; set; } = "text-xs";
+}
