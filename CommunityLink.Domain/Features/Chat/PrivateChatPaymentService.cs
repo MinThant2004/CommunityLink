@@ -222,14 +222,25 @@ public sealed class PrivateChatPaymentService(
         int viewerUserId,
         CancellationToken cancellationToken = default)
     {
-        var setting = await dbContext.TblCreatorChatSettings
+        var user = await dbContext.TblUsers
+            .Include(u => u.TblCreatorChatSetting)
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.CreatorUserId == creatorUserId, cancellationToken);
+            .FirstOrDefaultAsync(u => u.UserId == creatorUserId && !u.IsDeleted, cancellationToken);
+
+        if (user is null)
+        {
+            return new PrivateChatStatusModel(creatorUserId, false, true, 0);
+        }
+
+        var setting = user.TblCreatorChatSetting;
+        var displayName = string.IsNullOrWhiteSpace(user.DisplayName) ? user.UserName : user.DisplayName;
+        var userName = user.UserName;
+        var avatarUrl = user.AvatarUrl;
 
         // No paid-chat setting, or the viewer is the creator: open conversation.
         if (setting is null || !setting.IsPrivateChatEnabled || viewerUserId == creatorUserId)
         {
-            return new PrivateChatStatusModel(creatorUserId, false, true, 0);
+            return new PrivateChatStatusModel(creatorUserId, false, true, 0, displayName, userName, avatarUrl);
         }
 
         // Check if either:
@@ -243,6 +254,13 @@ public sealed class PrivateChatPaymentService(
                            t.Status == "COMPLETED",
                 cancellationToken);
 
-        return new PrivateChatStatusModel(creatorUserId, true, unlocked, setting.PrivateChatFeeLinkDrops);
+        return new PrivateChatStatusModel(
+            creatorUserId,
+            true,
+            unlocked,
+            setting.PrivateChatFeeLinkDrops,
+            displayName,
+            userName,
+            avatarUrl);
     }
 }

@@ -1,0 +1,261 @@
+@using System.Globalization
+@using System.Linq
+
+<div class="flex flex-col gap-3 @Class">
+    @if (HasData)
+    {
+        <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
+            @foreach (var s in series)
+            {
+                <span class="flex items-center gap-1.5 text-[11px] font-semibold text-[#557392] dark:text-[#C4D2E1]">
+                    <span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:@s.Color"></span>
+                    @s.Name
+                    <span class="font-mono text-[#0A1B2E] dark:text-white">@FormatValue(ActiveValue(s))</span>
+                </span>
+            }
+        </div>
+
+        <div class="relative w-full">
+            <svg viewBox="0 0 @ViewWidth @ViewHeight" class="w-full h-auto overflow-visible" role="img" aria-label="@DisplayTitle">
+                @foreach (var tick in ticks)
+                {
+                    <line x1="@F(PlotLeft)" y1="@F(tick.Y)" x2="@F(PlotRight)" y2="@F(tick.Y)"
+                          stroke="currentColor" stroke-opacity="0.10" stroke-dasharray="4 4"
+                          vector-effect="non-scaling-stroke" />
+                }
+
+                @if (hoverIndex is int hi && hi >= 0 && hi < n)
+                {
+                    <rect x="@F(GroupLeft(hi))" y="@F(PlotTop)" width="@F(groupWidth)" height="@F(PlotBottom - PlotTop)"
+                          fill="currentColor" fill-opacity="0.04" rx="4" />
+                }
+
+                @for (var i = 0; i < n; i++)
+                {
+                    var group = i;
+                    var center = GroupCenter(group);
+                    var totalWidth = barWidth * series.Count;
+                    var startX = center - totalWidth / 2.0;
+                    for (var s = 0; s < series.Count; s++)
+                    {
+                        var value = ValueAt(s, group);
+                        var y = Y(value);
+                        var height = Math.Max(0, PlotBottom - y);
+                        var dim = hoverIndex is int hh && hh != group;
+                        <rect x="@F(startX + s * barWidth)" y="@F(y)"
+                              width="@F(Math.Max(1.5, barWidth - 2))" height="@F(height)"
+                              rx="2" fill="@series[s].Color" opacity="@(dim ? 0.4 : 1)" />
+                    }
+                }
+
+                @for (var i = 0; i < n; i++)
+                {
+                    var group = i;
+                    <rect x="@F(GroupLeft(group))" y="@F(PlotTop)" width="@F(groupWidth)"
+                          height="@F(PlotBottom - PlotTop + 6)" fill="transparent" style="cursor: crosshair"
+                          @onmouseover="() => hoverIndex = group" @onmouseleave="ClearHover"></rect>
+                }
+            </svg>
+
+            @foreach (var tick in ticks)
+            {
+                <span class="absolute left-0 -translate-y-1/2 font-mono text-[9px] leading-none text-[#7A8CA6] dark:text-[#8FA3BC] pointer-events-none opacity-90"
+                      style="top:@PctY(tick.Y)">@tick.Label</span>
+            }
+
+            @foreach (var index in xLabelIndexes.OrderBy(i => i))
+            {
+                <span class="absolute -translate-x-1/2 font-mono text-[9px] leading-none text-[#7A8CA6] dark:text-[#8FA3BC] pointer-events-none whitespace-nowrap opacity-85"
+                      style="left:@PctX(GroupCenter(index)); top:@PctY(LabelBaseline)">@LabelAt(index)</span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="h-40 flex items-center justify-center text-xs text-[#7A8CA6] dark:text-[#8FA3BC]">
+            @DisplayEmptyText
+        </div>
+    }
+</div>
+
+@code {
+    public sealed record BarSeries(string Name, IReadOnlyList<double> Values, string Color);
+
+    private const int ViewWidth = 640;
+    private const int ViewHeight = 240;
+    private const int PlotLeft = 52;
+    private const int PlotRight = 632;
+    private const int PlotTop = 16;
+    private const int PlotBottom = 196;
+    private const int LabelBaseline = 224;
+    private const int TickCount = 4;
+
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? EmptyText { get; set; }
+    [Parameter] public string ValueSuffix { get; set; } = "";
+    [Parameter] public IReadOnlyList<string>? Labels { get; set; }
+    [Parameter] public IReadOnlyList<BarSeries>? Series { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private readonly record struct Tick(double Y, string Label);
+
+    private List<BarSeries> series = new();
+    private List<string> labels = new();
+    private List<Tick> ticks = new();
+    private HashSet<int> xLabelIndexes = new();
+    private int n;
+    private int? hoverIndex;
+    private double groupWidth;
+    private double barWidth = 8;
+    private double min;
+    private double span = 1;
+
+    private bool HasData => n > 0 && series.Count > 0;
+
+    private string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? "Bar chart" : Title;
+    private string DisplayEmptyText => string.IsNullOrWhiteSpace(EmptyText) ? "No data available." : EmptyText;
+
+    protected override void OnParametersSet()
+    {
+        Rebuild();
+    }
+
+    private void Rebuild()
+    {
+        hoverIndex = null;
+        labels = Labels?.ToList() ?? new List<string>();
+        series = Series?
+            .Where(s => s is not null)
+            .Select(s => new BarSeries(s.Name, s.Values ?? Array.Empty<double>(), s.Color))
+            .ToList() ?? new List<BarSeries>();
+
+        n = labels.Count;
+        if (n == 0 && series.Count > 0)
+        {
+            n = series.Max(s => s.Values.Count);
+            labels = Enumerable.Range(0, n).Select(_ => string.Empty).ToList();
+        }
+
+        if (n == 0 || series.Count == 0)
+        {
+            series = new List<BarSeries>();
+            ticks = new List<Tick>();
+            xLabelIndexes = new HashSet<int>();
+            return;
+        }
+
+        series = series
+            .Select(s => new BarSeries(
+                s.Name,
+                Enumerable.Range(0, n).Select(i => i < s.Values.Count ? Sanitize(s.Values[i]) : 0d).ToList(),
+                s.Color))
+            .ToList();
+
+        var rawMax = series.SelectMany(s => s.Values).DefaultIfEmpty(0d).Max();
+        if (rawMax <= 0)
+        {
+            series = new List<BarSeries>();
+            ticks = new List<Tick>();
+            xLabelIndexes = new HashSet<int>();
+            return;
+        }
+
+        var (minValue, maxValue, step) = NiceScale(0, rawMax, TickCount);
+        min = minValue;
+        span = Math.Max(1e-9, maxValue - minValue);
+
+        ticks = new List<Tick>();
+        for (var v = minValue; v <= maxValue + step * 0.5; v += step)
+        {
+            var y = PlotBottom - ((v - min) / span) * (PlotBottom - PlotTop);
+            ticks.Add(new Tick(y, FormatTick(v)));
+        }
+
+        groupWidth = (PlotRight - PlotLeft) / (double)n;
+        barWidth = Math.Max(2, groupWidth * 0.72 / Math.Max(1, series.Count));
+
+        var labelStep = Math.Max(1, (int)Math.Ceiling(n / 8.0));
+        xLabelIndexes = new HashSet<int>();
+        for (var i = 0; i < n; i += labelStep)
+        {
+            xLabelIndexes.Add(i);
+        }
+        xLabelIndexes.Add(n - 1);
+    }
+
+    private static double Sanitize(double value) =>
+        double.IsNaN(value) || double.IsInfinity(value) ? 0 : value;
+
+    private static (double Min, double Max, double Step) NiceScale(double rawMin, double rawMax, int divisions)
+    {
+        var range = rawMax - rawMin;
+        if (range <= 0) range = Math.Max(1, Math.Abs(rawMax) * 0.2);
+
+        var rough = range / divisions;
+        var magnitude = Math.Pow(10, Math.Floor(Math.Log10(rough)));
+        var normalized = rough / magnitude;
+        var nice = normalized switch
+        {
+            <= 1 => 1d,
+            <= 2 => 2d,
+            <= 2.5 => 2.5d,
+            <= 5 => 5d,
+            _ => 10d
+        };
+        var step = nice * magnitude;
+
+        var min = Math.Floor(rawMin / step) * step;
+        var max = Math.Ceiling(rawMax / step) * step;
+        if (max - min < step) max = min + step;
+        return (min, max, step);
+    }
+
+    private double GroupLeft(int index) => PlotLeft + index * groupWidth;
+    private double GroupCenter(int index) => GroupLeft(index) + groupWidth / 2.0;
+
+    private double Y(double value)
+    {
+        var raw = PlotBottom - ((value - min) / span) * (PlotBottom - PlotTop);
+        return Math.Clamp(raw, PlotTop - 2, PlotBottom);
+    }
+
+    private double ValueAt(int seriesIndex, int groupIndex)
+    {
+        if (seriesIndex < 0 || seriesIndex >= series.Count) return 0;
+        var values = series[seriesIndex].Values;
+        return groupIndex >= 0 && groupIndex < values.Count ? values[groupIndex] : 0;
+    }
+
+    private double ActiveValue(BarSeries s)
+    {
+        if (s.Values.Count == 0) return 0;
+        var index = hoverIndex ?? s.Values.Count - 1;
+        return s.Values[Math.Clamp(index, 0, s.Values.Count - 1)];
+    }
+
+    private string LabelAt(int index) =>
+        index >= 0 && index < labels.Count ? labels[index] : string.Empty;
+
+    private string FormatValue(double value)
+    {
+        var abs = Math.Abs(value);
+        if (abs >= 1_000_000) return (value / 1_000_000d).ToString("0.#", CultureInfo.InvariantCulture) + "M" + ValueSuffix;
+        if (abs >= 1_000) return (value / 1_000d).ToString("0.#", CultureInfo.InvariantCulture) + "k" + ValueSuffix;
+        return value.ToString("0.##", CultureInfo.InvariantCulture) + ValueSuffix;
+    }
+
+    private static string FormatTick(double value) =>
+        Math.Abs(value) >= 1_000
+            ? (value / 1_000d).ToString("0.#", CultureInfo.InvariantCulture) + "k"
+            : value.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private void ClearHover() => hoverIndex = null;
+
+    private static string F(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private static string PctX(double x) =>
+        (x / ViewWidth * 100).ToString("0.##", CultureInfo.InvariantCulture) + "%";
+
+    private static string PctY(double y) =>
+        (y / ViewHeight * 100).ToString("0.##", CultureInfo.InvariantCulture) + "%";
+}

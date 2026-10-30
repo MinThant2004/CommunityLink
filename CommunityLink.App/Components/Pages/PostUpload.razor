@@ -99,16 +99,13 @@
                     <div class="p-4 sm:p-5 flex items-start justify-between">
                         <div class="flex items-center gap-3">
                             <a href="u/@post.AuthorId" class="shrink-0">
-                                @if (!string.IsNullOrEmpty(post.AuthorAvatar))
-                                {
-                                    <img src="@post.AuthorAvatar" alt="@post.AuthorName" class="w-10 h-10 rounded-full object-cover border border-slate-200 hover:ring-2 hover:ring-blue-500 transition" />
-                                }
-                                else
-                                {
-                                    <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-sm hover:bg-slate-200 transition">
-                                        @(string.IsNullOrWhiteSpace(post.AuthorName) ? "U" : post.AuthorName.Substring(0, 1).ToUpper())
-                                    </div>
-                                }
+                                <UserAvatar Url="@post.AuthorAvatar"
+                                            Name="@post.AuthorName"
+                                            Size="w-10 h-10"
+                                            RingClass="border border-slate-200 hover:ring-2 hover:ring-blue-500 transition"
+                                            BgClass="bg-slate-100"
+                                            ColorClass="text-slate-700"
+                                            TextClass="text-sm" />
                             </a>
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">

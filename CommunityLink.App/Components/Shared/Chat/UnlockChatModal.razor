@@ -18,14 +18,13 @@
         }
 
         <div class="flex items-center gap-3">
-            @if (!string.IsNullOrWhiteSpace(AvatarUrl))
-            {
-                <img src="@AvatarUrl" alt="" class="h-11 w-11 shrink-0 rounded-full object-cover" />
-            }
-            else
-            {
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-[#1D263B] text-sm font-semibold text-slate-600 dark:text-[#E1E2EC]">@Initials</span>
-            }
+            <UserAvatar Url="@AvatarUrl"
+                        Name="@SubjectName"
+                        Size="h-11 w-11"
+                        Class="shrink-0"
+                        BgClass="bg-slate-100 dark:bg-[#1D263B]"
+                        ColorClass="text-slate-600 dark:text-[#E1E2EC]"
+                        TextClass="text-sm font-semibold" />
             <div class="min-w-0">
                 <p class="truncate text-sm font-semibold text-slate-900 dark:text-[#E1E2EC]">@SubjectName</p>
                 <p class="text-xs text-slate-500 dark:text-[#94A3B8]">@SubjectSubtitle</p>

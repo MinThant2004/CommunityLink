@@ -75,14 +75,13 @@
             {
                 <div class="min-h-0 flex-1 overflow-y-auto px-4 py-6">
                     <div class="mx-auto max-w-md rounded-xl border border-rose-200 dark:border-rose-900/50 bg-white dark:bg-[#111622] p-6 text-center select-none shadow-xs">
-                        @if (!string.IsNullOrWhiteSpace(activeThread.AvatarUrl))
-                        {
-                            <img src="@activeThread.AvatarUrl" alt="" class="mx-auto h-16 w-16 rounded-full object-cover" />
-                        }
-                        else
-                        {
-                            <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-[#191B23] text-xl font-semibold text-[#475569] dark:text-[#E1E2EC]">@activeThread.Initials</span>
-                        }
+                        <UserAvatar Url="@activeThread.AvatarUrl"
+                                    Name="@activeThread.Title"
+                                    Size="h-16 w-16"
+                                    Class="mx-auto"
+                                    TextClass="text-xl"
+                                    BgClass="bg-slate-100 dark:bg-[#191B23]"
+                                    ColorClass="text-[#475569] dark:text-[#E1E2EC]" />
 
                         <h2 class="mt-4 text-base font-semibold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@activeThread.Title</h2>
 
@@ -106,14 +105,13 @@
                 @* Non-member view: describe the group and gate entry behind the join payment. *@
                 <div class="min-h-0 flex-1 overflow-y-auto px-4 py-6">
                     <div class="mx-auto max-w-md rounded-xl border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#111622] p-6 text-center shadow-xs">
-                        @if (!string.IsNullOrWhiteSpace(activeThread.AvatarUrl))
-                        {
-                            <img src="@activeThread.AvatarUrl" alt="" class="mx-auto h-16 w-16 rounded-full object-cover" />
-                        }
-                        else
-                        {
-                            <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-[#191B23] text-xl font-semibold text-[#475569] dark:text-[#E1E2EC]">@activeThread.Initials</span>
-                        }
+                        <UserAvatar Url="@activeThread.AvatarUrl"
+                                    Name="@activeThread.Title"
+                                    Size="h-16 w-16"
+                                    Class="mx-auto"
+                                    TextClass="text-xl"
+                                    BgClass="bg-slate-100 dark:bg-[#191B23]"
+                                    ColorClass="text-[#475569] dark:text-[#E1E2EC]" />
 
                         <h2 class="mt-4 text-base font-semibold text-[#0F172A] dark:text-[#E1E2EC]" style="font-family:'Plus Jakarta Sans',sans-serif">@activeThread.Title</h2>
                         <p class="mt-0.5 text-xs text-[#475569] dark:text-[#94A3B8]">@activeThread.Subtitle · @string.Format(Loc["Chat_ByCreator"], activeThread.CreatorName)</p>
@@ -746,14 +744,32 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         var isPaid = statusRes.IsSuccess && statusRes.Data is not null && statusRes.Data.IsPaidChat;
         var isUnlocked = !isPaid || (statusRes.Data?.IsUnlocked ?? false);
 
+        var title = !string.IsNullOrWhiteSpace(displayTitle)
+            ? displayTitle
+            : (!string.IsNullOrWhiteSpace(statusRes.Data?.DisplayName)
+                ? statusRes.Data.DisplayName
+                : (!string.IsNullOrWhiteSpace(statusRes.Data?.UserName)
+                    ? statusRes.Data.UserName
+                    : $"User #{targetUserId}"));
+
+        var subtitle = !string.IsNullOrWhiteSpace(displaySubtitle)
+            ? displaySubtitle
+            : (!string.IsNullOrWhiteSpace(statusRes.Data?.UserName)
+                ? $"@{statusRes.Data.UserName}"
+                : $"User #{targetUserId}");
+
+        var avatarUrl = !string.IsNullOrWhiteSpace(displayAvatarUrl)
+            ? displayAvatarUrl
+            : statusRes.Data?.AvatarUrl;
+
         var placeholder = new ChatThreadViewModel
         {
             Type = ChatThreadType.Private,
             Id = 0,
             DirectUserId = targetUserId,
-            Title = string.IsNullOrWhiteSpace(displayTitle) ? "New conversation" : displayTitle,
-            Subtitle = string.IsNullOrWhiteSpace(displaySubtitle) ? $"User #{targetUserId}" : displaySubtitle,
-            AvatarUrl = displayAvatarUrl,
+            Title = title,
+            Subtitle = subtitle,
+            AvatarUrl = avatarUrl,
             RequiresPayment = isPaid,
             FeeLinkDrops = statusRes.Data?.FeeLinkDrops ?? 0,
             IsUnlocked = isUnlocked,
@@ -765,6 +781,18 @@ Realtime.GroupDeleted -= OnGroupDeleted;
 
         if (known is not null)
         {
+            if (string.IsNullOrWhiteSpace(known.Title) || known.Title == "New conversation")
+            {
+                known.Title = title;
+            }
+            if (string.IsNullOrWhiteSpace(known.Subtitle) || known.Subtitle == $"User #{targetUserId}")
+            {
+                known.Subtitle = subtitle;
+            }
+            if (string.IsNullOrWhiteSpace(known.AvatarUrl) && !string.IsNullOrWhiteSpace(avatarUrl))
+            {
+                known.AvatarUrl = avatarUrl;
+            }
             known.RequiresPayment = isPaid;
             known.FeeLinkDrops = statusRes.Data?.FeeLinkDrops ?? 0;
             known.IsUnlocked = isUnlocked;
@@ -856,6 +884,31 @@ Realtime.GroupDeleted -= OnGroupDeleted;
             activeThread.FeeLinkDrops = res.Data.FeeLinkDrops;
             activeThread.IsUnlocked = !res.Data.IsPaidChat || res.Data.IsUnlocked;
             activeThread.Badge = res.Data.IsPaidChat ? "Paid" : null;
+
+            if (string.IsNullOrWhiteSpace(activeThread.Title) || activeThread.Title == "New conversation")
+            {
+                if (!string.IsNullOrWhiteSpace(res.Data.DisplayName))
+                {
+                    activeThread.Title = res.Data.DisplayName;
+                }
+                else if (!string.IsNullOrWhiteSpace(res.Data.UserName))
+                {
+                    activeThread.Title = res.Data.UserName;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(activeThread.Subtitle) || activeThread.Subtitle.StartsWith("User #"))
+            {
+                if (!string.IsNullOrWhiteSpace(res.Data.UserName))
+                {
+                    activeThread.Subtitle = $"@{res.Data.UserName}";
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(activeThread.AvatarUrl) && !string.IsNullOrWhiteSpace(res.Data.AvatarUrl))
+            {
+                activeThread.AvatarUrl = res.Data.AvatarUrl;
+            }
         }
     }
 
@@ -1768,7 +1821,27 @@ Realtime.GroupDeleted -= OnGroupDeleted;
         _handledRoute = null;
         Toast.Success(string.Format(Loc["Chat_Toast_GroupLive"], group.Name));
         await LoadThreadsAsync();
-        await ActivateThreadAsync(group.ToThread());
+
+        if (activeSegment == "direct")
+        {
+            activeSegment = "group";
+        }
+
+        var thread = allThreads.FirstOrDefault(t => t.IsGroup && t.Id == group.ChatGroupId);
+        if (thread != null)
+        {
+            thread.LastActivityAt = DateTime.Now;
+            allThreads.Remove(thread);
+            allThreads.Insert(0, thread);
+        }
+        else
+        {
+            thread = group.ToThread();
+            thread.LastActivityAt = DateTime.Now;
+            allThreads.Insert(0, thread);
+        }
+
+        await ActivateThreadAsync(thread);
     }
 
     // ---------- Filters ----------
