@@ -5,6 +5,12 @@
     @if (HasData)
     {
         <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
+            @if (!string.IsNullOrEmpty(ActiveDateLabel))
+            {
+                <span class="text-[11px] font-semibold text-[#557392] dark:text-[#C4D2E1] font-mono">
+                    Date: <span class="text-[#0A1B2E] dark:text-white font-bold">@ActiveDateLabel</span>
+                </span>
+            }
             @foreach (var s in series)
             {
                 <span class="flex items-center gap-1.5 text-[11px] font-semibold text-[#557392] dark:text-[#C4D2E1]">
@@ -91,6 +97,7 @@
     private const int TickCount = 4;
 
     [Parameter] public string? Title { get; set; }
+    [Parameter] public IReadOnlyList<string>? DateLabels { get; set; }
     [Parameter] public string? EmptyText { get; set; }
     [Parameter] public string ValueSuffix { get; set; } = "";
     [Parameter] public IReadOnlyList<string>? Labels { get; set; }
@@ -224,6 +231,17 @@
         if (seriesIndex < 0 || seriesIndex >= series.Count) return 0;
         var values = series[seriesIndex].Values;
         return groupIndex >= 0 && groupIndex < values.Count ? values[groupIndex] : 0;
+    }
+
+    private string ActiveDateLabel
+    {
+        get
+        {
+            var list = DateLabels ?? Labels;
+            if (list == null || list.Count == 0) return string.Empty;
+            var idx = hoverIndex ?? (list.Count - 1);
+            return (idx >= 0 && idx < list.Count) ? list[idx] : string.Empty;
+        }
     }
 
     private double ActiveValue(BarSeries s)

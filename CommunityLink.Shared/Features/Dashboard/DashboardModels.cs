@@ -43,4 +43,5 @@ public sealed record DirectoryPersonModel(
     bool IsPrivateChatEnabled = false,
     long PrivateChatFeeLinkDrops = 0,
     bool IsPrivateChatUnlocked = false,
-    bool IsPremium = false);
+    bool IsPremium = false,
+    int FollowersCount = 0);

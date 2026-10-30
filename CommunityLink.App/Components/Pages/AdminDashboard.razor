@@ -155,6 +155,7 @@
 
                 <GroupedBarChart Title="@Loc["Admin_Dashboard_UserGrowthTitle"].Value"
                                  Labels="GrowthLabels"
+                                 DateLabels="GrowthDateLabels"
                                  Series="GrowthSeries"
                                  EmptyText="@Loc["Admin_Dashboard_NoTrendData"].Value"
                                  ValueSuffix="" />
@@ -179,6 +180,7 @@
 
                 <AreaTrendChart Title="@Loc["Admin_Dashboard_LdVolumeTitle"].Value"
                                 Labels="GrowthLabels"
+                                DateLabels="GrowthDateLabels"
                                 Values="LdValues"
                                 SeriesName="@Loc["Admin_Dashboard_LdVolumeSeries"].Value"
                                 EmptyText="@Loc["Admin_Dashboard_NoLdTrendData"].Value"
@@ -351,6 +353,9 @@
 
     private List<string> GrowthLabels =>
         TrendWindow.Select(t => t.Date.ToString("MMM dd")).ToList();
+
+    private List<string> GrowthDateLabels =>
+        TrendWindow.Select(t => t.Date.ToString("dd-MM-yyyy")).ToList();
 
     private List<GroupedBarChart.BarSeries> GrowthSeries => new()
     {

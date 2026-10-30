@@ -6,14 +6,16 @@
     @if (HasData)
     {
         <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
+            @if (!string.IsNullOrEmpty(ActiveDateLabel))
+            {
+                <span class="text-[11px] font-semibold text-[#557392] dark:text-[#C4D2E1] font-mono">
+                    Date: <span class="text-[#0A1B2E] dark:text-white font-bold">@ActiveDateLabel</span>
+                </span>
+            }
             <span class="flex items-center gap-1.5 text-[11px] font-semibold text-[#557392] dark:text-[#C4D2E1]">
                 <span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:@Color"></span>
                 @SeriesName
                 <span class="font-mono text-[#0A1B2E] dark:text-white font-bold">@FormatValue(ActiveValue)</span>
-                @if (hoverIndex is int hi && hi >= 0 && hi < labels.Count)
-                {
-                    <span class="text-[10px] text-[#7A8CA6] font-mono">(@labels[hi])</span>
-                }
             </span>
         </div>
 
@@ -113,6 +115,7 @@
     private readonly record struct Tick(double Y, string Label);
 
     [Parameter] public string? Title { get; set; }
+    [Parameter] public IReadOnlyList<string>? DateLabels { get; set; }
     [Parameter] public string? EmptyText { get; set; }
     [Parameter] public string ValueSuffix { get; set; } = " LD";
     [Parameter] public string SeriesName { get; set; } = "Volume";
@@ -136,6 +139,17 @@
     private bool HasData => cleanValues.Count > 0;
     private string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? "Area chart" : Title;
     private string DisplayEmptyText => string.IsNullOrWhiteSpace(EmptyText) ? "No trend data available." : EmptyText;
+
+    private string ActiveDateLabel
+    {
+        get
+        {
+            var list = DateLabels ?? Labels;
+            if (list == null || list.Count == 0) return string.Empty;
+            var idx = hoverIndex ?? (cleanValues.Count - 1);
+            return (idx >= 0 && idx < list.Count) ? list[idx] : string.Empty;
+        }
+    }
 
     private double ActiveValue
     {
