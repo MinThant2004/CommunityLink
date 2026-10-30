@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CommunityLink.Api.Controllers;
 
 [ApiController]
+[Route("api/admin/reports")]
 [Route("api/reports")]
 [Authorize(Policy = PermissionCatalog.PolicyPrefix + PermissionCatalog.ReportView)]
 public sealed class ReportController(IReportService reportService) : ControllerBase

@@ -12,11 +12,11 @@ public sealed class ReportApiService(IHttpClientFactory clientFactory, IHttpCont
     : ApiService(clientFactory, httpContextAccessor)
 {
     public Task<Result<IReadOnlyList<CommunityReportItemModel>>> GetCommunityReportAsync(CancellationToken cancellationToken = default) =>
-        GetAsync<IReadOnlyList<CommunityReportItemModel>>("api/reports/communities", cancellationToken);
+        GetAsync<IReadOnlyList<CommunityReportItemModel>>("api/admin/reports/communities", cancellationToken);
 
     public Task<Result<IReadOnlyList<UserReportItemModel>>> GetUserReportAsync(CancellationToken cancellationToken = default) =>
-        GetAsync<IReadOnlyList<UserReportItemModel>>("api/reports/users", cancellationToken);
+        GetAsync<IReadOnlyList<UserReportItemModel>>("api/admin/reports/users", cancellationToken);
 
     public Task<Result<UserTopContentModel>> GetUserTopContentAsync(int userId, CancellationToken cancellationToken = default) =>
-        GetAsync<UserTopContentModel>($"api/reports/users/{userId}/top-content", cancellationToken);
+        GetAsync<UserTopContentModel>($"api/admin/reports/users/{userId}/top-content", cancellationToken);
 }

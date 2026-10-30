@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using CommunityLink.Shared.Features.Authentication;
 using CommunityLink.Shared.Features.Community;
 using CommunityLink.Shared.Features.Group;
@@ -17,7 +17,10 @@ public sealed record UserDashboardModel(
     IReadOnlyList<PostModel> RecentPosts,
     IReadOnlyList<PollModel> ActivePolls,
     int UnreadMessageCount,
-    IReadOnlyList<GroupModel>? Groups = null);
+    IReadOnlyList<GroupModel>? Groups = null,
+    int TotalPeopleCount = 0,
+    int TotalDomainProCount = 0,
+    int TotalPublicFigureCount = 0);
 
 public sealed record DirectoryPersonModel(
     int UserId,
@@ -39,4 +42,5 @@ public sealed record DirectoryPersonModel(
     IReadOnlyList<string>? Skills = null,
     bool IsPrivateChatEnabled = false,
     long PrivateChatFeeLinkDrops = 0,
-    bool IsPrivateChatUnlocked = false);
+    bool IsPrivateChatUnlocked = false,
+    bool IsPremium = false);

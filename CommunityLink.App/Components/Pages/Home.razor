@@ -846,6 +846,33 @@ else if (dashboard != null)
                             </div>
                         </div>
                     }
+                    <!-- POSTS SEARCH BAR -->
+                    <div class="bg-surface-container-low p-2.5 sm:p-3 rounded-xl shadow-xs border border-white/5 flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+                            <input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs pl-9 pr-8 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-white/20 transition-all border border-white/5"
+                                   id="post-feed-search"
+                                   placeholder="@Loc["Home_Posts_SearchPlaceholder"]"
+                                   type="text"
+                                   @bind="postSearchQuery"
+                                   @bind:event="oninput"
+                                   @onkeydown="HandlePostSearchKeyDown" />
+                            @if (!string.IsNullOrWhiteSpace(postSearchQuery))
+                            {
+                                <button type="button" @onclick="ClearPostSearchAsync"
+                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface text-base cursor-pointer leading-none"
+                                        title="Clear search">
+                                    &times;
+                                </button>
+                            }
+                        </div>
+                        <button type="button" @onclick="ExecutePostSearchAsync"
+                                class="px-3.5 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-white/10 shrink-0">
+                            <span class="material-symbols-outlined text-[15px]">search</span>
+                            <span class="hidden sm:inline">@Loc["Home_Posts_SearchBtn"]</span>
+                        </button>
+                    </div>
+
                     <!-- EXECUTIVE BROADCAST STREAM (POSTS FEED) -->
                     <div class="flex flex-col gap-3.5" id="feed-stream">
                         @if (!unifiedFeedItems.Any())
@@ -855,6 +882,19 @@ else if (dashboard != null)
                                 <div class="bg-surface-container-low p-8 rounded-xl text-center flex flex-col items-center gap-3 shadow-xs border border-white/5">
                                     <div class="inline-block animate-spin rounded-full h-7 w-7 border-2 border-secondary border-t-transparent"></div>
                                     <span class="text-xs text-outline font-mono">@Loc["Home_Feed_LoadingMore"]</span>
+                                </div>
+                            }
+                            else if (!string.IsNullOrWhiteSpace(postSearchQuery))
+                            {
+                                <div class="bg-surface-container-low p-6 sm:p-8 rounded-xl text-center flex flex-col items-center gap-2 shadow-xs border border-white/5">
+                                    <span class="w-10 h-10 rounded-lg bg-surface-container text-secondary flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-[20px]">search_off</span>
+                                    </span>
+                                    <h3 class="text-sm font-bold text-on-surface">@Loc["Home_Posts_EmptySearchTitle"]</h3>
+                                    <p class="text-xs text-outline max-w-sm">@Loc["Home_Posts_EmptySearchDesc"]</p>
+                                    <button type="button" @onclick="ClearPostSearchAsync" class="mt-2 px-3 py-1 bg-surface-container-highest hover:bg-surface-container-high text-on-surface rounded-md text-xs font-semibold transition-colors cursor-pointer border border-white/10">
+                                        @Loc["Home_Posts_ClearSearch"]
+                                    </button>
                                 </div>
                             }
                             else
@@ -1408,14 +1448,17 @@ else if (dashboard != null)
                                 <h3 class="text-xs sm:text-sm font-bold text-on-surface">@Loc["Home_Sidebar_PeopleTitle"]</h3>
                             </div>
                             <button type="button" @onclick='() => SetFeedTab("people")' class="text-xs text-secondary hover:underline font-semibold cursor-pointer">
-                                @string.Format(CultureInfo.CurrentCulture, Loc["Home_Sidebar_SeeAll"], dashboard.People?.Count ?? 0)
+                                @string.Format(CultureInfo.CurrentCulture, Loc["Home_Sidebar_SeeAll"], PeopleCountAll)
                             </button>
                         </div>
 
                         <div class="flex flex-col gap-2">
-                            @if (dashboard.People != null && dashboard.People.Any())
+                            @{
+                                var sidebarPeople = directoryPeople.Any() ? directoryPeople : (dashboard?.People ?? (IReadOnlyList<DirectoryPersonModel>)Array.Empty<DirectoryPersonModel>());
+                            }
+                            @if (sidebarPeople.Any())
                             {
-                                @foreach (var person in dashboard.People.Take(2))
+                                @foreach (var person in sidebarPeople.Take(2))
                                 {
                                     <div class="p-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high transition-all flex flex-col gap-2 shadow-xs group border border-white/5">
                                         <div class="flex items-start justify-between">
@@ -1487,18 +1530,35 @@ else if (dashboard != null)
             <section class="w-full bg-surface-container-low rounded-xl p-3 sm:p-3.5 mb-3.5 shadow-xs border border-white/5">
                 <div class="flex flex-col md:flex-row items-center gap-2.5">
                     <!-- Search Input -->
-                    <div class="relative flex-1 w-full">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">manage_search</span>
-                        <input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs pl-9 pr-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-white/20 transition-all border border-white/5"
-                               id="member-search"
-                               placeholder="@Loc["Home_People_SearchPlaceholder"]"
-                               type="text"
-                               @bind="peopleSearchQuery"
-                               @bind:event="oninput" />
+                    <div class="relative flex-1 w-full flex items-center">
+                        <div class="relative flex-1">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">manage_search</span>
+                            <input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs pl-9 pr-8 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-white/20 transition-all border border-white/5"
+                                   id="member-search"
+                                   placeholder="@Loc["Home_People_SearchPlaceholder"]"
+                                   type="text"
+                                   @bind="peopleSearchQuery"
+                                   @bind:event="oninput"
+                                   @onkeydown="HandlePeopleSearchKeyDown" />
+                            @if (!string.IsNullOrWhiteSpace(peopleSearchQuery))
+                            {
+                                <button type="button" @onclick="ClearPeopleSearchAsync"
+                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface text-base cursor-pointer leading-none"
+                                        title="Clear search">
+                                    &times;
+                                </button>
+                            }
+                        </div>
+                        <button type="button" @onclick="() => LoadPeopleDirectoryAsync(reset: true)"
+                                class="ml-2 px-3 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer border border-white/10 shrink-0">
+                            <span class="material-symbols-outlined text-[15px]">search</span>
+                            <span class="hidden sm:inline">Search</span>
+                        </button>
                     </div>
                     <!-- Sort Control -->
                     <div class="relative w-full md:w-56 flex-shrink-0">
-                        <select @bind="peopleSortOption"
+                        <select value="@peopleSortOption"
+                                @onchange="OnPeopleSortOptionChanged"
                                 class="w-full appearance-none bg-surface-container-lowest text-on-surface text-xs pl-3 pr-8 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-white/20 cursor-pointer transition-all border border-white/5">
                             <option value="all">@Loc["Home_People_Sort_All"]</option>
                             <option value="followed">@Loc["Home_People_Sort_Followed"]</option>
@@ -1526,13 +1586,20 @@ else if (dashboard != null)
 
             <!-- Main Directory Grid Architecture -->
             <div class="w-full flex flex-col gap-3.5">
-                @if (!FilteredPeople.Any())
+                @if (isLoadingPeople)
+                {
+                    <div class="bg-surface-container-low p-8 rounded-xl text-center flex flex-col items-center gap-3 shadow-xs border border-white/5">
+                        <div class="inline-block animate-spin rounded-full h-7 w-7 border-2 border-secondary border-t-transparent"></div>
+                        <span class="text-xs text-outline font-mono">@Loc["Home_Feed_LoadingMore"]</span>
+                    </div>
+                }
+                else if (!directoryPeople.Any())
                 {
                     <div class="bg-surface-container-low rounded-xl p-8 text-center border border-white/5 space-y-2">
                         <span class="material-symbols-outlined text-3xl text-outline">search_off</span>
                         <p class="text-sm font-semibold text-on-surface">@Loc["Home_People_Empty_Title"]</p>
                         <p class="text-xs text-outline">@Loc["Home_People_Empty_Desc"]</p>
-                        <button type="button" @onclick='() => { peopleSearchQuery = string.Empty; selectedPeopleRoleFilter = "ALL"; peopleSortOption = "all"; }' class="px-3 py-1 bg-surface-container-highest hover:bg-surface-container-high text-on-surface rounded-md text-xs font-semibold transition-colors cursor-pointer border border-white/10">
+                        <button type="button" @onclick="ClearAllPeopleFiltersAsync" class="px-3 py-1 bg-surface-container-highest hover:bg-surface-container-high text-on-surface rounded-md text-xs font-semibold transition-colors cursor-pointer border border-white/10">
                             @Loc["Home_People_ClearFilters"]
                         </button>
                     </div>
@@ -1540,7 +1607,7 @@ else if (dashboard != null)
                 else
                 {
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" id="directory-grid-container">
-                        @foreach (var person in VisiblePeople)
+                        @foreach (var person in directoryPeople)
                         {
                             <div class="bg-surface-container-low hover:bg-surface-container rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between border border-white/5 shadow-xs hover:shadow-md transition-all group">
                                 <div>
@@ -1569,6 +1636,12 @@ else if (dashboard != null)
                                             @if (person.IsVerified)
                                             {
                                                 <VerifiedBadge CssClass="absolute -bottom-1 -right-1 w-4 h-4 shadow-xs" />
+                                            }
+                                            else if (person.IsPremium)
+                                            {
+                                                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 flex items-center justify-center text-[9px] shadow-xs font-bold ring-1 ring-surface-container-low" title="Premium Member">
+                                                    ★
+                                                </span>
                                             }
                                         </div>
                                         <div class="min-w-0 flex-1">
@@ -1626,7 +1699,6 @@ else if (dashboard != null)
                                         </div>
                                     </div>
 
-
                                 </div>
 
                                 <!-- Action Buttons -->
@@ -1654,13 +1726,21 @@ else if (dashboard != null)
                     </div>
 
                     <!-- See More Button with Arrow Icon -->
-                    @if (peopleVisibleCount < FilteredPeople.Count)
+                    @if (hasMorePeople)
                     {
                         <div class="flex justify-center pt-3 pb-2">
-                            <button type="button" @onclick="LoadMorePeople"
-                                    class="px-5 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold flex items-center gap-2 border border-white/5 transition-all cursor-pointer shadow-xs hover:shadow-sm group">
-                                <span>@Loc["Home_People_SeeMore"]</span>
-                                <span class="material-symbols-outlined text-[18px] group-hover:translate-y-0.5 transition-transform text-outline">expand_more</span>
+                            <button type="button" @onclick="LoadMorePeopleAsync" disabled="@isLoadingMorePeople"
+                                    class="px-5 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold flex items-center gap-2 border border-white/5 transition-all cursor-pointer shadow-xs hover:shadow-sm group disabled:opacity-50">
+                                @if (isLoadingMorePeople)
+                                {
+                                    <span class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-secondary border-t-transparent"></span>
+                                    <span>@Loc["Home_Feed_LoadingMore"]</span>
+                                }
+                                else
+                                {
+                                    <span>@Loc["Home_People_SeeMore"]</span>
+                                    <span class="material-symbols-outlined text-[18px] group-hover:translate-y-0.5 transition-transform text-outline">expand_more</span>
+                                }
                             </button>
                         </div>
                     }
@@ -2279,111 +2359,157 @@ else if (dashboard != null)
     private string activeFeedTab = "posts";
 
     private int FeedPostCount => unifiedFeedItems.Count;
-    private int FeedPeopleCount => dashboard?.People?.Count ?? 0;
+    private int FeedPeopleCount => PeopleCountAll;
 
     private void SetFeedTab(string tab)
     {
         activeFeedTab = tab == "people" ? "people" : "posts";
-    }
-
-    // People Tab State & Filtering
-    private string _peopleSearchQuery = string.Empty;
-    private string peopleSearchQuery
-    {
-        get => _peopleSearchQuery;
-        set
+        if (activeFeedTab == "people" && directoryPeople.Count == 0 && !isLoadingPeople)
         {
-            if (_peopleSearchQuery != value)
-            {
-                _peopleSearchQuery = value;
-                peopleVisibleCount = 12;
-            }
+            _ = LoadPeopleDirectoryAsync(reset: true);
         }
     }
 
-    private string _peopleSortOption = "all";
-    private string peopleSortOption
+    // Posts Search State
+    private string postSearchQuery = string.Empty;
+
+    private async Task HandlePostSearchKeyDown(KeyboardEventArgs e)
     {
-        get => _peopleSortOption;
-        set
+        if (e.Key == "Enter")
         {
-            if (_peopleSortOption != value)
-            {
-                _peopleSortOption = value;
-                peopleVisibleCount = 12;
-            }
+            await ExecutePostSearchAsync();
         }
     }
 
+    private async Task ExecutePostSearchAsync()
+    {
+        await LoadHomeFeedAsync(page: 1);
+    }
+
+    private async Task ClearPostSearchAsync()
+    {
+        postSearchQuery = string.Empty;
+        await LoadHomeFeedAsync(page: 1);
+    }
+
+    // People Directory State & Pagination
+    private readonly List<DirectoryPersonModel> directoryPeople = new();
+    private int peopleCurrentPage = 1;
+    private const int PeoplePageSize = 12; // 4 rows x 3 columns = 12 items
+    private int peopleTotalCount = 0;
+    private bool hasMorePeople = false;
+    private bool isLoadingPeople = false;
+    private bool isLoadingMorePeople = false;
+
+    private string peopleSearchQuery = string.Empty;
+    private string peopleSortOption = "all";
     private string selectedPeopleRoleFilter = "ALL";
-    private int peopleVisibleCount = 12;
     private long userLinkDropBalance = 1450;
 
-    private int PeopleCountAll => dashboard?.People?.Count ?? 0;
-    private int PeopleCountPublicFigure => dashboard?.People?.Count(p => p.RoleCode == "PUBLIC_FIGURE") ?? 0;
-    private int PeopleCountDomainPro => dashboard?.People?.Count(p => p.RoleCode == "DOMAIN_PROFESSIONAL") ?? 0;
+    private int PeopleCountAll => dashboard?.TotalPeopleCount > 0 ? dashboard.TotalPeopleCount : (peopleTotalCount > 0 ? peopleTotalCount : (dashboard?.People?.Count ?? directoryPeople.Count));
+    private int PeopleCountPublicFigure => dashboard?.TotalPublicFigureCount > 0 ? dashboard.TotalPublicFigureCount : (dashboard?.People?.Count(p => p.RoleCode == "PUBLIC_FIGURE") ?? 0);
+    private int PeopleCountDomainPro => dashboard?.TotalDomainProCount > 0 ? dashboard.TotalDomainProCount : (dashboard?.People?.Count(p => p.RoleCode == "DOMAIN_PROFESSIONAL" || p.RoleCode == "DOMAIN_PRO") ?? 0);
 
-    private void SetPeopleRoleFilter(string filter)
+    private async Task LoadPeopleDirectoryAsync(bool reset = false)
     {
-        selectedPeopleRoleFilter = filter;
-        peopleVisibleCount = 12;
-    }
-
-    private void LoadMorePeople()
-    {
-        peopleVisibleCount += 12;
-    }
-
-    private IReadOnlyList<DirectoryPersonModel> FilteredPeople
-    {
-        get
+        if (reset)
         {
-            if (dashboard?.People == null) return Array.Empty<DirectoryPersonModel>();
+            peopleCurrentPage = 1;
+            isLoadingPeople = true;
+            directoryPeople.Clear();
+            hasMorePeople = false;
+            StateHasChanged();
+        }
 
-            var list = dashboard.People.AsEnumerable();
+        try
+        {
+            var targetPage = reset ? 1 : peopleCurrentPage + 1;
+            var res = await DashboardApi.GetPeopleDirectoryAsync(
+                page: targetPage,
+                pageSize: PeoplePageSize,
+                search: peopleSearchQuery,
+                roleFilter: selectedPeopleRoleFilter,
+                sortOption: peopleSortOption,
+                cancellationToken: _cts.Token);
 
-            if (!string.IsNullOrWhiteSpace(peopleSearchQuery))
+            if (res.IsSuccess && res.Data != null)
             {
-                var q = peopleSearchQuery.Trim();
-                list = list.Where(p =>
-                    (!string.IsNullOrWhiteSpace(p.DisplayName) && p.DisplayName.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(p.UserName) && p.UserName.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(p.Headline) && p.Headline.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(p.Bio) && p.Bio.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
-                    (p.Skills != null && p.Skills.Any(s => s.Contains(q, StringComparison.OrdinalIgnoreCase)))
-                );
-            }
+                var paged = res.Data;
+                peopleTotalCount = paged.TotalCount;
+                peopleCurrentPage = targetPage;
+                if (reset)
+                {
+                    directoryPeople.Clear();
+                }
 
-            if (selectedPeopleRoleFilter == "PUBLIC_FIGURE")
-            {
-                list = list.Where(p => p.RoleCode == "PUBLIC_FIGURE");
-            }
-            else if (selectedPeopleRoleFilter == "DOMAIN_PROFESSIONAL")
-            {
-                list = list.Where(p => p.RoleCode == "DOMAIN_PROFESSIONAL");
-            }
+                if (paged.Items != null && paged.Items.Count > 0)
+                {
+                    directoryPeople.AddRange(paged.Items);
+                }
 
-            if (peopleSortOption == "followed")
-            {
-                list = list.Where(p => p.IsFollowedByCurrentUser);
-            }
-            else if (peopleSortOption == "active")
-            {
-                list = list.Where(p => p.AvailabilityStatus == null || !p.AvailabilityStatus.Contains("busy", StringComparison.OrdinalIgnoreCase))
-                           .OrderByDescending(p => p.PostsCount)
-                           .ThenByDescending(p => p.AverageRating ?? 0);
+                hasMorePeople = directoryPeople.Count < peopleTotalCount && paged.HasNextPage;
             }
             else
             {
-                list = list.OrderByDescending(p => p.AverageRating ?? 0).ThenByDescending(p => p.RatingCount);
+                hasMorePeople = false;
             }
-
-            return list.ToList();
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+            hasMorePeople = false;
+        }
+        finally
+        {
+            isLoadingPeople = false;
+            isLoadingMorePeople = false;
+            StateHasChanged();
         }
     }
 
-    private IEnumerable<DirectoryPersonModel> VisiblePeople =>
-        FilteredPeople.Take(peopleVisibleCount);
+    private async Task LoadMorePeopleAsync()
+    {
+        if (isLoadingMorePeople || !hasMorePeople || isLoadingPeople) return;
+        isLoadingMorePeople = true;
+        StateHasChanged();
+        await LoadPeopleDirectoryAsync(reset: false);
+    }
+
+    private async Task SetPeopleRoleFilter(string filter)
+    {
+        if (selectedPeopleRoleFilter == filter) return;
+        selectedPeopleRoleFilter = filter;
+        await LoadPeopleDirectoryAsync(reset: true);
+    }
+
+    private async Task OnPeopleSortOptionChanged(ChangeEventArgs e)
+    {
+        peopleSortOption = e.Value?.ToString() ?? "all";
+        await LoadPeopleDirectoryAsync(reset: true);
+    }
+
+    private async Task HandlePeopleSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await LoadPeopleDirectoryAsync(reset: true);
+        }
+    }
+
+    private async Task ClearPeopleSearchAsync()
+    {
+        peopleSearchQuery = string.Empty;
+        await LoadPeopleDirectoryAsync(reset: true);
+    }
+
+    private async Task ClearAllPeopleFiltersAsync()
+    {
+        peopleSearchQuery = string.Empty;
+        selectedPeopleRoleFilter = "ALL";
+        peopleSortOption = "all";
+        await LoadPeopleDirectoryAsync(reset: true);
+    }
 
 
 
@@ -2501,6 +2627,9 @@ else if (dashboard != null)
 
         // Load dashboard stats in background
         await LoadDashboardAsync();
+
+        // Also load initial people directory (page 1, 12 items / 4 rows)
+        _ = LoadPeopleDirectoryAsync(reset: true);
     }
 
     private async Task LoadHomeFeedAsync(int page = 1)
@@ -2518,7 +2647,7 @@ else if (dashboard != null)
 
         try
         {
-            var res = await PostApi.GetHomeFeedAsync(page, FeedPageSize, feedSessionTime, _cts.Token);
+            var res = await PostApi.GetHomeFeedAsync(page, FeedPageSize, feedSessionTime, postSearchQuery, _cts.Token);
             if (res.IsSuccess && res.Data != null)
             {
                 var newItems = res.Data;
@@ -3310,7 +3439,7 @@ else if (dashboard != null)
         try
         {
             var nextPage = currentFeedPage + 1;
-            var res = await PostApi.GetHomeFeedAsync(page: nextPage, pageSize: FeedPageSize, sessionTime: feedSessionTime, cancellationToken: _cts.Token);
+            var res = await PostApi.GetHomeFeedAsync(page: nextPage, pageSize: FeedPageSize, sessionTime: feedSessionTime, search: postSearchQuery, cancellationToken: _cts.Token);
             if (res.IsSuccess && res.Data != null)
             {
                 var newItems = res.Data;
