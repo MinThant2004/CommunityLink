@@ -5,6 +5,9 @@
 @inject CultureService Culture
 @inject IStringLocalizer<AppResources> Loc
 @inject AuthenticationStateProvider AuthStateProvider
+@using CommunityLink.App.Apis
+@using CommunityLink.Shared.Features.UserProfile
+@inject UserProfileApiService UserProfileApi
 
 <div class="h-full flex flex-col min-h-0 overflow-hidden select-none bg-white dark:bg-[#0A0D14] transition-colors duration-150">
     <!-- Stationary Sidebar Header -->
@@ -277,9 +280,21 @@
                         var profileTarget = isFooterAdmin ? "admin/dashboard" : "profile";
                     }
                     <a href="@profileTarget" class="flex items-center gap-3 p-2 rounded hover:bg-white dark:hover:bg-[#111622] transition border border-transparent hover:border-[#E2E8F0] dark:hover:border-[rgba(255,255,255,0.08)] group no-underline">
-                        <div class="w-8 h-8 rounded bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-xs flex items-center justify-center shrink-0 shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">
-                            @(context.User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
-                        </div>
+                        @if (!string.IsNullOrWhiteSpace(navAvatarUrl))
+                        {
+                            <img src="@navAvatarUrl" alt=""
+                                 class="w-8 h-8 rounded-lg object-cover shrink-0 shadow-sm border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.1)]"
+                                 onerror="this.onerror=null;this.style.display='none';var fb=this.nextElementSibling;if(fb){fb.style.display='flex';}" />
+                            <div class="w-8 h-8 rounded-lg bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-xs hidden items-center justify-center shrink-0 shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">
+                                @(context.User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="w-8 h-8 rounded-lg bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-xs flex items-center justify-center shrink-0 shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">
+                                @(context.User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
+                            </div>
+                        }
                         <div class="min-w-0 flex-1">
                             <div class="text-xs font-bold text-[#0A1B2E] dark:text-[#E1E2EC] truncate flex items-center gap-1.5">
                                 <span class="truncate">@(context.User.Identity?.Name ?? "Member")</span>
@@ -312,6 +327,7 @@
     private bool isReportOpen = true;
     private bool isContentModerationOpen = true;
     private string brandUrl = "";
+    private string? navAvatarUrl;
 
     protected override async Task OnInitializedAsync()
     {
@@ -319,6 +335,18 @@
         var user = auth.User;
         if (user.Identity?.IsAuthenticated == true)
         {
+            try
+            {
+                var profileRes = await UserProfileApi.GetOwnerProfileAsync();
+                if (profileRes.IsSuccess && profileRes.Data != null)
+                {
+                    navAvatarUrl = profileRes.Data.AvatarUrl;
+                }
+            }
+            catch
+            {
+                // Graceful fallback
+            }
             var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value 
                        ?? user.FindFirst("role")?.Value 
                        ?? string.Empty;

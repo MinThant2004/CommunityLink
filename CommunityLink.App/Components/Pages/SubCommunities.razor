@@ -135,11 +135,19 @@
 
             <!-- Navigation & Filter Strip -->
             <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop pb-space-md w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
-                <div class="flex items-center gap-space-sm">
+                <div class="flex flex-wrap items-center gap-space-sm">
                     <span class="font-title-lg text-title-lg text-on-surface font-bold">@Loc["SubCommunities_Heading"]</span>
-                    <span class="px-2.5 py-0.5 rounded-full bg-surface-container-high text-blue-600 dark:text-blue-400 font-label-md text-label-md border border-blue-500/30">
-                        @string.Format(CultureInfo.CurrentUICulture, Loc["SubCommunities_AuthorizedHubs"], filteredSubCommunities.Count)
-                    </span>
+                    <!-- Joined / Browse Tabs -->
+                    <div class="flex items-center gap-1 p-0.5 bg-surface-container-low rounded-lg border border-surface-container-high/30">
+                        <button type="button" @onclick='() => SetTab("joined")'
+                                class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer @(activeTab == "joined" ? "bg-[#0A1B2E] dark:bg-white text-white dark:text-[#0A1B2E] shadow-xs" : "text-on-surface-variant hover:text-on-surface")">
+                            Joined (@joinedCount)
+                        </button>
+                        <button type="button" @onclick='() => SetTab("browse")'
+                                class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer @(activeTab == "browse" ? "bg-[#0A1B2E] dark:bg-white text-white dark:text-[#0A1B2E] shadow-xs" : "text-on-surface-variant hover:text-on-surface")">
+                            Browse (@browseCount)
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-space-sm w-full sm:w-auto">
@@ -258,20 +266,20 @@
 
                                     @if (isJoined)
                                     {
-                                        <button class="flex-1 py-2 px-space-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white dark:hover:bg-slate-100 text-[#0A1B2E] dark:text-[#0A1B2E] font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-slate-300 dark:border-white shadow-xs"
+                                        <button class="flex-1 py-2 px-space-sm rounded-lg bg-rose-500/10 hover:bg-rose-500/20 active:bg-rose-500/25 text-rose-600 dark:text-rose-400 font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-rose-500/25 dark:border-rose-500/30 font-bold shadow-xs"
                                                 type="button"
-                                                @onclick="() => ToggleJoin(sub)">
-                                            <span class="material-symbols-outlined text-base text-[#0A1B2E] dark:text-[#0A1B2E] font-bold" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                            <span class="font-bold text-[#0A1B2E] dark:text-[#0A1B2E]">@Loc["SubCommunities_Card_Joined"]</span>
+                                                @onclick="() => PromptLeaveSubCommunity(sub)">
+                                            <span class="material-symbols-outlined text-sm text-rose-600 dark:text-rose-400">logout</span>
+                                            <span>Leave</span>
                                         </button>
                                     }
                                     else
                                     {
                                         <button class="flex-1 py-2 px-space-sm rounded-lg bg-[#0A1B2E] hover:bg-[#153252] text-white dark:bg-[#1E3A8A] dark:hover:bg-[#2563EB] dark:text-white font-label-lg text-label-lg flex items-center justify-center gap-1.5 transition-all font-bold cursor-pointer shadow-sm border border-[#0A1B2E] dark:border-[#1E3A8A]"
                                                 type="button"
-                                                @onclick="() => ToggleJoin(sub)">
+                                                @onclick="() => PromptJoinSubCommunity(sub)">
                                             <span class="material-symbols-outlined text-sm text-white">lock_open</span>
-                                            <span class="text-white font-bold">@Loc["SubCommunities_Card_Join"]</span>
+                                            <span class="text-white font-bold">Join</span>
                                         </button>
                                     }
                                 </div>
@@ -408,6 +416,204 @@
                         <span>@Loc["SubCommunities_Modal_SubmitBtn"]</span>
                     }
                 </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Prerequisite Parent Community Modal -->
+@if (showJoinPrereqModal && subCommunityToJoin != null && hierarchyContext != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="relative w-full max-w-lg rounded-2xl bg-surface-container-low border border-surface-container-high/40 shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="px-6 py-4 flex items-center justify-between border-b border-surface-container-high/30 bg-surface-container-lowest/60">
+                <div class="flex items-center gap-2.5 text-blue-600 dark:text-blue-400">
+                    <span class="material-symbols-outlined text-2xl">account_tree</span>
+                    <div>
+                        <h3 class="font-title-lg text-title-lg font-bold text-on-surface">Community Prerequisite Required</h3>
+                        <p class="text-xs text-on-surface-variant">Membership hierarchy check</p>
+                    </div>
+                </div>
+                <button type="button" @onclick="CloseJoinPrereqModal" class="text-on-surface-variant hover:text-on-surface p-1 rounded-lg transition cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4">
+                <!-- Warning Message Box -->
+                <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 space-y-1">
+                    <div class="flex items-center gap-1.5 font-bold text-xs">
+                        <span class="material-symbols-outlined text-sm">warning</span>
+                        <span>Prerequisite Tier Required</span>
+                    </div>
+                    <p class="text-xs leading-relaxed">
+                        To join <strong>@subCommunityToJoin.Name</strong>, you must first become a member of the parent Community: <strong>@hierarchyContext.ParentCommunityName</strong>.
+                    </p>
+                </div>
+
+                <!-- Step 1: Parent Community Card -->
+                <div class="space-y-1.5">
+                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tier 1: Parent Community</span>
+                    <div class="p-3.5 rounded-xl bg-surface-container border border-surface-container-high/50 flex items-center justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <div class="text-sm font-bold text-on-surface truncate">@hierarchyContext.ParentCommunityName</div>
+                            <p class="text-xs text-on-surface-variant line-clamp-2 mt-0.5">@(hierarchyContext.ParentCommunityDescription ?? "Top-level domain community hub")</p>
+                        </div>
+                        <span class="shrink-0 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-label-sm text-xs font-semibold border border-amber-500/20">
+                            Not Joined
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Step 2: Target Sub-Community -->
+                <div class="space-y-1.5">
+                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tier 2: Target Sub-Community</span>
+                    <div class="p-3.5 rounded-xl bg-surface-container/60 border border-surface-container-high/30 flex items-center justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <div class="text-sm font-bold text-on-surface truncate">@subCommunityToJoin.Name</div>
+                            <p class="text-xs text-on-surface-variant line-clamp-1 mt-0.5">@(subCommunityToJoin.Description ?? "Specialized sector node")</p>
+                        </div>
+                        <span class="shrink-0 px-2 py-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-label-sm text-xs font-semibold border border-blue-500/20">
+                            Joining Next
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="px-6 py-4 border-t border-surface-container-high/30 bg-surface-container-lowest/60 flex flex-wrap items-center justify-end gap-2">
+                <button type="button" @onclick="CloseJoinPrereqModal"
+                        class="px-4 py-2 rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-xs font-semibold transition cursor-pointer">
+                    @Loc["Common_Cancel"]
+                </button>
+                <button type="button" @onclick="() => ExecuteJoinSubCommunityAsync(subCommunityToJoin.CommunityId, true)"
+                        disabled="@isExecutingJoin"
+                        class="px-5 py-2 rounded-xl bg-[#0A1B2E] hover:bg-[#153252] text-white dark:bg-white dark:hover:bg-slate-100 dark:text-[#0A1B2E] font-label-md text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer border border-[#0A1B2E] dark:border-white disabled:opacity-50">
+                    @if (isExecutingJoin)
+                    {
+                        <span class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white dark:border-slate-900 border-t-transparent"></span>
+                        <span>Joining Both...</span>
+                    }
+                    else
+                    {
+                        <span class="material-symbols-outlined text-sm">link</span>
+                        <span>Join Community & Proceed</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Leave Sub-Community Impact Warning Modal -->
+@if (showLeaveSubModal && subCommunityToLeave != null)
+{
+    var hasChildGroups = subChildGroupsToLeave.Count > 0;
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="relative w-full max-w-lg rounded-2xl bg-surface-container-low border border-surface-container-high/40 shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="px-6 py-4 flex items-center justify-between border-b border-surface-container-high/30 bg-surface-container-lowest/60">
+                <div class="flex items-center gap-2.5 text-rose-600 dark:text-rose-400">
+                    <span class="material-symbols-outlined text-2xl">warning</span>
+                    <div>
+                        <h3 class="font-title-lg text-title-lg font-bold text-on-surface">Leave Sub-Community</h3>
+                        <p class="text-xs text-on-surface-variant">Membership departure review</p>
+                    </div>
+                </div>
+                <button type="button" @onclick="CloseLeaveSubModal" class="text-on-surface-variant hover:text-on-surface p-1 rounded-lg transition cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div class="p-3.5 rounded-xl bg-surface-container border border-surface-container-high/50 flex items-center gap-3">
+                    <div class="min-w-0 flex-1">
+                        <div class="text-sm font-bold text-on-surface truncate">@subCommunityToLeave.Name</div>
+                        <p class="text-xs text-on-surface-variant line-clamp-1 mt-0.5">@(subCommunityToLeave.Description ?? "No description available")</p>
+                    </div>
+                </div>
+
+                @if (isLoadingSubChildren)
+                {
+                    <div class="py-6 flex flex-col items-center justify-center gap-2 text-on-surface-variant">
+                        <div class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        <span class="text-xs">Checking child working groups...</span>
+                    </div>
+                }
+                else if (hasChildGroups)
+                {
+                    <!-- Impact Warning Box -->
+                    <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 space-y-1">
+                        <div class="flex items-center gap-1.5 font-bold text-xs">
+                            <span class="material-symbols-outlined text-sm">report_problem</span>
+                            <span>Child Groups Warning</span>
+                        </div>
+                        <p class="text-xs leading-relaxed">
+                            You have joined <strong>@subChildGroupsToLeave.Count @(subChildGroupsToLeave.Count == 1 ? "working group" : "working groups")</strong> within this Sub-Community:
+                        </p>
+                    </div>
+
+                    <!-- Groups List -->
+                    <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        @foreach (var grp in subChildGroupsToLeave)
+                        {
+                            <div class="p-3 rounded-lg bg-surface-container-low border border-surface-container-high/40">
+                                <div class="text-xs font-bold text-on-surface">@grp.Name</div>
+                                <p class="text-[11px] text-on-surface-variant line-clamp-1 mt-0.5">@(grp.Description ?? "Active working room")</p>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-xs text-on-surface-variant leading-relaxed">
+                        Are you sure you want to leave <strong>@subCommunityToLeave.Name</strong>? You can rejoin anytime.
+                    </p>
+                }
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="px-6 py-4 border-t border-surface-container-high/30 bg-surface-container-lowest/60 flex flex-wrap items-center justify-end gap-2">
+                <button type="button" @onclick="CloseLeaveSubModal" disabled="@isExecutingLeave"
+                        class="px-4 py-2 rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-xs font-semibold transition cursor-pointer">
+                    @Loc["Common_Cancel"]
+                </button>
+
+                @if (hasChildGroups)
+                {
+                    <button type="button" @onclick="() => ExecuteLeaveSubCommunityAsync(true)" disabled="@isExecutingLeave"
+                            class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-label-md text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer disabled:opacity-50">
+                        @if (isExecutingLeave)
+                        {
+                            <span class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
+                            <span>Departing...</span>
+                        }
+                        else
+                        {
+                            <span class="material-symbols-outlined text-sm">delete_sweep</span>
+                            <span>Confirm & Leave All</span>
+                        }
+                    </button>
+                }
+                else
+                {
+                    <button type="button" @onclick="() => ExecuteLeaveSubCommunityAsync(false)" disabled="@isExecutingLeave"
+                            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-label-md text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer disabled:opacity-50">
+                        @if (isExecutingLeave)
+                        {
+                            <span class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
+                            <span>Leaving...</span>
+                        }
+                        else
+                        {
+                            <span class="material-symbols-outlined text-sm">logout</span>
+                            <span>Confirm Leave</span>
+                        }
+                    </button>
+                }
             </div>
         </div>
     </div>
@@ -576,11 +782,30 @@
         }
     }
 
+    private string activeTab = "joined";
+
+    private void SetTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private int joinedCount => subCommunities.Count(s => s.IsJoined || joinedCommunityIds.Contains(s.CommunityId));
+    private int browseCount => subCommunities.Count(s => !s.IsJoined && !joinedCommunityIds.Contains(s.CommunityId));
+
     private List<CommunityModel> filteredSubCommunities
     {
         get
         {
             var list = subCommunities.AsEnumerable();
+
+            if (activeTab == "joined")
+            {
+                list = list.Where(s => s.IsJoined || joinedCommunityIds.Contains(s.CommunityId));
+            }
+            else
+            {
+                list = list.Where(s => !s.IsJoined && !joinedCommunityIds.Contains(s.CommunityId));
+            }
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -676,34 +901,133 @@
         };
     }
 
-    private async Task ToggleJoin(CommunityModel sub)
+    // Prerequisite Join Modal State
+    private bool showJoinPrereqModal = false;
+    private CommunityModel? subCommunityToJoin = null;
+    private CommunityHierarchyContextModel? hierarchyContext = null;
+    private bool isExecutingJoin = false;
+
+    // Leave Impact Modal State
+    private bool showLeaveSubModal = false;
+    private CommunityModel? subCommunityToLeave = null;
+    private IReadOnlyList<CommunityHierarchyItem> subChildGroupsToLeave = [];
+    private bool isLoadingSubChildren = false;
+    private bool isExecutingLeave = false;
+
+    private async Task PromptJoinSubCommunity(CommunityModel sub)
     {
         try
         {
-            var isCurrentlyJoined = sub.IsJoined || joinedCommunityIds.Contains(sub.CommunityId);
-            var res = await CommunityApi.JoinCommunityAsync(sub.CommunityId);
+            var ctxRes = await CommunityApi.GetSubCommunityContextAsync(sub.CommunityId);
+            if (ctxRes.IsSuccess && ctxRes.Value != null)
+            {
+                if (!ctxRes.Value.IsParentCommunityJoined)
+                {
+                    subCommunityToJoin = sub;
+                    hierarchyContext = ctxRes.Value;
+                    showJoinPrereqModal = true;
+                    return;
+                }
+            }
+        }
+        catch { }
+
+        // If parent already joined or standalone: direct join
+        await ExecuteJoinSubCommunityAsync(sub.CommunityId, false);
+    }
+
+    private void CloseJoinPrereqModal()
+    {
+        showJoinPrereqModal = false;
+        subCommunityToJoin = null;
+        hierarchyContext = null;
+        isExecutingJoin = false;
+    }
+
+    private async Task ExecuteJoinSubCommunityAsync(int subCommunityId, bool joinParentIfMissing)
+    {
+        try
+        {
+            isExecutingJoin = true;
+            var res = await CommunityApi.JoinCommunityAsync(subCommunityId, joinParentIfMissing);
             if (res.IsSuccess)
             {
-                if (isCurrentlyJoined)
-                {
-                    joinedCommunityIds.Remove(sub.CommunityId);
-                    Toast.Success(string.Format(CultureInfo.CurrentUICulture, Loc["SubCommunities_Toast_Departed"], sub.Name));
-                }
-                else
-                {
-                    joinedCommunityIds.Add(sub.CommunityId);
-                    Toast.Success(string.Format(CultureInfo.CurrentUICulture, Loc["SubCommunities_Toast_JoinedConsensus"], sub.Name));
-                }
+                joinedCommunityIds.Add(subCommunityId);
+                Toast.Success("Joined sub-community successfully.");
+                CloseJoinPrereqModal();
                 await LoadDataAsync();
             }
             else
             {
-                Toast.Error(res.Message ?? Loc["SubCommunities_Toast_ActionFailed"]);
+                Toast.Error(res.Message ?? "Failed to join sub-community.");
             }
         }
         catch (Exception ex)
         {
-            Toast.Error(string.Format(CultureInfo.CurrentUICulture, Loc["SubCommunities_Toast_MembershipError"], ex.Message));
+            Toast.Error($"Join error: {ex.Message}");
+        }
+        finally
+        {
+            isExecutingJoin = false;
+        }
+    }
+
+    private async Task PromptLeaveSubCommunity(CommunityModel sub)
+    {
+        subCommunityToLeave = sub;
+        subChildGroupsToLeave = [];
+        isLoadingSubChildren = true;
+        showLeaveSubModal = true;
+
+        try
+        {
+            var res = await CommunityApi.GetSubCommunityChildMembershipsAsync(sub.CommunityId);
+            if (res.IsSuccess && res.Value != null)
+            {
+                subChildGroupsToLeave = res.Value.Groups;
+            }
+        }
+        catch { }
+        finally
+        {
+            isLoadingSubChildren = false;
+        }
+    }
+
+    private void CloseLeaveSubModal()
+    {
+        showLeaveSubModal = false;
+        subCommunityToLeave = null;
+        subChildGroupsToLeave = [];
+        isExecutingLeave = false;
+    }
+
+    private async Task ExecuteLeaveSubCommunityAsync(bool leaveGroups = true)
+    {
+        if (subCommunityToLeave == null) return;
+        try
+        {
+            isExecutingLeave = true;
+            var res = await CommunityApi.LeaveCommunityAsync(subCommunityToLeave.CommunityId, leaveGroups);
+            if (res.IsSuccess)
+            {
+                joinedCommunityIds.Remove(subCommunityToLeave.CommunityId);
+                Toast.Success("Left sub-community successfully.");
+                CloseLeaveSubModal();
+                await LoadDataAsync();
+            }
+            else
+            {
+                Toast.Error(res.Message ?? "Failed to leave sub-community.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Leave error: {ex.Message}");
+        }
+        finally
+        {
+            isExecutingLeave = false;
         }
     }
 

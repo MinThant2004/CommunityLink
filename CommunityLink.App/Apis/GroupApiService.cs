@@ -23,8 +23,11 @@ public sealed class GroupApiService(IHttpClientFactory clientFactory, IHttpConte
     public Task<Result<GroupModel>> CreateGroupAsync(CreateGroupRequestModel request, CancellationToken cancellationToken = default) =>
         PostAsync<GroupModel, CreateGroupRequestModel>("api/groups", request, cancellationToken);
 
-    public Task<Result> JoinGroupAsync(int groupId, string? requestNote = null, CancellationToken cancellationToken = default) =>
-        PostAsync($"api/groups/{groupId}/join", requestNote ?? "", cancellationToken);
+    public Task<Result> JoinGroupAsync(int groupId, string? requestNote = null, bool joinPrerequisites = false, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/groups/{groupId}/join?joinPrerequisites={joinPrerequisites}", requestNote ?? "", cancellationToken);
+
+    public Task<Result<GroupHierarchyContextModel>> GetGroupHierarchyContextAsync(int groupId, CancellationToken cancellationToken = default) =>
+        GetAsync<GroupHierarchyContextModel>($"api/groups/{groupId}/hierarchy-context", cancellationToken);
 
     public Task<Result> LeaveGroupAsync(int groupId, CancellationToken cancellationToken = default) =>
         PostAsync($"api/groups/{groupId}/leave", new { }, cancellationToken);

@@ -17,7 +17,8 @@ public interface IGroupService
     Task<Result<GroupModel>> GetGroupByIdAsync(int groupId, CancellationToken cancellationToken = default);
     Task<Result<GroupModel>> CreateGroupAsync(CreateGroupRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<GroupModel>> UpdateGroupAsync(UpdateGroupRequestModel request, CancellationToken cancellationToken = default);
-    Task<Result> JoinGroupAsync(int groupId, string? requestNote = null, CancellationToken cancellationToken = default);
+    Task<Result> JoinGroupAsync(int groupId, string? requestNote = null, bool joinPrerequisites = false, CancellationToken cancellationToken = default);
+    Task<Result<GroupHierarchyContextModel>> GetGroupHierarchyContextAsync(int groupId, CancellationToken cancellationToken = default);
     Task<Result> LeaveGroupAsync(int groupId, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<GroupMemberModel>>> GetGroupMembersAsync(int groupId, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<GroupJoinRequestModel>>> GetGroupJoinRequestsAsync(int groupId, CancellationToken cancellationToken = default);
@@ -343,13 +344,84 @@ public sealed class GroupService(
         return await GetGroupByIdAsync(group.GroupId, cancellationToken);
     }
 
-    public async Task<Result> JoinGroupAsync(int groupId, string? requestNote = null, CancellationToken cancellationToken = default)
+    public async Task<Result> JoinGroupAsync(int groupId, string? requestNote = null, bool joinPrerequisites = false, CancellationToken cancellationToken = default)
     {
         if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
         var userId = currentUser.UserId.Value;
 
-        var group = await dbContext.TblGroups.FirstOrDefaultAsync(g => g.GroupId == groupId && !g.IsDeleted, cancellationToken);
+        var group = await dbContext.TblGroups
+            .Include(g => g.SubCommunity)
+            .FirstOrDefaultAsync(g => g.GroupId == groupId && !g.IsDeleted, cancellationToken);
         if (group is null) return Result.Failure("Group not found.", ResultStatus.NotFound);
+
+        // Check prerequisites: SubCommunity and Parent Community
+        var subCommId = group.SubCommunityId;
+        var subComm = group.SubCommunity ?? await dbContext.TblCommunities.FindAsync([subCommId], cancellationToken);
+        var parentCommId = subComm?.ParentCommunityId;
+
+        bool isSubJoined = await dbContext.TblCommunityMembers
+            .AnyAsync(m => m.CommunityId == subCommId && m.UserId == userId && !m.IsDeleted, cancellationToken);
+
+        bool isParentJoined = parentCommId.HasValue ? await dbContext.TblCommunityMembers
+            .AnyAsync(m => m.CommunityId == parentCommId.Value && m.UserId == userId && !m.IsDeleted, cancellationToken) : true;
+
+        if (!isSubJoined || !isParentJoined)
+        {
+            if (joinPrerequisites)
+            {
+                var now = DateTime.UtcNow;
+                if (!isParentJoined && parentCommId.HasValue)
+                {
+                    var parentExisting = await dbContext.TblCommunityMembers
+                        .FirstOrDefaultAsync(m => m.CommunityId == parentCommId.Value && m.UserId == userId, cancellationToken);
+                    if (parentExisting is not null)
+                    {
+                        parentExisting.IsDeleted = false;
+                        parentExisting.UpdatedAt = now;
+                    }
+                    else
+                    {
+                        dbContext.TblCommunityMembers.Add(new TblCommunityMember
+                        {
+                            CommunityId = parentCommId.Value,
+                            UserId = userId,
+                            Role = "Member",
+                            JoinedAt = now,
+                            CreatedAt = now
+                        });
+                    }
+                    var pComm = await dbContext.TblCommunities.FindAsync([parentCommId.Value], cancellationToken);
+                    if (pComm != null) pComm.MemberCount++;
+                }
+
+                if (!isSubJoined)
+                {
+                    var subExisting = await dbContext.TblCommunityMembers
+                        .FirstOrDefaultAsync(m => m.CommunityId == subCommId && m.UserId == userId, cancellationToken);
+                    if (subExisting is not null)
+                    {
+                        subExisting.IsDeleted = false;
+                        subExisting.UpdatedAt = now;
+                    }
+                    else
+                    {
+                        dbContext.TblCommunityMembers.Add(new TblCommunityMember
+                        {
+                            CommunityId = subCommId,
+                            UserId = userId,
+                            Role = "Member",
+                            JoinedAt = now,
+                            CreatedAt = now
+                        });
+                    }
+                    if (subComm != null) subComm.MemberCount++;
+                }
+            }
+            else
+            {
+                return Result.Failure("You must join the related community and sub-community first.", ResultStatus.ValidationError);
+            }
+        }
 
         // Check if already a member
         var existingMember = await dbContext.TblGroupMembers
@@ -425,25 +497,85 @@ public sealed class GroupService(
         return Result.Success("Joined group successfully.");
     }
 
+    public async Task<Result<GroupHierarchyContextModel>> GetGroupHierarchyContextAsync(int groupId, CancellationToken cancellationToken = default)
+    {
+        var group = await dbContext.TblGroups
+            .Include(g => g.SubCommunity)
+            .ThenInclude(sc => sc.ParentCommunity)
+            .FirstOrDefaultAsync(g => g.GroupId == groupId && !g.IsDeleted, cancellationToken);
+
+        if (group is null) return Result<GroupHierarchyContextModel>.Failure("Group not found.", ResultStatus.NotFound);
+
+        var subComm = group.SubCommunity;
+        var parentComm = subComm?.ParentCommunity;
+
+        var userId = currentUser.UserId;
+        bool isGroupJoined = false;
+        bool isSubJoined = false;
+        bool isParentJoined = false;
+
+        if (userId.HasValue)
+        {
+            isGroupJoined = await dbContext.TblGroupMembers
+                .AnyAsync(m => m.GroupId == groupId && m.UserId == userId.Value && !m.IsDeleted, cancellationToken);
+
+            if (subComm != null)
+            {
+                isSubJoined = await dbContext.TblCommunityMembers
+                    .AnyAsync(m => m.CommunityId == subComm.CommunityId && m.UserId == userId.Value && !m.IsDeleted, cancellationToken);
+            }
+
+            if (parentComm != null)
+            {
+                isParentJoined = await dbContext.TblCommunityMembers
+                    .AnyAsync(m => m.CommunityId == parentComm.CommunityId && m.UserId == userId.Value && !m.IsDeleted, cancellationToken);
+            }
+        }
+
+        return Result<GroupHierarchyContextModel>.Success(new GroupHierarchyContextModel(
+            group.GroupId,
+            group.Name,
+            group.Description,
+            isGroupJoined,
+            subComm?.CommunityId ?? 0,
+            subComm?.Name ?? "Sub-Community",
+            subComm?.Description,
+            isSubJoined,
+            parentComm?.CommunityId ?? 0,
+            parentComm?.Name ?? "Community",
+            parentComm?.Description,
+            isParentJoined
+        ));
+    }
+
     public async Task<Result> LeaveGroupAsync(int groupId, CancellationToken cancellationToken = default)
     {
         if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
         var userId = currentUser.UserId.Value;
+
+        var group = await dbContext.TblGroups.FindAsync([groupId], cancellationToken);
+        if (group is null || group.IsDeleted) return Result.Failure("Group not found.", ResultStatus.NotFound);
+
+        if (group.CreatorId == userId)
+        {
+            return Result.Failure("As the group creator, you cannot leave your group.", ResultStatus.Forbidden);
+        }
 
         var member = await dbContext.TblGroupMembers
             .FirstOrDefaultAsync(m => m.GroupId == groupId && m.UserId == userId && !m.IsDeleted, cancellationToken);
 
         if (member is null) return Result.Failure("You are not a member of this group.", ResultStatus.NotFound);
 
+        if (string.Equals(member.Role, "Owner", StringComparison.OrdinalIgnoreCase))
+        {
+            return Result.Failure("As the group creator, you cannot leave your group.", ResultStatus.Forbidden);
+        }
+
         member.IsDeleted = true;
         member.DeletedAt = DateTime.UtcNow;
         member.DeletedBy = userId;
 
-        var group = await dbContext.TblGroups.FindAsync([groupId], cancellationToken);
-        if (group is not null)
-        {
-            group.MemberCount = Math.Max(0, group.MemberCount - 1);
-        }
+        group.MemberCount = Math.Max(0, group.MemberCount - 1);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success("Left group successfully.");

@@ -27,6 +27,11 @@
                 <span class="material-symbols-outlined text-xs">chevron_right</span>
                 <a class="hover:text-primary transition-colors" href="/communities">@Loc["Communities_Breadcrumb"]</a>
                 <span class="material-symbols-outlined text-xs">chevron_right</span>
+                @if (selectedSubCommunity?.ParentCommunityId.HasValue == true)
+                {
+                    <a class="hover:text-primary transition-colors" href="/sub-communities/@selectedSubCommunity.ParentCommunityId.Value">@(selectedSubCommunity.ParentCommunityName ?? "Community")</a>
+                    <span class="material-symbols-outlined text-xs">chevron_right</span>
+                }
                 <span class="text-on-surface font-semibold truncate">@(selectedSubCommunity?.Name ?? Loc["Groups_BreadcrumbDefault"])</span>
             </nav>
 
@@ -295,11 +300,22 @@
 
                                     @if (grp.IsJoined)
                                     {
-                                        <button type="button" disabled
-                                                class="flex-1 py-2 px-space-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-slate-200 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 cursor-default border border-slate-300/80 dark:border-white/10 shadow-xs">
-                                            <span class="material-symbols-outlined text-sm">check</span>
-                                            <span class="truncate">@Loc["Groups_Action_Joined"]</span>
-                                        </button>
+                                        @if (!isCreator)
+                                        {
+                                            <button type="button" @onclick="() => PromptLeaveGroup(grp)"
+                                                    title="Click to leave group"
+                                                    class="flex-1 py-2 px-space-sm rounded-lg bg-slate-100 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-300 dark:bg-white/10 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 text-slate-800 dark:text-slate-200 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-slate-300/80 dark:border-white/10 shadow-xs transition-colors">
+                                                <span class="material-symbols-outlined text-sm text-emerald-600 dark:text-emerald-400">check_circle</span>
+                                                <span class="truncate">@Loc["Groups_Action_Joined"]</span>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="flex-1 py-2 px-space-sm rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 border border-blue-200 dark:border-blue-800/40 shadow-xs" title="You are the creator of this group">
+                                                <span class="material-symbols-outlined text-sm">shield</span>
+                                                <span class="truncate">Owner</span>
+                                            </span>
+                                        }
                                         @if (isCreator)
                                         {
                                             <button type="button" @onclick="() => OpenRequestsDrawer(grp.GroupId)"
@@ -502,6 +518,173 @@
                     else
                     {
                         <span>@Loc["Groups_Modal_PublishBtn"]</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+
+<!-- Group Prerequisite Hierarchy Modal -->
+@if (showGroupPrereqModal && groupToJoin != null && groupHierarchyContext != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="relative w-full max-w-lg rounded-2xl bg-white dark:bg-[#112A46] border border-slate-300 dark:border-[rgba(196,210,225,0.20)] shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="px-6 py-4 flex items-center justify-between border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-slate-50/50 dark:bg-[#0f243c]">
+                <div class="flex items-center gap-2.5 text-sky-600 dark:text-primary">
+                    <span class="material-symbols-outlined text-2xl">account_tree</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Prerequisites Required</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Hierarchical 3-tier membership check</p>
+                    </div>
+                </div>
+                <button type="button" @onclick="CloseGroupPrereqModal" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg transition cursor-pointer">
+                    <span class="material-symbols-outlined text-base">close</span>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <!-- Warning Notice -->
+                <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 space-y-1">
+                    <div class="flex items-center gap-1.5 font-bold text-xs">
+                        <span class="material-symbols-outlined text-sm">warning</span>
+                        <span>Prerequisites Required Before Joining</span>
+                    </div>
+                    <p class="text-xs leading-relaxed">
+                        To participate in <strong>@groupToJoin.Name</strong>, you must first be a member of its parent Community and Sub-Community.
+                    </p>
+                </div>
+
+                <!-- Tier 1: Community -->
+                <div class="space-y-1">
+                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tier 1: Parent Community</span>
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs font-bold text-slate-900 dark:text-white truncate">@groupHierarchyContext.CommunityName</div>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">@(groupHierarchyContext.CommunityDescription ?? "Parent community hub")</p>
+                        </div>
+                        @if (groupHierarchyContext.IsCommunityJoined)
+                        {
+                            <span class="shrink-0 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold border border-emerald-500/20 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">check</span> Joined
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="shrink-0 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-bold border border-amber-500/20">
+                                Required
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Tier 2: Sub-Community -->
+                <div class="space-y-1">
+                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tier 2: Sub-Community</span>
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs font-bold text-slate-900 dark:text-white truncate">@groupHierarchyContext.SubCommunityName</div>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">@(groupHierarchyContext.SubCommunityDescription ?? "Sub-community sector node")</p>
+                        </div>
+                        @if (groupHierarchyContext.IsSubCommunityJoined)
+                        {
+                            <span class="shrink-0 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold border border-emerald-500/20 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">check</span> Joined
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="shrink-0 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-bold border border-amber-500/20">
+                                Required
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Tier 3: Target Group -->
+                <div class="space-y-1">
+                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tier 3: Working Group</span>
+                    <div class="p-3 rounded-xl bg-sky-50/60 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-800/40 flex items-center justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs font-bold text-slate-900 dark:text-white truncate">@groupToJoin.Name</div>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">@(groupToJoin.Description ?? "Target working room")</p>
+                        </div>
+                        <span class="shrink-0 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 text-[11px] font-bold border border-sky-500/20">
+                            Target Room
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-slate-50 dark:bg-[#0A1B2E] border-t border-slate-200 dark:border-[rgba(196,210,225,0.12)] flex flex-wrap items-center justify-end gap-2">
+                <button type="button" @onclick="CloseGroupPrereqModal"
+                        class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 rounded-xl border border-slate-300 dark:border-slate-600 transition cursor-pointer">
+                    @Loc["Common_Cancel"]
+                </button>
+                <button type="button" @onclick="() => ExecuteJoinGroupAsync(groupToJoin.GroupId, true)"
+                        disabled="@isExecutingGroupJoin"
+                        class="px-5 py-2 text-xs font-bold rounded-xl text-white bg-[#0A1B2E] hover:bg-[#153252] dark:bg-white dark:hover:bg-slate-100 dark:text-[#0A1B2E] transition shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer border border-[#0A1B2E] dark:border-white">
+                    @if (isExecutingGroupJoin)
+                    {
+                        <span class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white dark:border-slate-900 border-t-transparent"></span>
+                        <span>Enrolling in Tiers...</span>
+                    }
+                    else
+                    {
+                        <span class="material-symbols-outlined text-sm">link</span>
+                        <span>Join Prerequisites & Enter Group</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Leave Group Confirmation Modal -->
+@if (showLeaveGroupModal && groupToLeave != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="relative w-full max-w-md rounded-2xl bg-white dark:bg-[#112A46] border border-slate-300 dark:border-[rgba(196,210,225,0.20)] shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-[rgba(196,210,225,0.12)] bg-slate-50/50 dark:bg-[#0f243c]">
+                <div class="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                    <span class="material-symbols-outlined text-xl">logout</span>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Leave Working Group</h3>
+                </div>
+                <button type="button" @onclick="CloseLeaveGroupModal" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg transition">
+                    <span class="material-symbols-outlined text-base">close</span>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-3">
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Are you sure you want to leave <strong>@groupToLeave.Name</strong>? You will lose access to member-only discussions until you rejoin.
+                </p>
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                    <div class="text-xs font-bold text-slate-900 dark:text-white">@groupToLeave.Name</div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">@(groupToLeave.Description ?? "No description available")</p>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-slate-50 dark:bg-[#0A1B2E] border-t border-slate-200 dark:border-[rgba(196,210,225,0.12)] flex items-center justify-end gap-2">
+                <button type="button" @onclick="CloseLeaveGroupModal" disabled="@isExecutingGroupLeave"
+                        class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 rounded-xl border border-slate-300 dark:border-slate-600 transition cursor-pointer">
+                    @Loc["Common_Cancel"]
+                </button>
+                <button type="button" @onclick="ExecuteLeaveGroupAsync" disabled="@isExecutingGroupLeave"
+                        class="px-5 py-2 text-xs font-bold rounded-xl text-white bg-rose-600 hover:bg-rose-700 transition shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer">
+                    @if (isExecutingGroupLeave)
+                    {
+                        <span class="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
+                        <span>Leaving...</span>
+                    }
+                    else
+                    {
+                        <span class="material-symbols-outlined text-sm">logout</span>
+                        <span>Confirm Leave</span>
                     }
                 </button>
             </div>
@@ -812,17 +995,123 @@
         await LoadGroupsAsync();
     }
 
+    // Hierarchy Prerequisite Modal State
+    private bool showGroupPrereqModal = false;
+    private GroupModel? groupToJoin = null;
+    private GroupHierarchyContextModel? groupHierarchyContext = null;
+    private bool isExecutingGroupJoin = false;
+
+    // Leave Group Modal State
+    private bool showLeaveGroupModal = false;
+    private GroupModel? groupToLeave = null;
+    private bool isExecutingGroupLeave = false;
+
     private async Task JoinGroup(GroupModel grp)
     {
-        var res = await GroupApi.JoinGroupAsync(grp.GroupId);
-        if (res.IsSuccess)
+        try
         {
-            Toast.Success(res.Message ?? Loc["Groups_Toast_JoinedSuccess"]);
-            await LoadGroupsAsync();
+            var ctxRes = await GroupApi.GetGroupHierarchyContextAsync(grp.GroupId);
+            if (ctxRes.IsSuccess && ctxRes.Value != null)
+            {
+                if (!ctxRes.Value.IsCommunityJoined || !ctxRes.Value.IsSubCommunityJoined)
+                {
+                    groupToJoin = grp;
+                    groupHierarchyContext = ctxRes.Value;
+                    showGroupPrereqModal = true;
+                    return;
+                }
+            }
         }
-        else
+        catch { }
+
+        // Prerequisites met: direct join
+        await ExecuteJoinGroupAsync(grp.GroupId, false);
+    }
+
+    private void CloseGroupPrereqModal()
+    {
+        showGroupPrereqModal = false;
+        groupToJoin = null;
+        groupHierarchyContext = null;
+        isExecutingGroupJoin = false;
+    }
+
+    private async Task ExecuteJoinGroupAsync(int groupId, bool joinPrerequisites)
+    {
+        try
         {
-            Toast.Error(res.Message ?? Loc["Groups_Toast_JoinFailed"]);
+            isExecutingGroupJoin = true;
+            var res = await GroupApi.JoinGroupAsync(groupId, null, joinPrerequisites);
+            if (res.IsSuccess)
+            {
+                Toast.Success(res.Message ?? Loc["Groups_Toast_JoinedSuccess"]);
+                CloseGroupPrereqModal();
+                await LoadGroupsAsync();
+            }
+            else
+            {
+                Toast.Error(res.Message ?? Loc["Groups_Toast_JoinFailed"]);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Join error: {ex.Message}");
+        }
+        finally
+        {
+            isExecutingGroupJoin = false;
+        }
+    }
+
+    private void PromptLeaveGroup(GroupModel grp)
+    {
+        if (currentUserId.HasValue && grp.CreatorId == currentUserId.Value)
+        {
+            Toast.Warning("As the group creator, you cannot leave your group.");
+            return;
+        }
+        groupToLeave = grp;
+        showLeaveGroupModal = true;
+    }
+
+    private void CloseLeaveGroupModal()
+    {
+        showLeaveGroupModal = false;
+        groupToLeave = null;
+        isExecutingGroupLeave = false;
+    }
+
+    private async Task ExecuteLeaveGroupAsync()
+    {
+        if (groupToLeave == null) return;
+        if (currentUserId.HasValue && groupToLeave.CreatorId == currentUserId.Value)
+        {
+            Toast.Warning("As the group creator, you cannot leave your group.");
+            CloseLeaveGroupModal();
+            return;
+        }
+        try
+        {
+            isExecutingGroupLeave = true;
+            var res = await GroupApi.LeaveGroupAsync(groupToLeave.GroupId);
+            if (res.IsSuccess)
+            {
+                Toast.Success("Left group successfully.");
+                CloseLeaveGroupModal();
+                await LoadGroupsAsync();
+            }
+            else
+            {
+                Toast.Error(res.Message ?? "Failed to leave group.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Leave error: {ex.Message}");
+        }
+        finally
+        {
+            isExecutingGroupLeave = false;
         }
     }
 

@@ -47,10 +47,15 @@ public sealed class GroupController(IGroupService groupService, ICurrentUserCont
         return ToActionResult(await groupService.UpdateGroupAsync(request, cancellationToken));
     }
 
+    [HttpGet("{groupId:int}/hierarchy-context")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetGroupHierarchyContext(int groupId, CancellationToken cancellationToken) =>
+        ToActionResult(await groupService.GetGroupHierarchyContextAsync(groupId, cancellationToken));
+
     [HttpPost("{groupId:int}/join")]
     [Authorize]
-    public async Task<IActionResult> JoinGroup(int groupId, [FromBody] string? requestNote, CancellationToken cancellationToken) =>
-        ToActionResult(await groupService.JoinGroupAsync(groupId, requestNote, cancellationToken));
+    public async Task<IActionResult> JoinGroup(int groupId, [FromBody] string? requestNote, [FromQuery] bool joinPrerequisites = false, CancellationToken cancellationToken = default) =>
+        ToActionResult(await groupService.JoinGroupAsync(groupId, requestNote, joinPrerequisites, cancellationToken));
 
     [HttpPost("{groupId:int}/leave")]
     [Authorize]

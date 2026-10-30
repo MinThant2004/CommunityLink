@@ -96,3 +96,18 @@ public sealed record GroupChatEligibilityModel(
     bool IsEligible,
     string? RoleCode
 );
+
+public sealed record GroupHierarchyContextModel(
+    int GroupId,
+    string GroupName,
+    string? GroupDescription,
+    bool IsGroupJoined,
+    int SubCommunityId,
+    string SubCommunityName,
+    string? SubCommunityDescription,
+    bool IsSubCommunityJoined,
+    int CommunityId,
+    string CommunityName,
+    string? CommunityDescription,
+    bool IsCommunityJoined
+);

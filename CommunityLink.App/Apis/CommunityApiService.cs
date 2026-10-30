@@ -22,11 +22,20 @@ public sealed class CommunityApiService(IHttpClientFactory clientFactory, IHttpC
     public Task<Result<IReadOnlyList<CommunityAuditModel>>> GetCommunityAuditsAsync(int communityId, CancellationToken cancellationToken = default) =>
         GetAsync<IReadOnlyList<CommunityAuditModel>>($"api/communities/{communityId}/audits", cancellationToken);
 
-    public Task<Result> JoinCommunityAsync(int communityId, CancellationToken cancellationToken = default) =>
-        PostAsync($"api/communities/{communityId}/join", new { }, cancellationToken);
+    public Task<Result> JoinCommunityAsync(int communityId, bool joinParentIfMissing = false, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/communities/{communityId}/join?joinParentIfMissing={joinParentIfMissing}", new { }, cancellationToken);
 
-    public Task<Result> LeaveCommunityAsync(int communityId, CancellationToken cancellationToken = default) =>
-        PostAsync($"api/communities/{communityId}/leave", new { }, cancellationToken);
+    public Task<Result> LeaveCommunityAsync(int communityId, bool leaveChildren = false, CancellationToken cancellationToken = default) =>
+        PostAsync($"api/communities/{communityId}/leave?leaveChildren={leaveChildren}", new { }, cancellationToken);
+
+    public Task<Result<CommunityHierarchyContextModel>> GetSubCommunityContextAsync(int subCommunityId, CancellationToken cancellationToken = default) =>
+        GetAsync<CommunityHierarchyContextModel>($"api/communities/{subCommunityId}/subcommunity-context", cancellationToken);
+
+    public Task<Result<CommunityChildMembershipsModel>> GetCommunityChildMembershipsAsync(int communityId, CancellationToken cancellationToken = default) =>
+        GetAsync<CommunityChildMembershipsModel>($"api/communities/{communityId}/child-memberships", cancellationToken);
+
+    public Task<Result<CommunityChildMembershipsModel>> GetSubCommunityChildMembershipsAsync(int subCommunityId, CancellationToken cancellationToken = default) =>
+        GetAsync<CommunityChildMembershipsModel>($"api/communities/{subCommunityId}/subcommunity-child-memberships", cancellationToken);
 
     public async Task<Result<string>> UploadBannerAsync(Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default)
     {

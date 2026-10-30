@@ -81,3 +81,21 @@ public sealed record CommunityMemberModel(
     DateTime JoinedAt);
 
 public sealed record JoinRequestModel(int CommunityId, string? Message);
+
+public sealed record CommunityHierarchyItem(int Id, string Name, string? Description, bool IsJoined);
+
+public sealed record CommunityChildMembershipsModel(
+    IReadOnlyList<CommunityHierarchyItem> SubCommunities,
+    IReadOnlyList<CommunityHierarchyItem> Groups
+);
+
+public sealed record CommunityHierarchyContextModel(
+    int SubCommunityId,
+    string SubCommunityName,
+    string? SubCommunityDescription,
+    bool IsSubCommunityJoined,
+    int ParentCommunityId,
+    string ParentCommunityName,
+    string? ParentCommunityDescription,
+    bool IsParentCommunityJoined
+);

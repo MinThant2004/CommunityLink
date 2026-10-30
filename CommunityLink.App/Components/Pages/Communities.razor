@@ -112,17 +112,7 @@
                     @string.Format(CultureInfo.CurrentUICulture, Loc["Communities_ShownCount"], ActiveCommunities.Count)
                 </span>
 
-                <!-- Type Dropdown Filter: All / Communities / Sub-communities -->
-                <div class="inline-flex items-center gap-1.5 ml-1">
-                    <span class="text-xs font-semibold text-slate-500 dark:text-on-surface-variant hidden sm:inline">@Loc["Communities_TypeLabel"]</span>
-                    <select class="px-3 py-1.5 rounded-lg bg-white dark:bg-surface-container-low text-slate-800 dark:text-[#E1E8F0] text-xs font-medium border border-slate-300 dark:border-surface-container-high/40 shadow-xs focus:outline-none focus:border-primary cursor-pointer"
-                            @bind="selectedTypeFilter"
-                            @bind:after="OnTypeFilterChanged">
-                        <option value="ALL">@Loc["Communities_Type_All"]</option>
-                        <option value="COMMUNITIES">@Loc["Communities_Type_Communities"]</option>
-                        <option value="SUB_COMMUNITIES">@Loc["Communities_Type_SubCommunities"]</option>
-                    </select>
-                </div>
+
             </div>
 
             <div class="flex flex-wrap items-center gap-space-sm w-full lg:w-auto">
@@ -482,59 +472,125 @@
     </div>
 }
 
-<!-- Leave Community / Sub-community Confirmation Modal -->
+<!-- Leave Community Confirmation Modal with Cascading Children Warning -->
 @if (showLeaveConfirmModal && communityToLeave != null)
 {
     var isSub = communityToLeave.ParentCommunityId.HasValue;
+    var hasChildMemberships = childMembershipsToLeave != null && (childMembershipsToLeave.SubCommunities.Count > 0 || childMembershipsToLeave.Groups.Count > 0);
+
     <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#0A1B2E]/60 dark:bg-black/75 backdrop-blur-sm p-4">
-        <div class="relative bg-white dark:bg-[#112A46] rounded-xl shadow-2xl border border-slate-300 dark:border-[rgba(196,210,225,0.20)] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div class="relative bg-white dark:bg-[#112A46] rounded-2xl shadow-2xl border border-slate-300 dark:border-[rgba(196,210,225,0.20)] w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                <div class="flex items-center gap-2 text-rose-600 dark:text-rose-400">
-                    <span class="material-symbols-outlined text-xl">warning</span>
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">@string.Format(CultureInfo.CurrentUICulture, Loc["Communities_Leave_Title"], isSub ? Loc["Communities_Create_SubCommunityTerm"] : Loc["Communities_Create_CommunityTerm"])</h3>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-slate-50/50 dark:bg-[#0f243c]">
+                <div class="flex items-center gap-2.5 text-rose-600 dark:text-rose-400">
+                    <span class="material-symbols-outlined text-2xl">warning</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Leave Community</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Membership departure review</p>
+                    </div>
                 </div>
-                <button type="button" @onclick="CancelLeave" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded transition">
-                    <span class="material-symbols-outlined text-sm">close</span>
+                <button type="button" @onclick="CancelLeave" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg transition">
+                    <span class="material-symbols-outlined text-base">close</span>
                 </button>
             </div>
 
             <!-- Modal Content -->
-            <div class="p-5 space-y-3">
-                <p class="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-                    @string.Format(CultureInfo.CurrentUICulture, Loc["Communities_Leave_Prompt"], isSub ? Loc["Communities_Create_SubCommunityTerm"] : Loc["Communities_Create_CommunityTerm"])
-                </p>
-                <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600">
+            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <!-- Target Community Card -->
+                <div class="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600">
                         <img src="@GetBannerUrl(communityToLeave)" alt="@communityToLeave.Name" class="w-full h-full object-cover" />
                     </div>
                     <div class="min-w-0 flex-1">
-                        <div class="text-xs font-semibold text-slate-900 dark:text-white truncate">@communityToLeave.Name</div>
-                        <div class="text-[11px] text-slate-500 dark:text-slate-400">@string.Format(CultureInfo.CurrentUICulture, Loc["Communities_Card_Members"], FormatCompact(communityToLeave.MemberCount))</div>
+                        <div class="text-sm font-bold text-slate-900 dark:text-white truncate">@communityToLeave.Name</div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">@(communityToLeave.Description ?? "No description available")</p>
                     </div>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">
-                    @string.Format(CultureInfo.CurrentUICulture, Loc["Communities_Leave_RejoinNote"], isSub ? Loc["Communities_Create_SubCommunityTerm"] : Loc["Communities_Create_CommunityTerm"])
-                </p>
+
+                @if (isLoadingChildMemberships)
+                {
+                    <div class="py-6 flex flex-col items-center justify-center gap-2 text-slate-500 dark:text-slate-400">
+                        <div class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        <span class="text-xs">Checking child memberships...</span>
+                    </div>
+                }
+                else if (hasChildMemberships)
+                {
+                    <!-- Warning Notice -->
+                    <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 space-y-1">
+                        <div class="flex items-center gap-1.5 font-bold text-xs">
+                            <span class="material-symbols-outlined text-sm">report_problem</span>
+                            <span>Cascading Membership Warning</span>
+                        </div>
+                        <p class="text-xs leading-relaxed">
+                            Leaving this community will also remove you from the following child Sub-Communities and Groups you joined:
+                        </p>
+                    </div>
+
+                    @if (childMembershipsToLeave!.SubCommunities.Count > 0)
+                    {
+                        <div>
+                            <div class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm text-primary">hub</span>
+                                <span>Child Sub-Communities (@childMembershipsToLeave.SubCommunities.Count)</span>
+                            </div>
+                            <div class="space-y-2 max-h-36 overflow-y-auto pr-1">
+                                @foreach (var sc in childMembershipsToLeave.SubCommunities)
+                                {
+                                    <div class="p-2.5 rounded-lg bg-surface-container-low border border-surface-container-high/40">
+                                        <div class="text-xs font-semibold text-on-surface">@sc.Name</div>
+                                        <p class="text-[11px] text-on-surface-variant line-clamp-1">@(sc.Description ?? "Sub-community under this hub")</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (childMembershipsToLeave!.Groups.Count > 0)
+                    {
+                        <div>
+                            <div class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm text-secondary">forum</span>
+                                <span>Child Groups (@childMembershipsToLeave.Groups.Count)</span>
+                            </div>
+                            <div class="space-y-2 max-h-36 overflow-y-auto pr-1">
+                                @foreach (var grp in childMembershipsToLeave.Groups)
+                                {
+                                    <div class="p-2.5 rounded-lg bg-surface-container-low border border-surface-container-high/40">
+                                        <div class="text-xs font-semibold text-on-surface">@grp.Name</div>
+                                        <p class="text-[11px] text-on-surface-variant line-clamp-1">@(grp.Description ?? "Working room within this hub")</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Are you sure you want to leave <strong>@communityToLeave.Name</strong>? You can rejoin anytime from the directory.
+                    </p>
+                }
             </div>
 
-            <!-- Modal Actions -->
-            <div class="px-5 py-4 bg-slate-50 dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-end gap-2.5">
+            <!-- Modal Actions: Only Confirm & Leave All or Cancel -->
+            <div class="px-6 py-4 bg-slate-50 dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex flex-wrap items-center justify-end gap-2">
                 <button type="button" @onclick="CancelLeave" disabled="@isLeaving"
-                        class="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 rounded-lg border border-slate-300 dark:border-slate-600 transition">
+                        class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 rounded-xl border border-slate-300 dark:border-slate-600 transition cursor-pointer">
                     @Loc["Common_Cancel"]
                 </button>
-                <button type="button" @onclick="ConfirmLeaveCommunityAsync" disabled="@isLeaving"
-                        class="px-4 py-1.5 text-xs font-semibold rounded-lg text-white bg-rose-600 hover:bg-rose-700 transition shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5">
+
+                <button type="button" @onclick="() => ConfirmLeaveCommunityAsync(true)" disabled="@isLeaving"
+                        class="px-5 py-2 text-xs font-bold rounded-xl text-white bg-rose-600 hover:bg-rose-700 transition shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer">
                     @if (isLeaving)
                     {
                         <div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>@Loc["Communities_Leave_Leaving"]</span>
+                        <span>Leaving...</span>
                     }
                     else
                     {
-                        <span class="material-symbols-outlined text-xs">logout</span>
-                        <span>@Loc["Communities_Leave_Confirm"]</span>
+                        <span class="material-symbols-outlined text-sm">delete_sweep</span>
+                        <span>@(hasChildMemberships ? "Confirm & Leave All" : "Confirm Leave")</span>
                     }
                 </button>
             </div>
@@ -547,7 +603,7 @@
     private string? searchTerm;
     private bool isLoading = true;
     private string activeTab = "joined";
-    private string selectedTypeFilter = "ALL";
+
 
     // Parent Filter
     private int? filterParentId;
@@ -599,13 +655,9 @@
                 list = list.Where(c => c.ParentCommunityId == filterParentId.Value);
             }
 
-            if (selectedTypeFilter == "COMMUNITIES")
+            else
             {
                 list = list.Where(c => !c.ParentCommunityId.HasValue);
-            }
-            else if (selectedTypeFilter == "SUB_COMMUNITIES")
-            {
-                list = list.Where(c => c.ParentCommunityId.HasValue);
             }
 
             return list.ToList();
@@ -615,8 +667,8 @@
     private IReadOnlyList<CommunityModel> DisplayedCommunities =>
         showAllCommunities ? ActiveCommunities : ActiveCommunities.Take(MaxInitialCommunities).ToList();
 
-    private int joinedCount => communities?.Count(c => c.IsJoined && (!filterParentId.HasValue || c.ParentCommunityId == filterParentId.Value) && (selectedTypeFilter == "ALL" || (selectedTypeFilter == "COMMUNITIES" ? !c.ParentCommunityId.HasValue : c.ParentCommunityId.HasValue))) ?? 0;
-    private int browseCount => communities?.Count(c => !c.IsJoined && (!filterParentId.HasValue || c.ParentCommunityId == filterParentId.Value) && (selectedTypeFilter == "ALL" || (selectedTypeFilter == "COMMUNITIES" ? !c.ParentCommunityId.HasValue : c.ParentCommunityId.HasValue))) ?? 0;
+    private int joinedCount => communities?.Count(c => c.IsJoined && (!filterParentId.HasValue ? !c.ParentCommunityId.HasValue : c.ParentCommunityId == filterParentId.Value)) ?? 0;
+    private int browseCount => communities?.Count(c => !c.IsJoined && (!filterParentId.HasValue ? !c.ParentCommunityId.HasValue : c.ParentCommunityId == filterParentId.Value)) ?? 0;
 
     private int totalHubCount => communities?.Count ?? 0;
     private int rootHubCount => communities?.Count(c => !c.ParentCommunityId.HasValue) ?? 0;
@@ -941,27 +993,46 @@
         }
     }
 
-    private void PromptLeaveCommunity(CommunityModel community)
+    private CommunityChildMembershipsModel? childMembershipsToLeave;
+    private bool isLoadingChildMemberships;
+
+    private async Task PromptLeaveCommunity(CommunityModel community)
     {
         communityToLeave = community;
+        childMembershipsToLeave = null;
+        isLoadingChildMemberships = true;
         showLeaveConfirmModal = true;
+        try
+        {
+            var res = await CommunityApi.GetCommunityChildMembershipsAsync(community.CommunityId);
+            if (res.IsSuccess)
+            {
+                childMembershipsToLeave = res.Value;
+            }
+        }
+        catch { }
+        finally
+        {
+            isLoadingChildMemberships = false;
+        }
     }
 
     private void CancelLeave()
     {
         showLeaveConfirmModal = false;
         communityToLeave = null;
+        childMembershipsToLeave = null;
         isLeaving = false;
     }
 
-    private async Task ConfirmLeaveCommunityAsync()
+    private async Task ConfirmLeaveCommunityAsync(bool leaveChildren = true)
     {
         if (communityToLeave == null) return;
 
         try
         {
             isLeaving = true;
-            var res = await CommunityApi.LeaveCommunityAsync(communityToLeave.CommunityId);
+            var res = await CommunityApi.LeaveCommunityAsync(communityToLeave.CommunityId, leaveChildren);
             if (res.IsSuccess)
             {
                 Toast.Success(res.Message ?? string.Format(CultureInfo.CurrentUICulture, Loc["Communities_Toast_LeftSuccess"], communityToLeave.Name));

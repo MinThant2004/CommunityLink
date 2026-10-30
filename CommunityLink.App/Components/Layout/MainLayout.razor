@@ -10,6 +10,9 @@
 @inject IJSRuntime JS
 @inject PremiumUpgradeApiService UpgradeApi
 @inject IStringLocalizer<AppResources> Loc
+@using CommunityLink.App.Apis
+@using CommunityLink.Shared.Features.UserProfile
+@inject UserProfileApiService UserProfileApi
 
 <div class="h-screen flex overflow-hidden bg-[#F8FAFC] dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] font-sans antialiased transition-colors duration-150">
     <!-- Backdrop for mobile when sidebar is open -->
@@ -137,19 +140,45 @@
 
                             <div id="profile-menu-container" class="relative">
                                 <button type="button" @onclick="ToggleProfileMenu"
-                                        class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E2EC] hover:text-[#557392] dark:hover:text-white transition flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#F1F5F9] dark:hover:bg-[#182030] cursor-pointer"
+                                        class="text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E2EC] hover:text-[#557392] dark:hover:text-white transition flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-[#F1F5F9] dark:hover:bg-[#182030] cursor-pointer"
                                         title="@Loc["Shell_AccountMenu"]" aria-label="@Loc["Shell_AccountMenu"]" aria-expanded="@(isProfileMenuOpen ? "true" : "false")">
-                                    <svg class="w-3.5 h-3.5 text-[#557392] dark:text-[#94A3B8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                    <span class="hidden md:inline">@context.User.Identity?.Name</span>
+                                    @if (!string.IsNullOrWhiteSpace(userAvatarUrl))
+                                    {
+                                        <img src="@userAvatarUrl" alt="@userDisplayName"
+                                             class="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-slate-200 dark:ring-white/10"
+                                             onerror="this.onerror=null;this.style.display='none';var fb=this.nextElementSibling;if(fb){fb.style.display='inline-flex';}" />
+                                        <span class="w-6 h-6 rounded-full bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-[10px] hidden items-center justify-center shrink-0">
+                                            @userInitials
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="w-6 h-6 rounded-full bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-[10px] inline-flex items-center justify-center shrink-0">
+                                            @userInitials
+                                        </span>
+                                    }
+                                    <span class="hidden md:inline">@userDisplayName</span>
                                 </button>
 
                                 @if (isProfileMenuOpen)
                                 {
                                     <div class="absolute right-0 mt-2 w-64 rounded-xl bg-white dark:bg-[#111622] shadow-2xl border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.15)] z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                                         <div class="p-3.5 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] bg-[#F8FAFC] dark:bg-[#0A0D14] flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-xs flex items-center justify-center shrink-0 shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">
-                                                @userInitials
-                                            </div>
+                                            @if (!string.IsNullOrWhiteSpace(userAvatarUrl))
+                                            {
+                                                <img src="@userAvatarUrl" alt="@userDisplayName"
+                                                     class="w-9 h-9 rounded-lg object-cover shrink-0 shadow-sm border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.1)]"
+                                                     onerror="this.onerror=null;this.style.display='none';var fb=this.nextElementSibling;if(fb){fb.style.display='flex';}" />
+                                                <div class="w-9 h-9 rounded-lg bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-xs hidden items-center justify-center shrink-0 shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">
+                                                    @userInitials
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="w-9 h-9 rounded-lg bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-xs flex items-center justify-center shrink-0 shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">
+                                                    @userInitials
+                                                </div>
+                                            }
                                             <div class="min-w-0 flex-1">
                                                 <div class="text-xs font-bold text-[#0A1B2E] dark:text-[#E1E2EC] truncate flex items-center gap-1.5">
                                                     <span class="truncate">@userDisplayName</span>
@@ -361,6 +390,7 @@
     private bool isAdminActor = false;
     private string userDisplayName = "Member";
     private string userInitials = "U";
+    private string? userAvatarUrl;
     private string userRoleLabel = string.Empty;
     private string currentRoleCode = string.Empty;
     private string mainPageUrl => isAdminActor ? "admin/dashboard" : "";
@@ -377,6 +407,23 @@
         {
             userDisplayName = user.Identity.Name ?? "Member";
             userInitials = string.IsNullOrWhiteSpace(userDisplayName) ? "U" : userDisplayName.Trim()[..1].ToUpperInvariant();
+            try
+            {
+                var profileRes = await UserProfileApi.GetOwnerProfileAsync();
+                if (profileRes.IsSuccess && profileRes.Data != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(profileRes.Data.DisplayName))
+                    {
+                        userDisplayName = profileRes.Data.DisplayName;
+                        userInitials = userDisplayName.Trim()[..1].ToUpperInvariant();
+                    }
+                    userAvatarUrl = profileRes.Data.AvatarUrl;
+                }
+            }
+            catch
+            {
+                // Graceful fallback if api unavailable
+            }
         }
 
         currentRoleCode = (user.FindFirst(ClaimTypes.Role)?.Value ?? user.FindFirst("role")?.Value ?? string.Empty).Trim();

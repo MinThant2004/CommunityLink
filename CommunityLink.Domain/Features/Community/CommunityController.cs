@@ -49,13 +49,28 @@ public sealed class CommunityController(ICommunityService communityService) : Ba
     public async Task<IActionResult> GetCommunityAudits(int communityId, CancellationToken cancellationToken) =>
         ToActionResult(await communityService.GetCommunityAuditsAsync(communityId, cancellationToken));
 
+    [HttpGet("{communityId:int}/subcommunity-context")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetSubCommunityContext(int communityId, CancellationToken cancellationToken) =>
+        ToActionResult(await communityService.GetSubCommunityHierarchyContextAsync(communityId, cancellationToken));
+
+    [HttpGet("{communityId:int}/child-memberships")]
+    [Authorize]
+    public async Task<IActionResult> GetCommunityChildMemberships(int communityId, CancellationToken cancellationToken) =>
+        ToActionResult(await communityService.GetCommunityChildMembershipsAsync(communityId, cancellationToken));
+
+    [HttpGet("{communityId:int}/subcommunity-child-memberships")]
+    [Authorize]
+    public async Task<IActionResult> GetSubCommunityChildMemberships(int communityId, CancellationToken cancellationToken) =>
+        ToActionResult(await communityService.GetSubCommunityChildMembershipsAsync(communityId, cancellationToken));
+
     [HttpPost("{communityId:int}/join")]
     [Authorize]
-    public async Task<IActionResult> JoinCommunity(int communityId, CancellationToken cancellationToken) =>
-        ToActionResult(await communityService.JoinCommunityAsync(communityId, cancellationToken));
+    public async Task<IActionResult> JoinCommunity(int communityId, [FromQuery] bool joinParentIfMissing = false, CancellationToken cancellationToken = default) =>
+        ToActionResult(await communityService.JoinCommunityAsync(communityId, joinParentIfMissing, cancellationToken));
 
     [HttpPost("{communityId:int}/leave")]
     [Authorize]
-    public async Task<IActionResult> LeaveCommunity(int communityId, CancellationToken cancellationToken) =>
-        ToActionResult(await communityService.LeaveCommunityAsync(communityId, cancellationToken));
+    public async Task<IActionResult> LeaveCommunity(int communityId, [FromQuery] bool leaveChildren = false, CancellationToken cancellationToken = default) =>
+        ToActionResult(await communityService.LeaveCommunityAsync(communityId, leaveChildren, cancellationToken));
 }

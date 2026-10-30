@@ -18,8 +18,11 @@ public interface ICommunityService
     Task<Result<CommunityModel>> CreateCommunityAsync(CreateCommunityRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<CommunityModel>> UpdateCommunityAsync(int communityId, EditCommunityRequestModel request, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityAuditModel>>> GetCommunityAuditsAsync(int communityId, CancellationToken cancellationToken = default);
-    Task<Result> JoinCommunityAsync(int communityId, CancellationToken cancellationToken = default);
-    Task<Result> LeaveCommunityAsync(int communityId, CancellationToken cancellationToken = default);
+    Task<Result> JoinCommunityAsync(int communityId, bool joinParentIfMissing = false, CancellationToken cancellationToken = default);
+    Task<Result> LeaveCommunityAsync(int communityId, bool leaveChildren = false, CancellationToken cancellationToken = default);
+    Task<Result<CommunityHierarchyContextModel>> GetSubCommunityHierarchyContextAsync(int subCommunityId, CancellationToken cancellationToken = default);
+    Task<Result<CommunityChildMembershipsModel>> GetCommunityChildMembershipsAsync(int communityId, CancellationToken cancellationToken = default);
+    Task<Result<CommunityChildMembershipsModel>> GetSubCommunityChildMembershipsAsync(int subCommunityId, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityModel>>> GetJoinedCommunitiesAsync(int userId, int take = 10, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityModel>>> GetRecommendedCommunitiesAsync(int userId, int take = 6, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommunityModel>>> GetCommunityDirectoryAsync(CancellationToken cancellationToken = default);
@@ -431,12 +434,50 @@ public sealed class CommunityService(
         return await GetCommunityByIdAsync(community.CommunityId, cancellationToken);
     }
 
-    public async Task<Result> JoinCommunityAsync(int communityId, CancellationToken cancellationToken = default)
+    public async Task<Result> JoinCommunityAsync(int communityId, bool joinParentIfMissing = false, CancellationToken cancellationToken = default)
     {
         if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
 
         var community = await dbContext.TblCommunities.FindAsync([communityId], cancellationToken);
         if (community is null || community.IsDeleted) return Result.Failure("Community not found.", ResultStatus.NotFound);
+
+        // Check if parent community membership is required (for sub-communities)
+        if (community.ParentCommunityId.HasValue)
+        {
+            var parentJoined = await dbContext.TblCommunityMembers
+                .AnyAsync(m => m.CommunityId == community.ParentCommunityId.Value && m.UserId == currentUser.UserId.Value && !m.IsDeleted, cancellationToken);
+
+            if (!parentJoined)
+            {
+                if (joinParentIfMissing)
+                {
+                    var parentExisting = await dbContext.TblCommunityMembers
+                        .FirstOrDefaultAsync(m => m.CommunityId == community.ParentCommunityId.Value && m.UserId == currentUser.UserId.Value, cancellationToken);
+                    if (parentExisting is not null)
+                    {
+                        parentExisting.IsDeleted = false;
+                        parentExisting.UpdatedAt = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        dbContext.TblCommunityMembers.Add(new TblCommunityMember
+                        {
+                            CommunityId = community.ParentCommunityId.Value,
+                            UserId = currentUser.UserId.Value,
+                            Role = "Member",
+                            JoinedAt = DateTime.UtcNow,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                    var parentComm = await dbContext.TblCommunities.FindAsync([community.ParentCommunityId.Value], cancellationToken);
+                    if (parentComm != null) parentComm.MemberCount++;
+                }
+                else
+                {
+                    return Result.Failure("You must join the parent community first.", ResultStatus.ValidationError);
+                }
+            }
+        }
 
         var existing = await dbContext.TblCommunityMembers
             .FirstOrDefaultAsync(m => m.CommunityId == communityId && m.UserId == currentUser.UserId.Value, cancellationToken);
@@ -458,12 +499,13 @@ public sealed class CommunityService(
                 CreatedAt = DateTime.UtcNow
             });
         }
+        community.MemberCount++;
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success("Joined community successfully.");
     }
 
-    public async Task<Result> LeaveCommunityAsync(int communityId, CancellationToken cancellationToken = default)
+    public async Task<Result> LeaveCommunityAsync(int communityId, bool leaveChildren = false, CancellationToken cancellationToken = default)
     {
         if (currentUser.UserId is null) return Result.Failure("Unauthorized", ResultStatus.Unauthorized);
 
@@ -485,8 +527,189 @@ public sealed class CommunityService(
             community.MemberCount = Math.Max(0, community.MemberCount - 1);
         }
 
+        if (leaveChildren)
+        {
+            var userId = currentUser.UserId.Value;
+            var now = DateTime.UtcNow;
+
+            if (community != null && community.ParentCommunityId == null)
+            {
+                // Top-level community: cascade leave child sub-communities & their groups
+                var subCommIds = await dbContext.TblCommunities
+                    .Where(c => c.ParentCommunityId == communityId && !c.IsDeleted)
+                    .Select(c => c.CommunityId)
+                    .ToListAsync(cancellationToken);
+
+                if (subCommIds.Any())
+                {
+                    var subMembers = await dbContext.TblCommunityMembers
+                        .Where(m => subCommIds.Contains(m.CommunityId) && m.UserId == userId && !m.IsDeleted)
+                        .ToListAsync(cancellationToken);
+                    foreach (var sm in subMembers)
+                    {
+                        sm.IsDeleted = true;
+                        sm.DeletedAt = now;
+                        sm.DeletedBy = userId;
+                    }
+
+                    var groupIds = await dbContext.TblGroups
+                        .Where(g => subCommIds.Contains(g.SubCommunityId) && !g.IsDeleted)
+                        .Select(g => g.GroupId)
+                        .ToListAsync(cancellationToken);
+
+                    if (groupIds.Any())
+                    {
+                        var groupMembers = await dbContext.TblGroupMembers
+                            .Include(gm => gm.Group)
+                            .Where(gm => groupIds.Contains(gm.GroupId) && gm.UserId == userId && !gm.IsDeleted)
+                            .ToListAsync(cancellationToken);
+                        foreach (var gm in groupMembers)
+                        {
+                            // A group creator cannot leave or be removed from their own group
+                            if (gm.Group != null && gm.Group.CreatorId == userId) continue;
+                            if (string.Equals(gm.Role, "Owner", StringComparison.OrdinalIgnoreCase)) continue;
+
+                            gm.IsDeleted = true;
+                            gm.DeletedAt = now;
+                            gm.DeletedBy = userId;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Sub-community: cascade leave its groups
+                var groupIds = await dbContext.TblGroups
+                    .Where(g => g.SubCommunityId == communityId && !g.IsDeleted)
+                    .Select(g => g.GroupId)
+                    .ToListAsync(cancellationToken);
+
+                if (groupIds.Any())
+                {
+                    var groupMembers = await dbContext.TblGroupMembers
+                        .Include(gm => gm.Group)
+                        .Where(gm => groupIds.Contains(gm.GroupId) && gm.UserId == userId && !gm.IsDeleted)
+                        .ToListAsync(cancellationToken);
+                    foreach (var gm in groupMembers)
+                    {
+                        // A group creator cannot leave or be removed from their own group
+                        if (gm.Group != null && gm.Group.CreatorId == userId) continue;
+                        if (string.Equals(gm.Role, "Owner", StringComparison.OrdinalIgnoreCase)) continue;
+
+                        gm.IsDeleted = true;
+                        gm.DeletedAt = now;
+                        gm.DeletedBy = userId;
+                    }
+                }
+            }
+        }
+
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success("Left community successfully.");
+    }
+
+    public async Task<Result<CommunityHierarchyContextModel>> GetSubCommunityHierarchyContextAsync(int subCommunityId, CancellationToken cancellationToken = default)
+    {
+        var subComm = await dbContext.TblCommunities
+            .Include(c => c.ParentCommunity)
+            .FirstOrDefaultAsync(c => c.CommunityId == subCommunityId && !c.IsDeleted, cancellationToken);
+
+        if (subComm is null) return Result<CommunityHierarchyContextModel>.Failure("Sub-community not found.", ResultStatus.NotFound);
+        if (subComm.ParentCommunity is null) return Result<CommunityHierarchyContextModel>.Failure("Not a sub-community or parent community missing.", ResultStatus.ValidationError);
+
+        var userId = currentUser.UserId;
+        bool isSubJoined = false;
+        bool isParentJoined = false;
+
+        if (userId.HasValue)
+        {
+            var memberships = await dbContext.TblCommunityMembers
+                .Where(m => (m.CommunityId == subCommunityId || m.CommunityId == subComm.ParentCommunityId.Value) && m.UserId == userId.Value && !m.IsDeleted)
+                .Select(m => m.CommunityId)
+                .ToListAsync(cancellationToken);
+
+            isSubJoined = memberships.Contains(subCommunityId);
+            isParentJoined = memberships.Contains(subComm.ParentCommunityId.Value);
+        }
+
+        return Result<CommunityHierarchyContextModel>.Success(new CommunityHierarchyContextModel(
+            subComm.CommunityId,
+            subComm.Name,
+            subComm.Description,
+            isSubJoined,
+            subComm.ParentCommunity.CommunityId,
+            subComm.ParentCommunity.Name,
+            subComm.ParentCommunity.Description,
+            isParentJoined
+        ));
+    }
+
+    public async Task<Result<CommunityChildMembershipsModel>> GetCommunityChildMembershipsAsync(int communityId, CancellationToken cancellationToken = default)
+    {
+        var userId = currentUser.UserId;
+        if (!userId.HasValue)
+        {
+            return Result<CommunityChildMembershipsModel>.Success(new CommunityChildMembershipsModel([], []));
+        }
+
+        var subCommunities = await dbContext.TblCommunities
+            .Where(c => c.ParentCommunityId == communityId && !c.IsDeleted)
+            .Select(c => new
+            {
+                c.CommunityId,
+                c.Name,
+                c.Description,
+                IsJoined = c.TblCommunityMembers.Any(m => m.UserId == userId.Value && !m.IsDeleted)
+            })
+            .Where(c => c.IsJoined)
+            .ToListAsync(cancellationToken);
+
+        var subCommIds = await dbContext.TblCommunities
+            .Where(c => c.ParentCommunityId == communityId && !c.IsDeleted)
+            .Select(c => c.CommunityId)
+            .ToListAsync(cancellationToken);
+
+        var groups = await dbContext.TblGroups
+            .Where(g => subCommIds.Contains(g.SubCommunityId) && !g.IsDeleted)
+            .Select(g => new
+            {
+                g.GroupId,
+                g.Name,
+                g.Description,
+                IsJoined = g.TblGroupMembers.Any(gm => gm.UserId == userId.Value && !gm.IsDeleted)
+            })
+            .Where(g => g.IsJoined)
+            .ToListAsync(cancellationToken);
+
+        var subItems = subCommunities.Select(s => new CommunityHierarchyItem(s.CommunityId, s.Name, s.Description, s.IsJoined)).ToList();
+        var grpItems = groups.Select(g => new CommunityHierarchyItem(g.GroupId, g.Name, g.Description, g.IsJoined)).ToList();
+
+        return Result<CommunityChildMembershipsModel>.Success(new CommunityChildMembershipsModel(subItems, grpItems));
+    }
+
+    public async Task<Result<CommunityChildMembershipsModel>> GetSubCommunityChildMembershipsAsync(int subCommunityId, CancellationToken cancellationToken = default)
+    {
+        var userId = currentUser.UserId;
+        if (!userId.HasValue)
+        {
+            return Result<CommunityChildMembershipsModel>.Success(new CommunityChildMembershipsModel([], []));
+        }
+
+        var groups = await dbContext.TblGroups
+            .Where(g => g.SubCommunityId == subCommunityId && !g.IsDeleted)
+            .Select(g => new
+            {
+                g.GroupId,
+                g.Name,
+                g.Description,
+                IsJoined = g.TblGroupMembers.Any(gm => gm.UserId == userId.Value && !gm.IsDeleted)
+            })
+            .Where(g => g.IsJoined)
+            .ToListAsync(cancellationToken);
+
+        var grpItems = groups.Select(g => new CommunityHierarchyItem(g.GroupId, g.Name, g.Description, g.IsJoined)).ToList();
+
+        return Result<CommunityChildMembershipsModel>.Success(new CommunityChildMembershipsModel([], grpItems));
     }
 
     public async Task<Result<CommunityModel>> UpdateCommunityAsync(int communityId, EditCommunityRequestModel request, CancellationToken cancellationToken = default)

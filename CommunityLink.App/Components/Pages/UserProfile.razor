@@ -441,12 +441,12 @@
                             <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Stats_Following"]</div>
                         </button>
 
-                        <a href="groups" class="text-left px-2 sm:px-3 py-1 group block cursor-pointer">
+                        <button type="button" @onclick='() => SetTab("groups")' class="text-left px-2 sm:px-3 py-1 group block cursor-pointer">
                             <div class="font-display text-lg sm:text-xl font-bold text-[#0A1B2E] dark:text-white group-hover:text-blue-600 transition">
                                 @profile.Metrics.GroupsOwnedCount.ToString("N0")
                             </div>
                             <div class="font-mono text-[10px] font-semibold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">@Loc["Profile_Stats_GroupsOwned"]</div>
-                        </a>
+                        </button>
                     </div>
 
                 </div>
@@ -566,6 +566,11 @@
                         <button @onclick='() => SetTab("communities")' class="@(activeTab == "communities" ? "chip-active" : "chip-standard")">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9M19 21V9M9 21V9M15 21V9M2 9l10-6 10 6"/></svg>
                             <span>@Loc["Profile_Tab_Communities", profile.Metrics.JoinedCommunitiesCount]</span>
+                        </button>
+
+                        <button @onclick='() => SetTab("groups")' class="@(activeTab == "groups" ? "chip-active" : "chip-standard")">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            <span>Groups (@(profile?.CreatedGroups?.Count ?? 0))</span>
                         </button>
 
                         @if (isOwner)
@@ -1177,6 +1182,57 @@
                                 </div>
                             }
                         }
+                        else if (activeTab == "groups")
+                        {
+                            var displayGroups = (createdGroupsList.Any() ? createdGroupsList : (profile?.CreatedGroups ?? new List<UserCreatedGroupItemDto>()));
+                            @if (!displayGroups.Any())
+                            {
+                                <div class="card-executive py-12 text-center text-xs text-[#64748B] dark:text-[#7A8CA6]">
+                                    <svg class="w-8 h-8 text-slate-400 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    <p class="font-display font-bold mt-2 text-[#0A1B2E] dark:text-white">@Loc["Profile_Widget_GroupsEmpty"]</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    @foreach (var grp in displayGroups)
+                                    {
+                                        <div class="card-executive p-3.5 flex flex-col justify-between">
+                                            <div>
+                                                <div class="flex items-start justify-between gap-2">
+                                                    <a href="group/@grp.GroupId" class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition truncate block">
+                                                        @grp.Name
+                                                    </a>
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40 shrink-0">
+                                                        @(grp.Visibility == "PRIVATE" ? "Private" : "Public")
+                                                    </span>
+                                                </div>
+                                                <p class="text-[11px] text-[#64748B] dark:text-[#7A8CA6] line-clamp-2 mt-1">@(string.IsNullOrWhiteSpace(grp.Description) ? "Active working group for structured collaboration and discussions." : grp.Description)</p>
+                                                <div class="flex items-center gap-2 font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6] mt-2.5">
+                                                    <span class="inline-flex items-center gap-1">
+                                                        <svg class="w-3 h-3 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                        @grp.MemberCount members
+                                                    </span>
+                                                    @if (!string.IsNullOrWhiteSpace(grp.SubCommunityName))
+                                                    {
+                                                        <span>•</span>
+                                                        <span class="truncate">@grp.SubCommunityName</span>
+                                                    }
+                                                    <span>•</span>
+                                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">Creator</span>
+                                                </div>
+                                            </div>
+                                            <div class="pt-3 flex justify-end">
+                                                <a href="group/@grp.GroupId" class="btn-exec-secondary text-[11px] py-1 px-3 flex items-center gap-1">
+                                                    <span>View Group</span>
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
                         else if (activeTab == "followers" || activeTab == "following")
                         {
                             var list = activeTab == "followers" ? followersList : followingList;
@@ -1590,9 +1646,9 @@
                                 <h3 class="font-mono text-[10px] font-bold text-[#64748B] dark:text-[#7A8CA6] uppercase tracking-wider">
                                     @Loc["Profile_Widget_GroupsTitle"]
                                 </h3>
-                                <a href="groups" class="font-mono text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                                <button type="button" @onclick='() => SetTab("groups")' class="font-mono text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
                                     @Loc["Profile_Widget_HubsViewAll"] (@(profile?.CreatedGroups?.Count ?? 0)) &gt;
-                                </a>
+                                </button>
                             </div>
 
                             <div class="space-y-2">
@@ -1602,12 +1658,12 @@
                                     {
                                         <div class="p-2.5 rounded-[0.375rem] bg-[#F1F5F9] dark:bg-[#1B3B5A]/60 border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] flex items-center justify-between gap-2">
                                             <div class="min-w-0">
-                                                <h4 class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white truncate">@grp.Name</h4>
+                                                <a href="group/@grp.GroupId" class="font-display font-bold text-xs text-[#0A1B2E] dark:text-white truncate block hover:underline hover:text-blue-600 dark:hover:text-blue-400">@grp.Name</a>
                                                 <div class="font-mono text-[10px] text-[#64748B] dark:text-[#7A8CA6]">
                                                     @string.Format(Loc["Profile_Widget_HubsMembers"], grp.MemberCount)@(!string.IsNullOrWhiteSpace(grp.SubCommunityName) ? $" • {grp.SubCommunityName}" : "")
                                                 </div>
                                             </div>
-                                            <a href="groups" class="btn-exec-secondary text-[10px] py-1 px-2 shrink-0">
+                                            <a href="group/@grp.GroupId" class="btn-exec-secondary text-[10px] py-1 px-2 shrink-0">
                                                 @Loc["Profile_Widget_HubsViewBtn"]
                                             </a>
                                         </div>
@@ -2289,6 +2345,7 @@
     private List<FollowUserItemDto> followersList = new();
     private List<FollowUserItemDto> followingList = new();
     private List<UserCommunityItemDto> communitiesList = new();
+    private List<UserCreatedGroupItemDto> createdGroupsList = new();
     private List<UserRatingItemDto> reviewsList = new();
     private List<UserPostItemDto> recycledPostsList = new();
 
@@ -2615,6 +2672,17 @@
                 case "communities":
                     var cRes = await ProfileApi.GetUserCommunitiesAsync(profile.UserId, _cts.Token);
                     if (cRes.IsSuccess && cRes.Data != null) communitiesList = cRes.Data;
+                    break;
+                case "groups":
+                    var gRes = await ProfileApi.GetUserCreatedGroupsAsync(profile.UserId, _cts.Token);
+                    if (gRes.IsSuccess && gRes.Data != null)
+                    {
+                        createdGroupsList = gRes.Data;
+                    }
+                    else if (profile.CreatedGroups != null)
+                    {
+                        createdGroupsList = profile.CreatedGroups;
+                    }
                     break;
                 case "reviews":
                     var rRes = await ProfileApi.GetUserReviewsAsync(profile.UserId, _cts.Token);

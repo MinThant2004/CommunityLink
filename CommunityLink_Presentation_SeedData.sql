@@ -259,6 +259,108 @@ INSERT INTO [dbo].[TblLinkDropWallet] ([UserId], [Balance], [PurchasedBalance], 
 INSERT INTO [dbo].[TblLinkDropWallet] ([UserId], [Balance], [PurchasedBalance], [EarnedBalance], [CreatedAt]) VALUES (129, 500, 500, 0, DATEADD(day, -65, SYSUTCDATETIME()));
 INSERT INTO [dbo].[TblLinkDropWallet] ([UserId], [Balance], [PurchasedBalance], [EarnedBalance], [CreatedAt]) VALUES (130, 500, 500, 0, DATEADD(day, -60, SYSUTCDATETIME()));
 
+PRINT '5.1. Populating LinkDrop Transactions for 30-Day Volume Trend Chart...';
+-- Generate continuous 30-day transaction volume trend data
+INSERT INTO [dbo].[TblLinkDropTransaction] 
+    ([WalletId], [UserId], [TransactionType], [Amount], [BalanceBefore], [BalanceAfter], [ReferenceType], [ReferenceId], [Notes], [CreatedAt], [PurchasedAmountDeducted], [EarnedAmountDeducted], [PurchasedBalanceBefore], [PurchasedBalanceAfter], [EarnedBalanceBefore], [EarnedBalanceAfter])
+SELECT 
+    w.[WalletId], src.[UserId], src.[TransactionType], src.[Amount], src.[BalanceBefore], src.[BalanceAfter], src.[ReferenceType], src.[ReferenceId], src.[Notes], src.[CreatedAt], src.[PurchasedAmountDeducted], src.[EarnedAmountDeducted], src.[PurchasedBalanceBefore], src.[PurchasedBalanceAfter], src.[EarnedBalanceBefore], src.[EarnedBalanceAfter]
+FROM (VALUES
+    -- Day -29
+    (101, 'PURCHASE', 5000, 21500, 26500, 'TblLinkDropPurchase', 101, 'LinkDrop Sovereign Pack purchase via KBZPay', DATEADD(day, -29, SYSUTCDATETIME()), 0, 0, 16500, 21500, 5000, 5000),
+    (102, 'PRIVATE_CHAT_EARNING', 1500, 12000, 13500, 'TblUser', 121, 'Executive art valuation advisory fee received', DATEADD(day, -29, SYSUTCDATETIME()), 0, 0, 7000, 8500, 5000, 5000),
+    -- Day -28
+    (103, 'CHAT_GROUP_JOIN', 800, 10400, 11200, 'TblGroup', 1, 'Member joined Private Clinical Research Group', DATEADD(day, -28, SYSUTCDATETIME()), 0, 0, 5400, 6200, 5000, 5000),
+    (104, 'PURCHASE', 3000, 19400, 22400, 'TblLinkDropPurchase', 102, 'LinkDrop Professional Pack purchase via WavePay', DATEADD(day, -28, SYSUTCDATETIME()), 0, 0, 14400, 17400, 5000, 5000),
+    -- Day -27
+    (111, 'PRIVATE_CHAT_EARNING', 2500, 26000, 28500, 'TblUser', 122, 'Banking risk compliance consultation fee', DATEADD(day, -27, SYSUTCDATETIME()), 0, 0, 23000, 25500, 3000, 3000),
+    (112, 'PURCHASE', 5000, 30000, 35000, 'TblLinkDropPurchase', 103, 'LinkDrop Sovereign Pack purchase via AYA Pay', DATEADD(day, -27, SYSUTCDATETIME()), 0, 0, 27000, 32000, 3000, 3000),
+    -- Day -26
+    (105, 'PRIVATE_CHAT_UNLOCK', 1200, 8600, 9800, 'TblPost', 12, 'Media insight unlocked by member', DATEADD(day, -26, SYSUTCDATETIME()), 0, 0, 3600, 4800, 5000, 5000),
+    (106, 'PURCHASE', 2500, 10000, 12500, 'TblLinkDropPurchase', 104, 'LinkDrop Top-Up via CB Pay', DATEADD(day, -26, SYSUTCDATETIME()), 0, 0, 5000, 7500, 5000, 5000),
+    -- Day -25
+    (107, 'PRIVATE_CHAT_EARNING', 3400, 12000, 15400, 'TblUser', 123, 'Sovereign supply chain audit session', DATEADD(day, -25, SYSUTCDATETIME()), 0, 0, 7000, 10400, 5000, 5000),
+    (108, 'CHAT_GROUP_JOIN', 1500, 9000, 10500, 'TblGroup', 4, 'Premium working room join fee', DATEADD(day, -25, SYSUTCDATETIME()), 0, 0, 4000, 5500, 5000, 5000),
+    -- Day -24
+    (109, 'PURCHASE', 4800, 10000, 14800, 'TblLinkDropPurchase', 105, 'LinkDrop Pack purchase via KBZPay', DATEADD(day, -24, SYSUTCDATETIME()), 0, 0, 5200, 9800, 5000, 5000),
+    (110, 'PRIVATE_CHAT_EARNING', 1900, 10000, 11900, 'TblUser', 124, 'Digital marketing media strategy consult', DATEADD(day, -24, SYSUTCDATETIME()), 0, 0, 5000, 6900, 5000, 5000),
+    -- Day -23
+    (113, 'PURCHASE', 4000, 20000, 24000, 'TblLinkDropPurchase', 106, 'LinkDrop Bundle Purchase', DATEADD(day, -23, SYSUTCDATETIME()), 0, 0, 17000, 21000, 3000, 3000),
+    (114, 'CHAT_GROUP_JOIN', 1500, 18000, 19500, 'TblGroup', 6, 'Executive real estate consortium join fee', DATEADD(day, -23, SYSUTCDATETIME()), 0, 0, 15000, 16500, 3000, 3000),
+    -- Day -22
+    (115, 'PURCHASE', 2800, 14000, 16800, 'TblLinkDropPurchase', 107, 'LinkDrop Pack Purchase', DATEADD(day, -22, SYSUTCDATETIME()), 0, 0, 11000, 13800, 3000, 3000),
+    (116, 'PRIVATE_CHAT_EARNING', 3000, 18000, 21000, 'TblUser', 125, 'Agro-commodities investment advisory', DATEADD(day, -22, SYSUTCDATETIME()), 0, 0, 15000, 18000, 3000, 3000),
+    -- Day -21
+    (117, 'PURCHASE', 3200, 15000, 18200, 'TblLinkDropPurchase', 108, 'LinkDrop Direct Acquisition', DATEADD(day, -21, SYSUTCDATETIME()), 0, 0, 12000, 15200, 3000, 3000),
+    (118, 'CHAT_GROUP_JOIN', 2500, 12000, 14500, 'TblGroup', 1, 'Tech Innovation working group fee', DATEADD(day, -21, SYSUTCDATETIME()), 0, 0, 9000, 11500, 3000, 3000),
+    -- Day -20
+    (119, 'PURCHASE', 4400, 13000, 17400, 'TblLinkDropPurchase', 109, 'LinkDrop Acquisition via WavePay', DATEADD(day, -20, SYSUTCDATETIME()), 0, 0, 10000, 14400, 3000, 3000),
+    (120, 'PRIVATE_CHAT_EARNING', 2900, 13000, 15900, 'TblUser', 126, 'Logistics port cargo transit consultation', DATEADD(day, -20, SYSUTCDATETIME()), 0, 0, 10000, 12900, 3000, 3000),
+    -- Day -19
+    (101, 'PRIVATE_CHAT_EARNING', 3500, 23000, 26500, 'TblUser', 127, 'Athletic mindset mentoring session', DATEADD(day, -19, SYSUTCDATETIME()), 0, 0, 18000, 21500, 5000, 5000),
+    (102, 'PURCHASE', 2000, 11500, 13500, 'TblLinkDropPurchase', 110, 'Top-Up via KBZPay', DATEADD(day, -19, SYSUTCDATETIME()), 0, 0, 6500, 8500, 5000, 5000),
+    -- Day -18
+    (103, 'PURCHASE', 2200, 9000, 11200, 'TblLinkDropPurchase', 111, 'Top-Up via AYA Pay', DATEADD(day, -18, SYSUTCDATETIME()), 0, 0, 4000, 6200, 5000, 5000),
+    (104, 'CHAT_GROUP_JOIN', 1400, 21000, 22400, 'TblGroup', 3, 'Private engineering consortium fee', DATEADD(day, -18, SYSUTCDATETIME()), 0, 0, 16000, 17400, 5000, 5000),
+    -- Day -17
+    (111, 'PURCHASE', 5000, 23500, 28500, 'TblLinkDropPurchase', 112, 'LinkDrop Sovereign Pack via CB Pay', DATEADD(day, -17, SYSUTCDATETIME()), 0, 0, 20500, 25500, 3000, 3000),
+    (112, 'PRIVATE_CHAT_EARNING', 3000, 32000, 35000, 'TblUser', 128, 'Corporate governance review session', DATEADD(day, -17, SYSUTCDATETIME()), 0, 0, 29000, 32000, 3000, 3000),
+    -- Day -16
+    (105, 'PURCHASE', 1800, 8000, 9800, 'TblLinkDropPurchase', 113, 'LinkDrop Pack Purchase', DATEADD(day, -16, SYSUTCDATETIME()), 0, 0, 3000, 4800, 5000, 5000),
+    (106, 'CHAT_GROUP_JOIN', 1500, 11000, 12500, 'TblGroup', 5, 'Energy grid transition room fee', DATEADD(day, -16, SYSUTCDATETIME()), 0, 0, 6000, 7500, 5000, 5000),
+    -- Day -15
+    (107, 'PURCHASE', 3400, 12000, 15400, 'TblLinkDropPurchase', 114, 'LinkDrop Pack via KBZPay', DATEADD(day, -15, SYSUTCDATETIME()), 0, 0, 7000, 10400, 5000, 5000),
+    (108, 'PRIVATE_CHAT_EARNING', 2500, 8000, 10500, 'TblUser', 129, 'Clinical health border initiative consult', DATEADD(day, -15, SYSUTCDATETIME()), 0, 0, 3000, 5500, 5000, 5000),
+    -- Day -14
+    (109, 'CHAT_GROUP_JOIN', 1800, 13000, 14800, 'TblGroup', 7, 'Creative broadcast working room', DATEADD(day, -14, SYSUTCDATETIME()), 0, 0, 8000, 9800, 5000, 5000),
+    (110, 'PURCHASE', 2900, 9000, 11900, 'TblLinkDropPurchase', 115, 'Top-Up via WavePay', DATEADD(day, -14, SYSUTCDATETIME()), 0, 0, 4000, 6900, 5000, 5000),
+    -- Day -13
+    (113, 'PRIVATE_CHAT_EARNING', 3000, 21000, 24000, 'TblUser', 130, 'Industrial infrastructure advisory', DATEADD(day, -13, SYSUTCDATETIME()), 0, 0, 18000, 21000, 3000, 3000),
+    (114, 'PURCHASE', 2500, 17000, 19500, 'TblLinkDropPurchase', 116, 'LinkDrop Top-Up via AYA Pay', DATEADD(day, -13, SYSUTCDATETIME()), 0, 0, 14000, 16500, 3000, 3000),
+    -- Day -12
+    (115, 'CHAT_GROUP_JOIN', 1800, 15000, 16800, 'TblGroup', 8, 'FMCG national logistics hub join fee', DATEADD(day, -12, SYSUTCDATETIME()), 0, 0, 12000, 13800, 3000, 3000),
+    (116, 'PURCHASE', 3000, 18000, 21000, 'TblLinkDropPurchase', 117, 'LinkDrop Pack via CB Pay', DATEADD(day, -12, SYSUTCDATETIME()), 0, 0, 15000, 18000, 3000, 3000),
+    -- Day -11
+    (117, 'PRIVATE_CHAT_EARNING', 2200, 16000, 18200, 'TblUser', 121, 'Offshore energy project review', DATEADD(day, -11, SYSUTCDATETIME()), 0, 0, 13000, 15200, 3000, 3000),
+    (118, 'PURCHASE', 3500, 11000, 14500, 'TblLinkDropPurchase', 118, 'Top-Up via KBZPay', DATEADD(day, -11, SYSUTCDATETIME()), 0, 0, 8000, 11500, 3000, 3000),
+    -- Day -10
+    (119, 'CHAT_GROUP_JOIN', 2400, 15000, 17400, 'TblGroup', 9, 'Hospitality and tourism investment room', DATEADD(day, -10, SYSUTCDATETIME()), 0, 0, 12000, 14400, 3000, 3000),
+    (120, 'PURCHASE', 2900, 13000, 15900, 'TblLinkDropPurchase', 119, 'Top-Up via WavePay', DATEADD(day, -10, SYSUTCDATETIME()), 0, 0, 10000, 12900, 3000, 3000),
+    -- Day -9
+    (101, 'PURCHASE', 4500, 22000, 26500, 'TblLinkDropPurchase', 120, 'KBZPay LinkDrop Purchase', DATEADD(day, -9, SYSUTCDATETIME()), 0, 0, 17000, 21500, 5000, 5000),
+    (102, 'PRIVATE_CHAT_EARNING', 2000, 11500, 13500, 'TblUser', 122, 'Heritage restoration design advisory', DATEADD(day, -9, SYSUTCDATETIME()), 0, 0, 6500, 8500, 5000, 5000),
+    -- Day -8
+    (103, 'CHAT_GROUP_JOIN', 1200, 10000, 11200, 'TblGroup', 2, 'Civic infrastructure working group', DATEADD(day, -8, SYSUTCDATETIME()), 0, 0, 5000, 6200, 5000, 5000),
+    (104, 'PURCHASE', 3400, 19000, 22400, 'TblLinkDropPurchase', 121, 'AYA Pay Top-Up', DATEADD(day, -8, SYSUTCDATETIME()), 0, 0, 14000, 17400, 5000, 5000),
+    -- Day -7
+    (111, 'PRIVATE_CHAT_EARNING', 3500, 25000, 28500, 'TblUser', 123, 'Commercial banking syndication advisory', DATEADD(day, -7, SYSUTCDATETIME()), 0, 0, 22000, 25500, 3000, 3000),
+    (112, 'PURCHASE', 4000, 31000, 35000, 'TblLinkDropPurchase', 122, 'LinkDrop Sovereign Pack via CB Pay', DATEADD(day, -7, SYSUTCDATETIME()), 0, 0, 28000, 32000, 3000, 3000),
+    -- Day -6
+    (105, 'PURCHASE', 2800, 7000, 9800, 'TblLinkDropPurchase', 123, 'WavePay Top-Up', DATEADD(day, -6, SYSUTCDATETIME()), 0, 0, 2000, 4800, 5000, 5000),
+    (106, 'CHAT_GROUP_JOIN', 1500, 11000, 12500, 'TblGroup', 10, 'Renewable energy working group', DATEADD(day, -6, SYSUTCDATETIME()), 0, 0, 6000, 7500, 5000, 5000),
+    -- Day -5
+    (107, 'PRIVATE_CHAT_EARNING', 3400, 12000, 15400, 'TblUser', 124, 'Logistics optimization strategy', DATEADD(day, -5, SYSUTCDATETIME()), 0, 0, 7000, 10400, 5000, 5000),
+    (108, 'PURCHASE', 3500, 7000, 10500, 'TblLinkDropPurchase', 124, 'KBZPay Purchase', DATEADD(day, -5, SYSUTCDATETIME()), 0, 0, 2000, 5500, 5000, 5000),
+    -- Day -4
+    (109, 'PURCHASE', 2800, 12000, 14800, 'TblLinkDropPurchase', 125, 'AYA Pay Top-Up', DATEADD(day, -4, SYSUTCDATETIME()), 0, 0, 7000, 9800, 5000, 5000),
+    (110, 'CHAT_GROUP_JOIN', 1900, 10000, 11900, 'TblGroup', 11, 'Telecom fiber networks working room', DATEADD(day, -4, SYSUTCDATETIME()), 0, 0, 5000, 6900, 5000, 5000),
+    -- Day -3
+    (113, 'PURCHASE', 4000, 20000, 24000, 'TblLinkDropPurchase', 126, 'Sovereign Pack Acquisition', DATEADD(day, -3, SYSUTCDATETIME()), 0, 0, 17000, 21000, 3000, 3000),
+    (114, 'PRIVATE_CHAT_EARNING', 2500, 17000, 19500, 'TblUser', 125, 'Smart urbanization engineering advisory', DATEADD(day, -3, SYSUTCDATETIME()), 0, 0, 14000, 16500, 3000, 3000),
+    -- Day -2
+    (115, 'PURCHASE', 3800, 13000, 16800, 'TblLinkDropPurchase', 127, 'Top-Up via KBZPay', DATEADD(day, -2, SYSUTCDATETIME()), 0, 0, 10000, 13800, 3000, 3000),
+    (116, 'CHAT_GROUP_JOIN', 3000, 18000, 21000, 'TblGroup', 12, 'National grain commodity trading room', DATEADD(day, -2, SYSUTCDATETIME()), 0, 0, 15000, 18000, 3000, 3000),
+    -- Day -1
+    (117, 'PURCHASE', 4200, 14000, 18200, 'TblLinkDropPurchase', 128, 'LinkDrop Sovereign Pack via WavePay', DATEADD(day, -1, SYSUTCDATETIME()), 0, 0, 11000, 15200, 3000, 3000),
+    (118, 'PRIVATE_CHAT_EARNING', 2500, 12000, 14500, 'TblUser', 126, 'Enterprise cloud architecture consultation', DATEADD(day, -1, SYSUTCDATETIME()), 0, 0, 9000, 11500, 3000, 3000),
+    -- Day 0 (Today)
+    (119, 'PURCHASE', 3400, 14000, 17400, 'TblLinkDropPurchase', 129, 'Instant LinkDrop Top-Up via KBZPay', SYSUTCDATETIME(), 0, 0, 11000, 14400, 3000, 3000),
+    (120, 'CHAT_GROUP_JOIN', 2900, 13000, 15900, 'TblGroup', 13, 'Deep-sea maritime logistics working group', SYSUTCDATETIME(), 0, 0, 10000, 12900, 3000, 3000)
+) AS src([UserId], [TransactionType], [Amount], [BalanceBefore], [BalanceAfter], [ReferenceType], [ReferenceId], [Notes], [CreatedAt], [PurchasedAmountDeducted], [EarnedAmountDeducted], [PurchasedBalanceBefore], [PurchasedBalanceAfter], [EarnedBalanceBefore], [EarnedBalanceAfter])
+INNER JOIN [dbo].[TblLinkDropWallet] w ON w.[UserId] = src.[UserId];
+
+
+
 PRINT '6. Populating Skills for Premium Users...';
 INSERT INTO [dbo].[TblUserSkill] ([UserId], [SkillName], [EndorsementCount], [IsVerified], [DisplayOrder], [CreatedAt], [IsDeleted]) VALUES (101, 'MMA Elite Coaching', 5, 1, 1, DATEADD(day, -180, SYSUTCDATETIME()), 0);
 INSERT INTO [dbo].[TblUserSkill] ([UserId], [SkillName], [EndorsementCount], [IsVerified], [DisplayOrder], [CreatedAt], [IsDeleted]) VALUES (101, 'Athletic Conditioning', 4, 1, 2, DATEADD(day, -180, SYSUTCDATETIME()), 0);
@@ -3027,6 +3129,96 @@ INSERT INTO [dbo].[TblContentReport] ([ContentType], [ContentId], [ReporterUserI
 VALUES ('POST', 7, 126, 'HARASSMENT', 'Review required on heated debate in comment stream.', 'RESOLVED', 'Offending sub-comments removed. Discussion restored to compliance.', 1, DATEADD(day, -2, SYSUTCDATETIME()), DATEADD(day, -7, SYSUTCDATETIME()));
 INSERT INTO [dbo].[TblContentReport] ([ContentType], [ContentId], [ReporterUserId], [ReasonCategory], [Details], [Status], [AdminNote], [HandledByAdminId], [HandledAt], [CreatedAt])
 VALUES ('POLL', 3, 127, 'OTHER', 'Inquiry regarding eligibility of external corporate voters.', 'DISMISSED', 'Poll criteria compliant with platform charter.', 1, DATEADD(day, -2, SYSUTCDATETIME()), DATEADD(day, -7, SYSUTCDATETIME()));
+
+PRINT '18.1. Populating Identity Verifications (Approved, Pending, and Rejected)...';
+
+-- Resolve Subscription Plans
+DECLARE @PlanDomainProId INT;
+DECLARE @PlanPublicFigureId INT;
+SELECT TOP 1 @PlanDomainProId = PlanId FROM [dbo].[TblSubscriptionPlan] WHERE TargetRoleCode = 'DOMAIN_PRO';
+SELECT TOP 1 @PlanPublicFigureId = PlanId FROM [dbo].[TblSubscriptionPlan] WHERE TargetRoleCode = 'PUBLIC_FIGURE';
+
+IF @PlanDomainProId IS NULL
+BEGIN
+    INSERT INTO [dbo].[TblSubscriptionPlan] ([TargetRoleCode], [PlanName], [BillingInterval], [DurationDays], [PriceAmount], [LinkDropCost], [PerksJson], [IsActive], [CreatedAt])
+    VALUES ('DOMAIN_PRO', 'Domain Professional (Monthly)', 'Monthly', 30, 39.00, 3900, '["Verified Domain Professional Badge","Custom Consultation Rates","Community Creation Rights"]', 1, SYSUTCDATETIME());
+    SET @PlanDomainProId = SCOPE_IDENTITY();
+END;
+
+IF @PlanPublicFigureId IS NULL
+BEGIN
+    INSERT INTO [dbo].[TblSubscriptionPlan] ([TargetRoleCode], [PlanName], [BillingInterval], [DurationDays], [PriceAmount], [LinkDropCost], [PerksJson], [IsActive], [CreatedAt])
+    VALUES ('PUBLIC_FIGURE', 'Public Figure VIP (Monthly)', 'Monthly', 30, 119.00, 11900, '["VIP Platinum Crest","Discovery Shelf Priority Guaranteed","0% Platform Fee Snapshot"]', 1, SYSUTCDATETIME());
+    SET @PlanPublicFigureId = SCOPE_IDENTITY();
+END;
+
+DECLARE @AdminReviewerId INT;
+SELECT TOP 1 @AdminReviewerId = [AdminId] FROM [dbo].[TblAdmin];
+IF @AdminReviewerId IS NULL SET @AdminReviewerId = 1;
+
+-- 1. APPROVED VERIFICATIONS: All 20 Verified Leaders (10 Domain Professionals 101-110, 10 Public Figures 111-120)
+INSERT INTO [dbo].[TblIdentityVerification]
+    ([UserId], [PlanId], [TargetRoleCode], [FullLegalName], [WorkEmail], [ProfessionalUrl], [IdCardFrontUrl], [IdCardBackUrl], [PaymentMethod], [LinkDropPointsDeducted], [Status], [ReviewNotes], [ReviewedByAdminId], [ReviewedAtUtc], [Skills], [Location], [CertificateUrls], [CreatedAtUtc])
+VALUES
+    -- 10 Domain Professionals (101 - 110)
+    (101, @PlanDomainProId, 'DOMAIN_PRO', 'Aung La N Sang', 'aungla@onechampionship.com', 'https://onefc.com/athletes/aung-la-n-sang/', '/uploads/posts/202610/15983265f7f54c2faa62419918ed85e8_639264352658469432.jpg', '/uploads/posts/202610/29de9a9b8f4d4b7c948e966747d0a9c0_639264352665934534.jpg', 'LINKDROP', 3900, 'APPROVED', 'World champion athletic accreditation and legal identity verified. Approved by Senior SecOps.', @AdminReviewerId, DATEADD(day, -180, SYSUTCDATETIME()), 'Professional Athletics, Leadership, Youth Coaching', 'Kachin State, Myanmar', 'https://onefc.com/athletes/aung-la-n-sang/', DATEADD(day, -182, SYSUTCDATETIME())),
+    (102, @PlanDomainProId, 'DOMAIN_PRO', 'Htein Lin', 'hteinlin.art@gmail.com', 'https://hteinlin.com', '/uploads/posts/202610/2a965a7821d34c1393ff992c8618bb8e_639264352654733706.jpg', '/uploads/posts/202610/38676668edbe4fc8b2e29de42690de89_639283387193117772.jpg', 'LINKDROP', 3900, 'APPROVED', 'Master painter and international curator credentials certified. Approved.', @AdminReviewerId, DATEADD(day, -175, SYSUTCDATETIME()), 'Contemporary Painting, Cultural Heritage, Installation Art', 'Meiktila, Mandalay', 'https://hteinlin.com', DATEADD(day, -177, SYSUTCDATETIME())),
+    (103, @PlanDomainProId, 'DOMAIN_PRO', 'Dr. Cynthia Maung', 'cynthia@maetao.org', 'https://maetaoclinic.org', '/uploads/posts/202610/455134739cf04f1ba65ce74f8b17018f_639289328536512425.jpg', '/uploads/posts/202610/4689cc5bb67a46f8a9e890610841461a_639279804033667591.jpg', 'LINKDROP', 3900, 'APPROVED', 'Ramon Magsaysay Award recipient and humanitarian clinical credentials verified.', @AdminReviewerId, DATEADD(day, -170, SYSUTCDATETIME()), 'Public Health, Humanitarian Medicine, Refugee Care', 'Kayin State, Myanmar', 'https://maetaoclinic.org', DATEADD(day, -172, SYSUTCDATETIME())),
+    (104, @PlanDomainProId, 'DOMAIN_PRO', 'Zarganar (Thura)', 'zarganar.satire@gmail.com', 'https://pen.org/advocacy-case/zarganar/', '/uploads/posts/202610/64caf7e8a2d041c8a0a65824cb88c0a2_639283359358458377.jpg', '/uploads/posts/202610/8850f2ebf9ca4edda9dbf489c8893c7f_639273729741980335.jpg', 'LINKDROP', 3900, 'APPROVED', 'Eminent cultural film direction and literature awards certified.', @AdminReviewerId, DATEADD(day, -165, SYSUTCDATETIME()), 'Film Direction, Performing Arts, Satirical Comedy', 'Yangon, Myanmar', 'https://pen.org', DATEADD(day, -167, SYSUTCDATETIME())),
+    (105, @PlanDomainProId, 'DOMAIN_PRO', 'Ju (Dr. Tin Tin Win)', 'ju.novels@gmail.com', 'https://myanmarbookshop.com', '/uploads/posts/202610/9172be0a5573462eb03ecdde84f8b1d6_639264352661925222.jpg', '/uploads/posts/202610/945491f8224e44468d240f8cc3561e4a_639283657961211862.jpg', 'LINKDROP', 3900, 'APPROVED', 'Literary author body of work and medical doctorate verified.', @AdminReviewerId, DATEADD(day, -160, SYSUTCDATETIME()), 'Contemporary Fiction, Environmental Conservation, Literature', 'Yenangyaung, Magway', 'https://myanmarbookshop.com', DATEADD(day, -162, SYSUTCDATETIME())),
+    (106, @PlanDomainProId, 'DOMAIN_PRO', 'Phoo Pwint Khine', 'phoopwint.health@gmail.com', 'https://instagram.com/phoopwintkhine', '/uploads/posts/202610/15983265f7f54c2faa62419918ed85e8_639264352658469432.jpg', '/uploads/posts/202610/29de9a9b8f4d4b7c948e966747d0a9c0_639264352665934534.jpg', 'LINKDROP', 3900, 'APPROVED', 'Fitness championship credentials and nutritional coaching accreditation verified.', @AdminReviewerId, DATEADD(day, -155, SYSUTCDATETIME()), 'Fitness Coaching, Sports Nutrition, Athletic Conditioning', 'Yangon, Myanmar', 'https://instagram.com/phoopwintkhine', DATEADD(day, -157, SYSUTCDATETIME())),
+    (107, @PlanDomainProId, 'DOMAIN_PRO', 'Kyaw Thu', 'kyawthu.ffss@gmail.com', 'https://ffssyangon.org', '/uploads/posts/202610/2a965a7821d34c1393ff992c8618bb8e_639264352654733706.jpg', '/uploads/posts/202610/38676668edbe4fc8b2e29de42690de89_639283387193117772.jpg', 'LINKDROP', 3900, 'APPROVED', 'Academy-winning cinema leadership and FFSS nationwide civic welfare verified.', @AdminReviewerId, DATEADD(day, -150, SYSUTCDATETIME()), 'Humanitarian Logistics, Civil Action, Cinema Arts', 'Yangon, Myanmar', 'https://ffssyangon.org', DATEADD(day, -152, SYSUTCDATETIME())),
+    (108, @PlanDomainProId, 'DOMAIN_PRO', 'Chit Thu Wai', 'chitthuwai.charity@gmail.com', 'https://facebook.com/chitthuwai', '/uploads/posts/202610/455134739cf04f1ba65ce74f8b17018f_639289328536512425.jpg', '/uploads/posts/202610/4689cc5bb67a46f8a9e890610841461a_639279804033667591.jpg', 'LINKDROP', 3900, 'APPROVED', 'Medical degree and national public health ambassadorship verified.', @AdminReviewerId, DATEADD(day, -145, SYSUTCDATETIME()), 'Maternal Healthcare, Vocal Arts, Humanitarian Philanthropy', 'Yangon, Myanmar', 'https://facebook.com/chitthuwai', DATEADD(day, -147, SYSUTCDATETIME())),
+    (109, @PlanDomainProId, 'DOMAIN_PRO', 'Nu Nu Yi (Inwa)', 'nunuyi.inwa@gmail.com', 'https://en.wikipedia.org/wiki/Nu_Nu_Yi', '/uploads/posts/202610/64caf7e8a2d041c8a0a65824cb88c0a2_639283359358458377.jpg', '/uploads/posts/202610/8850f2ebf9ca4edda9dbf489c8893c7f_639273729741980335.jpg', 'LINKDROP', 3900, 'APPROVED', 'Man Asian Literary Prize finalist credentials and author portfolio approved.', @AdminReviewerId, DATEADD(day, -140, SYSUTCDATETIME()), 'Literary Fiction, Social Realism, Cultural Screenwriting', 'Inwa, Mandalay', 'https://en.wikipedia.org', DATEADD(day, -142, SYSUTCDATETIME())),
+    (110, @PlanDomainProId, 'DOMAIN_PRO', 'Diramore', 'diramore.music@gmail.com', 'https://en.wikipedia.org/wiki/Diramore', '/uploads/posts/202610/9172be0a5573462eb03ecdde84f8b1d6_639264352661925222.jpg', '/uploads/posts/202610/945491f8224e44468d240f8cc3561e4a_639283657961211862.jpg', 'LINKDROP', 3900, 'APPROVED', 'National academy scoring composer and musicology professorship verified.', @AdminReviewerId, DATEADD(day, -135, SYSUTCDATETIME()), 'Film Scoring, Classical Musicology, Sound Engineering', 'Yangon, Myanmar', 'https://en.wikipedia.org', DATEADD(day, -137, SYSUTCDATETIME())),
+
+    -- 10 Public Figures (111 - 120)
+    (111, @PlanPublicFigureId, 'PUBLIC_FIGURE', 'Zaw Zaw', 'zawzaw@maxmyanmargroup.com', 'https://maxmyanmargroup.com', '/uploads/posts/202610/15983265f7f54c2faa62419918ed85e8_639264352658469432.jpg', '/uploads/posts/202610/29de9a9b8f4d4b7c948e966747d0a9c0_639264352665934534.jpg', 'LINKDROP', 11900, 'APPROVED', 'Corporate registry and conglomerate chairmanship verified with DICA. Approved for VIP Public Figure.', @AdminReviewerId, DATEADD(day, -182, SYSUTCDATETIME()), 'Conglomerate Governance, Banking, Infrastructure Finance', 'Bahan, Yangon', 'https://maxmyanmargroup.com', DATEADD(day, -184, SYSUTCDATETIME())),
+    (112, @PlanPublicFigureId, 'PUBLIC_FIGURE', 'Dr. Sai Sam Htun', 'saisamhtun@loihein.com', 'https://loihein.com', '/uploads/posts/202610/2a965a7821d34c1393ff992c8618bb8e_639264352654733706.jpg', '/uploads/posts/202610/38676668edbe4fc8b2e29de42690de89_639283387193117772.jpg', 'LINKDROP', 11900, 'APPROVED', 'FMCG enterprise leadership and national manufacturing accreditation certified.', @AdminReviewerId, DATEADD(day, -178, SYSUTCDATETIME()), 'FMCG Manufacturing, Supply Chain Architecture, Commercial Banking', 'Shan State / Yangon', 'https://loihein.com', DATEADD(day, -180, SYSUTCDATETIME())),
+    (113, @PlanPublicFigureId, 'PUBLIC_FIGURE', 'Aik Htun', 'aikhtun@shwetaunggroup.com', 'https://shwetaunggroup.com', '/uploads/posts/202610/455134739cf04f1ba65ce74f8b17018f_639289328536512425.jpg', '/uploads/posts/202610/4689cc5bb67a46f8a9e890610841461a_639279804033667591.jpg', 'LINKDROP', 11900, 'APPROVED', 'Urban infrastructure and commercial real estate development corporate registry validated.', @AdminReviewerId, DATEADD(day, -174, SYSUTCDATETIME()), 'Urban Megaprojects, Cement Manufacturing, Sustainable Construction', 'Yangon, Myanmar', 'https://shwetaunggroup.com', DATEADD(day, -176, SYSUTCDATETIME())),
+    (114, @PlanPublicFigureId, 'PUBLIC_FIGURE', 'Tay Za', 'tayza@hotooogroup.com', 'https://hotooogroup.com', '/uploads/posts/202610/64caf7e8a2d041c8a0a65824cb88c0a2_639283359358458377.jpg', '/uploads/posts/202610/8850f2ebf9ca4edda9dbf489c8893c7f_639273729741980335.jpg', 'LINKDROP', 11900, 'APPROVED', 'Aviation airline management and hospitality corporate portfolio verified.', @AdminReviewerId, DATEADD(day, -169, SYSUTCDATETIME()), 'Commercial Aviation, Luxury Hospitality, Commodity Agribusiness', 'Yangon, Myanmar', 'https://hotooogroup.com', DATEADD(day, -171, SYSUTCDATETIME())),
+    (115, @PlanPublicFigureId, 'PUBLIC_FIGURE', 'Serge Pun (Theim Wai)', 'sergepun@yoma.com', 'https://yoma.com.mm', '/uploads/posts/202610/9172be0a5573462eb03ecdde84f8b1d6_639264352661925222.jpg', '/uploads/posts/202610/945491f8224e44468d240f8cc3561e4a_639283657961211862.jpg', 'LINKDROP', 11900, 'APPROVED', 'Singapore SGX and Yangon YSX public corporate executive credentials validated.', @AdminReviewerId, DATEADD(day, -164, SYSUTCDATETIME()), 'Public Equity Markets, Smart Urban Masterplanning, Fintech', 'FMI City, Yangon', 'https://yoma.com.mm', DATEADD(day, -166, SYSUTCDATETIME())),
+    (116, @PlanPublicFigureId, 'PUBLIC_FIGURE', 'Khin Shwe', 'khinshwe@zaykabar.com', 'https://zaykabar.com', '/uploads/posts/202610/15983265f7f54c2faa62419918ed85e8_639264352658469432.jpg', '/uploads/posts/202610/29de9a9b8f4d4b7c948e966747d0a9c0_639264352665934534.jpg', 'LINKDROP', 11900, 'APPROVED', 'Telecommunications infrastructure and industrial zone executive identity approved.', @AdminReviewerId, DATEADD(day, -159, SYSUTCDATETIME()), 'Industrial Zone Infrastructure, Telecom Towers, Heritage Development', 'Yangon, Myanmar', 'https://zaykabar.com', DATEADD(day, -161, SYSUTCDATETIME())),
+    (117, @PlanPublicFigureId, 'PUBLIC_FIGURE', 'Michael Moe Myint', 'moemyint@mprlexploration.com', 'https://mprlexploration.com', '/uploads/posts/202610/2a965a7821d34c1393ff992c8618bb8e_639264352654733706.jpg', '/uploads/posts/202610/38676668edbe4fc8b2e29de42690de89_639283387193117772.jpg', 'LINKDROP', 11900, 'APPROVED', 'Offshore petroleum exploration licensing and aviation engineering certified.', @AdminReviewerId, DATEADD(day, -154, SYSUTCDATETIME()), 'Offshore Energy, Deepwater Exploration, Aviation Safety Governance', 'Yangon, Myanmar', 'https://mprlexploration.com', DATEADD(day, -156, SYSUTCDATETIME())),
+    (118, @PlanPublicFigureId, 'PUBLIC_FIGURE', 'Mike Than Tun Win', 'mikettw@flymya.com', 'https://flymya.com', '/uploads/posts/202610/455134739cf04f1ba65ce74f8b17018f_639289328536512425.jpg', '/uploads/posts/202610/4689cc5bb67a46f8a9e890610841461a_639279804033667591.jpg', 'LINKDROP', 11900, 'APPROVED', 'Digital economy venture builder and regional travel tech entrepreneurship validated.', @AdminReviewerId, DATEADD(day, -149, SYSUTCDATETIME()), 'Venture Capital, Travel Tech, Digital Ecosystem Scaling', 'Yangon, Myanmar', 'https://flymya.com', DATEADD(day, -151, SYSUTCDATETIME())),
+    (119, @PlanPublicFigureId, 'PUBLIC_FIGURE', 'Kyaw Min Han', 'kmh@famepharma.com', 'https://famepharma.com', '/uploads/posts/202610/64caf7e8a2d041c8a0a65824cb88c0a2_639283359358458377.jpg', '/uploads/posts/202610/8850f2ebf9ca4edda9dbf489c8893c7f_639273729741980335.jpg', 'LINKDROP', 11900, 'APPROVED', 'ISO/GMP Certified Pharmaceutical manufacturing and organic clinical farming verified.', @AdminReviewerId, DATEADD(day, -144, SYSUTCDATETIME()), 'Organic Pharmaceuticals, GMP Quality Systems, Phytotherapy', 'Yangon / Pyin Oo Lwin', 'https://famepharma.com', DATEADD(day, -146, SYSUTCDATETIME())),
+    (120, @PlanPublicFigureId, 'PUBLIC_FIGURE', 'Win Aung', 'winaung@dagongroup.com', 'https://dagon-group.com', '/uploads/posts/202610/9172be0a5573462eb03ecdde84f8b1d6_639264352661925222.jpg', '/uploads/posts/202610/945491f8224e44468d240f8cc3561e4a_639283657961211862.jpg', 'LINKDROP', 11900, 'APPROVED', 'UMFCCI presidential tenure and deep-sea port terminal operations corporate credentials approved.', @AdminReviewerId, DATEADD(day, -139, SYSUTCDATETIME()), 'Port Logistics, Commodity Value Chains, Industrial Zone Planning', 'Yangon, Myanmar', 'https://dagon-group.com', DATEADD(day, -141, SYSUTCDATETIME()));
+
+-- 2. PENDING REVIEW VERIFICATIONS: Active Applications from Active Members
+INSERT INTO [dbo].[TblIdentityVerification]
+    ([UserId], [PlanId], [TargetRoleCode], [FullLegalName], [WorkEmail], [ProfessionalUrl], [IdCardFrontUrl], [IdCardBackUrl], [PaymentMethod], [LinkDropPointsDeducted], [Status], [ReviewNotes], [ReviewedByAdminId], [ReviewedAtUtc], [Skills], [Location], [CertificateUrls], [CreatedAtUtc])
+VALUES
+    (121, @PlanDomainProId, 'DOMAIN_PRO', 'Aung Kyaw Zin', 'aungkyawzin.dev@gmail.com', 'https://github.com/aungkyawzin', '/uploads/posts/202610/15983265f7f54c2faa62419918ed85e8_639264352658469432.jpg', '/uploads/posts/202610/29de9a9b8f4d4b7c948e966747d0a9c0_639264352665934534.jpg', 'LINKDROP', 3900, 'PENDING', NULL, NULL, NULL, 'C# / .NET 10, ASP.NET Core Web APIs, SQL Server, Blazor Server', 'Kamayut, Yangon', 'https://github.com/aungkyawzin', DATEADD(hour, -18, SYSUTCDATETIME())),
+    (122, @PlanDomainProId, 'DOMAIN_PRO', 'Thazin Moe', 'thazinmoe.mkt@gmail.com', 'https://linkedin.com/in/thazinmoe', '/uploads/posts/202610/2a965a7821d34c1393ff992c8618bb8e_639264352654733706.jpg', '/uploads/posts/202610/38676668edbe4fc8b2e29de42690de89_639283387193117772.jpg', 'LINKDROP', 3900, 'PENDING', NULL, NULL, NULL, 'Growth Marketing, Meta Ads Management, Content Strategy, TikTok Campaigns', 'Sanchaung, Yangon', 'https://linkedin.com/in/thazinmoe', DATEADD(hour, -36, SYSUTCDATETIME())),
+    (123, @PlanPublicFigureId, 'PUBLIC_FIGURE', 'Hein Htet Zaw', 'heinhtet.uit@gmail.com', 'https://facebook.com/heinhtet.tech', '/uploads/posts/202610/455134739cf04f1ba65ce74f8b17018f_639289328536512425.jpg', '/uploads/posts/202610/4689cc5bb67a46f8a9e890610841461a_639279804033667591.jpg', 'LINKDROP', 11900, 'PENDING', NULL, NULL, NULL, 'Mobile App Innovation, Tech Community Keynotes, Flutter Framework', 'Hlaing, Yangon', 'https://facebook.com/heinhtet.tech', DATEADD(hour, -52, SYSUTCDATETIME()));
+
+-- 3. REJECTED VERIFICATIONS: Applications with Specific Actionable Feedback
+INSERT INTO [dbo].[TblIdentityVerification]
+    ([UserId], [PlanId], [TargetRoleCode], [FullLegalName], [WorkEmail], [ProfessionalUrl], [IdCardFrontUrl], [IdCardBackUrl], [PaymentMethod], [LinkDropPointsDeducted], [Status], [ReviewNotes], [ReviewedByAdminId], [ReviewedAtUtc], [Skills], [Location], [CertificateUrls], [CreatedAtUtc])
+VALUES
+    (124, @PlanDomainProId, 'DOMAIN_PRO', 'Khin Yadanar Oo', 'khinyadanar.design@gmail.com', 'https://behance.net/khinyadanar', '/uploads/posts/202610/64caf7e8a2d041c8a0a65824cb88c0a2_639283359358458377.jpg', '/uploads/posts/202610/8850f2ebf9ca4edda9dbf489c8893c7f_639273729741980335.jpg', 'LINKDROP', 3900, 'REJECTED', 'NRC front document upload resolution is too low and unreadable. Please submit clear 300+ DPI scan of your National Registration Card.', @AdminReviewerId, DATEADD(day, -4, SYSUTCDATETIME()), 'Figma, Design Systems, Mobile UI/UX', 'Mandalay, Myanmar', 'https://behance.net/khinyadanar', DATEADD(day, -6, SYSUTCDATETIME())),
+    (125, @PlanDomainProId, 'DOMAIN_PRO', 'Min Khant Kyaw', 'minkhant.mdy@gmail.com', 'https://facebook.com/minkhant.business', '/uploads/posts/202610/9172be0a5573462eb03ecdde84f8b1d6_639264352661925222.jpg', '/uploads/posts/202610/945491f8224e44468d240f8cc3561e4a_639283657961211862.jpg', 'LINKDROP', 3900, 'REJECTED', 'DICA business registration document expired. Please upload valid DICA Certificate of Incorporation with active annual return filing.', @AdminReviewerId, DATEADD(day, -5, SYSUTCDATETIME()), 'F&B Retail, Wholesale Distribution, Small Business Operations', 'Maha Aungmye, Mandalay', 'https://facebook.com/minkhant.business', DATEADD(day, -7, SYSUTCDATETIME()));
+
+PRINT '18.2. Populating Member & SLA Content Moderation Reports (ContentType = USER)...';
+-- Reports targeting Members for SLA breaches, unresponsiveness, and community conduct
+INSERT INTO [dbo].[TblContentReport]
+    ([ContentType], [ContentId], [ReporterUserId], [ReasonCategory], [Details], [Status], [AdminNote], [HandledByAdminId], [HandledAt], [CreatedAt])
+VALUES
+    -- Pending SLA Breach Report (Leader failed to answer within agreed SLA)
+    ('USER', 118, 121, 'SLA_BREACH', 'Paid advisory consultation was requested and accepted 36 hours ago. Leader declared a 24-hour Response SLA but has not replied to the inquiry.', 'PENDING', NULL, NULL, NULL, DATEADD(hour, -14, SYSUTCDATETIME())),
+    
+    -- Pending Unresponsive Report
+    ('USER', 115, 122, 'UNRESPONSIVE', 'Priority chat session LinkDrops were deducted, but the direct consultation channel remained unresponsive beyond 48 hours.', 'PENDING', NULL, NULL, NULL, DATEADD(day, -2, SYSUTCDATETIME())),
+
+    -- Resolved SLA Breach (Refunded and settled)
+    ('USER', 112, 123, 'SLA_BREACH', 'Response delayed beyond SLA window due to factory site emergency. Leader initiated full LinkDrop refund to client.', 'RESOLVED', 'Leader demonstrated verifiable remote field inspection outage. Full 2,500 LD consultation fee refunded to client. Case closed with mutual agreement.', @AdminReviewerId, DATEADD(day, -2, SYSUTCDATETIME()), DATEADD(day, -4, SYSUTCDATETIME())),
+
+    -- Actioned Conduct / Harassment Report
+    ('USER', 130, 126, 'HARASSMENT', 'Member repeatedly sent unsolicited multi-paragraph sales messages across multiple group chat direct inboxes after warning.', 'ACTIONED', 'Member issued formal 7-day direct messaging restriction. Warning notice logged on account.', @AdminReviewerId, DATEADD(day, -3, SYSUTCDATETIME()), DATEADD(day, -5, SYSUTCDATETIME())),
+
+    -- Dismissed False Flag Report
+    ('USER', 101, 127, 'SPAM_SCAM', 'User claimed official athlete verification badge was fake profile.', 'DISMISSED', 'Account identity verified through official verified athlete KYC documents. Report dismissed as invalid.', @AdminReviewerId, DATEADD(day, -1, SYSUTCDATETIME()), DATEADD(day, -3, SYSUTCDATETIME()));
+
 
 PRINT '19. Populating User Activities for Telemetry & Report Charts...';
 INSERT INTO [dbo].[TblUserActivity] ([UserId], [ActivityType], [Description], [TargetEntityType], [TargetEntityId], [CreatedAt], [IsDeleted])
