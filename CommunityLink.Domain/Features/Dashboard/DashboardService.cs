@@ -107,12 +107,14 @@ public sealed class DashboardService(
                     false,
                     u.IsVerified ||
                     u.TblUserRoles.Any(r => !r.IsDeleted && (r.Role.RoleCode == "DOMAIN_PRO" || r.Role.RoleCode == "DOMAIN_PROFESSIONAL" || r.Role.RoleCode == "PUBLIC_FIGURE")) ||
-                    u.TblUserSubscriptions.Any(s => s.Status == "ACTIVE" && s.ExpiresAtUtc > now)))
+                    u.TblUserSubscriptions.Any(s => s.Status == "ACTIVE" && s.ExpiresAtUtc > now),
+                    u.TblUserFollowFollowees.Count(f => !f.IsDeleted)))
                 .ToListAsync(cancellationToken);
 
-            // Premium users first, then followed, then ratings / display name
+            // Highest followers first, then premium, then followed, then ratings
             var topPeople = rawPeople
-                .OrderByDescending(u => u.IsPremium)
+                .OrderByDescending(u => u.FollowersCount)
+                .ThenByDescending(u => u.IsPremium)
                 .ThenByDescending(u => u.IsFollowedByCurrentUser)
                 .ThenByDescending(u => u.AverageRating ?? 0)
                 .ThenBy(u => u.DisplayName)
@@ -302,7 +304,8 @@ public sealed class DashboardService(
                     PrivateChatFeeLinkDrops = u.TblCreatorChatSetting != null ? u.TblCreatorChatSetting.PrivateChatFeeLinkDrops : 0,
                     IsPremium = u.IsVerified
                         || u.TblUserRoles.Any(r => !r.IsDeleted && (r.Role.RoleCode == "DOMAIN_PRO" || r.Role.RoleCode == "DOMAIN_PROFESSIONAL" || r.Role.RoleCode == "PUBLIC_FIGURE"))
-                        || u.TblUserSubscriptions.Any(s => s.Status == "ACTIVE" && s.ExpiresAtUtc > now)
+                        || u.TblUserSubscriptions.Any(s => s.Status == "ACTIVE" && s.ExpiresAtUtc > now),
+                    FollowersCount = u.TblUserFollowFollowees.Count(f => !f.IsDeleted)
                 })
                 .ToListAsync(cancellationToken);
 
@@ -357,7 +360,8 @@ public sealed class DashboardService(
                     p.IsPrivateChatEnabled,
                     p.PrivateChatFeeLinkDrops,
                     unlockedUserIds.Contains(p.UserId),
-                    p.IsPremium
+                    p.IsPremium,
+                    p.FollowersCount
                 ))
                 .ToList();
 

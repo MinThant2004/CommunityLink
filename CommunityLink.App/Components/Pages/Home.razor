@@ -1469,7 +1469,7 @@ else if (dashboard != null)
                 </div>
 
                 <!-- SECONDARY SIDEBAR / DIRECTORY & GUILDS (Span 4) -->
-                <aside class="lg:col-span-4 flex flex-col gap-3.5">
+                <aside class="lg:col-span-4 flex flex-col gap-3.5 lg:sticky lg:top-0 self-start">
                     <!-- 5. PEOPLE / EXECUTIVE DIRECTORY PREVIEW WIDGET -->
                     <div class="bg-surface-container-low p-3.5 sm:p-4 rounded-xl shadow-xs flex flex-col gap-2.5 border border-white/5">
                         <div class="flex items-center justify-between">
@@ -1484,11 +1484,12 @@ else if (dashboard != null)
 
                         <div class="flex flex-col gap-2">
                             @{
-                                var sidebarPeople = directoryPeople.Any() ? directoryPeople : (dashboard?.People ?? (IReadOnlyList<DirectoryPersonModel>)Array.Empty<DirectoryPersonModel>());
+                                var rawList = directoryPeople.Any() ? (IEnumerable<DirectoryPersonModel>)directoryPeople : (dashboard?.People ?? (IReadOnlyList<DirectoryPersonModel>)Array.Empty<DirectoryPersonModel>());
+                                var sidebarPeople = rawList.OrderByDescending(p => p.FollowersCount).ThenByDescending(p => p.AverageRating ?? 0).Take(4).ToList();
                             }
                             @if (sidebarPeople.Any())
                             {
-                                @foreach (var person in sidebarPeople.Take(2))
+                                @foreach (var person in sidebarPeople)
                                 {
                                     <div class="p-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high transition-all flex flex-col gap-2 shadow-xs group border border-white/5">
                                         <div class="flex items-start justify-between">
@@ -1535,6 +1536,11 @@ else if (dashboard != null)
 
                                         <div class="flex items-center justify-between pt-0.5">
                                             <span class="text-outline text-[10px] inline-flex items-center gap-1">
+                                                @if (person.FollowersCount > 0)
+                                                {
+                                                    <span>@person.FollowersCount @(person.FollowersCount == 1 ? "follower" : "followers")</span>
+                                                    <span>•</span>
+                                                }
                                                 @if (person.IsVerified)
                                                 {
                                                     <VerifiedBadge CssClass="w-3 h-3 shrink-0" />
