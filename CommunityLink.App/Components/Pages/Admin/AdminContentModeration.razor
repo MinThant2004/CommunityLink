@@ -4,6 +4,8 @@
 @using CommunityLink.App.Apis
 @using CommunityLink.Shared.Features.Administration
 @using CommunityLink.Shared.Security
+@using System.Text.Json
+@using System.Globalization
 @inject AdministrationApiService AdminApi
 @inject ToastService Toast
 @inject IJSRuntime JS
@@ -11,6 +13,17 @@
 @inject IStringLocalizer<AppResources> Loc
 
 <PageTitle>@(currentSection == "groups" ? Loc["Admin_Mod_PageTitleGroup"] : (currentSection == "members" ? Loc["Admin_Mod_PageTitleMember"] : Loc["Admin_Mod_PageTitlePost"]))</PageTitle>
+
+<style>
+    .bg-surface-container-lowest { background-color: var(--cl-surface-container-lowest, #0b0e15) !important; }
+    .bg-surface-container-high { background-color: var(--cl-surface-container-high, #272a32) !important; }
+    .text-secondary { color: var(--cl-secondary, #c0c1ff) !important; }
+    .text-tertiary { color: var(--cl-tertiary, #c0d0e6) !important; }
+    .text-on-surface { color: var(--cl-on-surface, #e1e2ec) !important; }
+    .text-on-surface-variant { color: var(--cl-on-surface-variant, #d0c5af) !important; }
+    .text-outline { color: var(--cl-outline, #99907c) !important; }
+    .border-white\/5 { border-color: rgba(255, 255, 255, 0.05) !important; }
+</style>
 
 <div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Header -->
@@ -551,10 +564,13 @@
 
                             @if (!string.IsNullOrWhiteSpace(item.CodeSnippet))
                             {
+                                var textFiles = ParseTextFiles(item.CodeSnippet, item.CodeFileName);
+                                var firstFile = textFiles.FirstOrDefault();
+                                var displayFileName = firstFile?.FileName ?? (string.IsNullOrWhiteSpace(item.CodeFileName) ? Loc["Admin_Mod_AttachedFile"] : item.CodeFileName);
                                 <div class="flex items-center gap-1.5 pt-0.5">
                                     <span class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                                        <span>@(string.IsNullOrWhiteSpace(item.CodeFileName) ? Loc["Admin_Mod_AttachedFile"] : item.CodeFileName)</span>
+                                        <span>@displayFileName</span>
                                     </span>
                                 </div>
                             }
@@ -766,12 +782,66 @@
             <!-- Attached File / Code Snippet if present -->
             @if (!string.IsNullOrWhiteSpace(selectedDetailItem.CodeSnippet))
             {
-                <div class="space-y-1.5">
-                    <div class="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-[#7A8CA6]">
-                        <span>@string.Format(Loc["Admin_Mod_AttachedFileCode"], string.IsNullOrWhiteSpace(selectedDetailItem.CodeFileName) ? "snippet.txt" : selectedDetailItem.CodeFileName)</span>
+                var textFiles = ParseTextFiles(selectedDetailItem.CodeSnippet, selectedDetailItem.CodeFileName);
+                @if (textFiles.Count > 0)
+                {
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-[#7A8CA6]">
+                            <span>@Loc["Admin_Mod_AttachedFile"]</span>
+                        </div>
+                        @foreach (var tf in textFiles)
+                        {
+                            <div class="bg-surface-container-lowest rounded-lg overflow-hidden shadow-xs flex flex-col border border-white/5 my-2">
+                                <div class="bg-surface-container-high px-3 py-1.5 flex items-center justify-between border-b border-white/5">
+                                    <div class="flex items-center gap-1.5 font-mono text-[11px] text-on-surface-variant min-w-0">
+                                        <span class="material-symbols-outlined text-secondary text-[14px] shrink-0">data_object</span>
+                                        <span class="font-bold truncate text-on-surface">@tf.FileName</span>
+                                        @{
+                                            var bytes = tf.FileSizeBytes ?? (!string.IsNullOrEmpty(tf.Content) ? System.Text.Encoding.UTF8.GetByteCount(tf.Content) : 0);
+                                            if (bytes > 0)
+                                            {
+                                                <span class="text-[10px] text-outline shrink-0 font-normal">(@FormatFileSize(bytes))</span>
+                                            }
+                                        }
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0 ml-2">
+                                        @if (!string.IsNullOrWhiteSpace(tf.FileUrl))
+                                        {
+                                            <a href="@tf.FileUrl" download="@tf.FileName" target="_blank"
+                                               class="flex items-center gap-1 text-[11px] text-outline hover:text-on-surface transition-colors cursor-pointer"
+                                               title="Download file">
+                                                <span class="material-symbols-outlined text-[13px]">download</span>
+                                                <span>Download</span>
+                                            </a>
+                                        }
+                                        else if (!string.IsNullOrWhiteSpace(tf.Content))
+                                        {
+                                            <button type="button" class="flex items-center gap-1 text-[11px] text-outline hover:text-on-surface transition-colors cursor-pointer"
+                                                    @onclick="() => DownloadTextFileAsync(tf.FileName, tf.Content)"
+                                                    title="Download file">
+                                                <span class="material-symbols-outlined text-[13px]">download</span>
+                                                <span>Download</span>
+                                            </button>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                        {
+                                            <button type="button" class="flex items-center gap-1 text-[11px] text-outline hover:text-on-surface transition-colors cursor-pointer"
+                                                    @onclick="() => CopyCodeSnippetAsync(tf.Content)"
+                                                    title="Copy content">
+                                                <span class="material-symbols-outlined text-[13px]">content_copy</span>
+                                                <span>Copy</span>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(tf.Content))
+                                {
+                                    <pre class="p-3 font-mono text-xs text-tertiary overflow-x-auto overflow-y-auto leading-5 max-h-56 select-text whitespace-pre"><code>@tf.Content</code></pre>
+                                }
+                            </div>
+                        }
                     </div>
-                    <pre class="p-3 rounded-xl bg-slate-900 text-slate-100 text-xs font-mono max-h-48 overflow-y-auto whitespace-pre-wrap">@selectedDetailItem.CodeSnippet</pre>
-                </div>
+                }
             }
 
             <!-- Ban Reason notice if currently banned -->
@@ -1073,5 +1143,75 @@
         {
             isSubmitting = false;
         }
+    }
+
+    public sealed record AttachedTextFileItem(string FileName, string Content, string? FileUrl = null, long? FileSizeBytes = null);
+
+    private static List<AttachedTextFileItem> ParseTextFiles(string codeSnippet, string? codeFileName)
+    {
+        var list = new List<AttachedTextFileItem>();
+        if (string.IsNullOrWhiteSpace(codeSnippet)) return list;
+
+        var trimmed = codeSnippet.Trim();
+        if (trimmed.StartsWith("[") && trimmed.Contains("\"FileName\""))
+        {
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<List<AttachedTextFileItem>>(codeSnippet, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (parsed != null && parsed.Count > 0)
+                {
+                    return parsed;
+                }
+            }
+            catch { }
+        }
+        else if (trimmed.StartsWith("{") && trimmed.Contains("\"FileName\""))
+        {
+            try
+            {
+                var single = JsonSerializer.Deserialize<AttachedTextFileItem>(codeSnippet, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (single != null)
+                {
+                    list.Add(single);
+                    return list;
+                }
+            }
+            catch { }
+        }
+
+        list.Add(new AttachedTextFileItem(string.IsNullOrWhiteSpace(codeFileName) ? "snippet.txt" : codeFileName, codeSnippet));
+        return list;
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes >= 1024 * 1024) return $"{(bytes / (1024.0 * 1024.0)):0.#} MB";
+        if (bytes >= 1024) return $"{(bytes / 1024.0):0.#} KB";
+        return $"{bytes} B";
+    }
+
+    private async Task CopyCodeSnippetAsync(string? code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return;
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", code);
+            Toast.Success(Loc["Home_Feed_Toast_CopySuccess"]);
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(string.Format(CultureInfo.CurrentCulture, Loc["Home_Feed_Toast_CopyFailed"], ex.Message));
+        }
+    }
+
+    private async Task DownloadTextFileAsync(string fileName, string content)
+    {
+        try
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(content);
+            var base64 = Convert.ToBase64String(bytes);
+            await JS.InvokeVoidAsync("eval", $"const a = document.createElement('a'); a.href = 'data:text/plain;charset=utf-8;base64,{base64}'; a.download = '{fileName}'; a.click();");
+        }
+        catch { }
     }
 }
