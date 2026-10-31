@@ -30,7 +30,7 @@ public sealed class PublicUrlBuilder(IConfiguration configuration) : IPublicUrlB
     {
         if (string.IsNullOrWhiteSpace(relativePath)) return relativePath;
 
-        // Already absolute (or a data: URL) — leave it alone.
+        // Already absolute (or a data: URL) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â leave it alone.
         if (Uri.TryCreate(relativePath, UriKind.Absolute, out _)) return relativePath;
 
         return $"{_publicBaseUrl}/{relativePath.TrimStart('/')}";

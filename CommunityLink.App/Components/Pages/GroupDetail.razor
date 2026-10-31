@@ -15,6 +15,8 @@
 @inject IWebHostEnvironment Environment
 @inject IStringLocalizer<AppResources> Loc
 @inject IJSRuntime JS
+@inject UserProfileApiService ProfileApi
+@implements IDisposable
 <PageTitle>@(group?.Name ?? Loc["GroupDetail_PageTitleFallback"]) - CommunityLink</PageTitle>
 <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
     <!-- Back to Groups Link -->
@@ -223,12 +225,7 @@
                 <button type="button" @onclick='() => SetActiveTab("feed")'
                         class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "feed" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] shadow-sm border border-[#0A1B2E] dark:border-white" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Tab_Feed"], posts?.Count ?? 0)</span>
-                </button>
-                <button type="button" @onclick='() => SetActiveTab("polls")'
-                        class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "polls" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] shadow-sm border border-[#0A1B2E] dark:border-white" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                    <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Tab_Polls"], polls?.Count ?? 0)</span>
+                    <span>@string.Format(CultureInfo.CurrentUICulture, Loc["GroupDetail_Tab_Feed"], (posts?.Count ?? 0) + (polls?.Count ?? 0))</span>
                 </button>
                 <button type="button" @onclick='() => SetActiveTab("members")'
                         class="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 @(activeTab == "members" ? "bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] shadow-sm border border-[#0A1B2E] dark:border-white" : "text-slate-600 dark:text-[#C4D2E1] hover:bg-slate-100 dark:hover:bg-[#1B3B5A]")">
@@ -250,7 +247,7 @@
                         <div class="animate-spin rounded-full h-8 w-8 border-4 border-[#0A1B2E] dark:border-[#E1E8F0] border-t-transparent"></div>
                     </div>
                 }
-                else if (posts == null || posts.Count == 0)
+                else if (!UnifiedFeedItems.Any())
                 {
                     <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] p-12 text-center text-[#557392] dark:text-[#C4D2E1]">
                         <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
@@ -262,17 +259,187 @@
                         </p>
                         @if (group?.IsJoined == true)
                         {
-                            <button type="button" @onclick="OpenCreatePostModal" class="mt-4 px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] text-xs font-semibold rounded-xl shadow transition">
-                                @Loc["GroupDetail_Feed_CreatePostNow"]
-                            </button>
+                            <div class="flex items-center justify-center gap-2 mt-4">
+                                <button type="button" @onclick="OpenCreatePostModal" class="px-4 py-2 bg-white dark:bg-[#1B3B5A] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-xs font-semibold rounded-xl shadow transition cursor-pointer">
+                                    @Loc["GroupDetail_Feed_CreatePostNow"]
+                                </button>
+                                <button type="button" @onclick="OpenCreatePollModal" class="px-4 py-2 bg-white dark:bg-[#1B3B5A] hover:bg-[#F1F5F9] dark:hover:bg-[#112A46] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.20)] text-xs font-semibold rounded-xl shadow transition cursor-pointer">
+                                    @Loc["GroupDetail_Btn_UploadPoll"]
+                                </button>
+                            </div>
                         }
                     </div>
                 }
                 else
                 {
                     <div class="space-y-6">
-                        @foreach (var post in posts)
+                        @foreach (var item in UnifiedFeedItems)
                         {
+                            @if (item.IsPoll && item.Poll != null)
+                            {
+                                var poll = item.Poll;
+                            <div id="poll-@poll.PollId" class="bg-white dark:bg-[#112A46] rounded-2xl shadow-sm border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden transition hover:shadow-md">
+                                <!-- Poll Author Info -->
+                                <div class="p-4 sm:p-5 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
+                                    <div class="flex items-center gap-3">
+                                        <a href="u/@(poll.AuthorId > 0 ? poll.AuthorId.ToString() : poll.AuthorName)" class="shrink-0 hover:opacity-80 transition">
+                                            <UserAvatar Url="@poll.AuthorAvatar"
+                                                        Name="@poll.AuthorName"
+                                                        Size="w-10 h-10"
+                                                        RingClass="border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)]"
+                                                        BgClass="bg-[#F1F5F9] dark:bg-[#1B3B5A]"
+                                                        ColorClass="text-[#0A1B2E] dark:text-[#E1E8F0]"
+                                                        TextClass="text-sm" />
+                                        </a>
+                                        <div>
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <a href="u/@(poll.AuthorId > 0 ? poll.AuthorId.ToString() : poll.AuthorName)" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition inline-flex items-center gap-1 leading-tight" style="font-family:'Manrope',sans-serif">
+                                                    <span>@poll.AuthorName</span>
+                                                    @if (poll.IsAuthorVerified)
+                                                    {
+                                                        <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
+                                                    }
+                                                </a>
+                                                @if (IsGroupOwner(poll.AuthorId))
+                                                {
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E]">
+                                                        @Loc["GroupDetail_Role_Owner"]
+                                                    </span>
+                                                }
+                                            </div>
+                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@FormatTimeAgo(poll.CreatedAt)</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        @if (poll.ExpiresAt.HasValue)
+                                        {
+                                            <span class="text-xs px-2.5 py-1 rounded-full @(poll.IsExpired ? "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50" : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/50")">
+                                                @(poll.IsExpired ? Loc["GroupDetail_Poll_Closed"] : string.Format(Loc["GroupDetail_Poll_EndsAt"], poll.ExpiresAt.Value.ToLocalTime().ToString("dd-MM-yyyy")))
+                                            </span>
+                                        }
+                                        <!-- Three-Dots Action Menu for Poll -->
+                                        <div class="relative">
+                                            <button type="button" @onclick="() => TogglePollMenu(poll.PollId)"
+                                                    class="p-1.5 text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition cursor-pointer" title="@Loc["GroupDetail_Post_OptionsTooltip"]">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                </svg>
+                                            </button>
+                                            @if (activeMenuPollId == poll.PollId)
+                                            {
+                                                <div class="absolute right-0 mt-1 w-44 bg-white dark:bg-[#112A46] rounded-xl shadow-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+                                                    <button type="button" @onclick='() => OpenReportContentModal(poll.PollId, "POLL")'
+                                                            class="w-full text-left px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
+                                                        <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
+                                                        <span>@Loc["GroupDetail_Poll_ReportBtn"]</span>
+                                                    </button>
+                                                    <!-- Save Button (All users) -->
+                                                    <button type="button" @onclick="() => ToggleSavePoll(poll.PostId)"
+                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                                                        <span>@Loc["GroupDetail_Poll_SaveBtn"]</span>
+                                                    </button>
+                                                    <!-- Edit, Privacy & Delete (Author only) -->
+                                                    @if (currentUserId.HasValue && poll.AuthorId == currentUserId.Value)
+                                                    {
+                                                        <button type="button" @onclick="() => TogglePollPrivacyAsync(poll)"
+                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
+                                                            <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                                            <span>@(poll.IsPrivate ? Loc["GroupDetail_Poll_MakePublic"] : Loc["GroupDetail_Poll_MakePrivate"])</span>
+                                                        </button>
+                                                        <button type="button" @onclick="() => OpenEditPoll(poll)"
+                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                            <span>@Loc["GroupDetail_Poll_EditBtn"]</span>
+                                                        </button>
+                                                        <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] my-1"></div>
+                                                        <button type="button" @onclick="() => DeletePoll(poll.PollId)"
+                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                            <span>@Loc["GroupDetail_Poll_DeleteBtn"]</span>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Poll Content & Question -->
+                                <div class="px-5 pt-4 pb-2 space-y-2">
+                                    <h3 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] leading-snug">@poll.Question</h3>
+                                    @if (!string.IsNullOrWhiteSpace(poll.Content) && poll.Content != poll.Question)
+                                    {
+                                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line leading-relaxed">@poll.Content</p>
+                                    }
+                                </div>
+                                <!-- Poll Options & Voting -->
+                                <div class="px-5 py-4 space-y-3">
+                                    @foreach (var opt in poll.Options)
+                                    {
+                                        var hasUserVotedThis = opt.IsVotedByCurrentUser;
+                                        <div class="relative overflow-hidden rounded border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E] p-3 transition hover:border-[#CBD5E1] dark:hover:border-[rgba(196,210,225,0.25)]">
+                                            <!-- Progress bar background -->
+                                            <div class="absolute inset-y-0 left-0 bg-[#E2E8F0] dark:bg-[#1B3B5A] transition-all duration-500"
+                                                 style="width: @(opt.Percentage)%"></div>
+                                            <div class="relative flex items-center justify-between gap-3 text-xs sm:text-sm">
+                                                <div class="flex items-center gap-2.5 flex-1">
+                                                    @if (!poll.HasVoted && !poll.IsExpired)
+                                                    {
+                                                        <button type="button" @onclick="() => Vote(poll.PollId, opt.OptionId)"
+                                                                class="w-5 h-5 rounded-full border-2 border-[#557392] dark:border-[#C4D2E1] hover:border-[#0A1B2E] dark:hover:border-white transition flex items-center justify-center shrink-0">
+                                                            <div class="w-2 h-2 rounded-full bg-[#0A1B2E] dark:bg-white opacity-0 hover:opacity-100"></div>
+                                                        </button>
+                                                    }
+                                                    else if (hasUserVotedThis)
+                                                    {
+                                                        <div class="w-5 h-5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] flex items-center justify-center text-xs shrink-0 font-bold">
+                                                            ✓
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="w-5 h-5 rounded-full border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] shrink-0"></div>
+                                                    }
+                                                    <span class="font-medium text-[#0A1B2E] dark:text-[#E1E8F0] @(hasUserVotedThis ? "font-bold" : "")">
+                                                        @opt.Text
+                                                    </span>
+                                                </div>
+                                                <div class="text-right shrink-0">
+                                                    <span class="text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@opt.Percentage%</span>
+                                                    <span class="text-[11px] text-[#557392] dark:text-[#7A8CA6] ml-1">(@opt.VoteCount)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <!-- Poll Summary Footer -->
+                                <div class="px-5 py-2.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between text-xs text-[#557392] dark:text-[#7A8CA6]">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>@string.Format(Loc["GroupDetail_Poll_TotalVotes"], poll.TotalVotes)</span>
+                                        <span>•</span>
+                                        <span>@(poll.IsMultipleChoice ? Loc["GroupDetail_Poll_MultipleVotesAllowed"] : Loc["GroupDetail_Poll_SingleChoice"])</span>
+                                    </div>
+                                    @if (poll.HasVoted)
+                                    {
+                                        <span class="text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold flex items-center gap-1">
+                                            <span>✓</span> @Loc["GroupDetail_Poll_YouVoted"]
+                                        </span>
+                                    }
+                                    else if (poll.IsExpired)
+                                    {
+                                        <span class="text-rose-600 dark:text-rose-400 font-medium">@Loc["GroupDetail_Poll_VotingEnded"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[#557392] dark:text-[#C4D2E1] font-medium">@Loc["GroupDetail_Poll_ClickToVote"]</span>
+                                    }
+                                </div>
+
+                            </div>
+                            }
+                            else if (item.Post != null)
+                            {
+                                var post = item.Post;
                             <div id="post-@post.PostId" class="bg-white dark:bg-[#112A46] rounded-2xl shadow-sm border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden transition hover:shadow-md">
                                 @if (!post.IsActive && currentUserId.HasValue && post.AuthorId == currentUserId.Value)
                                 {
@@ -310,18 +477,10 @@
                                                         <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
                                                     }
                                                 </a>
-                                                @if (post.AuthorRoleCode == "PUBLIC_FIGURE")
+                                                @if (IsGroupOwner(post.AuthorId))
                                                 {
-                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-950/50 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="@Loc["GroupDetail_Post_VipTooltip"]">
-                                                        <svg class="w-3 h-3 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                                                        <span class="hidden sm:inline">@Loc["GroupDetail_Post_VipBadge"]</span>
-                                                    </span>
-                                                }
-                                                else if (post.AuthorRoleCode == "DOMAIN_PRO" || post.IsAuthorVerified)
-                                                {
-                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="@Loc["GroupDetail_Post_ProTooltip"]">
-                                                        <svg class="w-3 h-3 fill-blue-500 text-blue-500" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                                                        <span class="hidden sm:inline">@Loc["GroupDetail_Post_ProBadge"]</span>
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E]">
+                                                        @Loc["GroupDetail_Role_Owner"]
                                                     </span>
                                                 }
                                             </div>
@@ -560,260 +719,7 @@
                                     </div>
                                 }
                             </div>
-                        }
-                    </div>
-                }
-            }                <!-- TAB 2: LIVE POLLS -->
-            @if (activeTab == "polls")
-            {
-                @if (polls == null || polls.Count == 0)
-                {
-                    <div class="bg-white dark:bg-[#112A46] rounded-lg border border-dashed border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] p-12 text-center text-[#557392] dark:text-[#7A8CA6]">
-                        <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                        </div>
-                        <h4 class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] text-base">@Loc["GroupDetail_Poll_EmptyTitle"]</h4>
-                        <p class="text-xs text-[#557392] dark:text-[#7A8CA6] mt-1 max-w-sm mx-auto">
-                            @(group?.IsJoined == true ? Loc["GroupDetail_Poll_EmptyJoinedDesc"] : Loc["GroupDetail_Poll_EmptyNotJoinedDesc"])
-                        </p>
-                        @if (group?.IsJoined == true)
-                        {
-                            <button type="button" @onclick="OpenCreatePollModal"
-                                    class="mt-4 px-5 py-2.5 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] text-xs font-semibold rounded shadow-sm transition inline-flex items-center gap-1.5 cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                                <span>@Loc["GroupDetail_Btn_UploadPoll"]</span>
-                            </button>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="space-y-6">
-                        @foreach (var poll in polls)
-                        {
-                            <div id="poll-@poll.PollId" class="bg-white dark:bg-[#112A46] rounded-2xl shadow-sm border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] overflow-hidden transition hover:shadow-md">
-                                <!-- Poll Author Info -->
-                                <div class="p-4 sm:p-5 flex items-center justify-between border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
-                                    <div class="flex items-center gap-3">
-                                        <a href="u/@(poll.AuthorId > 0 ? poll.AuthorId.ToString() : poll.AuthorName)" class="shrink-0 hover:opacity-80 transition">
-                                            <UserAvatar Url="@poll.AuthorAvatar"
-                                                        Name="@poll.AuthorName"
-                                                        Size="w-10 h-10"
-                                                        RingClass="border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)]"
-                                                        BgClass="bg-[#F1F5F9] dark:bg-[#1B3B5A]"
-                                                        ColorClass="text-[#0A1B2E] dark:text-[#E1E8F0]"
-                                                        TextClass="text-sm" />
-                                        </a>
-                                        <div>
-                                            <a href="u/@(poll.AuthorId > 0 ? poll.AuthorId.ToString() : poll.AuthorName)" class="text-sm font-bold text-[#0A1B2E] dark:text-[#E1E8F0] hover:text-indigo-600 transition inline-flex items-center gap-1 leading-tight" style="font-family:'Manrope',sans-serif">
-                                                <span>@poll.AuthorName</span>
-                                                @if (poll.IsAuthorVerified)
-                                                {
-                                                    <VerifiedBadge CssClass="w-3.5 h-3.5 shrink-0" />
-                                                }
-                                            </a>
-                                            <span class="text-[11px] text-[#557392] dark:text-[#C4D2E1] font-mono">@FormatTimeAgo(poll.CreatedAt)</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        @if (poll.ExpiresAt.HasValue)
-                                        {
-                                            <span class="text-xs px-2.5 py-1 rounded-full @(poll.IsExpired ? "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50" : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/50")">
-                                                @(poll.IsExpired ? Loc["GroupDetail_Poll_Closed"] : string.Format(Loc["GroupDetail_Poll_EndsAt"], poll.ExpiresAt.Value.ToLocalTime().ToString("dd-MM-yyyy")))
-                                            </span>
-                                        }
-                                        <!-- Three-Dots Action Menu for Poll -->
-                                        <div class="relative">
-                                            <button type="button" @onclick="() => TogglePollMenu(poll.PollId)"
-                                                    class="p-1.5 text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-[#1B3B5A] transition cursor-pointer" title="@Loc["GroupDetail_Post_OptionsTooltip"]">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                                                </svg>
-                                            </button>
-                                            @if (activeMenuPollId == poll.PollId)
-                                            {
-                                                <div class="absolute right-0 mt-1 w-44 bg-white dark:bg-[#112A46] rounded-xl shadow-lg border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
-                                                    <button type="button" @onclick='() => OpenReportContentModal(poll.PollId, "POLL")'
-                                                            class="w-full text-left px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
-                                                        <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
-                                                        <span>@Loc["GroupDetail_Poll_ReportBtn"]</span>
-                                                    </button>
-                                                    <!-- Save Button (All users) -->
-                                                    <button type="button" @onclick="() => ToggleSavePoll(poll.PostId)"
-                                                            class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                                                        <span>@Loc["GroupDetail_Poll_SaveBtn"]</span>
-                                                    </button>
-                                                    <!-- Edit, Privacy & Delete (Author only) -->
-                                                    @if (currentUserId.HasValue && poll.AuthorId == currentUserId.Value)
-                                                    {
-                                                        <button type="button" @onclick="() => TogglePollPrivacyAsync(poll)"
-                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer">
-                                                            <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                                            <span>@(poll.IsPrivate ? Loc["GroupDetail_Poll_MakePublic"] : Loc["GroupDetail_Poll_MakePrivate"])</span>
-                                                        </button>
-                                                        <button type="button" @onclick="() => OpenEditPoll(poll)"
-                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-[#0A1B2E] dark:text-[#E1E8F0] hover:bg-slate-50 dark:hover:bg-[#1B3B5A] flex items-center gap-2 transition cursor-pointer">
-                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                            <span>@Loc["GroupDetail_Poll_EditBtn"]</span>
-                                                        </button>
-                                                        <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] my-1"></div>
-                                                        <button type="button" @onclick="() => DeletePoll(poll.PollId)"
-                                                                class="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer">
-                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                            <span>@Loc["GroupDetail_Poll_DeleteBtn"]</span>
-                                                        </button>
-                                                    }
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Poll Content & Question -->
-                                <div class="px-5 pt-4 pb-2 space-y-2">
-                                    <h3 class="text-base font-bold text-[#0A1B2E] dark:text-[#E1E8F0] leading-snug">@poll.Question</h3>
-                                    @if (!string.IsNullOrWhiteSpace(poll.Content) && poll.Content != poll.Question)
-                                    {
-                                        <p class="text-xs text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line leading-relaxed">@poll.Content</p>
-                                    }
-                                </div>
-                                <!-- Poll Options & Voting -->
-                                <div class="px-5 py-4 space-y-3">
-                                    @foreach (var opt in poll.Options)
-                                    {
-                                        var hasUserVotedThis = opt.IsVotedByCurrentUser;
-                                        <div class="relative overflow-hidden rounded border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-[#F8FAFC] dark:bg-[#0A1B2E] p-3 transition hover:border-[#CBD5E1] dark:hover:border-[rgba(196,210,225,0.25)]">
-                                            <!-- Progress bar background -->
-                                            <div class="absolute inset-y-0 left-0 bg-[#E2E8F0] dark:bg-[#1B3B5A] transition-all duration-500"
-                                                 style="width: @(opt.Percentage)%"></div>
-                                            <div class="relative flex items-center justify-between gap-3 text-xs sm:text-sm">
-                                                <div class="flex items-center gap-2.5 flex-1">
-                                                    @if (!poll.HasVoted && !poll.IsExpired)
-                                                    {
-                                                        <button type="button" @onclick="() => Vote(poll.PollId, opt.OptionId)"
-                                                                class="w-5 h-5 rounded-full border-2 border-[#557392] dark:border-[#C4D2E1] hover:border-[#0A1B2E] dark:hover:border-white transition flex items-center justify-center shrink-0">
-                                                            <div class="w-2 h-2 rounded-full bg-[#0A1B2E] dark:bg-white opacity-0 hover:opacity-100"></div>
-                                                        </button>
-                                                    }
-                                                    else if (hasUserVotedThis)
-                                                    {
-                                                        <div class="w-5 h-5 rounded-full bg-[#0A1B2E] dark:bg-[#E1E8F0] text-white dark:text-[#0A1B2E] flex items-center justify-center text-xs shrink-0 font-bold">
-                                                            ✓
-                                                        </div>
-                                                    }
-                                                    else
-                                                    {
-                                                        <div class="w-5 h-5 rounded-full border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] shrink-0"></div>
-                                                    }
-                                                    <span class="font-medium text-[#0A1B2E] dark:text-[#E1E8F0] @(hasUserVotedThis ? "font-bold" : "")">
-                                                        @opt.Text
-                                                    </span>
-                                                </div>
-                                                <div class="text-right shrink-0">
-                                                    <span class="text-xs font-bold text-[#0A1B2E] dark:text-[#E1E8F0]">@opt.Percentage%</span>
-                                                    <span class="text-[11px] text-[#557392] dark:text-[#7A8CA6] ml-1">(@opt.VoteCount)</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                                <!-- Poll Summary Footer -->
-                                <div class="px-5 py-2.5 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-between text-xs text-[#557392] dark:text-[#7A8CA6]">
-                                    <div class="flex items-center gap-2">
-                                        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>@string.Format(Loc["GroupDetail_Poll_TotalVotes"], poll.TotalVotes)</span>
-                                        <span>•</span>
-                                        <span>@(poll.IsMultipleChoice ? Loc["GroupDetail_Poll_MultipleVotesAllowed"] : Loc["GroupDetail_Poll_SingleChoice"])</span>
-                                    </div>
-                                    @if (poll.HasVoted)
-                                    {
-                                        <span class="text-[#0A1B2E] dark:text-[#E1E8F0] font-semibold flex items-center gap-1">
-                                            <span>✓</span> @Loc["GroupDetail_Poll_YouVoted"]
-                                        </span>
-                                    }
-                                    else if (poll.IsExpired)
-                                    {
-                                        <span class="text-rose-600 dark:text-rose-400 font-medium">@Loc["GroupDetail_Poll_VotingEnded"]</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-[#557392] dark:text-[#C4D2E1] font-medium">@Loc["GroupDetail_Poll_ClickToVote"]</span>
-                                    }
-                                </div>
-                                <!-- Actions: Like, Comment, Share on Poll (Home Style) -->
-                                <div class="px-4 py-2.5 flex items-center justify-between border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
-                                    <div class="flex items-center gap-4">
-                                        <button type="button" @onclick="() => ToggleLike(poll.PostId)"
-                                                class="flex items-center gap-1 text-xs @(poll.IsLikedByCurrentUser ? "text-rose-500 font-semibold" : "text-[#557392] dark:text-[#C4D2E1] hover:text-rose-500") transition-colors cursor-pointer"
-                                                title="@Loc["GroupDetail_Post_LikeBtn"]">
-                                            <span class="material-symbols-outlined text-[17px] @(poll.IsLikedByCurrentUser ? "text-rose-500" : "")">favorite</span>
-                                            <span>@poll.LikeCount</span>
-                                        </button>
-                                        <button type="button" @onclick="() => ToggleCommentBox(poll.PostId)"
-                                                class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
-                                                title="@Loc["GroupDetail_Post_CommentBtn"]">
-                                            <span class="material-symbols-outlined text-[17px]">chat_bubble</span>
-                                            <span>@poll.CommentCount</span>
-                                        </button>
-                                        <button type="button" @onclick="() => OpenShareModal(poll.PostId)"
-                                                class="flex items-center gap-1 text-xs text-[#557392] dark:text-[#C4D2E1] hover:text-[#0A1B2E] dark:hover:text-[#E1E8F0] transition-colors cursor-pointer"
-                                                title="@Loc["GroupDetail_Post_ShareBtn"]">
-                                            <svg class="w-4 h-4 fill-none stroke-current" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                                                <path d="M15 14l5-5-5-5" />
-                                                <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
-                                            </svg>
-                                            <span>@poll.ShareCount</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <!-- Poll Comments Drawer -->
-                                @if (openCommentPostIds.Contains(poll.PostId))
-                                {
-                                    <div class="border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] p-4 sm:p-5 bg-[#F8FAFC] dark:bg-[#0A1B2E] space-y-4">
-                                        <div class="flex items-start gap-2.5">
-                                            <div class="w-8 h-8 rounded-full bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.15)] flex items-center justify-center shrink-0 mt-0.5">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                                            </div>
-                                            <div class="flex-1 flex gap-2">
-                                                <input type="text" @bind="commentInputs[poll.PostId]"
-                                                       @onkeydown="@(async e => { if (e.Key == "Enter") await SubmitComment(poll.PostId); })"
-                                                       placeholder="@Loc["GroupDetail_Poll_CommentPlaceholder"]"
-                                                       class="w-full text-sm bg-white dark:bg-[#112A46] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)] text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#557392] dark:placeholder-[#7A8CA6] rounded px-3 py-2 focus:outline-none focus:border-[#0A1B2E] dark:focus:border-[rgba(196,210,225,0.35)]" />
-                                                <button type="button" @onclick="() => SubmitComment(poll.PostId)"
-                                                        class="px-4 py-2 bg-[#0A1B2E] dark:bg-[#E1E8F0] hover:bg-[#112A46] dark:hover:bg-white text-white dark:text-[#0A1B2E] rounded text-xs font-semibold shadow-sm transition">
-                                                    @Loc["GroupDetail_Post_CommentSubmitBtn"]
-                                                </button>
-                                            </div>
-                                        </div>
-                                        @if (commentsByPost.TryGetValue(poll.PostId, out var commentList) && commentList != null)
-                                        {
-                                            if (commentList.Count == 0)
-                                            {
-                                                <p class="text-xs text-[#557392] dark:text-[#7A8CA6] text-center py-2">@Loc["GroupDetail_Poll_NoComments"]</p>
-                                            }
-                                            else
-                                            {
-                                                <div class="space-y-3 pt-2">
-                                                    @foreach (var comment in commentList)
-                                                    {
-                                                        <div class="flex items-start gap-2.5 text-xs">
-                                                            <div class="w-7 h-7 rounded-full bg-[#E2E8F0] dark:bg-[#1B3B5A] text-[#0A1B2E] dark:text-[#E1E8F0] flex items-center justify-center font-bold shrink-0">
-                                                                @(string.IsNullOrWhiteSpace(comment.AuthorName) ? "U" : comment.AuthorName.Substring(0, 1).ToUpper())
-                                                            </div>
-                                                            <div class="flex-1 bg-white dark:bg-[#112A46] p-2.5 rounded border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)]">
-                                                                <div class="flex items-center justify-between gap-2 mb-1">
-                                                                    <span class="font-semibold text-[#0A1B2E] dark:text-[#E1E8F0]">@comment.AuthorName</span>
-                                                                    <span class="text-[10px] text-[#557392] dark:text-[#7A8CA6]">@comment.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</span>
-                                                                </div>
-                                                                <p class="text-[#557392] dark:text-[#C4D2E1] whitespace-pre-line">@comment.Content</p>
-                                                            </div>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            }
-                                        }
-                                    </div>
-                                }
-                            </div>
+                            }
                         }
                     </div>
                 }
@@ -1173,11 +1079,7 @@
                         }
                     </div>
                 </div>
-                <!-- Multiple Choice Toggle -->
-                <div class="flex items-center gap-2 pt-1">
-                    <input type="checkbox" id="grpMultiChoice" @bind="pollIsMultipleChoice" class="rounded text-[#0A1B2E] dark:text-[#E1E8F0] focus:ring-[#0A1B2E] bg-white dark:bg-[#0A1B2E] border-[#CBD5E1] dark:border-[rgba(196,210,225,0.2)]" />
-                    <label for="grpMultiChoice" class="text-xs font-medium text-[#557392] dark:text-[#C4D2E1] cursor-pointer">@Loc["GroupDetail_Modal_AllowMultipleChoices"]</label>
-                </div>
+
             </div>
             <div class="px-5 py-3 bg-[#F8FAFC] dark:bg-[#0A1B2E] border-t border-[#E2E8F0] dark:border-[rgba(196,210,225,0.08)] flex items-center justify-end gap-2">
                 <button type="button" @onclick="() => showPollModal = false" class="px-4 py-2 text-xs font-semibold text-[#557392] dark:text-[#7A8CA6] hover:bg-[#F1F5F9] dark:hover:bg-[#1B3B5A] rounded transition">
@@ -1922,6 +1824,7 @@
         {
             currentUserId = uid;
         }
+        ProfileApi.OnAvatarChanged += HandleAvatarChanged;
         var isAdmin = user.IsInRole("ADMIN") || user.HasClaim("permission", PermissionCatalog.AdminUserView);
         if (isAdmin)
         {
@@ -1957,17 +1860,13 @@
         {
             await LoadGroupRatings();
         }
-        else if (tab == "polls" && polls == null)
-        {
-            await LoadGroupPolls();
-        }
         else if (tab == "members" && members == null)
         {
             await LoadGroupMembers();
         }
-        else if (tab == "feed" && posts == null)
+        else if (tab == "feed" && (posts == null || polls == null))
         {
-            await LoadGroupPosts();
+            await LoadUnifiedFeed();
         }
     }
     private bool isGroupOwner =>
@@ -1975,6 +1874,9 @@
         group != null &&
         (group.CreatorId == currentUserId.Value ||
          members?.Any(m => m.UserId == currentUserId.Value && string.Equals(m.Role, "Owner", StringComparison.OrdinalIgnoreCase)) == true);
+
+    private bool IsGroupOwner(int authorId) =>
+        authorId > 0 && group != null && (group.CreatorId == authorId || members?.Any(m => m.UserId == authorId && string.Equals(m.Role, "Owner", StringComparison.OrdinalIgnoreCase)) == true);
 
     private bool isGroupManager =>
         currentUserId.HasValue &&
@@ -1990,11 +1892,7 @@
             group = res.Data;
             if (group.Visibility != "PRIVATE" || group.IsJoined)
             {
-                if (activeTab == "polls")
-                {
-                    await LoadGroupPolls();
-                }
-                else if (activeTab == "members")
+                if (activeTab == "members")
                 {
                     await LoadGroupMembers();
                 }
@@ -2004,15 +1902,43 @@
                 }
                 else
                 {
-                    await LoadGroupPosts();
+                    await LoadUnifiedFeed();
                 }
             }
         }
         isLoadingGroup = false;
     }
-    private async Task LoadGroupPosts()
+    public sealed record GroupFeedItem(PostModel? Post = null, PollModel? Poll = null)
+    {
+        public DateTime CreatedAt => Post?.CreatedAt ?? Poll?.CreatedAt ?? DateTime.MinValue;
+        public bool IsPoll => Poll != null;
+    }
+
+    private IEnumerable<GroupFeedItem> UnifiedFeedItems
+    {
+        get
+        {
+            var pItems = posts?.Select(p => new GroupFeedItem(Post: p)) ?? Enumerable.Empty<GroupFeedItem>();
+            var plItems = polls?.Select(pl => new GroupFeedItem(Poll: pl)) ?? Enumerable.Empty<GroupFeedItem>();
+            return pItems.Concat(plItems).OrderByDescending(x => x.CreatedAt);
+        }
+    }
+
+    private async Task LoadUnifiedFeed()
     {
         isLoadingFeed = true;
+        try
+        {
+            await Task.WhenAll(FetchGroupPosts(), FetchGroupPolls());
+        }
+        finally
+        {
+            isLoadingFeed = false;
+        }
+    }
+
+    private async Task FetchGroupPosts()
+    {
         var res = await PostApi.GetFeedAsync(groupId: groupId);
         if (res.IsSuccess)
         {
@@ -2022,9 +1948,9 @@
                 if (!commentInputs.ContainsKey(p.PostId)) commentInputs[p.PostId] = "";
             }
         }
-        isLoadingFeed = false;
     }
-    private async Task LoadGroupPolls()
+
+    private async Task FetchGroupPolls()
     {
         var res = await PollApi.GetPollsAsync(groupId: groupId);
         if (res.IsSuccess)
@@ -2035,6 +1961,24 @@
                 if (!commentInputs.ContainsKey(p.PostId)) commentInputs[p.PostId] = "";
             }
         }
+    }
+
+    private async Task LoadGroupPosts()
+    {
+        isLoadingFeed = true;
+        try
+        {
+            await FetchGroupPosts();
+        }
+        finally
+        {
+            isLoadingFeed = false;
+        }
+    }
+
+    private async Task LoadGroupPolls()
+    {
+        await FetchGroupPolls();
     }
     private async Task LoadGroupMembers()
     {
@@ -2360,7 +2304,7 @@
             newPostCodeSnippet = null;
             newPostCodeFileName = null;
             activeTab = "feed";
-            await LoadGroupPosts();
+            await LoadUnifiedFeed();
         }
         else
         {
@@ -2395,8 +2339,8 @@
         {
             Toast.Success(Loc["GroupDetail_Toast_PollCreated"]);
             showPollModal = false;
-            activeTab = "polls";
-            await LoadGroupPolls();
+            activeTab = "feed";
+            await LoadUnifiedFeed();
         }
         else
         {
@@ -2496,7 +2440,7 @@
         if (res.IsSuccess)
         {
             Toast.Success(Loc["GroupDetail_Toast_PostDeleted"]);
-            await LoadGroupPosts();
+            await LoadUnifiedFeed();
         }
         else
         {
@@ -2676,5 +2620,26 @@
         showTextModal = false;
         viewingFileName = "";
         viewingFileContent = "";
+    }
+
+    private void HandleAvatarChanged(string? newUrl)
+    {
+        if (currentUserId.HasValue)
+        {
+            if (posts != null)
+            {
+                posts = posts.Select(p => p.AuthorId == currentUserId.Value ? p with { AuthorAvatar = newUrl } : p).ToList();
+            }
+            if (polls != null)
+            {
+                polls = polls.Select(pl => pl.AuthorId == currentUserId.Value ? pl with { AuthorAvatar = newUrl } : pl).ToList();
+            }
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        ProfileApi.OnAvatarChanged -= HandleAvatarChanged;
     }
 }

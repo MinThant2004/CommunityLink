@@ -42,18 +42,18 @@
 
 @if (!string.IsNullOrWhiteSpace(Url))
 {
-    <img src="@Url"
+    <img @key="@($"img_{Url}")" src="@Url"
          alt="@altText"
          class="@baseClass object-cover shrink-0"
          onerror="this.onerror=null;this.style.display='none';var fb=this.nextElementSibling;if(fb){fb.style.display='flex';}" />
-    <span class="@baseClass hidden items-center justify-center @BgClass @ColorClass @TextClass font-semibold select-none shrink-0"
+    <span @key="@($"span_{Url}")" class="@baseClass hidden items-center justify-center @BgClass @ColorClass @TextClass font-semibold select-none shrink-0"
           aria-label="@altText">
         @initial
     </span>
 }
 else
 {
-    <span class="@baseClass flex items-center justify-center @BgClass @ColorClass @TextClass font-semibold select-none shrink-0"
+    <span @key="@($"fallback_{initial}")" class="@baseClass flex items-center justify-center @BgClass @ColorClass @TextClass font-semibold select-none shrink-0"
           aria-label="@altText">
         @initial
     </span>

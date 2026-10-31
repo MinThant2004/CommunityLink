@@ -2924,6 +2924,15 @@
             }
 
             editModel.AvatarUrl = newAvatarUrl;
+            if (postsList != null)
+            {
+                foreach (var p in postsList) { p.AuthorAvatarUrl = newAvatarUrl; }
+            }
+            if (savedPostsList != null)
+            {
+                foreach (var p in savedPostsList.Where(x => x.AuthorUserId == profile?.UserId)) { p.AuthorAvatarUrl = newAvatarUrl; }
+            }
+            ProfileApi.NotifyAvatarChanged(newAvatarUrl);
             Toast.Success(Loc["Profile_Toast_AvatarUpdated"]);
         }
         catch (Exception ex)
@@ -2947,6 +2956,18 @@
             if (updateRes.IsSuccess && updateRes.Data != null)
             {
                 profile = updateRes.Data;
+                if (!string.IsNullOrWhiteSpace(profile.AvatarUrl))
+                {
+                    if (postsList != null)
+                    {
+                        foreach (var p in postsList) { p.AuthorAvatarUrl = profile.AvatarUrl; }
+                    }
+                    if (savedPostsList != null)
+                    {
+                        foreach (var p in savedPostsList.Where(x => x.AuthorUserId == profile?.UserId)) { p.AuthorAvatarUrl = profile.AvatarUrl; }
+                    }
+                }
+                ProfileApi.NotifyAvatarChanged(profile.AvatarUrl);
                 Toast.Success(Loc["Profile_Toast_ProfileUpdated"]);
                 showEditModal = false;
             }
