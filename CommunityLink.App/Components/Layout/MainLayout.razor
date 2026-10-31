@@ -9,6 +9,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject PremiumUpgradeApiService UpgradeApi
+@inject UserProfileApiService ProfileApi
 @inject IStringLocalizer<AppResources> Loc
 
 <div class="h-screen flex overflow-hidden bg-[#F8FAFC] dark:bg-[#0A0D14] text-[#0A1B2E] dark:text-[#E1E2EC] font-sans antialiased transition-colors duration-150">
@@ -147,8 +148,23 @@
                                 {
                                     <div class="absolute right-0 mt-2 w-64 rounded-xl bg-white dark:bg-[#111622] shadow-2xl border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.15)] z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                                         <div class="p-3.5 border-b border-[#E2E8F0] dark:border-[rgba(255,255,255,0.08)] bg-[#F8FAFC] dark:bg-[#0A0D14] flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-xs flex items-center justify-center shrink-0 shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">
-                                                @userInitials
+                                            <div @key="@userAvatarUrl" class="shrink-0 flex items-center">
+                                                @if (!string.IsNullOrWhiteSpace(userAvatarUrl))
+                                                {
+                                                    <img src="@userAvatarUrl"
+                                                         alt="@userDisplayName"
+                                                         class="w-10 h-10 rounded-lg object-cover shrink-0 shadow-sm border border-[#E2E8F0] dark:border-[rgba(255,255,255,0.15)]"
+                                                         onerror="this.onerror=null;this.style.display='none';var fb=this.nextElementSibling;if(fb){fb.style.display='flex';}" />
+                                                    <div class="w-10 h-10 rounded-lg bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-xs items-center justify-center shrink-0 shadow-sm transition-colors duration-150" style="display:none; font-family:'Plus Jakarta Sans',sans-serif">
+                                                        @userInitials
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="w-10 h-10 rounded-lg bg-[#0A1B2E] dark:bg-[#D4AF37] text-white dark:text-[#0A0D14] font-bold text-xs flex items-center justify-center shrink-0 shadow-sm transition-colors duration-150" style="font-family:'Plus Jakarta Sans',sans-serif">
+                                                        @userInitials
+                                                    </div>
+                                                }
                                             </div>
                                             <div class="min-w-0 flex-1">
                                                 <div class="text-xs font-bold text-[#0A1B2E] dark:text-[#E1E2EC] truncate flex items-center gap-1.5">
@@ -293,7 +309,7 @@
 <div id="blazor-error-ui" data-nosnippet class="hidden fixed bottom-0 inset-x-0 bg-amber-600 text-white p-3 z-50 text-center font-medium shadow-2xl">
     @Loc["Shell_UnhandledError"]
     <a href="." class="underline font-bold ml-2">@Loc["Common_Reload"]</a>
-    <span class="dismiss cursor-pointer ml-4 font-bold">🗙</span>
+    <span class="dismiss cursor-pointer ml-4 font-bold">Ã°Å¸â€”â„¢</span>
 </div>
 
 @if (showCloseAccountModal && isNormalUser)
@@ -361,6 +377,7 @@
     private bool isAdminActor = false;
     private string userDisplayName = "Member";
     private string userInitials = "U";
+    private string? userAvatarUrl = null;
     private string userRoleLabel = string.Empty;
     private string currentRoleCode = string.Empty;
     private string mainPageUrl => isAdminActor ? "admin/dashboard" : "";
@@ -368,6 +385,7 @@
     protected override async Task OnInitializedAsync()
     {
         Culture.OnCultureChanged += HandleCultureChanged;
+        ProfileApi.OnAvatarChanged += HandleAvatarChanged;
         Navigation.LocationChanged += OnLocationChanged;
         UpdateChatPageState(Navigation.Uri);
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -377,6 +395,23 @@
         {
             userDisplayName = user.Identity.Name ?? "Member";
             userInitials = string.IsNullOrWhiteSpace(userDisplayName) ? "U" : userDisplayName.Trim()[..1].ToUpperInvariant();
+            try
+            {
+                var profRes = await ProfileApi.GetOwnerProfileAsync();
+                if (profRes.IsSuccess && profRes.Data != null)
+                {
+                    userAvatarUrl = profRes.Data.AvatarUrl;
+                    if (!string.IsNullOrWhiteSpace(profRes.Data.DisplayName))
+                    {
+                        userDisplayName = profRes.Data.DisplayName;
+                        userInitials = userDisplayName.Trim()[..1].ToUpperInvariant();
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback gracefully
+            }
         }
 
         currentRoleCode = (user.FindFirst(ClaimTypes.Role)?.Value ?? user.FindFirst("role")?.Value ?? string.Empty).Trim();
@@ -603,9 +638,16 @@
                      path.StartsWith("chat/", StringComparison.OrdinalIgnoreCase);
     }
 
+    private void HandleAvatarChanged(string? newUrl)
+    {
+        userAvatarUrl = newUrl;
+        InvokeAsync(StateHasChanged);
+    }
+
     public void Dispose()
     {
         Culture.OnCultureChanged -= HandleCultureChanged;
+        ProfileApi.OnAvatarChanged -= HandleAvatarChanged;
         Navigation.LocationChanged -= OnLocationChanged;
         profileDotNetRef?.Dispose();
     }

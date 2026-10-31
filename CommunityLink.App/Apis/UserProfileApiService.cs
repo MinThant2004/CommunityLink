@@ -15,6 +15,13 @@ namespace CommunityLink.App.Apis;
 public sealed class UserProfileApiService(IHttpClientFactory clientFactory, IHttpContextAccessor httpContextAccessor)
     : ApiService(clientFactory, httpContextAccessor)
 {
+    public event Action<string?>? OnAvatarChanged;
+
+    public void NotifyAvatarChanged(string? newAvatarUrl)
+    {
+        OnAvatarChanged?.Invoke(newAvatarUrl);
+    }
+
     public Task<Result<UserProfileDto>> GetOwnerProfileAsync(CancellationToken cancellationToken = default) =>
         GetAsync<UserProfileDto>("api/users/me", cancellationToken);
 

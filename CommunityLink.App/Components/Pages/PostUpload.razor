@@ -15,6 +15,8 @@
 @inject NavigationManager NavManager
 @inject IStringLocalizer<AppResources> Loc
 @inject IJSRuntime JS
+@inject UserProfileApiService ProfileApi
+@implements IDisposable
 
 <PageTitle>@Loc["PostUpload_PageTitle"] - CommunityLink</PageTitle>
 
@@ -886,6 +888,7 @@
         {
             currentUserId = uid;
         }
+        ProfileApi.OnAvatarChanged += HandleAvatarChanged;
 
         var isAdmin = user.IsInRole("ADMIN") || user.HasClaim("permission", PermissionCatalog.AdminUserView);
         if (isAdmin)
@@ -1412,5 +1415,19 @@
         showTextModal = false;
         viewingFileName = "";
         viewingFileContent = "";
+    }
+
+    private void HandleAvatarChanged(string? newUrl)
+    {
+        if (currentUserId.HasValue && posts != null)
+        {
+            posts = posts.Select(p => p.AuthorId == currentUserId.Value ? p with { AuthorAvatar = newUrl } : p).ToList();
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        ProfileApi.OnAvatarChanged -= HandleAvatarChanged;
     }
 }
