@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CommunityLink — Platform &amp; Architectural Presentation</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0A1B2E;
+            --card-dark: #131F33;
+            --gold: #D4AF37;
+            --gold-light: #F2CA50;
+            --white: #FFFFFF;
+            --slate: #94A3B8;
+            --ice-blue: #D9ECFE;
+            --border: rgba(255, 255, 255, 0.1);
+            --card-border: #253652;
+            --emerald: #10B981;
+            --rose: #F43F5E;
+            --indigo: #6366F1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #060E18;
+            color: var(--white);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Top Progress Bar */
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 11.1%;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            transition: width 0.3s ease;
+        }
+
+        /* Stage Container */
+        .stage {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        /* Slide Frame */
+        .slide-container {
+            width: 100%;
+            max-width: 1280px;
+            aspect-ratio: 16 / 9;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+            position: relative;
+            overflow: hidden;
+            padding: 44px 54px;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .slide-container.active {
+            display: flex;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px) scale(0.995); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Slide Header */
+        .slide-category {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .slide-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--white);
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        .slide-subtitle {
+            font-size: 15px;
+            color: var(--slate);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        /* Content Grids */
+        .content-area {
+            flex: 1;
+            margin: 22px 0 14px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            width: 100%;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+
+        .card-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .card-heading {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--white);
+            line-height: 1.3;
+        }
+
+        .card-body {
+            font-size: 13.5px;
+            color: var(--slate);
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .card-body ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .card-body li {
+            position: relative;
+            padding-left: 16px;
+            margin-bottom: 8px;
+        }
+
+        .card-body li::before {
+            content: "•";
+            color: var(--gold);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .badge-pill {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 4px;
+        }
+        .badge-gold { background: rgba(212, 175, 55, 0.15); color: var(--gold); border: 1px solid rgba(212, 175, 55, 0.3); }
+        .badge-emerald { background: rgba(16, 185, 129, 0.15); color: var(--emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-blue { background: rgba(217, 236, 254, 0.15); color: var(--ice-blue); border: 1px solid rgba(217, 236, 254, 0.3); }
+        .badge-rose { background: rgba(244, 63, 94, 0.15); color: var(--rose); border: 1px solid rgba(244, 63, 94, 0.3); }
+
+        .code-box {
+            background: #08111D;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            color: var(--ice-blue);
+            line-height: 1.5;
+        }
+
+        /* Slide Footer */
+        .slide-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 14px;
+            font-size: 12px;
+            color: var(--slate);
+        }
+
+        .slide-footer-author {
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        /* Navigation Bar */
+        .controls {
+            background: #0B1320;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            color: var(--white);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .btn-primary {
+            background: var(--gold);
+            color: #0A1B2E;
+            border-color: var(--gold);
+        }
+        .btn-primary:hover {
+            background: var(--gold-light);
+            color: #0A1B2E;
+        }
+
+        .counter {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        /* Speaker Notes Drawer */
+        .notes-drawer {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 960px;
+            background: rgba(10, 27, 46, 0.96);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            padding: 18px 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            display: none;
+            z-index: 99;
+        }
+        .notes-drawer.open {
+            display: block;
+        }
+        .notes-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .notes-text {
+            font-size: 13.5px;
+            color: #E2E8F0;
+            line-height: 1.6;
+        }
+
+        @media print {
+            body { overflow: visible; height: auto; background: white; }
+            .stage { padding: 0; display: block; }
+            .slide-container { display: flex !important; page-break-after: always; max-width: 100%; border: none; aspect-ratio: auto; min-height: 100vh; }
+            .controls, .progress-bar-container, .notes-drawer { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="stage">
+
+        <!-- SLIDE 1: Title -->
+        <div class="slide-container active" data-notes="Good morning/afternoon everyone. Today, we are proud to present CommunityLink — a professional knowledge exchange and creator monetization platform engineered specifically to solve the trust deficit, noise, and consultation barriers in current online networks. Over this presentation, our team 'The Trio' will walk you through the architectural model, core pillars, LinkDrop micro-economy, response SLA guarantees, and enterprise governance suite.">
+            <div>
+                <div class="slide-category">PLATFORM &amp; ARCHITECTURAL PRESENTATION</div>
+                <h1 class="slide-title" style="font-size: 46px; margin-top: 10px;">CommunityLink Platform</h1>
+                <p style="font-size: 20px; color: var(--slate); margin-top: 8px;">Professional Knowledge Exchange &amp; Creator Monetization Network</p>
+            </div>
+
+            <div class="content-area" style="align-items: center;">
+                <div class="card" style="width: 100%; padding: 34px; border-color: rgba(212, 175, 55, 0.4); background: linear-gradient(135deg, rgba(19, 31, 51, 0.8), rgba(10, 27, 46, 0.95));">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 22px;">
+                        <div>
+                            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px;">
+                                <span style="font-size: 13px; color: var(--slate); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">Presented by</span>
+                                <span style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--gold); letter-spacing: 0.04em;">The Trio</span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--gold); display: inline-block; flex-shrink: 0; box-shadow: 0 0 8px rgba(212, 175, 55, 0.7);"></span>
+                                    <div style="font-size: 16px; font-weight: 700; color: white;">Kaung Htet Naing</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); display: inline-block; flex-shrink: 0; box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);"></span>
+                                    <div style="font-size: 16px; font-weight: 700; color: white;">Min Thant</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--ice-blue); display: inline-block; flex-shrink: 0; box-shadow: 0 0 8px rgba(217, 236, 254, 0.7);"></span>
+                                    <div style="font-size: 16px; font-weight: 700; color: white;">JueJue</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="badge-pill badge-gold">ENTERPRISE EDITION 2026</div>
+                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--slate); margin-top: 10px;">.NET 10 &bull; Blazor &bull; SQL Server</div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 22px;">
+                        <div>
+                            <div style="color: var(--gold); font-size: 20px; font-weight: 700;">3-Tier</div>
+                            <div style="color: var(--slate); font-size: 13px; margin-top: 2px;">Community Hierarchy</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--emerald); font-size: 20px; font-weight: 700;">LinkDrop</div>
+                            <div style="color: var(--slate); font-size: 13px; margin-top: 2px;">Platform Micro-Economy</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--ice-blue); font-size: 20px; font-weight: 700;">Response SLA</div>
+                            <div style="color: var(--slate); font-size: 13px; margin-top: 2px;">Guaranteed Turnaround</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide-footer">
+                <div>CommunityLink Architecture &bull; The Trio</div>
+                <div class="slide-footer-author">Kaung Htet Naing &bull; Min Thant &bull; JueJue</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Problem Statement -->
+        <div class="slide-container" data-notes="Conventional open social networks suffer from three fundamental deficiencies: unstructured social noise that buries valuable content, lack of identity verification that leads to impersonation, and zero commitment for consultations where knowledge seekers reach out to mentors but get ignored. CommunityLink was engineered specifically to solve these three critical barriers.">
+            <div>
+                <div class="slide-category">PROBLEM ANALYSIS</div>
+                <h2 class="slide-title">The Challenges in Current Social Networks</h2>
+                <p class="slide-subtitle">Mainstream social platforms fail professional creators, industry leaders, and learners in Myanmar.</p>
+            </div>
+
+            <div class="content-area">
+                <div class="grid-3">
+                    <div class="card" style="border-top: 3px solid var(--rose);">
+                        <div class="card-number">01. THE PROBLEM</div>
+                        <div class="card-heading">Information Chaos</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>Open, uncurated platforms suffer from spam, noisy feeds, and low signal-to-noise ratios.</li>
+                                <li>High-value technical and commercial discussions are buried by generic engagement algorithms.</li>
+                                <li>Knowledge seekers cannot easily locate structured, verified subject matter expertise.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border-top: 3px solid var(--gold);">
+                        <div class="card-number">02. THE DEFICIT</div>
+                        <div class="card-heading">Identity Impersonation</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>Lack of formal credential verification invites impersonation and unvetted claims.</li>
+                                <li>Industry leaders lack a protected, professional environment to engage members safely.</li>
+                                <li>Communities have no objective peer-review matrix to measure creator credibility.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border-top: 3px solid var(--ice-blue);">
+                        <div class="card-number">03. THE GAP</div>
+                        <div class="card-heading">Unresponsive Consultations</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>Members seeking vital career/industry advice message leaders in general inboxes where messages remain ignored.</li>
+                                <li>Zero accountability: No service SLA, response timeline commitment, or formal oversight.</li>
+                                <li>Creators lack seamless tools to monetize consulting and mastermind circles.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide-footer">
+                <div>Market Gap Identification</div>
+                <div class="slide-footer-author">The Trio &bull; CommunityLink</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: The 4-Pillar Solution -->
+        <div class="slide-container" data-notes="Our core philosophy is simple: Structure plus Trust equals Sustainable Value. CommunityLink integrates four foundational pillars: A 3-tier hierarchical taxonomy that prevents noise, rigorous identity audits verifying professionals, the LinkDrop micro-economy that bridges local payments to creator earnings, and contractually declared Response SLAs where admins actively enforce compliance through warnings and deactivations.">
+            <div>
+                <div class="slide-category">THE SOLUTION</div>
+                <h2 class="slide-title">CommunityLink: The 4-Pillar Ecosystem</h2>
+                <p class="slide-subtitle">A purpose-built platform structured for authentic networking, vetted knowledge, and direct micro-monetization.</p>
+            </div>
+
+            <div class="content-area">
+                <div class="grid-2">
+                    <div class="card" style="border-left: 3px solid var(--gold);">
+                        <div class="card-number">PILLAR 01 &bull; STRUCTURE</div>
+                        <div class="card-heading">Hierarchical Communities</div>
+                        <div class="card-body">
+                            <p style="color: white; margin-bottom: 8px;">3-Tier Nested Architecture</p>
+                            <ul>
+                                <li>Top-Level Communities &rarr; Specialized Sub-Communities &rarr; Active Working Groups.</li>
+                                <li>Contextual containment eliminating feed clutter and noisy global algorithmic feeds.</li>
+                                <li>Independent control over visibility and admission screening.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border-left: 3px solid var(--emerald);">
+                        <div class="card-number">PILLAR 02 &bull; CREDIBILITY</div>
+                        <div class="card-heading">Rigorous Identity Audits</div>
+                        <div class="card-body">
+                            <p style="color: white; margin-bottom: 8px;">Certified Professional Authority</p>
+                            <ul>
+                                <li>Domain Professionals &amp; Public Figures verified via official NRC &amp; credential audits.</li>
+                                <li>Dedicated Admin KYC verification queue with approved, pending, and rejected workflows.</li>
+                                <li>Objective peer reputation engine with transparent 5-star ratings.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border-left: 3px solid var(--ice-blue);">
+                        <div class="card-number">PILLAR 03 &bull; ECONOMY</div>
+                        <div class="card-heading">The LinkDrop Economy</div>
+                        <div class="card-body">
+                            <p style="color: white; margin-bottom: 8px;">Platform Micro-Economy</p>
+                            <ul>
+                                <li>Closed-loop virtual credit system supporting local payment top-ups (KBZPay, WavePay).</li>
+                                <li>Utility for group entry fees, exclusive content unlocking, and priority advisory.</li>
+                                <li>Dual-ledger accounting separating purchased balances from earned creator payouts.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border-left: 3px solid var(--indigo);">
+                        <div class="card-number">PILLAR 04 &bull; COMMITMENT</div>
+                        <div class="card-heading">Priority Chat with Response SLA</div>
+                        <div class="card-body">
+                            <p style="color: white; margin-bottom: 8px;">Guaranteed Turnaround Times</p>
+                            <ul>
+                                <li>Enforced 24-hr or 48-hr response commitments for paid direct consultations.</li>
+                                <li>Dedicated Member / SLA moderation reporting channel for clients.</li>
+                                <li>Strict Admin governance: Give Warning, Deactivate account, or Dismiss report.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide-footer">
+                <div>System Overview &bull; Core Value Proposition</div>
+                <div class="slide-footer-author">The Trio &bull; CommunityLink</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Community Hierarchy -->
+        <div class="slide-container" data-notes="Rather than relying on flat feeds where context is lost, CommunityLink organizes knowledge into three logical tiers: Level 1 Main Communities for macro industry discovery, Level 2 Sub-Communities for specialized technical feeds, and Level 3 Working Groups for intimate, actionable collaboration with custom join rules and attached file support.">
+            <div>
+                <div class="slide-category">ORGANIZATIONAL MODEL</div>
+                <h2 class="slide-title">Hierarchical Community Architecture: 3-Tier Taxonomy</h2>
+                <p class="slide-subtitle">Eliminating feed clutter with intentional 3-level content containment.</p>
+            </div>
+
+            <div class="content-area">
+                <div class="grid-3" style="margin-bottom: 12px;">
+                    <div class="card">
+                        <div class="badge-pill badge-gold">LEVEL 1</div>
+                        <div class="card-heading">Main Communities (Hubs)</div>
+                        <div class="card-body">
+                            <p style="color: white; margin-bottom: 8px;">Macro Domain Umbrellas</p>
+                            <ul>
+                                <li>Represents broad industry verticals (e.g., Technology &amp; AI, Healthcare, Finance, Creative Arts).</li>
+                                <li>Chartered by platform governors; sets top-level policies and standards.</li>
+                                <li>Primary entry point for broad member discovery and navigation.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="badge-pill badge-emerald">LEVEL 2</div>
+                        <div class="card-heading">Sub-Communities (Nodes)</div>
+                        <div class="card-body">
+                            <p style="color: white; margin-bottom: 8px;">Specialized Knowledge Hubs</p>
+                            <ul>
+                                <li>Focused disciplines (e.g., C# &amp; .NET Architecture, Clinical Medicine, Venture Syndicates).</li>
+                                <li>Hosts the Multi-Filter Feed across Posts, Working Groups, and People.</li>
+                                <li>Interactive polls, articles, and luminary rosters.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="badge-pill badge-blue">LEVEL 3</div>
+                        <div class="card-heading">Smart Working Groups (Rooms)</div>
+                        <div class="card-body">
+                            <p style="color: white; margin-bottom: 8px;">Action-Oriented Workrooms</p>
+                            <ul>
+                                <li>Intimate mastermind teams, cohort classes, and technical project rooms.</li>
+                                <li>Decoupled Public/Private visibility and Join Policies (Free / Paid via LinkDrops).</li>
+                                <li>Group creator ownership enforcement (creator cannot leave own group).</li>
+                                <li>Rich code snippets, text attachments, and verified member rosters.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-box" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Hierarchy Traversal: Community [1..*] &rarr; Sub-Community [1..*] &rarr; Group [1..*] &rarr; Posts / Polls</span>
+                    <span style="color: var(--emerald); font-weight: 700;">Cascading RBAC &bull; Zero Permission Leakage</span>
+                </div>
+            </div>
+
+            <div class="slide-footer">
+                <div>Hierarchical Community Architecture</div>
+                <div class="slide-footer-author">The Trio &bull; CommunityLink</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: LinkDrop Economy -->
+        <div class="slide-container" data-notes="The LinkDrop Economy is our in-platform micro-economy. Users ingest LinkDrops via local Myanmar payment systems like KBZPay and WavePay. Our accounting engine implements a dual-balance ledger differentiating purchased balances from earned balances. Creators can monetize group entries and content, and request real-world fiat cashouts via our admin payout pipeline.">
+            <div>
+                <div class="slide-category">PLATFORM ECONOMICS</div>
+                <h2 class="slide-title">The LinkDrop Economy: Virtual Credit &amp; Monetization</h2>
+                <p class="slide-subtitle">A compliant, transparent virtual credit model bridging local payment systems to digital creator earnings.</p>
+            </div>
+
+            <div class="content-area">
+                <div class="grid-4" style="margin-bottom: 12px;">
+                    <div class="card" style="padding: 16px;">
+                        <div class="card-number">LOCAL PAY</div>
+                        <div class="card-heading" style="color: var(--gold);">KBZPay / WavePay</div>
+                        <div class="card-body" style="font-size: 12px;">Multi-channel top-ups with instant payment proof ingestion.</div>
+                    </div>
+                    <div class="card" style="padding: 16px;">
+                        <div class="card-number">ACCOUNTING</div>
+                        <div class="card-heading" style="color: var(--emerald);">Dual-Ledger</div>
+                        <div class="card-body" style="font-size: 12px;">Strict segregation between Purchased and Earned creator balances.</div>
+                    </div>
+                    <div class="card" style="padding: 16px;">
+                        <div class="card-number">SPENDING</div>
+                        <div class="card-heading" style="color: var(--ice-blue);">Utility Engine</div>
+                        <div class="card-body" style="font-size: 12px;">Group entry fees, exclusive content unlocks, and 1-on-1 consults.</div>
+                    </div>
+                    <div class="card" style="padding: 16px;">
+                        <div class="card-number">CASHOUT</div>
+                        <div class="card-heading" style="color: var(--gold-light);">Creator Payouts</div>
+                        <div class="card-body" style="font-size: 12px;">Admin-verified cashouts directly to creator mobile wallets.</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-number">SPENDING &amp; UTILITY WORKFLOWS</div>
+                        <div class="card-heading">In-Platform Value Exchange</div>
+                        <div class="card-body">
+                            <ul>
+                                <li><strong>Group Entry Fees:</strong> Premium working rooms require LinkDrop tokens to unlock membership.</li>
+                                <li><strong>Exclusive Content Unlocking:</strong> Technical whitepapers and source files unlocked on-demand.</li>
+                                <li><strong>Priority Consultations:</strong> Direct advisory sessions backed by response turnaround agreements.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-number">FINANCIAL INTEGRITY &amp; TELEMETRY</div>
+                        <div class="card-heading">Accounting &amp; Security Controls</div>
+                        <div class="card-body">
+                            <ul>
+                                <li><strong>Zero Overdraft:</strong> Strict SQL Server check constraints prevent negative balances.</li>
+                                <li><strong>Transaction History:</strong> Continuous 30-day volume logging with area wave trend chart.</li>
+                                <li><strong>Audit Trail:</strong> Every LinkDrop movement logs reference type, wallet ID, and user stamps.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide-footer">
+                <div>Virtual Economy &amp; Monetization Engine</div>
+                <div class="slide-footer-author">The Trio &bull; CommunityLink</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: Consultations & Response SLA -->
+        <div class="slide-container" data-notes="A major innovation of CommunityLink is addressing unresponsive consulting inquiries through contractually declared Response SLAs. Verified leaders publicly declare their SLA (e.g. Within 24 Hours). When a user initiates a consultation, the SLA expectation is set. If the leader fails to respond or violates terms, the member can file an SLA report directly to Admin Content Moderation. The admin investigates and takes direct disciplinary action: Give Warning, Deactivate member account, or Dismiss report.">
+            <div>
+                <div class="slide-category">CORE INNOVATION</div>
+                <h2 class="slide-title">Priority Consultations with Response SLA</h2>
+                <p class="slide-subtitle">Solving unresponsive consulting inboxes through declared turnaround commitments and admin oversight.</p>
+            </div>
+
+            <div class="content-area">
+                <div class="grid-3" style="margin-bottom: 12px;">
+                    <div class="card">
+                        <div class="badge-pill badge-gold">STAGE 1</div>
+                        <div class="card-heading">SLA Declaration</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>Verified leaders set public turnaround commitments (e.g., <em>Within 24 Hours</em>, <em>Within 48 Hours</em>).</li>
+                                <li>Leaders define consultation rates in LinkDrops.</li>
+                                <li>Displayed transparently on the leader's public profile card.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="badge-pill badge-blue">STAGE 2</div>
+                        <div class="card-heading">Consultation Commitment</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>Members engage verified mentors with clear turnaround expectations.</li>
+                                <li>Direct priority messaging stream initiated between client and domain expert.</li>
+                                <li>Accountability window enforced by platform professional standards.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="badge-pill badge-emerald">STAGE 3</div>
+                        <div class="card-heading">Admin SLA Moderation</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>If a leader breaches SLA commitments or remains unresponsive, members report via Member/SLA reports.</li>
+                                <li>Admin reviews details and executes direct moderation actions: <strong>Give Warning</strong>, <strong>Deactivate Member</strong>, or <strong>Dismiss</strong>.</li>
+                                <li>Leaders maintain verified badges and platform standing only by honoring declared SLAs.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-box" style="display: flex; align-items: center; justify-content: space-between;">
+                    <span style="color: var(--ice-blue);">Enforcement: Turnaround Tracking &bull; Direct Admin Reports &bull; Disciplinary Sanctions (Warning / Deactivation / Dismissal)</span>
+                    <span style="color: var(--emerald); font-weight: 700;">Accountability &bull; Protected Network</span>
+                </div>
+            </div>
+
+            <div class="slide-footer">
+                <div>Priority Consultation SLA Framework</div>
+                <div class="slide-footer-author">The Trio &bull; CommunityLink</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: Administration & Governance -->
+        <div class="slide-container" data-notes="Our administrative engine provides total governance across three operational centers: A platform telemetry dashboard monitoring 30-day transaction volume, platform health, and KPIs with on-demand refresh, KYC identity audits verifying Domain Professionals and Public Figures through NRC documents, and a multi-category content moderation suite handling Posts, Polls, Groups, and Member SLA breaches.">
+            <div>
+                <div class="slide-category">GOVERNANCE &amp; SECURITY</div>
+                <h2 class="slide-title">Enterprise Administration &amp; Moderation</h2>
+                <p class="slide-subtitle">Comprehensive control center ensuring platform trust, regulatory compliance, and community safety.</p>
+            </div>
+
+            <div class="content-area">
+                <div class="grid-3">
+                    <div class="card">
+                        <div class="badge-pill badge-gold">TELEMETRY</div>
+                        <div class="card-heading">Platform Telemetry Dashboard</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>Continuous 30-Day LinkDrop transaction volume wave chart with 7d/30d presets and custom date filters.</li>
+                                <li>Aggregate KPIs: Active verified leaders, total community memberships, platform revenue with on-demand refresh.</li>
+                                <li>Health monitoring across all communities, sub-communities, and groups.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="badge-pill badge-blue">AUDIT QUEUE</div>
+                        <div class="card-heading">KYC Identity Audits</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>3-Tab verification pipeline: <strong>Approved</strong>, <strong>Pending Review</strong>, and <strong>Rejected</strong>.</li>
+                                <li>Full legal name, work portfolio, and front/back National Registration Card (NRC) review.</li>
+                                <li>Actionable admin feedback notes on rejection (e.g. low-res document, expired DICA license).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="badge-pill badge-rose">MODERATION</div>
+                        <div class="card-heading">Multi-Category Content Suite</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>Moderation tabs for Posts, Polls, Groups, and Members.</li>
+                                <li>Specialized Member/SLA tab reviewing consultation unresponsiveness and SLA breaches.</li>
+                                <li>Structured enforcement: Warning notices, account deactivations, content bans, or report dismissals.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide-footer">
+                <div>Governance &amp; Moderation Suite</div>
+                <div class="slide-footer-author">The Trio &bull; CommunityLink</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Tech Stack -->
+        <div class="slide-container" data-notes="CommunityLink is engineered with clean architecture on modern .NET 10. The UI layer uses Blazor Web App with responsive Tailwind CSS design tokens and dark/light mode toggles. Real-time updates run over SignalR. The backend is an ASP.NET Core Web API with EF Core 10 and Microsoft SQL Server enforcing transactional ACID integrity.">
+            <div>
+                <div class="slide-category">TECHNOLOGY STACK</div>
+                <h2 class="slide-title">Technical Foundation: Modern, Scalable &amp; Modular</h2>
+                <p class="slide-subtitle">Built with enterprise performance, type safety, and real-time responsiveness.</p>
+            </div>
+
+            <div class="content-area">
+                <div class="grid-4" style="margin-bottom: 12px;">
+                    <div class="card">
+                        <div class="card-number">UI LAYER</div>
+                        <div class="card-heading">Blazor Web (.NET 10)</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>Interactive Blazor components with C# streaming.</li>
+                                <li>SignalR-powered real-time chat &amp; live notifications.</li>
+                                <li>Navbar &amp; sidebar role separation (Admin / Pro / Normal).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-number">API ENGINE</div>
+                        <div class="card-heading">ASP.NET Core Web API</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>RESTful endpoints with standard API response envelopes.</li>
+                                <li>JWT Bearer authentication with claims-based security.</li>
+                                <li>Rate limiting, CORS, and request validation pipelines.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-number">PERSISTENCE</div>
+                        <div class="card-heading">SQL Server &amp; EF Core</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>Entity Framework Core 10 with soft-delete global filters.</li>
+                                <li>ACID-compliant transactions and foreign key constraints.</li>
+                                <li>Comprehensive seeders for complete presentation data.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-number">DESIGN SYSTEM</div>
+                        <div class="card-heading">Tailwind CSS Architecture</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>Custom executive dark/light theme tokens.</li>
+                                <li>Structured code block components with copy/download.</li>
+                                <li>Responsive breakpoints across mobile, tablet, and desktop.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-box">
+                    <span>Clean Architecture Solution: CommunityLink.App (UI) &bull; CommunityLink.Api &bull; CommunityLink.Domain &bull; CommunityLink.Shared</span>
+                </div>
+            </div>
+
+            <div class="slide-footer">
+                <div>Enterprise Technology Stack</div>
+                <div class="slide-footer-author">The Trio &bull; CommunityLink</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: Live Demonstration -->
+        <div class="slide-container" data-notes="We are now transitioning directly into our live system demonstration of CommunityLink. We will showcase the platform in action—from user onboarding and KYC verification to working group collaboration, LinkDrop transactions, and administrative governance. We welcome any questions as we proceed.">
+            <div>
+                <div class="slide-category">SYSTEM SHOWCASE</div>
+                <h2 class="slide-title">Live Demonstration</h2>
+                <p class="slide-subtitle">Walkthrough of CommunityLink in action across member workflows, economic transactions, and administrative governance.</p>
+            </div>
+
+            <div class="content-area" style="align-items: center; justify-content: center;">
+                <div class="card" style="width: 100%; max-width: 980px; padding: 40px 50px; text-align: center; border-color: rgba(212, 175, 55, 0.4); background: linear-gradient(135deg, rgba(19, 31, 51, 0.9), rgba(10, 27, 46, 0.98)); display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                    <div class="badge-pill badge-gold" style="font-size: 13px; padding: 6px 18px; letter-spacing: 0.12em;">READY FOR LIVE WALKTHROUGH</div>
+                    
+                    <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 44px; font-weight: 700; color: var(--white); letter-spacing: -0.02em; line-height: 1.2;">
+                        Live Demonstration
+                    </h3>
+                    
+                    <p style="font-size: 16px; color: var(--slate); max-width: 720px; line-height: 1.6;">
+                        Experience the platform in action: verified identity onboarding, 3-tier community collaboration, LinkDrop transactions, and content moderation governance.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; margin-top: 10px;">
+                        <div style="background: rgba(10, 27, 46, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; text-align: center;">
+                            <div style="font-family: 'Space Grotesk', sans-serif; color: var(--gold); font-size: 14px; font-weight: 700;">01. AUTH &amp; KYC</div>
+                            <div style="color: var(--slate); font-size: 12px; margin-top: 4px;">NRC &amp; Credential Audits</div>
+                        </div>
+                        <div style="background: rgba(10, 27, 46, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; text-align: center;">
+                            <div style="font-family: 'Space Grotesk', sans-serif; color: var(--emerald); font-size: 14px; font-weight: 700;">02. HIERARCHY</div>
+                            <div style="color: var(--slate); font-size: 12px; margin-top: 4px;">Communities &amp; Groups</div>
+                        </div>
+                        <div style="background: rgba(10, 27, 46, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; text-align: center;">
+                            <div style="font-family: 'Space Grotesk', sans-serif; color: var(--ice-blue); font-size: 14px; font-weight: 700;">03. LINKDROPS</div>
+                            <div style="color: var(--slate); font-size: 12px; margin-top: 4px;">Transactions &amp; Economy</div>
+                        </div>
+                        <div style="background: rgba(10, 27, 46, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; text-align: center;">
+                            <div style="font-family: 'Space Grotesk', sans-serif; color: var(--rose); font-size: 14px; font-weight: 700;">04. GOVERNANCE</div>
+                            <div style="color: var(--slate); font-size: 12px; margin-top: 4px;">Moderation &amp; SLA Review</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--gold-light); margin-top: 6px;">
+                        <span>●</span>
+                        <span>Interactive System Q&amp;A &amp; Feature Walkthrough</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide-footer">
+                <div>CommunityLink Platform &bull; Presentation Complete</div>
+                <div class="slide-footer-author">The Trio (Kaung Htet Naing &bull; Min Thant &bull; JueJue)</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Speaker Notes Drawer -->
+    <div class="notes-drawer" id="notesDrawer">
+        <div class="notes-title">SPEAKER SCRIPT &amp; TALKING POINTS (PRESS 'N' TO TOGGLE)</div>
+        <div class="notes-text" id="notesContent"></div>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="controls">
+        <div class="nav-buttons">
+            <button class="btn" onclick="prevSlide()">◀ Previous</button>
+            <button class="btn btn-primary" onclick="nextSlide()">Next ▶</button>
+            <button class="btn" onclick="toggleNotes()">Speaker Notes (N)</button>
+        </div>
+
+        <div class="counter" id="slideCounter">1 / 9</div>
+
+        <div class="nav-buttons">
+            <button class="btn" onclick="toggleFullscreen()">Fullscreen (F)</button>
+            <button class="btn" onclick="window.print()">Print / Export PDF</button>
+        </div>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide-container');
+        const progressBar = document.getElementById('progressBar');
+        const slideCounter = document.getElementById('slideCounter');
+        const notesDrawer = document.getElementById('notesDrawer');
+        const notesContent = document.getElementById('notesContent');
+        let currentSlide = 0;
+
+        function updateSlide() {
+            slides.forEach((s, idx) => {
+                s.classList.toggle('active', idx === currentSlide);
+            });
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = progress + '%';
+            slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
+            notesContent.textContent = slides[currentSlide].getAttribute('data-notes') || 'No notes for this slide.';
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        function toggleNotes() {
+            notesDrawer.classList.toggle('open');
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key.toLowerCase() === 'n') {
+                toggleNotes();
+            } else if (e.key.toLowerCase() === 'f') {
+                toggleFullscreen();
+            }
+        });
+
+        updateSlide();
+    </script>
+</body>
+</html>

@@ -224,94 +224,96 @@ public sealed class CreatorPayoutService(
 
         var adminUserId = currentUser.UserId.Value;
 
-        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? dbTx = null;
-        if (dbContext.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+        var strategy = dbContext.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            dbTx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        }
+            await using var dbTx = dbContext.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory"
+                ? await dbContext.Database.BeginTransactionAsync(cancellationToken)
+                : null;
 
-        try
-        {
-            var payout = await dbContext.TblCreatorPayoutRequests
-                .Include(p => p.CreatorUser)
-                .FirstOrDefaultAsync(p => p.CreatorPayoutRequestId == payoutRequestId && !p.IsDeleted, cancellationToken);
-
-            if (payout == null)
+            try
             {
-                if (dbTx != null) await dbTx.RollbackAsync(cancellationToken);
-                return Result<AdminPayoutModel>.Failure("Payout request not found.", ResultStatus.NotFound);
+                var payout = await dbContext.TblCreatorPayoutRequests
+                    .Include(p => p.CreatorUser)
+                    .FirstOrDefaultAsync(p => p.CreatorPayoutRequestId == payoutRequestId && !p.IsDeleted, cancellationToken);
+
+                if (payout == null)
+                {
+                    if (dbTx != null) await dbTx.RollbackAsync(cancellationToken);
+                    return Result<AdminPayoutModel>.Failure("Payout request not found.", ResultStatus.NotFound);
+                }
+
+                if (!string.Equals(payout.Status, "PENDING", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (dbTx != null) await dbTx.RollbackAsync(cancellationToken);
+                    return Result<AdminPayoutModel>.Failure($"Cannot approve payout request with status '{payout.Status}'.", ResultStatus.ValidationError);
+                }
+
+                // Lock Creator Wallet
+                var creatorWallet = await dbContext.TblLinkDropWallets
+                    .FirstOrDefaultAsync(w => w.UserId == payout.CreatorUserId, cancellationToken);
+
+                if (creatorWallet == null || creatorWallet.EarnedBalance < payout.AmountLinkDrops)
+                {
+                    if (dbTx != null) await dbTx.RollbackAsync(cancellationToken);
+                    return Result<AdminPayoutModel>.Failure(
+                        $"Creator has insufficient EarnedBalance for this payout. Available EarnedBalance: {creatorWallet?.EarnedBalance ?? 0} LD.",
+                        ResultStatus.ValidationError);
+                }
+
+                // 1. Deduct EarnedBalance from Creator Wallet
+                long balanceBefore = creatorWallet.Balance;
+                creatorWallet.EarnedBalance -= payout.AmountLinkDrops;
+                creatorWallet.Balance = creatorWallet.PurchasedBalance + creatorWallet.EarnedBalance;
+                creatorWallet.UpdatedAt = DateTime.UtcNow;
+                creatorWallet.UpdatedBy = adminUserId;
+
+                // 2. Add Audit Ledger Transaction
+                var auditTransaction = new TblLinkDropTransaction
+                {
+                    WalletId = creatorWallet.WalletId,
+                    UserId = payout.CreatorUserId,
+                    TransactionType = "CREATOR_PAYOUT",
+                    Amount = payout.AmountLinkDrops,
+                    BalanceBefore = balanceBefore,
+                    BalanceAfter = creatorWallet.Balance,
+                    ReferenceType = "TblCreatorPayoutRequest",
+                    ReferenceId = (int)payout.CreatorPayoutRequestId,
+                    Notes = $"Creator payout #{payout.CreatorPayoutRequestId} completed. Paid via {payout.PaymentMethod}.",
+                    CreatedAt = DateTime.UtcNow,
+                    PurchasedAmountDeducted = 0,
+                    EarnedAmountDeducted = payout.AmountLinkDrops
+                };
+
+                dbContext.TblLinkDropTransactions.Add(auditTransaction);
+
+                // 3. Update Payout Status to COMPLETED
+                payout.Status = "COMPLETED";
+                payout.AdminNote = adminNote?.Trim();
+                payout.ReviewedAt = DateTime.UtcNow;
+                payout.ReviewedBy = adminUserId;
+                payout.UpdatedAt = DateTime.UtcNow;
+                payout.UpdatedBy = adminUserId;
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+
+                if (dbTx != null)
+                {
+                    await dbTx.CommitAsync(cancellationToken);
+                }
+
+                var adminModel = MapToAdminPayoutModel(payout);
+                return Result<AdminPayoutModel>.Success(adminModel, "Payout request approved and completed successfully.");
             }
-
-            if (!string.Equals(payout.Status, "PENDING", StringComparison.OrdinalIgnoreCase))
+            catch (Exception ex)
             {
-                if (dbTx != null) await dbTx.RollbackAsync(cancellationToken);
-                return Result<AdminPayoutModel>.Failure($"Cannot approve payout request with status '{payout.Status}'.", ResultStatus.ValidationError);
+                if (dbTx != null)
+                {
+                    await dbTx.RollbackAsync(cancellationToken);
+                }
+                return Result<AdminPayoutModel>.Failure($"Error approving payout: {ex.Message}");
             }
-
-            // Lock Creator Wallet
-            var creatorWallet = await dbContext.TblLinkDropWallets
-                .FirstOrDefaultAsync(w => w.UserId == payout.CreatorUserId, cancellationToken);
-
-            if (creatorWallet == null || creatorWallet.EarnedBalance < payout.AmountLinkDrops)
-            {
-                if (dbTx != null) await dbTx.RollbackAsync(cancellationToken);
-                return Result<AdminPayoutModel>.Failure(
-                    $"Creator has insufficient EarnedBalance for this payout. Available EarnedBalance: {creatorWallet?.EarnedBalance ?? 0} LD.",
-                    ResultStatus.ValidationError);
-            }
-
-            // 1. Deduct EarnedBalance from Creator Wallet
-            long balanceBefore = creatorWallet.Balance;
-            creatorWallet.EarnedBalance -= payout.AmountLinkDrops;
-            creatorWallet.Balance = creatorWallet.PurchasedBalance + creatorWallet.EarnedBalance;
-            creatorWallet.UpdatedAt = DateTime.UtcNow;
-            creatorWallet.UpdatedBy = adminUserId;
-
-            // 2. Add Audit Ledger Transaction
-            var auditTransaction = new TblLinkDropTransaction
-            {
-                WalletId = creatorWallet.WalletId,
-                UserId = payout.CreatorUserId,
-                TransactionType = "CREATOR_PAYOUT",
-                Amount = payout.AmountLinkDrops,
-                BalanceBefore = balanceBefore,
-                BalanceAfter = creatorWallet.Balance,
-                ReferenceType = "TblCreatorPayoutRequest",
-                ReferenceId = (int)payout.CreatorPayoutRequestId,
-                Notes = $"Creator payout #{payout.CreatorPayoutRequestId} completed. Paid via {payout.PaymentMethod}.",
-                CreatedAt = DateTime.UtcNow,
-                PurchasedAmountDeducted = 0,
-                EarnedAmountDeducted = payout.AmountLinkDrops
-            };
-
-            dbContext.TblLinkDropTransactions.Add(auditTransaction);
-
-            // 3. Update Payout Status to COMPLETED
-            payout.Status = "COMPLETED";
-            payout.AdminNote = adminNote?.Trim();
-            payout.ReviewedAt = DateTime.UtcNow;
-            payout.ReviewedBy = adminUserId;
-            payout.UpdatedAt = DateTime.UtcNow;
-            payout.UpdatedBy = adminUserId;
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-
-            if (dbTx != null)
-            {
-                await dbTx.CommitAsync(cancellationToken);
-            }
-
-            var adminModel = MapToAdminPayoutModel(payout);
-            return Result<AdminPayoutModel>.Success(adminModel, "Payout request approved and completed successfully.");
-        }
-        catch (Exception ex)
-        {
-            if (dbTx != null)
-            {
-                await dbTx.RollbackAsync(cancellationToken);
-            }
-            return Result<AdminPayoutModel>.Failure($"Error approving payout: {ex.Message}");
-        }
+        });
     }
 
     public async Task<Result<AdminPayoutModel>> RejectPayoutAsync(

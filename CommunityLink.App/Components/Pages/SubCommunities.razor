@@ -59,77 +59,6 @@
                 }
                 else
                 {
-                    @if (isAdmin)
-                    {
-                        <!-- Main Community Hero Panel -->
-                        <div class="relative rounded-xl bg-surface-container-low p-space-md md:p-space-lg overflow-hidden border border-surface-container-high/30">
-                        <!-- Top Refractive Glass Line Effect -->
-                        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-600/30 dark:via-blue-400/30 to-transparent"></div>
-                        
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
-                            <!-- Left Column: Title & Charter -->
-                            <div class="lg:col-span-7 flex flex-col gap-space-sm">
-                                <div class="flex flex-wrap items-center gap-space-sm">
-                                    <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-highest text-blue-600 dark:text-blue-400 font-label-sm text-label-sm uppercase tracking-wider border border-blue-500/30">
-                                        <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span> @Loc["SubCommunities_Tier1Protocol"]
-                                    </span>
-                                    <span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm border border-secondary/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span> @Loc["SubCommunities_ConsensusValidated"]
-                                    </span>
-
-                                    <!-- Parent Hub Switcher -->
-                                    @if (parentCommunities.Count > 1)
-                                    {
-                                        <div class="relative inline-block ml-auto sm:ml-0">
-                                            <select class="bg-surface-container-highest text-on-surface font-label-sm text-label-sm py-0.5 px-2 rounded-full border border-surface-container-high focus:outline-none focus:border-blue-500 cursor-pointer"
-                                                    value="@selectedParent.CommunityId"
-                                                    @onchange="OnParentCommunityChanged">
-                                                @foreach (var parent in parentCommunities)
-                                                {
-                                                    <option value="@parent.CommunityId">@parent.Name</option>
-                                                }
-                                            </select>
-                                        </div>
-                                    }
-                                </div>
-
-                                <h1 class="font-headline-lg text-headline-lg md:text-display-md text-on-surface tracking-tight mt-space-xs font-bold">
-                                    @selectedParent.Name
-                                </h1>
-
-                                <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl leading-relaxed">
-                                    @(string.IsNullOrWhiteSpace(selectedParent.Description) 
-                                        ? Loc["SubCommunities_DefaultCharterDescription"]
-                                        : selectedParent.Description)
-                                </p>
-
-                                <!-- Inline telemetry (no cards) -->
-                                <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 pt-space-sm mt-space-xs text-body-sm text-body-sm">
-                                    <span class="flex items-center gap-1.5">
-                                        <span class="material-symbols-outlined text-xs text-blue-600 dark:text-blue-400">account_tree</span>
-                                        <span class="text-on-surface-variant">@Loc["SubCommunities_Metric_SubCommunities"]</span>
-                                        <span class="font-mono font-bold text-on-surface">@subCommunities.Count</span>
-                                    </span>
-                                    <span class="flex items-center gap-1.5">
-                                        <span class="material-symbols-outlined text-xs text-secondary">groups</span>
-                                        <span class="text-on-surface-variant">@Loc["SubCommunities_Metric_Workgroups"]</span>
-                                        <span class="font-mono font-bold text-on-surface">@totalGroupsCount</span>
-                                    </span>
-                                    <span class="flex items-center gap-1.5">
-                                        <span class="material-symbols-outlined text-xs text-blue-600 dark:text-blue-400">groups_2</span>
-                                        <span class="text-on-surface-variant">@Loc["SubCommunities_Metric_Members"]</span>
-                                        <span class="font-mono font-bold text-on-surface">@FormatNumber(totalMemberCount)</span>
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Right Column: Cluster Telemetry Chart -->
-                            <div class="lg:col-span-5 flex flex-col bg-surface-container-lowest/60 p-space-md rounded-xl border border-surface-container-high/30 backdrop-blur-sm">
-                                <TelemetryChart Title="@Loc["TelemetryChart_ClusterTitle"]" PrimaryLabel="@Loc["TelemetryChart_Members"]" SecondaryLabel="@Loc["TelemetryChart_Posts"]" Values="liquiditySeries" SecondaryValues="velocitySeries" Labels="chartLabels" Highlight="@clusterHighlight" />
-                            </div>
-                        </div>
-                    </div>
-                    }
                 }
             </div>
 
@@ -242,11 +171,6 @@
                                         <span class="flex items-center gap-1 text-on-surface font-semibold">
                                             <span class="material-symbols-outlined text-xs text-blue-600 dark:text-blue-400">groups</span>
                                             @string.Format(CultureInfo.CurrentUICulture, Loc["SubCommunities_Card_Members"], FormatNumber(sub.MemberCount))
-                                        </span>
-                                        <span class="text-on-surface-variant">•</span>
-                                        <span class="flex items-center gap-1 text-sky-600 dark:text-sky-400 font-medium">
-                                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
-                                            @string.Format(CultureInfo.CurrentUICulture, Loc["SubCommunities_Card_Luminaries"], sub.DomainProCount + sub.PublicFigureCount)
                                         </span>
                                         <span class="text-on-surface-variant">•</span>
                                         <span class="flex items-center gap-1 text-secondary font-medium">

@@ -70,12 +70,54 @@
                     <span class="text-xs text-[#7A8CA6] font-mono">@string.Format(Loc["Report_User_UsersCount"], users.Count)</span>
                 </div>
 
-                <div class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)] max-h-[720px] overflow-y-auto">
-                    @for (int i = 0; i < users.Count; i++)
-                    {
-                        var u = users[i];
-                        var rank = i + 1;
-                        var isSelected = selectedUserId == u.UserId;
+                <!-- Search Box with Search Button -->
+                <div class="p-3 border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] bg-white dark:bg-[#112A46]">
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#7A8CA6]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </span>
+                            <input type="text" @bind="userSearchTerm" @bind:event="oninput" @onkeydown="HandleUserSearchKeyDown"
+                                   placeholder="Search user by name or username..."
+                                   class="w-full pl-9 pr-7 py-2 bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.18)] rounded-xl text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-2xs" />
+                            @if (!string.IsNullOrWhiteSpace(userSearchTerm))
+                            {
+                                <button type="button" @onclick="ClearUserSearch"
+                                        class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-xs font-bold cursor-pointer">
+                                    &times;
+                                </button>
+                            }
+                        </div>
+                        <button type="button" @onclick="ExecuteUserSearch"
+                                class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <span>Search</span>
+                        </button>
+                    </div>
+                </div>
+
+                @{
+                    var displayedUsers = users
+                        .Where(u => string.IsNullOrWhiteSpace(appliedUserSearchTerm) ||
+                                    (u.DisplayName != null && u.DisplayName.Contains(appliedUserSearchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                                    (u.UserName != null && u.UserName.Contains(appliedUserSearchTerm, StringComparison.OrdinalIgnoreCase)))
+                        .ToList();
+                }
+
+                @if (displayedUsers.Count == 0)
+                {
+                    <div class="p-8 text-center text-xs text-[#7A8CA6]">
+                        No users found matching "@appliedUserSearchTerm"
+                    </div>
+                }
+                else
+                {
+                    <div class="divide-y divide-[#E2E8F0] dark:divide-[rgba(196,210,225,0.12)] max-h-[720px] overflow-y-auto">
+                        @for (int i = 0; i < displayedUsers.Count; i++)
+                        {
+                            var u = displayedUsers[i];
+                            var rank = i + 1;
+                            var isSelected = selectedUserId == u.UserId;
 
                         <button type="button" @onclick="() => SelectUserAsync(u.UserId)" class="w-full text-left p-4 hover:bg-[#F8FAFC] dark:hover:bg-[#1B3B5A]/40 transition flex items-center gap-3 cursor-pointer @(isSelected ? "bg-indigo-50/80 dark:bg-indigo-950/40 border-l-4 border-indigo-600" : "")">
                             <span class="font-mono text-xs font-bold @(rank <= 3 ? "text-amber-500" : "text-[#7A8CA6]") w-6 shrink-0">
@@ -109,7 +151,8 @@
                             </div>
                         </button>
                     }
-                </div>
+                    </div>
+                }
             </div>
 
             <!-- Right Panel: Selected User Most Liked Posts & Polls -->
@@ -304,6 +347,27 @@
     private IReadOnlyList<UserReportItemModel>? users;
     private int? selectedUserId;
     private UserTopContentModel? userContent;
+    private string userSearchTerm = "";
+    private string appliedUserSearchTerm = "";
+
+    private void ExecuteUserSearch()
+    {
+        appliedUserSearchTerm = userSearchTerm.Trim();
+    }
+
+    private void ClearUserSearch()
+    {
+        userSearchTerm = "";
+        appliedUserSearchTerm = "";
+    }
+
+    private void HandleUserSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ExecuteUserSearch();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

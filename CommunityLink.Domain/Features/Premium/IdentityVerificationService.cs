@@ -333,241 +333,267 @@ public sealed class IdentityVerificationService(AppDbContext dbContext) : IIdent
 
     public async Task<Result<IdentityVerificationDetailDto>> ApproveVerificationAsync(int verificationId, int adminId, string? reviewNotes = null, CancellationToken cancellationToken = default)
     {
-        var verification = await dbContext.TblIdentityVerifications
-            .Include(v => v.User)
-            .Include(v => v.Plan)
-            .FirstOrDefaultAsync(v => v.VerificationId == verificationId, cancellationToken);
-
-        if (verification is null)
-            return Result<IdentityVerificationDetailDto>.Failure("Verification record not found.", ResultStatus.NotFound);
-
-        if (verification.Status != "PendingReview")
-            return Result<IdentityVerificationDetailDto>.Failure($"Cannot approve verification in '{verification.Status}' state.", ResultStatus.Conflict);
-
-        var targetRole = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == verification.TargetRoleCode, cancellationToken);
-        if (targetRole is null && (verification.TargetRoleCode == "DOMAIN_PRO" || verification.TargetRoleCode == "DOMAIN_PROFESSIONAL"))
+        try
         {
-            targetRole = await dbContext.TblRoles.FirstOrDefaultAsync(r => r.RoleCode == "DOMAIN_PRO" || r.RoleCode == "DOMAIN_PROFESSIONAL", cancellationToken);
-        }
-        if (targetRole is null)
-            return Result<IdentityVerificationDetailDto>.Failure($"Target role '{verification.TargetRoleCode}' was not found in system roles.", ResultStatus.NotFound);
+            var verification = await dbContext.TblIdentityVerifications
+                .Include(v => v.User)
+                .Include(v => v.Plan)
+                .FirstOrDefaultAsync(v => v.VerificationId == verificationId, cancellationToken);
 
-        // 1. Switch User Role in TblUserRole
-        var existingUserRoles = await dbContext.TblUserRoles.Where(ur => ur.UserId == verification.UserId).ToListAsync(cancellationToken);
-        dbContext.TblUserRoles.RemoveRange(existingUserRoles);
-        dbContext.TblUserRoles.Add(new TblUserRole
-        {
-            UserId = verification.UserId,
-            RoleId = targetRole.RoleId,
-            CreatedAt = DateTime.UtcNow
-        });
+            if (verification is null)
+                return Result<IdentityVerificationDetailDto>.Failure("Verification record not found.", ResultStatus.NotFound);
 
-        // 2. Mark Verification as Approved & Update User verified flag
-        verification.Status = "Approved";
-        verification.ReviewNotes = reviewNotes ?? "Verified & credentials approved by Administrator SecOps.";
-        verification.ReviewedByAdminId = adminId;
-        verification.ReviewedAtUtc = DateTime.UtcNow;
+            if (verification.Status != "PendingReview")
+                return Result<IdentityVerificationDetailDto>.Failure($"Cannot approve verification in '{verification.Status}' state.", ResultStatus.Conflict);
 
-        verification.User.IsVerified = true;
-        if (!string.IsNullOrWhiteSpace(verification.Location))
-        {
-            verification.User.Location = verification.Location.Trim();
-        }
-        verification.User.UpdatedAt = DateTime.UtcNow;
+            var normalizedRoleCode = verification.TargetRoleCode?.Trim().ToUpperInvariant() ?? "";
+            var targetRole = await dbContext.TblRoles.FirstOrDefaultAsync(
+                r => !r.IsDeleted && (r.RoleCode.ToUpper() == normalizedRoleCode ||
+                                      (normalizedRoleCode.StartsWith("DOMAIN") && (r.RoleCode == "DOMAIN_PRO" || r.RoleCode == "DOMAIN_PROFESSIONAL"))),
+                cancellationToken);
 
-        // Sync verified skills to user skills
-        if (!string.IsNullOrWhiteSpace(verification.Skills))
-        {
-            var skillNames = verification.Skills
-                .Split(new[] { ',', ';', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .Distinct(StringComparer.OrdinalIgnoreCase);
-
-            var existingSkills = await dbContext.TblUserSkills
-                .Where(s => s.UserId == verification.UserId && !s.IsDeleted)
-                .ToListAsync(cancellationToken);
-
-            int order = existingSkills.Count > 0 ? existingSkills.Max(s => s.DisplayOrder) + 1 : 1;
-            foreach (var name in skillNames)
+            if (targetRole is null)
             {
-                var existing = existingSkills.FirstOrDefault(s => string.Equals(s.SkillName, name, StringComparison.OrdinalIgnoreCase));
-                if (existing != null)
-                {
-                    existing.IsVerified = true;
-                }
-                else
-                {
-                    dbContext.TblUserSkills.Add(new TblUserSkill
-                    {
-                        UserId = verification.UserId,
-                        SkillName = name,
-                        EndorsementCount = 0,
-                        IsVerified = true,
-                        DisplayOrder = order++,
-                        CreatedAt = DateTime.UtcNow,
-                        IsDeleted = false
-                    });
-                }
+                targetRole = await dbContext.TblRoles.FirstOrDefaultAsync(
+                    r => !r.IsDeleted && r.RoleCode.ToUpper() == normalizedRoleCode,
+                    cancellationToken);
             }
-        }
 
-        // Record UserVerificationAudit record if not already recorded
-        var existingAudit = await dbContext.TblUserVerificationAudits
-            .FirstOrDefaultAsync(a => a.UserId == verification.UserId && a.AuditCode == "GOV_ID_CARD", cancellationToken);
-        if (existingAudit == null)
-        {
-            dbContext.TblUserVerificationAudits.Add(new TblUserVerificationAudit
+            if (targetRole is null)
+                return Result<IdentityVerificationDetailDto>.Failure($"Target role '{verification.TargetRoleCode}' was not found in system roles.", ResultStatus.NotFound);
+
+            // 1. Switch User Role in TblUserRole
+            var existingUserRoles = await dbContext.TblUserRoles.Where(ur => ur.UserId == verification.UserId).ToListAsync(cancellationToken);
+            dbContext.TblUserRoles.RemoveRange(existingUserRoles);
+            dbContext.TblUserRoles.Add(new TblUserRole
             {
                 UserId = verification.UserId,
-                AuditCode = "GOV_ID_CARD",
-                AuditTitle = $"{targetRole.RoleName} Verified",
-                AuditDescription = $"SecOps verified identity card for legal name '{verification.FullLegalName}'.",
-                Authority = "CommunityLink Verification SecOps",
-                Status = "ACTIVE",
-                AuditedAt = DateTime.UtcNow,
+                RoleId = targetRole.RoleId,
                 CreatedAt = DateTime.UtcNow
             });
-        }
 
-        // 3. Activate UserSubscription
-        var userSub = await dbContext.TblUserSubscriptions
-            .FirstOrDefaultAsync(s => s.UserId == verification.UserId && s.PlanId == verification.PlanId && s.Status == "PendingReview", cancellationToken);
+            // 2. Mark Verification as Approved & Update User verified flag
+            verification.Status = "Approved";
+            verification.ReviewNotes = reviewNotes ?? "Verified & credentials approved by Administrator SecOps.";
+            verification.ReviewedByAdminId = adminId;
+            verification.ReviewedAtUtc = DateTime.UtcNow;
 
-        var durationDays = verification.Plan.DurationDays > 0 ? verification.Plan.DurationDays : 30;
-        if (userSub != null)
-        {
-            userSub.Status = "Active";
-            userSub.RoleId = targetRole.RoleId;
-            userSub.StartDateUtc = DateTime.UtcNow;
-            userSub.ExpiresAtUtc = DateTime.UtcNow.AddDays(durationDays);
-        }
-        else
-        {
-            dbContext.TblUserSubscriptions.Add(new TblUserSubscription
+            if (verification.User != null)
             {
-                UserId = verification.UserId,
-                PlanId = verification.PlanId,
-                RoleId = targetRole.RoleId,
-                Status = "Active",
-                PaymentMethod = verification.PaymentMethod,
-                StartDateUtc = DateTime.UtcNow,
-                ExpiresAtUtc = DateTime.UtcNow.AddDays(durationDays),
-                CreatedAtUtc = DateTime.UtcNow
+                verification.User.IsVerified = true;
+                if (!string.IsNullOrWhiteSpace(verification.Location))
+                {
+                    verification.User.Location = verification.Location.Trim();
+                }
+                verification.User.UpdatedAt = DateTime.UtcNow;
+            }
+
+            // Sync verified skills to user skills
+            if (!string.IsNullOrWhiteSpace(verification.Skills))
+            {
+                var skillNames = verification.Skills
+                    .Split(new[] { ',', ';', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim())
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Distinct(StringComparer.OrdinalIgnoreCase);
+
+                var existingSkills = await dbContext.TblUserSkills
+                    .Where(s => s.UserId == verification.UserId && !s.IsDeleted)
+                    .ToListAsync(cancellationToken);
+
+                int order = existingSkills.Count > 0 ? existingSkills.Max(s => s.DisplayOrder) + 1 : 1;
+                foreach (var name in skillNames)
+                {
+                    var existing = existingSkills.FirstOrDefault(s => string.Equals(s.SkillName, name, StringComparison.OrdinalIgnoreCase));
+                    if (existing != null)
+                    {
+                        existing.IsVerified = true;
+                    }
+                    else
+                    {
+                        dbContext.TblUserSkills.Add(new TblUserSkill
+                        {
+                            UserId = verification.UserId,
+                            SkillName = name,
+                            EndorsementCount = 0,
+                            IsVerified = true,
+                            DisplayOrder = order++,
+                            CreatedAt = DateTime.UtcNow,
+                            IsDeleted = false
+                        });
+                    }
+                }
+            }
+
+            // Record UserVerificationAudit record if not already recorded
+            var existingAudit = await dbContext.TblUserVerificationAudits
+                .FirstOrDefaultAsync(a => a.UserId == verification.UserId && a.AuditCode == "GOV_ID_CARD", cancellationToken);
+            if (existingAudit == null)
+            {
+                dbContext.TblUserVerificationAudits.Add(new TblUserVerificationAudit
+                {
+                    UserId = verification.UserId,
+                    AuditCode = "GOV_ID_CARD",
+                    AuditTitle = $"{targetRole.RoleName} Verified",
+                    AuditDescription = $"SecOps verified identity card for legal name '{verification.FullLegalName}'.",
+                    Authority = "CommunityLink Verification SecOps",
+                    Status = "ACTIVE",
+                    AuditedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            // 3. Activate UserSubscription
+            var userSub = await dbContext.TblUserSubscriptions
+                .FirstOrDefaultAsync(s => s.UserId == verification.UserId && s.PlanId == verification.PlanId && s.Status == "PendingReview", cancellationToken);
+
+            var durationDays = verification.Plan?.DurationDays > 0 ? verification.Plan.DurationDays : 30;
+            if (userSub != null)
+            {
+                userSub.Status = "Active";
+                userSub.RoleId = targetRole.RoleId;
+                userSub.StartDateUtc = DateTime.UtcNow;
+                userSub.ExpiresAtUtc = DateTime.UtcNow.AddDays(durationDays);
+            }
+            else
+            {
+                dbContext.TblUserSubscriptions.Add(new TblUserSubscription
+                {
+                    UserId = verification.UserId,
+                    PlanId = verification.PlanId,
+                    RoleId = targetRole.RoleId,
+                    Status = "Active",
+                    PaymentMethod = verification.PaymentMethod,
+                    StartDateUtc = DateTime.UtcNow,
+                    ExpiresAtUtc = DateTime.UtcNow.AddDays(durationDays),
+                    CreatedAtUtc = DateTime.UtcNow
+                });
+            }
+
+            // 4. Send Approval Notification (ActorUserId is null because this is an administrative action)
+            dbContext.TblNotifications.Add(new TblNotification
+            {
+                RecipientUserId = verification.UserId,
+                ActorUserId = null,
+                NotificationType = "TIER_VERIFICATION_APPROVED",
+                Title = "Congratulations! Tier Upgrade Approved 🎉",
+                Message = $"Your credentials have been verified. You have been promoted to {targetRole.RoleName}! Enjoy your verified badge and pro tools.",
+                TargetEntityName = "TblIdentityVerification",
+                TargetEntityId = verification.VerificationId,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
             });
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            var admin = await dbContext.TblAdmins.FindAsync([adminId], cancellationToken);
+            var userName = verification.User?.UserName ?? $"User #{verification.UserId}";
+            return Result<IdentityVerificationDetailDto>.Success(
+                MapToDetailDto(verification, verification.User, verification.Plan, admin),
+                $"Verification approved. User '{userName}' promoted to {targetRole.RoleName}."
+            );
         }
-
-        // 4. Send Approval Notification
-        dbContext.TblNotifications.Add(new TblNotification
+        catch (Exception ex)
         {
-            RecipientUserId = verification.UserId,
-            ActorUserId = adminId,
-            NotificationType = "TIER_VERIFICATION_APPROVED",
-            Title = "Congratulations! Tier Upgrade Approved 🎉",
-            Message = $"Your credentials have been verified. You have been promoted to {targetRole.RoleName}! Enjoy your verified badge and pro tools.",
-            TargetEntityName = "TblIdentityVerification",
-            TargetEntityId = verification.VerificationId,
-            IsRead = false,
-            CreatedAt = DateTime.UtcNow
-        });
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        var admin = await dbContext.TblAdmins.FindAsync([adminId], cancellationToken);
-        return Result<IdentityVerificationDetailDto>.Success(
-            MapToDetailDto(verification, verification.User, verification.Plan, admin),
-            $"Verification approved. User '{verification.User.UserName}' promoted to {targetRole.RoleName}."
-        );
+            return Result<IdentityVerificationDetailDto>.Failure($"Error approving verification: {ex.Message}");
+        }
     }
 
     public async Task<Result<IdentityVerificationDetailDto>> RejectVerificationAsync(int verificationId, int adminId, string rejectionReason, CancellationToken cancellationToken = default)
     {
-        var verification = await dbContext.TblIdentityVerifications
-            .Include(v => v.User)
-            .Include(v => v.Plan)
-            .FirstOrDefaultAsync(v => v.VerificationId == verificationId, cancellationToken);
-
-        if (verification is null)
-            return Result<IdentityVerificationDetailDto>.Failure("Verification record not found.", ResultStatus.NotFound);
-
-        if (verification.Status != "PendingReview")
-            return Result<IdentityVerificationDetailDto>.Failure($"Cannot reject verification in '{verification.Status}' state.", ResultStatus.Conflict);
-
-        if (string.IsNullOrWhiteSpace(rejectionReason))
-            return Result<IdentityVerificationDetailDto>.Failure("A clear rejection reason must be provided to the applicant.", ResultStatus.ValidationError);
-
-        // 1. Mark Verification as Rejected
-        verification.Status = "Rejected";
-        verification.ReviewNotes = rejectionReason.Trim();
-        verification.ReviewedByAdminId = adminId;
-        verification.ReviewedAtUtc = DateTime.UtcNow;
-
-        // 2. Mark pending subscription as Rejected
-        var userSub = await dbContext.TblUserSubscriptions
-            .FirstOrDefaultAsync(s => s.UserId == verification.UserId && s.PlanId == verification.PlanId && s.Status == "PendingReview", cancellationToken);
-        if (userSub != null)
+        try
         {
-            userSub.Status = "Rejected";
-        }
+            var verification = await dbContext.TblIdentityVerifications
+                .Include(v => v.User)
+                .Include(v => v.Plan)
+                .FirstOrDefaultAsync(v => v.VerificationId == verificationId, cancellationToken);
 
-        // 3. Refund LinkDrop points if they were deducted
-        if (verification.LinkDropPointsDeducted > 0)
-        {
-            var wallet = await dbContext.TblLinkDropWallets.FirstOrDefaultAsync(w => w.UserId == verification.UserId, cancellationToken);
-            if (wallet != null)
+            if (verification is null)
+                return Result<IdentityVerificationDetailDto>.Failure("Verification record not found.", ResultStatus.NotFound);
+
+            if (verification.Status != "PendingReview")
+                return Result<IdentityVerificationDetailDto>.Failure($"Cannot reject verification in '{verification.Status}' state.", ResultStatus.Conflict);
+
+            if (string.IsNullOrWhiteSpace(rejectionReason))
+                return Result<IdentityVerificationDetailDto>.Failure("A clear rejection reason must be provided to the applicant.", ResultStatus.ValidationError);
+
+            // 1. Mark Verification as Rejected
+            verification.Status = "Rejected";
+            verification.ReviewNotes = rejectionReason.Trim();
+            verification.ReviewedByAdminId = adminId;
+            verification.ReviewedAtUtc = DateTime.UtcNow;
+
+            // 2. Mark pending subscription as Rejected
+            var userSub = await dbContext.TblUserSubscriptions
+                .FirstOrDefaultAsync(s => s.UserId == verification.UserId && s.PlanId == verification.PlanId && s.Status == "PendingReview", cancellationToken);
+            if (userSub != null)
             {
-                var bBefore = wallet.Balance;
-                var pBefore = wallet.PurchasedBalance;
-                var eBefore = wallet.EarnedBalance;
-
-                // Refund as earned/purchased balance
-                wallet.PurchasedBalance += verification.LinkDropPointsDeducted;
-                wallet.Balance = wallet.PurchasedBalance + wallet.EarnedBalance;
-                wallet.UpdatedAt = DateTime.UtcNow;
-
-                dbContext.TblLinkDropTransactions.Add(new TblLinkDropTransaction
-                {
-                    WalletId = wallet.WalletId,
-                    UserId = verification.UserId,
-                    TransactionType = "REFUND",
-                    Amount = verification.LinkDropPointsDeducted,
-                    BalanceBefore = bBefore,
-                    BalanceAfter = wallet.Balance,
-                    PurchasedBalanceBefore = pBefore,
-                    PurchasedBalanceAfter = wallet.PurchasedBalance,
-                    EarnedBalanceBefore = eBefore,
-                    EarnedBalanceAfter = wallet.EarnedBalance,
-                    PurchasedAmountDeducted = 0,
-                    EarnedAmountDeducted = 0,
-                    ReferenceType = "TblIdentityVerification",
-                    ReferenceId = verification.VerificationId,
-                    Notes = $"Verification rejected refund: {rejectionReason.Trim()}",
-                    CreatedAt = DateTime.UtcNow
-                });
+                userSub.Status = "Rejected";
             }
+
+            // 3. Refund LinkDrop points if they were deducted
+            if (verification.LinkDropPointsDeducted > 0)
+            {
+                var wallet = await dbContext.TblLinkDropWallets.FirstOrDefaultAsync(w => w.UserId == verification.UserId, cancellationToken);
+                if (wallet != null)
+                {
+                    var bBefore = wallet.Balance;
+                    var pBefore = wallet.PurchasedBalance;
+                    var eBefore = wallet.EarnedBalance;
+
+                    // Refund as earned/purchased balance
+                    wallet.PurchasedBalance += verification.LinkDropPointsDeducted;
+                    wallet.Balance = wallet.PurchasedBalance + wallet.EarnedBalance;
+                    wallet.UpdatedAt = DateTime.UtcNow;
+
+                    dbContext.TblLinkDropTransactions.Add(new TblLinkDropTransaction
+                    {
+                        WalletId = wallet.WalletId,
+                        UserId = verification.UserId,
+                        TransactionType = "REFUND",
+                        Amount = verification.LinkDropPointsDeducted,
+                        BalanceBefore = bBefore,
+                        BalanceAfter = wallet.Balance,
+                        PurchasedBalanceBefore = pBefore,
+                        PurchasedBalanceAfter = wallet.PurchasedBalance,
+                        EarnedBalanceBefore = eBefore,
+                        EarnedBalanceAfter = wallet.EarnedBalance,
+                        PurchasedAmountDeducted = 0,
+                        EarnedAmountDeducted = 0,
+                        ReferenceType = "TblIdentityVerification",
+                        ReferenceId = verification.VerificationId,
+                        Notes = $"Verification rejected refund: {rejectionReason.Trim()}",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            // 4. Send Rejection Notification (ActorUserId is null because this is an administrative action)
+            dbContext.TblNotifications.Add(new TblNotification
+            {
+                RecipientUserId = verification.UserId,
+                ActorUserId = null,
+                NotificationType = "TIER_VERIFICATION_REJECTED",
+                Title = "Verification Audit Notice",
+                Message = $"Your application for {verification.Plan?.PlanName ?? "Subscription"} was not approved: {rejectionReason.Trim()}. {(verification.LinkDropPointsDeducted > 0 ? "Your LinkDrop points have been refunded." : "")}",
+                TargetEntityName = "TblIdentityVerification",
+                TargetEntityId = verification.VerificationId,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            var admin = await dbContext.TblAdmins.FindAsync([adminId], cancellationToken);
+            return Result<IdentityVerificationDetailDto>.Success(
+                MapToDetailDto(verification, verification.User, verification.Plan, admin),
+                "Verification rejected and applicant notified."
+            );
         }
-
-        // 4. Send Rejection Notification
-        dbContext.TblNotifications.Add(new TblNotification
+        catch (Exception ex)
         {
-            RecipientUserId = verification.UserId,
-            ActorUserId = adminId,
-            NotificationType = "TIER_VERIFICATION_REJECTED",
-            Title = "Verification Audit Notice",
-            Message = $"Your application for {verification.Plan.PlanName} was not approved: {rejectionReason.Trim()}. {(verification.LinkDropPointsDeducted > 0 ? "Your LinkDrop points have been refunded." : "")}",
-            TargetEntityName = "TblIdentityVerification",
-            TargetEntityId = verification.VerificationId,
-            IsRead = false,
-            CreatedAt = DateTime.UtcNow
-        });
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        var admin = await dbContext.TblAdmins.FindAsync([adminId], cancellationToken);
-        return Result<IdentityVerificationDetailDto>.Success(
-            MapToDetailDto(verification, verification.User, verification.Plan, admin),
-            "Verification rejected and applicant notified."
-        );
+            return Result<IdentityVerificationDetailDto>.Failure($"Error rejecting verification: {ex.Message}");
+        }
     }
 
     private static IdentityVerificationDetailDto MapToDetailDto(

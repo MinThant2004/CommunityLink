@@ -317,135 +317,139 @@ public class LinkDropPaymentService : ILinkDropPaymentService
 
     public async Task<PurchaseResponseDto> ApprovePurchaseAsync(int adminId, int purchaseId, string? notes = null)
     {
-        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? tx = null;
-        if (_db.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+        var strategy = _db.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            tx = await _db.Database.BeginTransactionAsync();
-        }
-
-        try
-        {
-            var purchase = await _db.TblLinkDropPurchases
-                .FirstOrDefaultAsync(p => p.PurchaseId == purchaseId && !p.IsDeleted);
-
-            if (purchase == null)
-                throw new InvalidOperationException($"Purchase request #{purchaseId} was not found.");
-
-            if (purchase.Status != "PENDING")
-                throw new InvalidOperationException($"Purchase request #{purchaseId} is already in state '{purchase.Status}'. Only PENDING requests can be approved.");
-
-            // 1. Update purchase request status
-            purchase.Status = "APPROVED";
-            purchase.ReviewedByAdminId = adminId;
-            purchase.ReviewedAt = DateTime.UtcNow;
-            purchase.UpdatedAt = DateTime.UtcNow;
-            purchase.UpdatedBy = adminId;
-
-            // 2. Fetch or create user wallet
-            var wallet = await _db.TblLinkDropWallets
-                .FirstOrDefaultAsync(w => w.UserId == purchase.UserId);
-
-            if (wallet == null)
+            Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? tx = null;
+            if (_db.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
             {
-                wallet = new TblLinkDropWallet
-                {
-                    UserId = purchase.UserId,
-                    Balance = 0,
-                    PurchasedBalance = 0,
-                    EarnedBalance = 0,
-                    CreatedAt = DateTime.UtcNow,
-                    CreatedBy = adminId
-                };
-                _db.TblLinkDropWallets.Add(wallet);
-                await _db.SaveChangesAsync();
+                tx = await _db.Database.BeginTransactionAsync();
             }
 
-            // Runtime Data Migration Safety: Initialize PurchasedBalance if legacy wallet had Balance > 0 but Purchased/Earned = 0
-            if (wallet.PurchasedBalance == 0 && wallet.EarnedBalance == 0 && wallet.Balance > 0)
+            try
             {
-                wallet.PurchasedBalance = wallet.Balance;
-            }
+                var purchase = await _db.TblLinkDropPurchases
+                    .FirstOrDefaultAsync(p => p.PurchaseId == purchaseId && !p.IsDeleted);
 
-            long purchasedCredit = purchase.SnapshotLinkDropAmount;
-            long bonusCredit = 0;
+                if (purchase == null)
+                    throw new InvalidOperationException($"Purchase request #{purchaseId} was not found.");
 
-            if (purchase.PackageId.HasValue)
-            {
-                var package = await _db.TblLinkDropPackages
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(p => p.PackageId == purchase.PackageId.Value);
+                if (purchase.Status != "PENDING")
+                    throw new InvalidOperationException($"Purchase request #{purchaseId} is already in state '{purchase.Status}'. Only PENDING requests can be approved.");
 
-                if (package != null)
+                // 1. Update purchase request status
+                purchase.Status = "APPROVED";
+                purchase.ReviewedByAdminId = adminId;
+                purchase.ReviewedAt = DateTime.UtcNow;
+                purchase.UpdatedAt = DateTime.UtcNow;
+                purchase.UpdatedBy = adminId;
+
+                // 2. Fetch or create user wallet
+                var wallet = await _db.TblLinkDropWallets
+                    .FirstOrDefaultAsync(w => w.UserId == purchase.UserId);
+
+                if (wallet == null)
                 {
-                    purchasedCredit = package.LinkDropAmount;
-                    bonusCredit = package.BonusAmount;
+                    wallet = new TblLinkDropWallet
+                    {
+                        UserId = purchase.UserId,
+                        Balance = 0,
+                        PurchasedBalance = 0,
+                        EarnedBalance = 0,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = adminId
+                    };
+                    _db.TblLinkDropWallets.Add(wallet);
+                    await _db.SaveChangesAsync();
                 }
+
+                // Runtime Data Migration Safety: Initialize PurchasedBalance if legacy wallet had Balance > 0 but Purchased/Earned = 0
+                if (wallet.PurchasedBalance == 0 && wallet.EarnedBalance == 0 && wallet.Balance > 0)
+                {
+                    wallet.PurchasedBalance = wallet.Balance;
+                }
+
+                long purchasedCredit = purchase.SnapshotLinkDropAmount;
+                long bonusCredit = 0;
+
+                if (purchase.PackageId.HasValue)
+                {
+                    var package = await _db.TblLinkDropPackages
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(p => p.PackageId == purchase.PackageId.Value);
+
+                    if (package != null)
+                    {
+                        purchasedCredit = package.LinkDropAmount;
+                        bonusCredit = package.BonusAmount;
+                    }
+                }
+
+                long pBefore = wallet.PurchasedBalance;
+                long eBefore = wallet.EarnedBalance;
+                long balanceBefore = wallet.Balance;
+
+                wallet.PurchasedBalance += purchasedCredit;
+                wallet.EarnedBalance += bonusCredit; // Existing EarnedBalance is preserved and incremented by bonusCredit
+                wallet.Balance = wallet.PurchasedBalance + wallet.EarnedBalance; // Maintain invariant: Balance = PurchasedBalance + EarnedBalance
+                wallet.UpdatedAt = DateTime.UtcNow;
+                wallet.UpdatedBy = adminId;
+
+                // 3. Insert transaction ledger entry with source-separated balance snapshots
+                var transaction = new TblLinkDropTransaction
+                {
+                    WalletId = wallet.WalletId,
+                    UserId = purchase.UserId,
+                    TransactionType = "PURCHASE",
+                    Amount = purchase.SnapshotLinkDropAmount,
+                    BalanceBefore = balanceBefore,
+                    BalanceAfter = wallet.Balance,
+                    PurchasedAmountDeducted = 0,
+                    EarnedAmountDeducted = 0,
+                    ReferenceType = "TblLinkDropPurchase",
+                    ReferenceId = purchase.PurchaseId,
+                    Notes = notes ?? $"Link Drops Purchase #{purchase.PurchaseNumber} Approved",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _db.TblLinkDropTransactions.Add(transaction);
+
+                // 4. Create user approval notification
+                var approvalNotification = new TblNotification
+                {
+                    RecipientUserId = purchase.UserId,
+                    ActorUserId = null,
+                    NotificationType = "LINK_DROP_APPROVED",
+                    Title = "Link Drop Purchase Approved!",
+                    Message = $"Your Link Drop purchase request #{purchase.PurchaseNumber} has been approved! {purchase.SnapshotLinkDropAmount:N0} Link Drops have been added to your wallet.",
+                    TargetEntityName = "TblLinkDropPurchase",
+                    TargetEntityId = purchase.PurchaseId,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _db.TblNotifications.Add(approvalNotification);
+
+                await _db.SaveChangesAsync();
+                if (tx != null) await tx.CommitAsync();
+
+                return await GetPurchaseByIdInternalAsync(purchaseId)
+                       ?? throw new InvalidOperationException("Failed to retrieve approved purchase detail.");
             }
-
-            long pBefore = wallet.PurchasedBalance;
-            long eBefore = wallet.EarnedBalance;
-            long balanceBefore = wallet.Balance;
-
-            wallet.PurchasedBalance += purchasedCredit;
-            wallet.EarnedBalance += bonusCredit; // Existing EarnedBalance is preserved and incremented by bonusCredit
-            wallet.Balance = wallet.PurchasedBalance + wallet.EarnedBalance; // Maintain invariant: Balance = PurchasedBalance + EarnedBalance
-            wallet.UpdatedAt = DateTime.UtcNow;
-            wallet.UpdatedBy = adminId;
-
-            // 3. Insert transaction ledger entry with source-separated balance snapshots
-            var transaction = new TblLinkDropTransaction
+            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UX_TblLinkDropTransaction_Purchase_Reference") == true)
             {
-                WalletId = wallet.WalletId,
-                UserId = purchase.UserId,
-                TransactionType = "PURCHASE",
-                Amount = purchase.SnapshotLinkDropAmount,
-                BalanceBefore = balanceBefore,
-                BalanceAfter = wallet.Balance,
-                PurchasedAmountDeducted = 0,
-                EarnedAmountDeducted = 0,
-                ReferenceType = "TblLinkDropPurchase",
-                ReferenceId = purchase.PurchaseId,
-                Notes = notes ?? $"Link Drops Purchase #{purchase.PurchaseNumber} Approved",
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _db.TblLinkDropTransactions.Add(transaction);
-
-            // 4. Create user approval notification
-            var approvalNotification = new TblNotification
+                if (tx != null) await tx.RollbackAsync();
+                throw new InvalidOperationException("Idempotency violation: This purchase request has already been credited.");
+            }
+            catch
             {
-                RecipientUserId = purchase.UserId,
-                ActorUserId = adminId,
-                NotificationType = "LINK_DROP_APPROVED",
-                Title = "Link Drop Purchase Approved!",
-                Message = $"Your Link Drop purchase request #{purchase.PurchaseNumber} has been approved! {purchase.SnapshotLinkDropAmount:N0} Link Drops have been added to your wallet.",
-                TargetEntityName = "TblLinkDropPurchase",
-                TargetEntityId = purchase.PurchaseId,
-                IsRead = false,
-                CreatedAt = DateTime.UtcNow
-            };
-            _db.TblNotifications.Add(approvalNotification);
-
-            await _db.SaveChangesAsync();
-            if (tx != null) await tx.CommitAsync();
-
-            return await GetPurchaseByIdInternalAsync(purchaseId)
-                   ?? throw new InvalidOperationException("Failed to retrieve approved purchase detail.");
-        }
-        catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UX_TblLinkDropTransaction_Purchase_Reference") == true)
-        {
-            if (tx != null) await tx.RollbackAsync();
-            throw new InvalidOperationException("Idempotency violation: This purchase request has already been credited.");
-        }
-        catch
-        {
-            if (tx != null) await tx.RollbackAsync();
-            throw;
-        }
-        finally
-        {
-            tx?.Dispose();
-        }
+                if (tx != null) await tx.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                tx?.Dispose();
+            }
+        });
     }
 
     public async Task<PurchaseResponseDto> RejectPurchaseAsync(int adminId, int purchaseId, string rejectionReason)
@@ -473,7 +477,7 @@ public class LinkDropPaymentService : ILinkDropPaymentService
         var rejectionNotification = new TblNotification
         {
             RecipientUserId = purchase.UserId,
-            ActorUserId = adminId,
+            ActorUserId = null,
             NotificationType = "LINK_DROP_REJECTED",
             Title = "Link Drop Purchase Rejected",
             Message = $"Your Link Drop purchase request #{purchase.PurchaseNumber} was rejected. Reason: {purchase.RejectionReason}",

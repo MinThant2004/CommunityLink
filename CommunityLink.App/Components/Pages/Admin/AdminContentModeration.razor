@@ -14,15 +14,21 @@
 
 <PageTitle>@(currentSection == "groups" ? Loc["Admin_Mod_PageTitleGroup"] : (currentSection == "members" ? Loc["Admin_Mod_PageTitleMember"] : Loc["Admin_Mod_PageTitlePost"]))</PageTitle>
 
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <style>
-    .bg-surface-container-lowest { background-color: var(--cl-surface-container-lowest, #0b0e15) !important; }
-    .bg-surface-container-high { background-color: var(--cl-surface-container-high, #272a32) !important; }
-    .text-secondary { color: var(--cl-secondary, #c0c1ff) !important; }
-    .text-tertiary { color: var(--cl-tertiary, #c0d0e6) !important; }
-    .text-on-surface { color: var(--cl-on-surface, #e1e2ec) !important; }
-    .text-on-surface-variant { color: var(--cl-on-surface-variant, #d0c5af) !important; }
-    .text-outline { color: var(--cl-outline, #99907c) !important; }
-    .border-white\/5 { border-color: rgba(255, 255, 255, 0.05) !important; }
+    .material-symbols-outlined {
+        font-family: 'Material Symbols Outlined' !important;
+        font-weight: normal;
+        font-style: normal;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+        -webkit-font-smoothing: antialiased;
+    }
 </style>
 
 <div class="space-y-6 text-[#0A1B2E] dark:text-[#E1E8F0] transition-colors duration-150">
@@ -791,16 +797,16 @@
                         </div>
                         @foreach (var tf in textFiles)
                         {
-                            <div class="bg-surface-container-lowest rounded-lg overflow-hidden shadow-xs flex flex-col border border-white/5 my-2">
-                                <div class="bg-surface-container-high px-3 py-1.5 flex items-center justify-between border-b border-white/5">
-                                    <div class="flex items-center gap-1.5 font-mono text-[11px] text-on-surface-variant min-w-0">
-                                        <span class="material-symbols-outlined text-secondary text-[14px] shrink-0">data_object</span>
-                                        <span class="font-bold truncate text-on-surface">@tf.FileName</span>
+                            <div class="bg-[#0b0e15] rounded-lg overflow-hidden shadow-xs flex flex-col border border-white/10 my-2">
+                                <div class="bg-[#272a32] px-3 py-1.5 flex items-center justify-between border-b border-white/10">
+                                    <div class="flex items-center gap-1.5 font-mono text-[11px] text-[#d0c5af] min-w-0">
+                                        <span class="material-symbols-outlined text-[#c0c1ff] text-[14px] shrink-0">data_object</span>
+                                        <span class="font-bold truncate text-[#e1e2ec]">@tf.FileName</span>
                                         @{
                                             var bytes = tf.FileSizeBytes ?? (!string.IsNullOrEmpty(tf.Content) ? System.Text.Encoding.UTF8.GetByteCount(tf.Content) : 0);
                                             if (bytes > 0)
                                             {
-                                                <span class="text-[10px] text-outline shrink-0 font-normal">(@FormatFileSize(bytes))</span>
+                                                <span class="text-[10px] text-[#99907c] shrink-0 font-normal">(@FormatFileSize(bytes))</span>
                                             }
                                         }
                                     </div>
@@ -808,7 +814,7 @@
                                         @if (!string.IsNullOrWhiteSpace(tf.FileUrl))
                                         {
                                             <a href="@tf.FileUrl" download="@tf.FileName" target="_blank"
-                                               class="flex items-center gap-1 text-[11px] text-outline hover:text-on-surface transition-colors cursor-pointer"
+                                               class="flex items-center gap-1 text-[11px] text-[#99907c] hover:text-[#e1e2ec] transition-colors cursor-pointer"
                                                title="Download file">
                                                 <span class="material-symbols-outlined text-[13px]">download</span>
                                                 <span>Download</span>
@@ -816,7 +822,7 @@
                                         }
                                         else if (!string.IsNullOrWhiteSpace(tf.Content))
                                         {
-                                            <button type="button" class="flex items-center gap-1 text-[11px] text-outline hover:text-on-surface transition-colors cursor-pointer"
+                                            <button type="button" class="flex items-center gap-1 text-[11px] text-[#99907c] hover:text-[#e1e2ec] transition-colors cursor-pointer"
                                                     @onclick="() => DownloadTextFileAsync(tf.FileName, tf.Content)"
                                                     title="Download file">
                                                 <span class="material-symbols-outlined text-[13px]">download</span>
@@ -825,7 +831,7 @@
                                         }
                                         @if (!string.IsNullOrWhiteSpace(tf.Content))
                                         {
-                                            <button type="button" class="flex items-center gap-1 text-[11px] text-outline hover:text-on-surface transition-colors cursor-pointer"
+                                            <button type="button" class="flex items-center gap-1 text-[11px] text-[#99907c] hover:text-[#e1e2ec] transition-colors cursor-pointer"
                                                     @onclick="() => CopyCodeSnippetAsync(tf.Content)"
                                                     title="Copy content">
                                                 <span class="material-symbols-outlined text-[13px]">content_copy</span>
@@ -836,7 +842,7 @@
                                 </div>
                                 @if (!string.IsNullOrWhiteSpace(tf.Content))
                                 {
-                                    <pre class="p-3 font-mono text-xs text-tertiary overflow-x-auto overflow-y-auto leading-5 max-h-56 select-text whitespace-pre"><code>@tf.Content</code></pre>
+                                    <pre class="p-3 font-mono text-xs text-[#c0d0e6] bg-[#0b0e15] overflow-x-auto overflow-y-auto leading-5 max-h-56 select-text whitespace-pre"><code>@tf.Content</code></pre>
                                 }
                             </div>
                         }
@@ -1145,7 +1151,23 @@
         }
     }
 
-    public sealed record AttachedTextFileItem(string FileName, string Content, string? FileUrl = null, long? FileSizeBytes = null);
+    public sealed class AttachedTextFileItem
+    {
+        public string FileName { get; set; } = "snippet.txt";
+        public string Content { get; set; } = "";
+        public string? FileUrl { get; set; }
+        public long? FileSizeBytes { get; set; }
+
+        public AttachedTextFileItem() { }
+
+        public AttachedTextFileItem(string fileName, string content, string? fileUrl = null, long? fileSizeBytes = null)
+        {
+            FileName = fileName;
+            Content = content;
+            FileUrl = fileUrl;
+            FileSizeBytes = fileSizeBytes;
+        }
+    }
 
     private static List<AttachedTextFileItem> ParseTextFiles(string codeSnippet, string? codeFileName)
     {
@@ -1153,27 +1175,50 @@
         if (string.IsNullOrWhiteSpace(codeSnippet)) return list;
 
         var trimmed = codeSnippet.Trim();
-        if (trimmed.StartsWith("[") && trimmed.Contains("\"FileName\""))
+        if (trimmed.StartsWith("[") || trimmed.StartsWith("{"))
         {
             try
             {
-                var parsed = JsonSerializer.Deserialize<List<AttachedTextFileItem>>(codeSnippet, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (parsed != null && parsed.Count > 0)
+                using var doc = JsonDocument.Parse(trimmed);
+                if (doc.RootElement.ValueKind == JsonValueKind.Array)
                 {
-                    return parsed;
+                    foreach (var elem in doc.RootElement.EnumerateArray())
+                    {
+                        var fn = GetJsonString(elem, "FileName", "fileName", "filename");
+                        var content = GetJsonString(elem, "Content", "content");
+                        var url = GetJsonString(elem, "FileUrl", "fileUrl", "file_url");
+                        var size = GetJsonLong(elem, "FileSizeBytes", "fileSizeBytes", "size");
+
+                        if (!string.IsNullOrWhiteSpace(fn) || !string.IsNullOrWhiteSpace(content) || !string.IsNullOrWhiteSpace(url))
+                        {
+                            list.Add(new AttachedTextFileItem(
+                                !string.IsNullOrWhiteSpace(fn) ? fn : (!string.IsNullOrWhiteSpace(codeFileName) ? codeFileName : "snippet.txt"),
+                                content ?? "",
+                                url,
+                                size
+                            ));
+                        }
+                    }
+                    if (list.Count > 0) return list;
                 }
-            }
-            catch { }
-        }
-        else if (trimmed.StartsWith("{") && trimmed.Contains("\"FileName\""))
-        {
-            try
-            {
-                var single = JsonSerializer.Deserialize<AttachedTextFileItem>(codeSnippet, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (single != null)
+                else if (doc.RootElement.ValueKind == JsonValueKind.Object)
                 {
-                    list.Add(single);
-                    return list;
+                    var elem = doc.RootElement;
+                    var fn = GetJsonString(elem, "FileName", "fileName", "filename");
+                    var content = GetJsonString(elem, "Content", "content");
+                    var url = GetJsonString(elem, "FileUrl", "fileUrl", "file_url");
+                    var size = GetJsonLong(elem, "FileSizeBytes", "fileSizeBytes", "size");
+
+                    if (!string.IsNullOrWhiteSpace(fn) || !string.IsNullOrWhiteSpace(content) || !string.IsNullOrWhiteSpace(url))
+                    {
+                        list.Add(new AttachedTextFileItem(
+                            !string.IsNullOrWhiteSpace(fn) ? fn : (!string.IsNullOrWhiteSpace(codeFileName) ? codeFileName : "snippet.txt"),
+                            content ?? "",
+                            url,
+                            size
+                        ));
+                        return list;
+                    }
                 }
             }
             catch { }
@@ -1181,6 +1226,29 @@
 
         list.Add(new AttachedTextFileItem(string.IsNullOrWhiteSpace(codeFileName) ? "snippet.txt" : codeFileName, codeSnippet));
         return list;
+    }
+
+    private static string? GetJsonString(JsonElement elem, params string[] propertyNames)
+    {
+        foreach (var p in propertyNames)
+        {
+            if (elem.TryGetProperty(p, out var val) && val.ValueKind == JsonValueKind.String)
+                return val.GetString();
+        }
+        return null;
+    }
+
+    private static long? GetJsonLong(JsonElement elem, params string[] propertyNames)
+    {
+        foreach (var p in propertyNames)
+        {
+            if (elem.TryGetProperty(p, out var val))
+            {
+                if (val.ValueKind == JsonValueKind.Number && val.TryGetInt64(out var num))
+                    return num;
+            }
+        }
+        return null;
     }
 
     private static string FormatFileSize(long bytes)

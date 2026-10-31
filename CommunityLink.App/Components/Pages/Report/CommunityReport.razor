@@ -62,6 +62,32 @@
     }
     else
     {
+        <!-- Search Box with Search Button -->
+        <div class="bg-white dark:bg-[#112A46] p-3 rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-xs">
+            <div class="flex items-center gap-2">
+                <div class="relative flex-1">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#7A8CA6]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </span>
+                    <input type="text" @bind="searchTerm" @bind:event="oninput" @onkeydown="HandleSearchKeyDown"
+                           placeholder="Search communities, sub-communities, or descriptions..."
+                           class="w-full pl-10 pr-8 py-2 bg-[#F8FAFC] dark:bg-[#0A1B2E] border border-[#CBD5E1] dark:border-[rgba(196,210,225,0.18)] rounded-xl text-xs text-[#0A1B2E] dark:text-[#E1E8F0] placeholder-[#7A8CA6] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-2xs" />
+                    @if (!string.IsNullOrWhiteSpace(searchTerm))
+                    {
+                        <button type="button" @onclick="ClearSearch"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#7A8CA6] hover:text-[#0A1B2E] dark:hover:text-white text-xs font-bold cursor-pointer">
+                            &times;
+                        </button>
+                    }
+                </div>
+                <button type="button" @onclick="ExecuteSearch"
+                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Search</span>
+                </button>
+            </div>
+        </div>
+
         <!-- Summary Stat Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white dark:bg-[#112A46] p-4 rounded-xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-sm">
@@ -79,11 +105,20 @@
         </div>
 
         <!-- Hierarchy List -->
-        <div class="space-y-4">
-            @for (int i = 0; i < communities.Count; i++)
-            {
-                var c = communities[i];
-                var index = i + 1;
+        @if (!FilteredCommunities.Any())
+        {
+            <div class="bg-white dark:bg-[#112A46] rounded-2xl p-8 text-center border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
+                <p class="text-xs text-[#7A8CA6]">No communities found matching "@appliedSearchTerm"</p>
+            </div>
+        }
+        else
+        {
+            <div class="space-y-4">
+                @{ var cardIndex = 0; }
+                @foreach (var c in FilteredCommunities)
+                {
+                    cardIndex++;
+                    var index = cardIndex;
                 <div class="bg-white dark:bg-[#112A46] rounded-2xl border border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)] shadow-sm overflow-hidden transition">
                     <!-- Community Header Card -->
                     <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-50/80 to-transparent dark:from-[#0A1B2E]/60 dark:to-transparent border-b border-[#E2E8F0] dark:border-[rgba(196,210,225,0.12)]">
@@ -166,14 +201,52 @@
                         }
                     </div>
                 </div>
-            }
-        </div>
+                }
+            </div>
+        }
     }
 </div>
 
 @code {
     private bool isLoading = true;
     private IReadOnlyList<CommunityReportItemModel>? communities;
+    private string searchTerm = "";
+    private string appliedSearchTerm = "";
+
+
+
+    private IEnumerable<CommunityReportItemModel> FilteredCommunities =>
+
+        communities?
+
+            .Where(c => string.IsNullOrWhiteSpace(appliedSearchTerm) ||
+
+                        (c.Name != null && c.Name.Contains(appliedSearchTerm, StringComparison.OrdinalIgnoreCase)) ||
+
+                        (!string.IsNullOrWhiteSpace(c.Description) && c.Description.Contains(appliedSearchTerm, StringComparison.OrdinalIgnoreCase)) ||
+
+                        (c.SubCommunities != null && c.SubCommunities.Any(sc => sc.Name.Contains(appliedSearchTerm, StringComparison.OrdinalIgnoreCase))))
+
+        ?? Enumerable.Empty<CommunityReportItemModel>();
+
+    private void ExecuteSearch()
+    {
+        appliedSearchTerm = searchTerm.Trim();
+    }
+
+    private void ClearSearch()
+    {
+        searchTerm = "";
+        appliedSearchTerm = "";
+    }
+
+    private void HandleSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ExecuteSearch();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
